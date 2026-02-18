@@ -1,0 +1,56 @@
+general:
+  timezone: "Asia/Tokyo"
+  language: "ja"
+  log_level: "INFO"
+  monthly_api_budget_jpy: 50000
+
+quality_checker:
+  default_model: "claude-sonnet-4-20250514"
+  max_retries: 3
+  thresholds:
+    x_post: 84
+    report: 75
+    data_collection: 70
+
+system_a:
+  posts_per_day: 3
+  post_times: ["07:00", "12:00", "19:00"]
+  min_interval_hours: 3
+  pipeline_ratio:
+    pipeline1_jp_buzz: 40
+    pipeline2_data_driven: 35
+    pipeline3_ai_original: 25
+  pipeline_ratio_limits:
+    min_per_pipeline: 15
+    max_per_pipeline: 60
+    weekly_adjustment_max: 10
+  pipeline1:
+    api_provider: "twitterapi.io"
+    min_likes: 10000
+    languages: ["ja"]
+    lookback_hours: 72
+    max_results: 30
+  pipeline2:
+    trend_sources: ["google_trends", "yahoo_news", "mlit_updates", "rakumachi"]
+    system_c_integration: true
+  pipeline3:
+    theme_overlap_check_days: 30
+    max_same_sub_theme_per_month: 2
+
+system_b:
+  auto_delivery: true
+  notify_on_complete: true
+  pdf_template_header: "ROCKEDGE Property Management"
+  pdf_template_author: "HIROKI"
+
+system_c:
+  agents:
+    max_concurrent: 4
+    default_model: "claude-sonnet-4-20250514"
+  scraping:
+    rate_limit_per_second: 2
+    user_agent: "HIROKI-AI-Research/1.0"
+
+system_d:
+  results_posts_per_week: 4
+  target_pillars: [3, 5]

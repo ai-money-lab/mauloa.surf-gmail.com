@@ -1,0 +1,8 @@
+{
+  "name": "hiroki-ai-empire",
+  "version": "1.0.0",
+  "description": "HIROKI AI Empire - 4-system automated revenue platform",
+  "dependencies": {
+    "@mbelinky/x-mcp-server": "latest"
+  }
+}

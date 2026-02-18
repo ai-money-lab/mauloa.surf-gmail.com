@@ -1,0 +1,36 @@
+sources:
+  suumo:
+    type: web_scraper
+    base_url: "https://suumo.jp"
+    targets: [賃貸物件一覧, 売買物件一覧, 相場情報]
+    rate_limit: 2_requests_per_second
+
+  homes:
+    type: web_scraper
+    base_url: "https://www.homes.co.jp"
+    targets: [物件検索, 賃料相場, 地域情報]
+    rate_limit: 2_requests_per_second
+
+  mlit_stats:
+    type: api
+    url: "https://www.reinfolib.mlit.go.jp"
+    description: "国交省 不動産情報ライブラリ"
+    auth: none
+
+  chika_kouji:
+    type: api
+    url: "https://www.land.mlit.go.jp/webland/api/TradeListSearch"
+    description: "地価公示・都道府県地価調査"
+    auth: none
+
+  estat:
+    type: api
+    url: "https://api.e-stat.go.jp/rest/3.0/"
+    description: "政府統計ポータル e-Stat（人口動態等）"
+    auth: api_key
+
+  google_trends:
+    type: api
+    url: "https://trends.google.com"
+    description: "検索トレンド"
+    auth: none

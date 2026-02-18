@@ -1,0 +1,60 @@
+agents:
+  - name: "realestate_data_agent"
+    role: "不動産データリサーチャー"
+    goal: "指定エリアの物件情報・成約事例・地価データを網羅的に収集し構造化する"
+    backstory: "不動産のプロが必要とするデータを正確に収集する専門AI"
+    tools: [web_search, web_scraper, sheets_writer]
+    max_iterations: 10
+    verbose: true
+
+  - name: "market_analysis_agent"
+    role: "不動産マーケットアナリスト"
+    goal: "人口動態・金利・供給量から市場予測を行う"
+    backstory: "マクロ経済指標と不動産市場の相関を分析する専門AI"
+    tools: [web_search, data_analyzer, report_generator]
+    max_iterations: 15
+    verbose: true
+
+  - name: "regulation_watch_agent"
+    role: "不動産法規ウォッチャー"
+    goal: "法改正・新補助金・規制変更をリアルタイムでキャッチし影響を分析する"
+    backstory: "宅建業法から建築基準法まで監視する専門AI"
+    tools: [web_search, rss_monitor, alert_sender]
+    max_iterations: 5
+    verbose: true
+
+  - name: "tech_trend_agent"
+    role: "PropTechスカウト"
+    goal: "AI×不動産・MATTERPORT関連の最新技術動向を収集する"
+    backstory: "不動産テック最前線を追い続ける専門AI"
+    tools: [web_search, twitter_search, news_aggregator]
+    max_iterations: 8
+    verbose: true
+
+tasks:
+  area_analysis:
+    description: "指定エリアの物件相場・成約事例・人口動態・再開発情報を収集"
+    agents: [realestate_data_agent, market_analysis_agent]
+    output: "data/system_c/reports/area_{area}_{date}.json"
+
+  daily_watch:
+    description: "法改正・補助金・金利変動・新築供給の日次チェック"
+    agents: [regulation_watch_agent, market_analysis_agent]
+    output: "data/system_c/daily/market_watch_{date}.json"
+    schedule: "0 7 * * *"
+
+  weekly_tech:
+    description: "PropTech・AI×不動産の週次トレンドレポート"
+    agents: [tech_trend_agent]
+    output: "data/system_c/weekly/tech_trends_{date}.json"
+    schedule: "0 8 * * 1"
+
+  rental_valuation:
+    description: "指定物件の周辺賃料相場を収集し適正賃料を算出"
+    agents: [realestate_data_agent]
+    output: "data/system_c/valuations/rental_{property_id}_{date}.json"
+
+  renovation_cost:
+    description: "指定工事の相場調査・複数パターンの費用比較"
+    agents: [realestate_data_agent]
+    output: "data/system_c/costs/renovation_{job_id}_{date}.json"

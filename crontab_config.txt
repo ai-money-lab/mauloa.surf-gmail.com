@@ -1,0 +1,15 @@
+# ═══ HIROKI AI Empire — Cron Configuration ═══
+# Timezone: Asia/Tokyo (JST)
+# Update /path/to/hiroki-ai-empire to the actual project root.
+
+# ═══ System A: X Hybrid Posting Pipeline ═══
+0 6 * * *   cd /path/to/hiroki-ai-empire && python system_a/daily_pipeline.py
+0 21 * * *  cd /path/to/hiroki-ai-empire && python system_a/analyze_performance.py
+0 9 * * 1   cd /path/to/hiroki-ai-empire && python system_a/analyze_performance.py --weekly
+
+# ═══ System C: Data Collection Agents ═══
+0 7 * * *   cd /path/to/hiroki-ai-empire && python system_c/scheduler.py --task daily_watch
+0 8 * * 1   cd /path/to/hiroki-ai-empire && python system_c/scheduler.py --task weekly_tech
+
+# ═══ System D: Results Publishing ═══
+0 20 * * 5  cd /path/to/hiroki-ai-empire && python system_d/generate_results_content.py
