@@ -1,0 +1,92 @@
+# GitHub Actions — 問い合わせBot 自動テスト & デプロイ
+# mainブランチへのpushで自動発火
+
+name: Bot CI/CD
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'inquiry_bot/**'
+      - 'core/**'
+      - 'prompts/inquiry_bot_system.txt'
+      - 'requirements.txt'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'inquiry_bot/**'
+      - 'core/**'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run tests
+        run: pytest tests/ -v --tb=short
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+
+      - name: Lint check
+        run: |
+          pip install ruff
+          ruff check inquiry_bot/ core/ --select E,W,F --ignore E501
+
+  deploy-render:
+    needs: test
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to Render
+        run: |
+          curl -X POST "${{ secrets.RENDER_DEPLOY_HOOK_URL }}" \
+            -H "Content-Type: application/json" \
+            -d '{}' \
+            --fail --silent --show-error
+        # Render Deploy Hook URL: Settings > Deploy Hook から取得して
+        # GitHub Secrets に RENDER_DEPLOY_HOOK_URL として登録
+
+      - name: Notify deployment
+        if: success()
+        run: |
+          curl -X POST "${{ secrets.SLACK_WEBHOOK_URL }}" \
+            -H 'Content-Type: application/json' \
+            -d '{"text":"✅ 問い合わせBot デプロイ完了 (commit: ${{ github.sha }})"}'
+        continue-on-error: true
+
+  # FAQ/物件データ変更時の自動検証
+  validate-data:
+    runs-on: ubuntu-latest
+    if: |
+      contains(github.event.head_commit.modified, 'faq_data.yaml') ||
+      contains(github.event.head_commit.modified, 'properties.yaml')
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Validate YAML files
+        run: |
+          pip install pyyaml
+          python -c "
+          import yaml, sys
+          files = ['inquiry_bot/faq_data.yaml', 'inquiry_bot/properties.yaml']
+          for f in files:
+              try:
+                  data = yaml.safe_load(open(f))
+                  print(f'✅ {f}: valid ({len(str(data))} chars)')
+              except Exception as e:
+                  print(f'❌ {f}: {e}')
+                  sys.exit(1)
+          "

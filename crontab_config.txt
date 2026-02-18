@@ -1,15 +1,27 @@
 # ═══ HIROKI AI Empire — Cron Configuration ═══
 # Timezone: Asia/Tokyo (JST)
 # Update /path/to/hiroki-ai-empire to the actual project root.
+#
+# 一括登録: make cron-install
 
 # ═══ System A: X Hybrid Posting Pipeline ═══
-0 6 * * *   cd /path/to/hiroki-ai-empire && python system_a/daily_pipeline.py
-0 21 * * *  cd /path/to/hiroki-ai-empire && python system_a/analyze_performance.py
-0 9 * * 1   cd /path/to/hiroki-ai-empire && python system_a/analyze_performance.py --weekly
+0 6 * * *   cd /path/to/hiroki-ai-empire && python system_a/daily_pipeline.py >> data/cron.log 2>&1
+0 21 * * *  cd /path/to/hiroki-ai-empire && python system_a/analyze_performance.py >> data/cron.log 2>&1
+0 9 * * 1   cd /path/to/hiroki-ai-empire && python system_a/analyze_performance.py --weekly >> data/cron.log 2>&1
 
 # ═══ System C: Data Collection Agents ═══
-0 7 * * *   cd /path/to/hiroki-ai-empire && python system_c/scheduler.py --task daily_watch
-0 8 * * 1   cd /path/to/hiroki-ai-empire && python system_c/scheduler.py --task weekly_tech
+0 7 * * *   cd /path/to/hiroki-ai-empire && python system_c/scheduler.py --task daily_watch >> data/cron.log 2>&1
+0 8 * * 1   cd /path/to/hiroki-ai-empire && python system_c/scheduler.py --task weekly_tech >> data/cron.log 2>&1
 
 # ═══ System D: Results Publishing ═══
-0 20 * * 5  cd /path/to/hiroki-ai-empire && python system_d/generate_results_content.py
+0 20 * * 5  cd /path/to/hiroki-ai-empire && python system_d/generate_results_content.py >> data/cron.log 2>&1
+
+# ═══ 問い合わせBot 自動化タスク ═══
+# 日次レポート送信（毎日21時）
+0 21 * * *  cd /path/to/hiroki-ai-empire && python -m inquiry_bot.scheduler daily_report >> data/cron.log 2>&1
+# ヘルスチェック（5分毎 → サーバーダウン検知 → 自動通知）
+*/5 * * * * cd /path/to/hiroki-ai-empire && python -m inquiry_bot.scheduler health_check >> data/cron.log 2>&1
+# FAQ更新提案チェック（月曜9時 → 低信頼度質問パターン通知）
+0 9 * * 1   cd /path/to/hiroki-ai-empire && python -m inquiry_bot.scheduler faq_update_check >> data/cron.log 2>&1
+# X投稿案生成（金曜19時 → 実績データ→X投稿ドラフト）
+0 19 * * 5  cd /path/to/hiroki-ai-empire && python -m inquiry_bot.scheduler results_to_x >> data/cron.log 2>&1
