@@ -1,0 +1,26 @@
+# Render.com Blueprint — 問い合わせBot自動デプロイ
+# https://render.com/docs/blueprint-spec
+
+services:
+  - type: web
+    name: rockedge-inquiry-bot
+    runtime: python
+    plan: starter  # $7/月（512MB RAM, 0.5 CPU）
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn inquiry_bot.server:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /api/health
+    envVars:
+      - key: ANTHROPIC_API_KEY
+        sync: false  # 手動で設定
+      - key: LINE_CHANNEL_SECRET
+        sync: false
+      - key: LINE_CHANNEL_ACCESS_TOKEN
+        sync: false
+      - key: LINE_NOTIFY_TOKEN
+        sync: false
+      - key: SLACK_WEBHOOK_URL
+        sync: false
+      - key: INQUIRY_BOT_SHEET_ID
+        sync: false
+      - key: PYTHON_VERSION
+        value: "3.12.0"
