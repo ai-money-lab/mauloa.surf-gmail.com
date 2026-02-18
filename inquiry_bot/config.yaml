@@ -1,0 +1,125 @@
+# ═══════════════════════════════════════════════════════════
+# 問い合わせ自動対応Bot — 設定ファイル
+# ROCKEDGE Property Management 自社用 + 商品化テンプレート
+# ═══════════════════════════════════════════════════════════
+
+bot:
+  name: "ROCKEDGE AIアシスタント"
+  model: "claude-sonnet-4-20250514"
+  max_tokens: 1024
+  temperature: 0.4
+  # 応答時間の目標（秒）
+  target_response_time: 3
+  # 会話履歴の保持数（直近N往復）
+  conversation_history_limit: 20
+  # 営業時間外の自動応答
+  business_hours:
+    start: "09:00"
+    end: "18:00"
+    timezone: "Asia/Tokyo"
+    after_hours_message: >
+      お問い合わせありがとうございます。
+      現在営業時間外のため、翌営業日に担当者よりご連絡いたします。
+      なお、よくあるご質問にはAIアシスタントがお答えできますので、
+      お気軽にご質問ください。
+
+# LINE Messaging API設定
+line:
+  channel_secret_env: "LINE_CHANNEL_SECRET"
+  channel_access_token_env: "LINE_CHANNEL_ACCESS_TOKEN"
+  # リッチメニューID（設定済みの場合）
+  rich_menu_id: ""
+  # Webhook URL: https://{your-domain}/webhook/line
+
+# Webチャットウィジェット設定
+web_chat:
+  # APIサーバー設定
+  host: "0.0.0.0"
+  port: 8080
+  # CORS許可ドメイン（本番では制限する）
+  cors_origins:
+    - "https://rockedge.jp"
+    - "http://localhost:3000"
+  # ウィジェットの外観
+  widget:
+    title: "ROCKEDGE AIアシスタント"
+    subtitle: "物件のご質問にお答えします"
+    primary_color: "#1a1a2e"
+    accent_color: "#e94560"
+    position: "bottom-right"
+    welcome_message: >
+      こんにちは！ROCKEDGE Property ManagementのAIアシスタントです。
+      物件に関するご質問、内見予約、空室確認など何でもお気軽にどうぞ。
+
+# エスカレーション設定
+escalation:
+  # 人間対応に切り替える条件
+  triggers:
+    - keyword: "クレーム"
+    - keyword: "契約解除"
+    - keyword: "訴訟"
+    - keyword: "弁護士"
+    - keyword: "人間と話したい"
+    - keyword: "担当者"
+    - sentiment: "very_negative"
+    - condition: "3回以上の再質問"
+  # エスカレーション時の通知先
+  notify_channels:
+    - "line_notify"
+    - "slack"
+  escalation_message: >
+    申し訳ございません。ご質問の内容について、担当者より直接ご連絡いたします。
+    通常30分以内にお返事差し上げますので、少々お待ちくださいませ。
+
+# 対応カテゴリ
+categories:
+  - id: "vacancy"
+    name: "空室確認"
+    description: "物件の空き状況確認"
+    priority: "high"
+    auto_rate: 95  # 自動応答率（%）
+  - id: "viewing"
+    name: "内見予約"
+    description: "内見の日程調整・予約受付"
+    priority: "high"
+    auto_rate: 80
+  - id: "rent_inquiry"
+    name: "賃料・費用"
+    description: "賃料、管理費、初期費用に関する質問"
+    priority: "medium"
+    auto_rate: 90
+  - id: "facility"
+    name: "設備・仕様"
+    description: "物件の設備、間取り、築年数など"
+    priority: "medium"
+    auto_rate: 95
+  - id: "contract"
+    name: "契約関連"
+    description: "契約条件、審査、必要書類など"
+    priority: "medium"
+    auto_rate: 70
+  - id: "maintenance"
+    name: "修繕・設備故障"
+    description: "入居者からの修繕依頼、設備トラブル"
+    priority: "high"
+    auto_rate: 60
+  - id: "general"
+    name: "その他"
+    description: "上記に該当しない一般的なお問い合わせ"
+    priority: "low"
+    auto_rate: 85
+
+# 分析・レポート設定
+analytics:
+  # 日次レポートの送信
+  daily_report: true
+  daily_report_time: "21:00"
+  # 記録する項目
+  track:
+    - response_time
+    - category_distribution
+    - escalation_rate
+    - satisfaction_score
+    - faq_hit_rate
+  # Google Sheets連携
+  spreadsheet_id_env: "INQUIRY_BOT_SHEET_ID"

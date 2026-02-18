@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ROCKEDGE AIアシスタント</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Hiragino Sans', 'Noto Sans JP', sans-serif;
+      background: #f0f2f5;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    /* ═══ チャットコンテナ ═══ */
+    .chat-container {
+      width: 400px;
+      max-width: 95vw;
+      height: 600px;
+      max-height: 90vh;
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* ═══ ヘッダー ═══ */
+    .chat-header {
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      color: #fff;
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .chat-header-icon {
+      width: 40px;
+      height: 40px;
+      background: #e94560;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+
+    .chat-header-text h3 {
+      font-size: 15px;
+      font-weight: 600;
+    }
+
+    .chat-header-text p {
+      font-size: 12px;
+      opacity: 0.8;
+      margin-top: 2px;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      background: #4ade80;
+      border-radius: 50%;
+      margin-left: auto;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    /* ═══ メッセージエリア ═══ */
+    .chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .message {
+      max-width: 80%;
+      padding: 10px 14px;
+      border-radius: 16px;
+      font-size: 14px;
+      line-height: 1.5;
+      word-wrap: break-word;
+      white-space: pre-wrap;
+    }
+
+    .message-bot {
+      align-self: flex-start;
+      background: #f0f2f5;
+      color: #1a1a2e;
+      border-bottom-left-radius: 4px;
+    }
+
+    .message-user {
+      align-self: flex-end;
+      background: linear-gradient(135deg, #e94560, #c23152);
+      color: #fff;
+      border-bottom-right-radius: 4px;
+    }
+
+    .message-time {
+      font-size: 11px;
+      opacity: 0.6;
+      margin-top: 4px;
+    }
+
+    .message-bot .message-time { text-align: left; }
+    .message-user .message-time { text-align: right; }
+
+    /* タイピングインジケータ */
+    .typing-indicator {
+      align-self: flex-start;
+      background: #f0f2f5;
+      padding: 12px 16px;
+      border-radius: 16px;
+      border-bottom-left-radius: 4px;
+      display: none;
+    }
+
+    .typing-indicator.active { display: flex; gap: 4px; }
+
+    .typing-dot {
+      width: 8px;
+      height: 8px;
+      background: #adb5bd;
+      border-radius: 50%;
+      animation: typing 1.4s infinite;
+    }
+
+    .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+    .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+    @keyframes typing {
+      0%, 60%, 100% { transform: translateY(0); }
+      30% { transform: translateY(-6px); }
+    }
+
+    /* ═══ 入力エリア ═══ */
+    .chat-input-area {
+      padding: 12px 16px;
+      border-top: 1px solid #e9ecef;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .chat-input {
+      flex: 1;
+      padding: 10px 14px;
+      border: 1px solid #dee2e6;
+      border-radius: 24px;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s;
+      font-family: inherit;
+    }
+
+    .chat-input:focus { border-color: #e94560; }
+
+    .chat-send-btn {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, #e94560, #c23152);
+      border: none;
+      border-radius: 50%;
+      color: #fff;
+      font-size: 16px;
+      cursor: pointer;
+      transition: transform 0.15s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .chat-send-btn:hover { transform: scale(1.05); }
+    .chat-send-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* ═══ クイックリプライ ═══ */
+    .quick-replies {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      padding: 0 16px 8px;
+    }
+
+    .quick-reply-btn {
+      padding: 6px 14px;
+      border: 1px solid #e94560;
+      border-radius: 16px;
+      background: #fff;
+      color: #e94560;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: inherit;
+    }
+
+    .quick-reply-btn:hover {
+      background: #e94560;
+      color: #fff;
+    }
+
+    /* ═══ スクロールバー ═══ */
+    .chat-messages::-webkit-scrollbar { width: 4px; }
+    .chat-messages::-webkit-scrollbar-track { background: transparent; }
+    .chat-messages::-webkit-scrollbar-thumb { background: #dee2e6; border-radius: 2px; }
+  </style>
+</head>
+<body>
+
+<div class="chat-container">
+  <div class="chat-header">
+    <div class="chat-header-icon">R</div>
+    <div class="chat-header-text">
+      <h3 id="header-title">ROCKEDGE AIアシスタント</h3>
+      <p id="header-subtitle">物件のご質問にお答えします</p>
+    </div>
+    <div class="status-dot"></div>
+  </div>
+
+  <div class="chat-messages" id="chatMessages">
+    <!-- メッセージがここに追加される -->
+    <div class="typing-indicator" id="typingIndicator">
+      <div class="typing-dot"></div>
+      <div class="typing-dot"></div>
+      <div class="typing-dot"></div>
+    </div>
+  </div>
+
+  <div class="quick-replies" id="quickReplies">
+    <button class="quick-reply-btn" onclick="sendQuickReply('空室を確認したい')">空室確認</button>
+    <button class="quick-reply-btn" onclick="sendQuickReply('内見を予約したい')">内見予約</button>
+    <button class="quick-reply-btn" onclick="sendQuickReply('賃料を教えてください')">賃料・費用</button>
+    <button class="quick-reply-btn" onclick="sendQuickReply('設備について教えてください')">設備・仕様</button>
+  </div>
+
+  <div class="chat-input-area">
+    <input
+      type="text"
+      class="chat-input"
+      id="chatInput"
+      placeholder="メッセージを入力..."
+      autocomplete="off"
+    >
+    <button class="chat-send-btn" id="sendBtn" onclick="sendMessage()">
+      &#10148;
+    </button>
+  </div>
+</div>
+
+<script>
+  // ═══ 設定 ═══
+  const API_BASE = window.INQUIRY_BOT_API || '';
+  let sessionId = null;
+
+  // ═══ 初期化 ═══
+  document.addEventListener('DOMContentLoaded', async () => {
+    // ウィジェット設定を取得
+    try {
+      const res = await fetch(`${API_BASE}/api/widget-config`);
+      if (res.ok) {
+        const cfg = await res.json();
+        document.getElementById('header-title').textContent = cfg.title || 'AIアシスタント';
+        document.getElementById('header-subtitle').textContent = cfg.subtitle || '';
+        if (cfg.welcomeMessage) {
+          addMessage(cfg.welcomeMessage, 'bot');
+        }
+      }
+    } catch {
+      addMessage(
+        'こんにちは！ROCKEDGE Property ManagementのAIアシスタントです。\n' +
+        '物件に関するご質問、内見予約、空室確認など何でもお気軽にどうぞ。',
+        'bot'
+      );
+    }
+
+    // Enterキーで送信
+    document.getElementById('chatInput').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+      }
+    });
+  });
+
+  // ═══ メッセージ送信 ═══
+  async function sendMessage() {
+    const input = document.getElementById('chatInput');
+    const text = input.value.trim();
+    if (!text) return;
+
+    input.value = '';
+    addMessage(text, 'user');
+    hideQuickReplies();
+    showTyping(true);
+
+    try {
+      const res = await fetch(`${API_BASE}/api/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: text,
+          session_id: sessionId,
+        }),
+      });
+
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+      const data = await res.json();
+      sessionId = data.session_id;
+      showTyping(false);
+      addMessage(data.reply, 'bot');
+
+      // カテゴリに応じたクイックリプライ表示
+      if (data.category === 'vacancy') {
+        showQuickReplies(['内見を予約したい', '他に空きはありますか？', '初期費用を教えて']);
+      } else if (data.category === 'viewing') {
+        showQuickReplies(['3Dバーチャルツアー希望', '今週末に内見したい', '他の物件も見たい']);
+      }
+
+    } catch (err) {
+      showTyping(false);
+      addMessage(
+        '申し訳ございません。通信エラーが発生しました。\nしばらく経ってから再度お試しください。',
+        'bot'
+      );
+      console.error('Chat error:', err);
+    }
+  }
+
+  // ═══ クイックリプライ ═══
+  function sendQuickReply(text) {
+    document.getElementById('chatInput').value = text;
+    sendMessage();
+  }
+
+  function showQuickReplies(options) {
+    const container = document.getElementById('quickReplies');
+    container.innerHTML = '';
+    options.forEach(text => {
+      const btn = document.createElement('button');
+      btn.className = 'quick-reply-btn';
+      btn.textContent = text;
+      btn.onclick = () => sendQuickReply(text);
+      container.appendChild(btn);
+    });
+    container.style.display = 'flex';
+  }
+
+  function hideQuickReplies() {
+    document.getElementById('quickReplies').style.display = 'none';
+  }
+
+  // ═══ メッセージ表示 ═══
+  function addMessage(text, sender) {
+    const messages = document.getElementById('chatMessages');
+    const typing = document.getElementById('typingIndicator');
+
+    const div = document.createElement('div');
+    div.className = `message message-${sender}`;
+
+    const now = new Date();
+    const time = now.toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' });
+
+    div.innerHTML = `${escapeHtml(text)}<div class="message-time">${time}</div>`;
+    messages.insertBefore(div, typing);
+    messages.scrollTop = messages.scrollHeight;
+  }
+
+  // ═══ タイピングインジケータ ═══
+  function showTyping(show) {
+    const el = document.getElementById('typingIndicator');
+    el.className = show ? 'typing-indicator active' : 'typing-indicator';
+    document.getElementById('sendBtn').disabled = show;
+    if (show) {
+      const messages = document.getElementById('chatMessages');
+      messages.scrollTop = messages.scrollHeight;
+    }
+  }
+
+  // ═══ XSS対策 ═══
+  function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+</script>
+
+</body>
+</html>

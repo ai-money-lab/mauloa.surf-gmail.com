@@ -54,3 +54,11 @@ system_c:
 system_d:
   results_posts_per_week: 4
   target_pillars: [3, 5]
+
+inquiry_bot:
+  enabled: true
+  server_port: 8080
+  model: "claude-sonnet-4-20250514"
+  channels: ["line", "web"]
+  daily_report_time: "21:00"
+  escalation_notify: ["line_notify", "slack"]

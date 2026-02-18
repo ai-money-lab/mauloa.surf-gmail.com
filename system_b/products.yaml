@@ -96,6 +96,28 @@ products:
     template: "special_cleaning_report.md"
     output_format: "pdf"
 
+  # ═══ Tier 2: 問い合わせ自動対応Bot ═══
+  - id: "tier2_inquiry_bot"
+    name: "問い合わせ自動対応Bot構築（LINE + Webチャット）"
+    price_range: [100000, 300000]
+    description: "LINE公式アカウント/Webサイトに設置するAI自動応答Botの構築・納品"
+    deliverables:
+      - AI応答エンジンの構築・カスタマイズ
+      - FAQ/ナレッジベースの作成（業種に合わせた50問〜）
+      - LINE公式アカウント連携設定
+      - Webサイト埋め込みチャットウィジェット
+      - エスカレーション（人間引き継ぎ）機能
+      - n8nワークフロー設定（通知・記録の自動化）
+      - Google Sheets連携（問い合わせログ自動記録）
+      - 導入マニュアル（PDF）
+      - 初回設定サポート（Zoom 1時間）
+    crew_tasks: []
+    auto_rate: 70
+    quality_profile: "report"
+    template: "inquiry_bot_report.md"
+    output_format: "system_deployment"
+    tags: ["ai_agent", "line_bot", "web_chat", "automation"]
+
   # ═══ Tier 3: 低単価・量産（1-3万円/月） ═══
   - id: "tier3_sns_management"
     name: "不動産会社向けSNS投稿代行"

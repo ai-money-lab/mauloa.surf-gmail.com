@@ -1,0 +1,274 @@
+{
+  "name": "問い合わせBot自動化ワークフロー",
+  "description": "LINE/Web問い合わせ→AI応答→エスカレーション通知→日次レポートの自動化",
+  "nodes": [
+    {
+      "id": "webhook_line",
+      "name": "LINE Webhook受信",
+      "type": "n8n-nodes-base.webhook",
+      "position": [100, 200],
+      "parameters": {
+        "path": "webhook/line",
+        "httpMethod": "POST",
+        "responseMode": "responseNode"
+      },
+      "notes": "LINE Messaging APIからのWebhookを受信。X-Line-Signatureヘッダーで署名検証。"
+    },
+    {
+      "id": "verify_signature",
+      "name": "LINE署名検証",
+      "type": "n8n-nodes-base.code",
+      "position": [300, 200],
+      "parameters": {
+        "jsCode": "// LINE Webhook署名検証\nconst crypto = require('crypto');\nconst channelSecret = $env.LINE_CHANNEL_SECRET;\nconst signature = $input.first().headers['x-line-signature'];\nconst body = JSON.stringify($input.first().body);\n\nconst hash = crypto.createHmac('SHA256', channelSecret)\n  .update(body).digest('base64');\n\nif (hash !== signature) {\n  throw new Error('Invalid LINE signature');\n}\n\nreturn $input.all();"
+      }
+    },
+    {
+      "id": "parse_line_event",
+      "name": "LINEイベント解析",
+      "type": "n8n-nodes-base.code",
+      "position": [500, 200],
+      "parameters": {
+        "jsCode": "// LINEイベントからメッセージを抽出\nconst events = $input.first().json.body.events;\nconst results = [];\n\nfor (const event of events) {\n  if (event.type === 'message' && event.message.type === 'text') {\n    results.push({\n      json: {\n        channel: 'line',\n        userId: event.source.userId,\n        sessionId: `line_${event.source.userId}`,\n        message: event.message.text,\n        replyToken: event.replyToken,\n        timestamp: event.timestamp\n      }\n    });\n  }\n}\n\nreturn results;"
+      }
+    },
+    {
+      "id": "bot_api_call",
+      "name": "Bot API呼び出し",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [700, 300],
+      "parameters": {
+        "url": "http://localhost:8080/api/chat",
+        "method": "POST",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "message",
+              "value": "={{ $json.message }}"
+            },
+            {
+              "name": "session_id",
+              "value": "={{ $json.sessionId }}"
+            }
+          ]
+        }
+      },
+      "notes": "FastAPI Bot APIにメッセージを送信して応答を取得"
+    },
+    {
+      "id": "check_escalation",
+      "name": "エスカレーション判定",
+      "type": "n8n-nodes-base.if",
+      "position": [900, 300],
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.escalated }}",
+              "value2": true
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "send_line_reply",
+      "name": "LINE返信送信",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [1100, 200],
+      "parameters": {
+        "url": "https://api.line.me/v2/bot/message/reply",
+        "method": "POST",
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer {{ $env.LINE_CHANNEL_ACCESS_TOKEN }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"replyToken\": \"{{ $('parse_line_event').json.replyToken }}\",\n  \"messages\": [\n    {\n      \"type\": \"text\",\n      \"text\": \"{{ $json.reply }}\"\n    }\n  ]\n}"
+      }
+    },
+    {
+      "id": "escalation_notify_slack",
+      "name": "Slackエスカレーション通知",
+      "type": "n8n-nodes-base.slack",
+      "position": [1100, 400],
+      "parameters": {
+        "channel": "#inquiry-bot-alerts",
+        "text": "=:rotating_light: *エスカレーション発生*\n\nチャネル: {{ $('parse_line_event').json.channel }}\nユーザー: {{ $('parse_line_event').json.userId }}\nメッセージ: {{ $('parse_line_event').json.message }}\nBot応答: {{ $json.reply }}\n\n対応が必要です。"
+      },
+      "notes": "エスカレーション時にSlackに通知"
+    },
+    {
+      "id": "escalation_notify_line",
+      "name": "LINE Notifyエスカレーション通知",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [1100, 500],
+      "parameters": {
+        "url": "https://notify-api.line.me/api/notify",
+        "method": "POST",
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer {{ $env.LINE_NOTIFY_TOKEN }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "form-urlencoded",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "message",
+              "value": "=\n🚨 エスカレーション発生\nユーザー: {{ $('parse_line_event').json.userId }}\nメッセージ: {{ $('parse_line_event').json.message }}"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "log_to_sheets",
+      "name": "Google Sheets記録",
+      "type": "n8n-nodes-base.googleSheets",
+      "position": [1300, 300],
+      "parameters": {
+        "operation": "append",
+        "documentId": "={{ $env.INQUIRY_BOT_SHEET_ID }}",
+        "sheetName": "inquiry_log",
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "timestamp": "={{ new Date().toISOString() }}",
+            "channel": "={{ $('parse_line_event').json.channel }}",
+            "user_id": "={{ $('parse_line_event').json.userId }}",
+            "message": "={{ $('parse_line_event').json.message }}",
+            "reply": "={{ $('bot_api_call').json.reply }}",
+            "category": "={{ $('bot_api_call').json.category }}",
+            "escalated": "={{ $('bot_api_call').json.escalated }}"
+          }
+        }
+      },
+      "notes": "全ての問い合わせをGoogle Sheetsに記録"
+    },
+    {
+      "id": "daily_report_trigger",
+      "name": "日次レポートトリガー",
+      "type": "n8n-nodes-base.cron",
+      "position": [100, 600],
+      "parameters": {
+        "triggerTimes": {
+          "item": [
+            {
+              "hour": 21,
+              "minute": 0
+            }
+          ]
+        }
+      },
+      "notes": "毎日21:00に日次レポートを生成"
+    },
+    {
+      "id": "fetch_daily_stats",
+      "name": "日次統計取得",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [300, 600],
+      "parameters": {
+        "url": "http://localhost:8080/api/analytics",
+        "method": "GET"
+      }
+    },
+    {
+      "id": "format_daily_report",
+      "name": "日次レポート整形",
+      "type": "n8n-nodes-base.code",
+      "position": [500, 600],
+      "parameters": {
+        "jsCode": "const stats = $input.first().json;\nconst today = new Date().toLocaleDateString('ja-JP');\n\nconst report = `📊 問い合わせBot日次レポート (${today})\n\n総セッション数: ${stats.total_sessions || 0}\nアクティブ: ${stats.active_sessions || 0}\nエスカレーション: ${stats.escalated_sessions || 0}\n総メッセージ数: ${stats.total_messages || 0}\n\nチャネル別:\n  LINE: ${stats.channels?.line || 0}\n  Web: ${stats.channels?.web || 0}\n\nカテゴリ別:\n${Object.entries(stats.categories || {}).map(([k, v]) => `  ${k}: ${v}`).join('\\n')}`;\n\nreturn [{ json: { report } }];"
+      }
+    },
+    {
+      "id": "send_daily_report",
+      "name": "日次レポート送信",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [700, 600],
+      "parameters": {
+        "url": "https://notify-api.line.me/api/notify",
+        "method": "POST",
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer {{ $env.LINE_NOTIFY_TOKEN }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "form-urlencoded",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "message",
+              "value": "={{ $json.report }}"
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "connections": {
+    "webhook_line": {
+      "main": [
+        [{ "node": "verify_signature", "type": "main", "index": 0 }]
+      ]
+    },
+    "verify_signature": {
+      "main": [
+        [{ "node": "parse_line_event", "type": "main", "index": 0 }]
+      ]
+    },
+    "parse_line_event": {
+      "main": [
+        [{ "node": "bot_api_call", "type": "main", "index": 0 }]
+      ]
+    },
+    "bot_api_call": {
+      "main": [
+        [
+          { "node": "check_escalation", "type": "main", "index": 0 },
+          { "node": "send_line_reply", "type": "main", "index": 0 },
+          { "node": "log_to_sheets", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "check_escalation": {
+      "main": [
+        [
+          { "node": "escalation_notify_slack", "type": "main", "index": 0 },
+          { "node": "escalation_notify_line", "type": "main", "index": 0 }
+        ],
+        []
+      ]
+    },
+    "daily_report_trigger": {
+      "main": [
+        [{ "node": "fetch_daily_stats", "type": "main", "index": 0 }]
+      ]
+    },
+    "fetch_daily_stats": {
+      "main": [
+        [{ "node": "format_daily_report", "type": "main", "index": 0 }]
+      ]
+    },
+    "format_daily_report": {
+      "main": [
+        [{ "node": "send_daily_report", "type": "main", "index": 0 }]
+      ]
+    }
+  }
+}

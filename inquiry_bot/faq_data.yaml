@@ -1,0 +1,302 @@
+# ═══════════════════════════════════════════════════════════
+# 不動産問い合わせFAQデータベース
+# ROCKEDGE Property Management
+# ═══════════════════════════════════════════════════════════
+# 使い方:
+#   - 各FAQにはカテゴリ、質問パターン、回答テンプレートを定義
+#   - {property_name} などの変数はナレッジベースから動的に置換
+#   - クライアント納品時は会社情報を差し替えて使用
+
+company:
+  name: "ROCKEDGE Property Management"
+  phone: "000-0000-0000"
+  email: "info@rockedge.jp"
+  business_hours: "9:00〜18:00（水曜定休）"
+  address: "（事務所住所を設定）"
+
+faq:
+  # ═══ 空室確認 ═══
+  - id: "vacancy_check"
+    category: "vacancy"
+    patterns:
+      - "空いていますか"
+      - "空室ありますか"
+      - "まだ募集してますか"
+      - "入居可能ですか"
+      - "いつから入れますか"
+    answer: >
+      お問い合わせありがとうございます。
+      {property_name}の空室状況をお調べいたします。
+
+      現在の空室状況: {vacancy_status}
+      入居可能日: {available_date}
+
+      詳しい条件や内見のご希望がございましたら、お気軽にお申し付けください。
+    requires_data: ["property_name", "vacancy_status", "available_date"]
+
+  - id: "vacancy_similar"
+    category: "vacancy"
+    patterns:
+      - "似たような物件ありますか"
+      - "他に空きはありますか"
+      - "近くで探してます"
+      - "条件に合う物件"
+    answer: >
+      ご希望のエリア・条件に近い物件をお探しいたします。
+
+      以下の条件を教えていただけますか？
+      ・ご希望エリア（駅名や地域名）
+      ・間取り（1K、2LDKなど）
+      ・賃料の目安（〇万円以内など）
+      ・その他のご希望（ペット可、駐車場付きなど）
+    requires_data: []
+
+  # ═══ 内見予約 ═══
+  - id: "viewing_request"
+    category: "viewing"
+    patterns:
+      - "内見したい"
+      - "見学できますか"
+      - "内覧"
+      - "実際に見たい"
+      - "部屋を見せて"
+    answer: >
+      内見のご希望ありがとうございます！
+
+      {property_name}の内見をご案内いたします。
+
+      ご希望の日時を2〜3候補お知らせいただけますか？
+      ※ 現地集合 or 弊社からご案内、どちらでも対応可能です。
+
+      なお、MATTERPORT 3Dバーチャルツアーもご用意しております。
+      まずはオンラインで内覧されたい場合はお申し付けください。
+    requires_data: ["property_name"]
+
+  - id: "viewing_online"
+    category: "viewing"
+    patterns:
+      - "オンライン内見"
+      - "リモートで見たい"
+      - "3D"
+      - "バーチャル"
+      - "MATTERPORT"
+    answer: >
+      オンライン内見に対応しております！
+
+      MATTERPORT 3Dバーチャルツアーで、ご自宅からいつでも
+      実際の部屋を360度ご覧いただけます。
+
+      ご希望の物件名をお知らせいただければ、
+      ツアーリンクをお送りいたします。
+    requires_data: []
+
+  # ═══ 賃料・費用 ═══
+  - id: "rent_amount"
+    category: "rent_inquiry"
+    patterns:
+      - "家賃はいくら"
+      - "賃料"
+      - "いくらですか"
+      - "月々の費用"
+      - "月額"
+    answer: >
+      {property_name}の費用内訳です。
+
+      ・賃料: {rent}円/月
+      ・管理費/共益費: {management_fee}円/月
+      ・合計: {total_monthly}円/月
+
+      ※ 上記は募集条件です。ご不明点があればお気軽にどうぞ。
+    requires_data: ["property_name", "rent", "management_fee", "total_monthly"]
+
+  - id: "initial_cost"
+    category: "rent_inquiry"
+    patterns:
+      - "初期費用"
+      - "敷金"
+      - "礼金"
+      - "仲介手数料"
+      - "引っ越し費用"
+      - "いくら必要"
+    answer: >
+      {property_name}の初期費用の目安です。
+
+      ・敷金: {deposit}
+      ・礼金: {key_money}
+      ・仲介手数料: {brokerage_fee}
+      ・前家賃: {advance_rent}
+      ・火災保険: 約15,000〜20,000円
+      ・保証会社利用料: 賃料の0.5〜1ヶ月分
+      ───────────────
+      合計目安: {total_initial_cost}
+
+      ※ 物件により条件が異なる場合がございます。
+      詳細は担当者よりご案内いたします。
+    requires_data: ["property_name", "deposit", "key_money", "brokerage_fee", "advance_rent", "total_initial_cost"]
+
+  # ═══ 設備・仕様 ═══
+  - id: "facility_info"
+    category: "facility"
+    patterns:
+      - "設備"
+      - "エアコン"
+      - "洗濯機"
+      - "インターネット"
+      - "WiFi"
+      - "ガス"
+      - "オール電化"
+      - "浴室乾燥"
+    answer: >
+      {property_name}の主な設備です。
+
+      {facility_list}
+
+      その他の設備について詳しくお知りになりたい場合は、
+      お気軽にご質問ください。
+    requires_data: ["property_name", "facility_list"]
+
+  - id: "pet_policy"
+    category: "facility"
+    patterns:
+      - "ペット"
+      - "犬"
+      - "猫"
+      - "動物"
+      - "ペット可"
+      - "ペット飼える"
+    answer: >
+      ペットの飼育についてですね。
+
+      {property_name}のペット飼育条件:
+      {pet_policy}
+
+      ※ ペット飼育の場合、追加の敷金や条件が発生する場合がございます。
+      詳しくはお問い合わせください。
+    requires_data: ["property_name", "pet_policy"]
+
+  - id: "parking"
+    category: "facility"
+    patterns:
+      - "駐車場"
+      - "駐輪場"
+      - "バイク置き場"
+      - "車"
+    answer: >
+      {property_name}の駐車場情報です。
+
+      ・駐車場: {parking_info}
+      ・駐輪場: {bicycle_parking_info}
+
+      空き状況は変動しますので、最新情報は担当者にご確認ください。
+    requires_data: ["property_name", "parking_info", "bicycle_parking_info"]
+
+  # ═══ 契約関連 ═══
+  - id: "application_process"
+    category: "contract"
+    patterns:
+      - "申し込み方法"
+      - "どうやって契約"
+      - "審査"
+      - "入居審査"
+      - "必要書類"
+    answer: >
+      お申し込みの流れをご案内いたします。
+
+      1. 内見・物件確認
+      2. 入居申込書のご記入（オンライン対応可）
+      3. 入居審査（通常3〜7営業日）
+      4. 重要事項説明・契約締結
+      5. 初期費用のお支払い
+      6. 鍵のお渡し・ご入居
+
+      【必要書類】
+      ・本人確認書類（運転免許証など）
+      ・収入証明書（源泉徴収票/直近3ヶ月の給与明細）
+      ・住民票
+      ・連帯保証人様の情報（保証会社利用の場合は不要）
+
+      ご不明点はお気軽にどうぞ。
+    requires_data: []
+
+  - id: "contract_renewal"
+    category: "contract"
+    patterns:
+      - "更新"
+      - "契約更新"
+      - "更新料"
+      - "更新手続き"
+    answer: >
+      契約更新についてご案内します。
+
+      ・更新時期: 契約満了日の1〜2ヶ月前にご案内をお送りします
+      ・更新料: {renewal_fee}
+      ・更新事務手数料: {renewal_admin_fee}
+      ・火災保険の更新: 更新に合わせて手続きが必要です
+
+      更新に関するご質問やご相談は、担当者までお気軽にどうぞ。
+    requires_data: ["renewal_fee", "renewal_admin_fee"]
+
+  # ═══ 修繕・設備故障 ═══
+  - id: "maintenance_request"
+    category: "maintenance"
+    patterns:
+      - "壊れた"
+      - "故障"
+      - "水漏れ"
+      - "エアコンが動かない"
+      - "修理"
+      - "修繕"
+      - "不具合"
+    answer: >
+      設備の不具合でご不便をおかけし、申し訳ございません。
+
+      状況を確認いたしますので、以下をお知らせください。
+
+      1. お名前・お部屋番号
+      2. 不具合の箇所（キッチン、浴室、エアコンなど）
+      3. 症状の詳細
+      4. 発生日時
+      5. 可能であれば写真
+
+      ※ 水漏れ・ガス漏れなど緊急の場合は、
+      お電話（{company_phone}）にてご連絡ください。
+
+      24時間緊急ダイヤル: {emergency_phone}
+    requires_data: ["company_phone", "emergency_phone"]
+
+  # ═══ 汎用 ═══
+  - id: "business_hours"
+    category: "general"
+    patterns:
+      - "営業時間"
+      - "何時まで"
+      - "定休日"
+      - "やってますか"
+    answer: >
+      {company_name}の営業情報です。
+
+      ・営業時間: {business_hours}
+      ・定休日: 水曜日
+      ・所在地: {company_address}
+
+      営業時間外でもAIアシスタントがご質問にお答えします。
+      お気軽にどうぞ。
+    requires_data: ["company_name", "business_hours", "company_address"]
+
+  - id: "access"
+    category: "general"
+    patterns:
+      - "最寄り駅"
+      - "アクセス"
+      - "行き方"
+      - "何線"
+      - "徒歩何分"
+    answer: >
+      {property_name}のアクセス情報です。
+
+      ・最寄り駅: {nearest_station}
+      ・徒歩: {walk_minutes}分
+      ・バス: {bus_info}
+
+      通勤・通学のルートなど、詳しくお知りになりたい場合はお気軽にどうぞ。
+    requires_data: ["property_name", "nearest_station", "walk_minutes", "bus_info"]
