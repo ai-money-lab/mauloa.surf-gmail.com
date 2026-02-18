@@ -1,0 +1,138 @@
+# ═══════════════════════════════════════════════════════════
+# ROCKEDGE Property Management — 管理物件データベース
+# ═══════════════════════════════════════════════════════════
+#
+# 使い方:
+#   - 各物件の情報を入力してください
+#   - Bot が問い合わせに対して、ここのデータを参照して回答します
+#   - 物件の追加・変更はこのファイルを編集するだけでOK
+#
+# ※ サンプルデータが入っています。実際のデータに差し替えてください。
+# ※ 「（要入力）」と書かれた箇所は必ず実データに置き換えてください。
+
+properties:
+
+  # ═══ 物件1: サンプル ═══
+  rockedge_mansion_101:
+    name: "ROCKEDGEマンション 101号室"
+    address: "（要入力）東京都〇〇区〇〇 1-2-3"
+    building_type: "マンション"
+    structure: "RC造"
+    floor: "3階建ての1階"
+    built_year: 2015
+    layout: "1LDK"
+    area_sqm: 35.5
+    rent: 85000
+    management_fee: 5000
+    total_monthly: 90000
+    deposit: "賃料1ヶ月分（85,000円）"
+    key_money: "なし"
+    brokerage_fee: "賃料1ヶ月分（85,000円）"
+    advance_rent: "85,000円（入居月の日割り+翌月分）"
+    total_initial_cost: "約280,000〜300,000円"
+    vacancy_status: "空室あり"
+    available_date: "即入居可"
+    nearest_station: "〇〇線 〇〇駅"
+    walk_minutes: 8
+    bus_info: "なし（徒歩圏内）"
+    pet_policy: "小型犬1匹まで可（敷金1ヶ月追加）"
+    parking_info: "敷地内駐車場あり（月額12,000円）※空き要確認"
+    bicycle_parking_info: "無料駐輪場あり"
+    renewal_fee: "賃料1ヶ月分"
+    renewal_admin_fee: "11,000円（税込）"
+    facility_list: |
+      ・エアコン（リビング）
+      ・独立洗面台
+      ・浴室乾燥機
+      ・温水洗浄便座
+      ・システムキッチン（2口IH）
+      ・インターネット無料（光回線）
+      ・宅配ボックス
+      ・オートロック
+      ・モニター付きインターホン
+    matterport_url: ""
+    notes: ""
+
+  # ═══ 物件2: サンプル ═══
+  rockedge_heights_201:
+    name: "ROCKEDGEハイツ 201号室"
+    address: "（要入力）東京都〇〇区〇〇 4-5-6"
+    building_type: "アパート"
+    structure: "木造"
+    floor: "2階建ての2階"
+    built_year: 2020
+    layout: "1K"
+    area_sqm: 25.0
+    rent: 65000
+    management_fee: 3000
+    total_monthly: 68000
+    deposit: "賃料1ヶ月分（65,000円）"
+    key_money: "賃料1ヶ月分（65,000円）"
+    brokerage_fee: "賃料0.5ヶ月分（32,500円）"
+    advance_rent: "65,000円"
+    total_initial_cost: "約250,000〜270,000円"
+    vacancy_status: "空室あり"
+    available_date: "2026年3月1日〜"
+    nearest_station: "〇〇線 〇〇駅"
+    walk_minutes: 5
+    bus_info: "なし"
+    pet_policy: "ペット不可"
+    parking_info: "近隣月極駐車場あり（月額15,000円〜）"
+    bicycle_parking_info: "無料駐輪場あり（1台）"
+    renewal_fee: "賃料1ヶ月分"
+    renewal_admin_fee: "11,000円（税込）"
+    facility_list: |
+      ・エアコン
+      ・独立洗面台
+      ・浴室乾燥機
+      ・温水洗浄便座
+      ・ミニキッチン（1口IH）
+      ・インターネット対応（要契約）
+      ・TVモニターインターホン
+    matterport_url: ""
+    notes: "築浅・駅近で人気物件。早めのお問い合わせ推奨。"
+
+  # ═══ 物件3以降はここに追加 ═══
+  # 以下のフォーマットをコピーして使用:
+  #
+  # property_id:
+  #   name: "物件名"
+  #   address: "住所"
+  #   building_type: "マンション/アパート/戸建"
+  #   structure: "RC造/S造/木造"
+  #   floor: "階数情報"
+  #   built_year: 築年
+  #   layout: "間取り"
+  #   area_sqm: 面積(平米)
+  #   rent: 賃料(円)
+  #   management_fee: 管理費(円)
+  #   total_monthly: 月額合計(円)
+  #   deposit: "敷金"
+  #   key_money: "礼金"
+  #   brokerage_fee: "仲介手数料"
+  #   advance_rent: "前家賃"
+  #   total_initial_cost: "初期費用合計"
+  #   vacancy_status: "空室あり/満室"
+  #   available_date: "入居可能日"
+  #   nearest_station: "最寄り駅"
+  #   walk_minutes: 徒歩分数
+  #   bus_info: "バス情報"
+  #   pet_policy: "ペット飼育条件"
+  #   parking_info: "駐車場情報"
+  #   bicycle_parking_info: "駐輪場情報"
+  #   renewal_fee: "更新料"
+  #   renewal_admin_fee: "更新事務手数料"
+  #   facility_list: |
+  #     ・設備1
+  #     ・設備2
+  #   matterport_url: "3Dツアーリンク"
+  #   notes: "備考"
+
+# ═══ 会社情報（faq_data.yamlと同期） ═══
+company:
+  name: "ROCKEDGE Property Management"
+  phone: "（要入力）000-0000-0000"
+  email: "info@rockedge.jp"
+  business_hours: "9:00〜18:00（水曜定休）"
+  address: "（要入力）事務所住所"
+  emergency_phone: "（要入力）24時間緊急ダイヤル"

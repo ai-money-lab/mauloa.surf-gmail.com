@@ -18,6 +18,7 @@ logger = logging.getLogger(__name__)
 
 JST = timezone(timedelta(hours=9))
 CONFIG_PATH = Path(__file__).parent / "config.yaml"
+PROPERTIES_PATH = Path(__file__).parent / "properties.yaml"
 SYSTEM_PROMPT_PATH = Path(__file__).parent.parent / "prompts" / "inquiry_bot_system.txt"
 
 
@@ -41,6 +42,9 @@ class BotEngine:
 
         self.claude = claude_client or ClaudeClient(model=bot_cfg.get("model"))
         self.kb = knowledge_base or KnowledgeBase()
+        # 物件データを自動読み込み
+        if PROPERTIES_PATH.exists():
+            self.kb.load_properties_from_yaml(PROPERTIES_PATH)
         self.conversation = ConversationManager(
             history_limit=bot_cfg.get("conversation_history_limit", 20)
         )
