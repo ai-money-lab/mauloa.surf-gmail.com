@@ -71,13 +71,17 @@ def main():
     # 5. Pythonパッケージ
     print("\n5. Pythonパッケージ")
     print("-" * 40)
-    packages = [
-        "anthropic", "fastapi", "uvicorn", "pydantic",
-        "yaml", "requests", "dotenv",
-    ]
-    for pkg in packages:
-        pkg_import = "pyyaml" if pkg == "yaml" else pkg
-        if not check_package(pkg_import if pkg != "dotenv" else "dotenv"):
+    packages = {
+        "anthropic": "anthropic",
+        "fastapi": "fastapi",
+        "uvicorn": "uvicorn",
+        "pydantic": "pydantic",
+        "pyyaml": "yaml",
+        "requests": "requests",
+        "python-dotenv": "dotenv",
+    }
+    for display_name, import_name in packages.items():
+        if not check_package(import_name):
             all_ok = False
 
     # 6. ファイル確認
