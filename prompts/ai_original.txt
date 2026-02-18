@@ -59,4 +59,30 @@
 - 固有の会社名・人名（ROCKEDGE / B.A.D GYM / 鈴木佑介 / KOA は使用OK）
 - 法的にグレーな内容
 
-3パターン(A/B/C)生成。
+3パターン(A/B/C)生成。以下のJSON形式で出力してください。JSONのみ出力。説明文不要。
+
+```json
+{
+  "pillar": {pillar_number},
+  "pillar_name": "{pillar_name}",
+  "sub_theme": "{sub_theme}",
+  "pattern_a": {
+    "text": "投稿本文（単発の場合は文字列、スレッドの場合は配列）",
+    "format": "single" or "thread",
+    "hook_type": "数字 / 意外性 / 疑問 のいずれか",
+    "cta_type": "問いかけの種類"
+  },
+  "pattern_b": {
+    "text": "...",
+    "format": "single" or "thread",
+    "hook_type": "...",
+    "cta_type": "..."
+  },
+  "pattern_c": {
+    "text": "...",
+    "format": "single" or "thread",
+    "hook_type": "...",
+    "cta_type": "..."
+  }
+}
+```
