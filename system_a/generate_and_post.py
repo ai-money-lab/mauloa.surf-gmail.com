@@ -1,10 +1,13 @@
 """Generate a post with Claude API, quality-check it, and post to X.
 
 Usage:
-    # Generate + quality check + post (full auto)
+    # Full auto: generate + QC + post best pattern
     python -m system_a.generate_and_post
 
-    # Generate + quality check only (no posting)
+    # Interactive: generate + QC + choose pattern yourself
+    python -m system_a.generate_and_post --interactive
+
+    # Dry-run: generate + QC only (no posting)
     python -m system_a.generate_and_post --dry-run
 
     # Specify a pillar (1-5)
@@ -36,6 +39,8 @@ JST = timezone(timedelta(hours=9))
 BASE_DIR = Path(__file__).parent.parent
 PROMPTS_DIR = BASE_DIR / "prompts"
 DATA_DIR = BASE_DIR / "data" / "system_a" / "generated"
+
+QUALITY_THRESHOLD = 80
 
 
 def generate_post(pillar: int = None) -> dict:
@@ -80,53 +85,99 @@ def generate_post(pillar: int = None) -> dict:
     return result
 
 
-def select_best_pattern(result: dict) -> dict:
-    """Run quality check on A/B/C and return the best one."""
+def quality_check_patterns(result: dict) -> list:
+    """Run quality check on all A/B/C patterns. Returns sorted list."""
     claude = ClaudeClient()
     checker = QualityChecker(claude)
 
-    patterns = []
+    checked = []
     for key in ["pattern_a", "pattern_b", "pattern_c"]:
         p = result.get(key)
         if not p:
             continue
         text = p.get("text", p) if isinstance(p, dict) else p
         if isinstance(text, list):
-            text = "\n\n".join(text)
-        patterns.append({
-            "key": key,
-            "text": str(text),
-            "format": p.get("format", "single") if isinstance(p, dict) else "single",
-            "data": p,
-        })
+            display_text = "\n\n".join(text)
+        else:
+            display_text = str(text)
 
-    if not patterns:
-        logger.error("No patterns found in generation result")
-        sys.exit(1)
-
-    best = None
-    best_score = -1
-
-    for p in patterns:
-        logger.info("Quality checking %s...", p["key"])
+        logger.info("Quality checking %s...", key)
         qr = checker.check(
             profile="x_post",
-            content=p["text"],
+            content=display_text,
             context=f"Pipeline: P3, Pillar: {result.get('pillar', '?')}",
         )
         score = qr.get("total_score", 0)
         verdict = qr.get("result", "unknown")
-        logger.info("  %s: score=%d, result=%s", p["key"], score, verdict)
+        logger.info("  %s: score=%d, result=%s", key, score, verdict)
 
-        if score > best_score:
-            best_score = score
-            best = {**p, "quality_score": score, "quality_result": qr}
+        checked.append({
+            "key": key,
+            "text": display_text,
+            "format": p.get("format", "single") if isinstance(p, dict) else "single",
+            "cta_type": p.get("cta_type", "") if isinstance(p, dict) else "",
+            "data": p,
+            "quality_score": score,
+            "quality_result": qr,
+            "passed": score >= QUALITY_THRESHOLD,
+        })
 
-    logger.info("Best pattern: %s (score=%d)", best["key"], best_score)
-    return best
+    # Sort by score descending
+    checked.sort(key=lambda x: x["quality_score"], reverse=True)
+    return checked
 
 
-def post_to_x(text: str, pillar: int = 0, pipeline: str = "P3", pattern: str = "A") -> dict:
+def display_patterns(checked: list, pillar, sub_theme) -> None:
+    """Display all patterns with scores for interactive selection."""
+    print(f"\n{'=' * 60}")
+    print(f"  Pillar {pillar} / {sub_theme}")
+    print(f"  Threshold: {QUALITY_THRESHOLD}")
+    print(f"{'=' * 60}")
+
+    for i, p in enumerate(checked):
+        status = "PASS" if p["passed"] else "FAIL"
+        label = p["key"].replace("pattern_", "").upper()
+        cta = p.get("cta_type", "")
+        print(f"\n--- [{i+1}] Pattern {label}  (score={p['quality_score']} {status}) ---")
+        if cta:
+            print(f"  CTA: {cta}")
+        text = p["text"]
+        if isinstance(text, list):
+            for j, t in enumerate(text, 1):
+                print(f"  [{j}] {t}")
+        else:
+            # Wrap long text for readability
+            print(f"  {text}")
+
+    print(f"\n{'=' * 60}")
+
+
+def interactive_select(checked: list) -> dict:
+    """Let user choose which pattern to post."""
+    while True:
+        choice = input(f"\nどのパターンを投稿しますか？ (1-{len(checked)}, q=やめる): ").strip()
+        if choice.lower() == "q":
+            logger.info("Cancelled by user.")
+            sys.exit(0)
+        try:
+            idx = int(choice) - 1
+            if 0 <= idx < len(checked):
+                selected = checked[idx]
+                label = selected["key"].replace("pattern_", "").upper()
+                if not selected["passed"]:
+                    confirm = input(
+                        f"Pattern {label} はスコア{selected['quality_score']} "
+                        f"(閾値{QUALITY_THRESHOLD}未満)です。投稿しますか？ (y/n): "
+                    ).strip()
+                    if confirm.lower() != "y":
+                        continue
+                return selected
+        except ValueError:
+            pass
+        print(f"1〜{len(checked)} の数字か q を入力してください")
+
+
+def post_to_x(text, pillar: int = 0, pipeline: str = "P3", pattern: str = "A") -> dict:
     """Post text to X via AutoPoster."""
     poster = AutoPoster()
 
@@ -142,7 +193,8 @@ def post_to_x(text: str, pillar: int = 0, pipeline: str = "P3", pattern: str = "
 
 def main():
     parser = argparse.ArgumentParser(description="Generate and post to X")
-    parser.add_argument("--dry-run", action="store_true", help="Generate only, no posting")
+    parser.add_argument("--dry-run", action="store_true", help="Generate + QC only, no posting")
+    parser.add_argument("--interactive", "-i", action="store_true", help="Choose pattern manually")
     parser.add_argument("--pillar", type=int, choices=[1, 2, 3, 4, 5], help="Target pillar")
     parser.add_argument("--text", type=str, help="Post specific text (skip generation)")
     args = parser.parse_args()
@@ -172,29 +224,42 @@ def main():
     sub_theme = result.get("sub_theme", result.get("theme", {}).get("sub_theme", "?"))
     logger.info("Generated for pillar %s / %s", pillar, sub_theme)
 
-    # Step 2: Quality check & select best
-    best = select_best_pattern(result)
-    logger.info("Selected: %s (score=%d)", best["key"], best["quality_score"])
-    logger.info("Text: %s", best["text"][:100] + "..." if len(best["text"]) > 100 else best["text"])
+    # Step 2: Quality check all patterns
+    checked = quality_check_patterns(result)
+    if not checked:
+        logger.error("No patterns generated")
+        sys.exit(1)
 
-    threshold = 84
-    if best["quality_score"] < threshold:
-        logger.warning(
-            "Quality score %d < threshold %d. Post may not meet standards.",
-            best["quality_score"], threshold,
-        )
+    # Step 3: Select pattern
+    if args.interactive:
+        # Interactive: show all, let user choose
+        display_patterns(checked, pillar, sub_theme)
+        selected = interactive_select(checked)
+    elif args.dry_run:
+        # Dry-run: show all, don't post
+        display_patterns(checked, pillar, sub_theme)
+        best = checked[0]
+        logger.info("[DRY RUN] Auto-select: %s (score=%d)", best["key"], best["quality_score"])
+        return
+    else:
+        # Full auto: pick highest score that passes
+        passed = [p for p in checked if p["passed"]]
+        if passed:
+            selected = passed[0]
+        else:
+            logger.warning("No pattern passed QC (threshold=%d). Using best score.", QUALITY_THRESHOLD)
+            selected = checked[0]
+
+    label = selected["key"].replace("pattern_", "").upper()
+    logger.info("Selected: Pattern %s (score=%d)", label, selected["quality_score"])
 
     if args.dry_run:
-        logger.info("[DRY RUN] Would post the above text.")
-        print("\n--- Generated Post ---")
-        print(best["text"])
-        print(f"\nPillar: {pillar} / Theme: {sub_theme}")
-        print(f"Pattern: {best['key']} / Score: {best['quality_score']}")
+        logger.info("[DRY RUN] Would post: %s", selected["text"][:80])
         return
 
-    # Step 3: Post to X
-    post_text = best["data"].get("text", best["text"]) if isinstance(best["data"], dict) else best["text"]
-    post_result = post_to_x(post_text, pillar=pillar, pipeline="P3", pattern=best["key"])
+    # Step 4: Post to X
+    post_text = selected["data"].get("text", selected["text"]) if isinstance(selected["data"], dict) else selected["text"]
+    post_result = post_to_x(post_text, pillar=pillar, pipeline="P3", pattern=label)
 
     if isinstance(post_result, list):
         tweet_id = post_result[0].get("data", {}).get("id", "unknown") if post_result else "unknown"

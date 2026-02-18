@@ -30,7 +30,7 @@ PROFILES = {
             "tone_balance",
             "algorithm_hooks",
         ],
-        "threshold": 84,
+        "threshold": 80,
         "max_score": 120,
     },
     "report": {

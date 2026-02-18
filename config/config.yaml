@@ -8,7 +8,7 @@ quality_checker:
   default_model: "claude-sonnet-4-20250514"
   max_retries: 3
   thresholds:
-    x_post: 84
+    x_post: 80
     report: 75
     data_collection: 70
 
