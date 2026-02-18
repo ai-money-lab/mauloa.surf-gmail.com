@@ -13,6 +13,7 @@ from core.claude_client import ClaudeClient
 from core.notifier import Notifier
 from inquiry_bot.knowledge_base import KnowledgeBase
 from inquiry_bot.conversation_manager import ConversationManager
+from inquiry_bot.analytics import InquiryAnalytics
 
 logger = logging.getLogger(__name__)
 
@@ -49,6 +50,7 @@ class BotEngine:
             history_limit=bot_cfg.get("conversation_history_limit", 20)
         )
         self.notifier = Notifier()
+        self.analytics = InquiryAnalytics()
         self.system_prompt = self._build_system_prompt()
 
     def _load_config(self, path: Path) -> dict:
@@ -135,7 +137,7 @@ class BotEngine:
                 response.get("escalate_reason", "AI判定によるエスカレーション"),
             )
 
-        return {
+        result = {
             "reply": reply_text,
             "category": response.get("category", "general"),
             "escalated": response.get("escalate", False),
@@ -143,6 +145,19 @@ class BotEngine:
             "session_id": session_id,
             "confidence": response.get("confidence", 0.0),
         }
+
+        # 分析ログに記録
+        self.analytics.log_inquiry({
+            "session_id": session_id,
+            "channel": channel,
+            "user_id": user_id,
+            "message": user_message,
+            "category": result["category"],
+            "escalated": result["escalated"],
+            "confidence": result["confidence"],
+        })
+
+        return result
 
     def _generate_response(
         self, session_id: str, user_message: str, faq_results: list

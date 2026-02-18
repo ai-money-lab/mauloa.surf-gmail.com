@@ -107,6 +107,16 @@ def create_app(bot_engine: Optional[BotEngine] = None) -> FastAPI:
         """分析データを取得（管理者用）."""
         return bot.get_analytics()
 
+    @app.get("/api/report/daily")
+    async def daily_report():
+        """日次レポートを取得."""
+        return {"report": bot.analytics.generate_daily_report()}
+
+    @app.get("/api/report/monthly")
+    async def monthly_report():
+        """月次サマリーを取得（Coconala出品用の実績データ）."""
+        return {"report": bot.analytics.generate_monthly_summary()}
+
     @app.get("/chat", response_class=HTMLResponse)
     async def chat_demo():
         """デモ用チャットページ."""
