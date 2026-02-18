@@ -27,7 +27,7 @@ def main():
     parser.add_argument("--pillar", type=int, choices=[1, 2, 3, 4, 5], help="Target pillar")
     args = parser.parse_args()
 
-    from system_a.generate_and_post import generate_post, select_best_pattern
+    from system_a.generate_and_post import generate_post, quality_check_patterns
 
     logger.info("=== Test Generate (dry-run) ===")
 
@@ -47,8 +47,11 @@ def main():
         if not p:
             continue
         text = p.get("text", p) if isinstance(p, dict) else p
-        fmt = p.get("format", "single") if isinstance(p, dict) else "single"
-        print(f"\n--- {key.upper()} ({fmt}) ---")
+        post_type = p.get("post_type", "?") if isinstance(p, dict) else "?"
+        char_count = p.get("char_count", "?") if isinstance(p, dict) else "?"
+        cta = p.get("cta_type", "?") if isinstance(p, dict) else "?"
+        label = key.replace("pattern_", "").upper()
+        print(f"\n--- Pattern {label} ({post_type}, {char_count}字, CTA={cta}) ---")
         if isinstance(text, list):
             for i, t in enumerate(text, 1):
                 print(f"  [{i}] {t}")
@@ -57,14 +60,17 @@ def main():
 
     # Step 2: Quality check
     print("\n" + "=" * 60)
-    print("Quality Check")
+    print("Quality Check (threshold=80)")
     print("=" * 60)
-    best = select_best_pattern(result)
+    checked = quality_check_patterns(result)
+    for p in checked:
+        label = p["key"].replace("pattern_", "").upper()
+        status = "PASS" if p["passed"] else "FAIL"
+        print(f"  {label}: score={p['quality_score']} {status}")
+
+    best = checked[0]
     print(f"\nBest: {best['key']} (score={best['quality_score']})")
     print(f"Text: {best['text']}")
-
-    verdict = "PASS" if best["quality_score"] >= 84 else "FAIL"
-    print(f"\nVerdict: {verdict} (threshold=84)")
 
     logger.info("=== Test Complete (no post made) ===")
 
