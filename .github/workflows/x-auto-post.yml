@@ -1,0 +1,80 @@
+# GitHub Actions — System A: X 自動投稿
+# 毎日 07:00 / 12:00 / 19:00 JST に自動投稿（1日3回）
+# 手動実行も可能（workflow_dispatch）
+
+name: X Auto Post
+
+on:
+  schedule:
+    # cron は UTC で指定（JST = UTC+9）
+    - cron: '0 22 * * *'   # 07:00 JST
+    - cron: '0 3 * * *'    # 12:00 JST
+    - cron: '0 10 * * *'   # 19:00 JST
+  workflow_dispatch:
+    inputs:
+      pillar:
+        description: 'Target pillar (1-5, empty=auto)'
+        required: false
+        type: choice
+        options:
+          - ''
+          - '1'
+          - '2'
+          - '3'
+          - '4'
+          - '5'
+      dry_run:
+        description: 'Dry run (no posting)'
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+jobs:
+  post:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          pip install anthropic requests requests-oauthlib python-dotenv \
+                    pyyaml gspread google-auth beautifulsoup4 lxml pandas
+
+      - name: Generate and Post
+        env:
+          X_API_KEY: ${{ secrets.X_API_KEY }}
+          X_API_SECRET_KEY: ${{ secrets.X_API_SECRET_KEY }}
+          X_ACCESS_TOKEN: ${{ secrets.X_ACCESS_TOKEN }}
+          X_ACCESS_TOKEN_SECRET: ${{ secrets.X_ACCESS_TOKEN_SECRET }}
+          X_BEARER_TOKEN: ${{ secrets.X_BEARER_TOKEN }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          TWITTERAPI_IO_KEY: ${{ secrets.TWITTERAPI_IO_KEY }}
+        run: |
+          ARGS=""
+          if [ "${{ inputs.dry_run }}" = "true" ]; then
+            ARGS="$ARGS --dry-run"
+          fi
+          if [ -n "${{ inputs.pillar }}" ]; then
+            ARGS="$ARGS --pillar ${{ inputs.pillar }}"
+          fi
+          PYTHONPATH=. python -m system_a.generate_and_post $ARGS
+
+      - name: Commit data updates
+        if: success()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/
+          git diff --cached --quiet || git commit -m "auto: X post data update $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          git push
