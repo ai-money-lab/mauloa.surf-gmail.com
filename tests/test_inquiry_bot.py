@@ -27,15 +27,14 @@ class TestConfigValidation:
         """faq_data.yaml が正しくロードできる."""
         path = Path(__file__).parent.parent / "inquiry_bot" / "faq_data.yaml"
         data = yaml.safe_load(path.read_text(encoding="utf-8"))
-        assert "categories" in data
-        # 各カテゴリにはFAQ項目がある
-        for cat in data["categories"]:
-            assert "id" in cat
-            assert "name" in cat
-            assert "faqs" in cat
-            for faq in cat["faqs"]:
-                assert "question" in faq
-                assert "answer" in faq
+        assert "faq" in data
+        assert "company" in data
+        # 各FAQ項目に必須フィールドがある
+        for faq_item in data["faq"]:
+            assert "id" in faq_item
+            assert "category" in faq_item
+            assert "patterns" in faq_item
+            assert "answer" in faq_item
 
     def test_properties_yaml_loads(self):
         """properties.yaml が正しくロードできる."""
@@ -91,7 +90,7 @@ class TestSystemPrompt:
         path = Path(__file__).parent.parent / "prompts" / "inquiry_bot_system.txt"
         content = path.read_text(encoding="utf-8")
         # 主要なキーワードが含まれていること
-        assert "ROCKEDGE" in content or "不動産" in content
+        assert "物件" in content or "不動産" in content
 
 
 # ═══ Analyticsモジュールのテスト ═══

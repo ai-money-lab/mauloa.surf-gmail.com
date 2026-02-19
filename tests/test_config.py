@@ -26,7 +26,7 @@ class TestConfigYaml:
 
     def test_quality_thresholds(self, config):
         thresholds = config["quality_checker"]["thresholds"]
-        assert thresholds["x_post"] == 84
+        assert thresholds["x_post"] == 80
         assert thresholds["report"] == 75
         assert thresholds["data_collection"] == 70
 

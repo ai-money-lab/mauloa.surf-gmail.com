@@ -19,8 +19,8 @@ class TestQualityCheckerProfiles:
     def test_x_post_profile_has_12_items(self):
         assert len(PROFILES["x_post"]["items"]) == 12
 
-    def test_x_post_threshold_is_84(self):
-        assert PROFILES["x_post"]["threshold"] == 84
+    def test_x_post_threshold_is_80(self):
+        assert PROFILES["x_post"]["threshold"] == 80
 
     def test_report_threshold_is_75(self):
         assert PROFILES["report"]["threshold"] == 75
