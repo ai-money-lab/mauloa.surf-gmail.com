@@ -2,6 +2,7 @@
 
 import logging
 import re
+import time
 import uuid
 from pathlib import Path
 from typing import List, Optional
@@ -401,7 +402,16 @@ def create_app(bot_engine: Optional[BotEngine] = None) -> FastAPI:
 
     # ═══ ページ ═══
 
-    _no_cache = {"Cache-Control": "no-cache, no-store, must-revalidate", "Pragma": "no-cache"}
+    _no_cache = {
+        "Cache-Control": "no-cache, no-store, must-revalidate, max-age=0",
+        "Pragma": "no-cache",
+        "Expires": "0",
+    }
+
+    def _read_no_cache(path: Path) -> str:
+        if path.exists():
+            return path.read_text(encoding="utf-8")
+        return "<h1>Page not found</h1>"
 
     @app.get("/chat", response_class=HTMLResponse)
     async def chat_demo():
@@ -413,11 +423,16 @@ def create_app(bot_engine: Optional[BotEngine] = None) -> FastAPI:
 
     @app.get("/admin/properties", response_class=HTMLResponse)
     async def admin_properties():
-        """物件管理ページ."""
-        html_path = WIDGET_DIR / "admin_properties.html"
-        if html_path.exists():
-            return HTMLResponse(html_path.read_text(encoding="utf-8"), headers=_no_cache)
-        return HTMLResponse("<h1>Admin page not found</h1>", status_code=404)
+        """物件管理ページ（キャッシュ回避のためリダイレクト）."""
+        from fastapi.responses import RedirectResponse
+        from starlette.requests import Request as _Req
+        # v パラメータが無い場合はタイムスタンプ付きURLにリダイレクト
+        return HTMLResponse(_read_no_cache(WIDGET_DIR / "admin_properties.html"), headers=_no_cache)
+
+    @app.get("/admin/properties/v2", response_class=HTMLResponse)
+    async def admin_properties_v2():
+        """物件管理ページ v2（キャッシュ回避用）."""
+        return HTMLResponse(_read_no_cache(WIDGET_DIR / "admin_properties.html"), headers=_no_cache)
 
     # 静的ファイル（ウィジェット）— ルート定義の後にマウント
     if WIDGET_DIR.exists():
