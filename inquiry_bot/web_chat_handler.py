@@ -3,7 +3,7 @@
 import logging
 import uuid
 from pathlib import Path
-from typing import Optional
+from typing import List, Optional
 
 import yaml
 from fastapi import FastAPI, HTTPException, Request
@@ -32,6 +32,7 @@ class ChatResponse(BaseModel):
     session_id: str
     category: str = "general"
     escalated: bool = False
+    options: List[str] = []
 
 
 class FeedbackRequest(BaseModel):
@@ -84,11 +85,28 @@ def create_app(bot_engine: Optional[BotEngine] = None) -> FastAPI:
             user_id=session_id,
         )
 
+        # suggested_actionsからタップ可能な選択肢を生成
+        options = response.get("suggested_actions") or []
+        # カテゴリベースのフォールバック選択肢
+        if not options:
+            cat = response.get("category", "")
+            if cat == "vacancy":
+                options = ["内見を予約したい", "他の空室を見たい", "初期費用を教えて"]
+            elif cat == "viewing":
+                options = ["3Dツアーを見たい", "今週末に内見したい", "他の物件も見たい"]
+            elif cat in ("rent_inquiry", "cost"):
+                options = ["内見を予約したい", "空室を確認したい", "設備を教えて"]
+            elif cat == "facility":
+                options = ["内見を予約したい", "賃料を教えて", "空室を確認したい"]
+            elif cat == "maintenance":
+                options = ["担当者と話したい", "他の問い合わせ"]
+
         return ChatResponse(
             reply=response["reply"],
             session_id=session_id,
             category=response.get("category", "general"),
             escalated=response.get("escalated", False),
+            options=options[:5],
         )
 
     @app.get("/api/widget-config")
