@@ -121,6 +121,49 @@
     .form-group input[type="number"] { -moz-appearance: textfield; }
 
     .form-hint { font-size: 11px; color: var(--text-sub); margin-top: 3px; }
+    .form-hint.success { color: var(--success); }
+    .form-hint.error { color: #ef4444; }
+
+    /* 郵便番号 入力グループ */
+    .zip-group { display: flex; gap: 8px; align-items: center; }
+    .zip-group input { flex: 1; }
+    .zip-search-btn {
+      padding: 10px 14px;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: var(--font);
+      white-space: nowrap;
+      transition: background 150ms;
+    }
+    .zip-search-btn:hover { background: var(--accent-hover); }
+    .zip-search-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* 設備チェックボックス */
+    .facility-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 6px;
+    }
+    .facility-chip {
+      display: flex; align-items: center; gap: 6px;
+      padding: 8px 10px; border: 1.5px solid var(--border);
+      border-radius: 8px; cursor: pointer; font-size: 13px;
+      transition: all 150ms; user-select: none;
+    }
+    .facility-chip:hover { border-color: var(--accent); }
+    .facility-chip input { display: none; }
+    .facility-chip.checked {
+      background: rgba(233,69,96,0.06);
+      border-color: var(--accent);
+      color: var(--accent);
+      font-weight: 600;
+    }
+    .facility-chip .chip-icon { font-size: 15px; }
 
     .submit-btn {
       width: 100%;
@@ -150,6 +193,7 @@
     @media (max-width: 600px) {
       .form-row { flex-direction: column; gap: 0; }
       .container { padding: 16px 12px; }
+      .facility-grid { grid-template-columns: repeat(2, 1fr); }
     }
   </style>
 </head>
@@ -181,8 +225,17 @@
           <input type="text" name="name" required placeholder="例: ROCKEDGEマンション 301号室">
         </div>
         <div class="form-group">
+          <label>郵便番号</label>
+          <div class="zip-group">
+            <input type="text" id="zipCode" placeholder="例: 150-0001" maxlength="8"
+                   inputmode="numeric" autocomplete="postal-code">
+            <button type="button" class="zip-search-btn" id="zipSearchBtn" onclick="searchZip()">住所検索</button>
+          </div>
+          <div class="form-hint" id="zipHint">郵便番号を入力すると住所を自動入力します</div>
+        </div>
+        <div class="form-group">
           <label>住所</label>
-          <input type="text" name="address" placeholder="例: 東京都渋谷区神宮前1-2-3">
+          <input type="text" name="address" id="addressField" placeholder="郵便番号から自動入力されます">
         </div>
         <div class="form-row">
           <div class="form-group">
@@ -208,13 +261,43 @@
         </div>
         <div class="form-row">
           <div class="form-group">
-            <label>階数</label>
-            <input type="text" name="floor" placeholder="例: 3階建ての2階">
+            <label>階建て</label>
+            <select name="floor_building">
+              <option value="">選択してください</option>
+              <option value="2">2階建て</option>
+              <option value="3">3階建て</option>
+              <option value="4">4階建て</option>
+              <option value="5">5階建て</option>
+              <option value="6">6階建て</option>
+              <option value="7">7階建て</option>
+              <option value="8">8階建て</option>
+              <option value="9">9階建て</option>
+              <option value="10">10階建て</option>
+              <option value="11">11階建て以上</option>
+            </select>
           </div>
           <div class="form-group">
-            <label>築年</label>
-            <input type="number" name="built_year" placeholder="例: 2020" min="1950" max="2030">
+            <label>所在階</label>
+            <select name="floor_unit">
+              <option value="">選択してください</option>
+              <option value="1">1階</option>
+              <option value="2">2階</option>
+              <option value="3">3階</option>
+              <option value="4">4階</option>
+              <option value="5">5階</option>
+              <option value="6">6階</option>
+              <option value="7">7階</option>
+              <option value="8">8階</option>
+              <option value="9">9階</option>
+              <option value="10">10階以上</option>
+            </select>
           </div>
+        </div>
+        <div class="form-group">
+          <label>築年</label>
+          <select name="built_year" id="builtYear">
+            <option value="">選択してください</option>
+          </select>
         </div>
       </div>
 
@@ -238,8 +321,30 @@
             </select>
           </div>
           <div class="form-group">
-            <label>面積（㎡）</label>
-            <input type="number" name="area_sqm" step="0.1" placeholder="例: 35.5">
+            <label>面積</label>
+            <select name="area_sqm">
+              <option value="">選択してください</option>
+              <option value="15">15㎡</option>
+              <option value="18">18㎡</option>
+              <option value="20">20㎡</option>
+              <option value="22">22㎡</option>
+              <option value="25">25㎡</option>
+              <option value="28">28㎡</option>
+              <option value="30">30㎡</option>
+              <option value="33">33㎡</option>
+              <option value="35">35㎡</option>
+              <option value="38">38㎡</option>
+              <option value="40">40㎡</option>
+              <option value="45">45㎡</option>
+              <option value="50">50㎡</option>
+              <option value="55">55㎡</option>
+              <option value="60">60㎡</option>
+              <option value="65">65㎡</option>
+              <option value="70">70㎡</option>
+              <option value="80">80㎡</option>
+              <option value="90">90㎡</option>
+              <option value="100">100㎡以上</option>
+            </select>
           </div>
         </div>
       </div>
@@ -249,12 +354,49 @@
         <div class="form-section-title">賃料・費用</div>
         <div class="form-row">
           <div class="form-group">
-            <label>賃料（円）<span class="required">*必須</span></label>
-            <input type="number" name="rent" required placeholder="例: 85000" min="0" step="1000">
+            <label>賃料 <span class="required">*必須</span></label>
+            <select name="rent" required>
+              <option value="">選択してください</option>
+              <option value="30000">3万円</option>
+              <option value="35000">3.5万円</option>
+              <option value="40000">4万円</option>
+              <option value="45000">4.5万円</option>
+              <option value="50000">5万円</option>
+              <option value="55000">5.5万円</option>
+              <option value="60000">6万円</option>
+              <option value="65000">6.5万円</option>
+              <option value="70000">7万円</option>
+              <option value="75000">7.5万円</option>
+              <option value="80000">8万円</option>
+              <option value="85000">8.5万円</option>
+              <option value="90000">9万円</option>
+              <option value="95000">9.5万円</option>
+              <option value="100000">10万円</option>
+              <option value="110000">11万円</option>
+              <option value="120000">12万円</option>
+              <option value="130000">13万円</option>
+              <option value="140000">14万円</option>
+              <option value="150000">15万円</option>
+              <option value="170000">17万円</option>
+              <option value="200000">20万円</option>
+              <option value="250000">25万円</option>
+              <option value="300000">30万円以上</option>
+            </select>
           </div>
           <div class="form-group">
-            <label>管理費（円）</label>
-            <input type="number" name="management_fee" placeholder="例: 5000" min="0" step="500" value="0">
+            <label>管理費</label>
+            <select name="management_fee">
+              <option value="0">なし</option>
+              <option value="2000">2,000円</option>
+              <option value="3000">3,000円</option>
+              <option value="5000" selected>5,000円</option>
+              <option value="7000">7,000円</option>
+              <option value="8000">8,000円</option>
+              <option value="10000">10,000円</option>
+              <option value="12000">12,000円</option>
+              <option value="15000">15,000円</option>
+              <option value="20000">20,000円</option>
+            </select>
           </div>
         </div>
         <div class="form-row">
@@ -313,14 +455,69 @@
       <!-- アクセス -->
       <div class="form-section">
         <div class="form-section-title">アクセス</div>
+        <div class="form-group">
+          <label>路線</label>
+          <select name="rail_line" id="railLine" onchange="updateStations()">
+            <option value="">選択してください</option>
+            <option value="JR山手線">JR山手線</option>
+            <option value="JR中央線">JR中央線</option>
+            <option value="JR総武線">JR総武線</option>
+            <option value="JR京浜東北線">JR京浜東北線</option>
+            <option value="JR埼京線">JR埼京線</option>
+            <option value="JR湘南新宿ライン">JR湘南新宿ライン</option>
+            <option value="東京メトロ銀座線">東京メトロ銀座線</option>
+            <option value="東京メトロ丸ノ内線">東京メトロ丸ノ内線</option>
+            <option value="東京メトロ日比谷線">東京メトロ日比谷線</option>
+            <option value="東京メトロ東西線">東京メトロ東西線</option>
+            <option value="東京メトロ千代田線">東京メトロ千代田線</option>
+            <option value="東京メトロ有楽町線">東京メトロ有楽町線</option>
+            <option value="東京メトロ半蔵門線">東京メトロ半蔵門線</option>
+            <option value="東京メトロ南北線">東京メトロ南北線</option>
+            <option value="東京メトロ副都心線">東京メトロ副都心線</option>
+            <option value="都営大江戸線">都営大江戸線</option>
+            <option value="都営三田線">都営三田線</option>
+            <option value="都営新宿線">都営新宿線</option>
+            <option value="都営浅草線">都営浅草線</option>
+            <option value="東急東横線">東急東横線</option>
+            <option value="東急田園都市線">東急田園都市線</option>
+            <option value="小田急線">小田急線</option>
+            <option value="京王線">京王線</option>
+            <option value="西武新宿線">西武新宿線</option>
+            <option value="西武池袋線">西武池袋線</option>
+            <option value="東武東上線">東武東上線</option>
+            <option value="東武スカイツリーライン">東武スカイツリーライン</option>
+            <option value="京急線">京急線</option>
+            <option value="京成線">京成線</option>
+            <option value="つくばエクスプレス">つくばエクスプレス</option>
+            <option value="その他">その他</option>
+          </select>
+        </div>
         <div class="form-row">
           <div class="form-group">
             <label>最寄り駅</label>
-            <input type="text" name="nearest_station" placeholder="例: 山手線 渋谷駅">
+            <select name="nearest_station" id="stationSelect">
+              <option value="">路線を選択してください</option>
+            </select>
           </div>
           <div class="form-group">
-            <label>徒歩（分）</label>
-            <input type="number" name="walk_minutes" placeholder="例: 8" min="1" max="60">
+            <label>徒歩</label>
+            <select name="walk_minutes">
+              <option value="">選択してください</option>
+              <option value="1">1分</option>
+              <option value="2">2分</option>
+              <option value="3">3分</option>
+              <option value="4">4分</option>
+              <option value="5">5分</option>
+              <option value="6">6分</option>
+              <option value="7">7分</option>
+              <option value="8">8分</option>
+              <option value="9">9分</option>
+              <option value="10">10分</option>
+              <option value="12">12分</option>
+              <option value="15">15分</option>
+              <option value="20">20分</option>
+              <option value="25">25分以上</option>
+            </select>
           </div>
         </div>
       </div>
@@ -349,9 +546,8 @@
           </div>
         </div>
         <div class="form-group">
-          <label>設備一覧</label>
-          <textarea name="facility_list" rows="3" placeholder="例:&#10;エアコン&#10;独立洗面台&#10;浴室乾燥機&#10;オートロック"></textarea>
-          <div class="form-hint">1行に1つずつ入力してください</div>
+          <label>設備（タップで選択）</label>
+          <div class="facility-grid" id="facilityGrid"></div>
         </div>
       </div>
 
@@ -378,7 +574,152 @@
 <script>
   const API = '';
 
-  // 物件一覧を読み込み
+  // ═══ 設備リスト（チェックボックス） ═══
+  const FACILITIES = [
+    'エアコン', 'バス・トイレ別', '独立洗面台', '温水洗浄便座',
+    '浴室乾燥機', '室内洗濯機置場', 'クローゼット', 'シューズボックス',
+    'オートロック', 'モニター付きインターホン', '宅配ボックス', '防犯カメラ',
+    'インターネット無料', 'ガスコンロ2口以上', 'システムキッチン', '追い焚き機能',
+    'フローリング', 'エレベーター', '駐輪場', 'バルコニー',
+    '南向き', 'ペアガラス', 'ウォークインクローゼット', '床暖房',
+  ];
+
+  function initFacilities() {
+    const grid = document.getElementById('facilityGrid');
+    FACILITIES.forEach(name => {
+      const chip = document.createElement('label');
+      chip.className = 'facility-chip';
+      chip.innerHTML = '<input type="checkbox" value="' + name + '">' +
+                        '<span>' + name + '</span>';
+      chip.querySelector('input').addEventListener('change', function() {
+        chip.classList.toggle('checked', this.checked);
+      });
+      grid.appendChild(chip);
+    });
+  }
+
+  // ═══ 築年セレクト生成 ═══
+  function initBuiltYear() {
+    const sel = document.getElementById('builtYear');
+    const now = new Date().getFullYear();
+    for (let y = now + 1; y >= 1970; y--) {
+      const opt = document.createElement('option');
+      opt.value = y;
+      opt.textContent = y + '年' + (y === now ? '（新築）' : '');
+      sel.appendChild(opt);
+    }
+  }
+
+  // ═══ 郵便番号→住所 自動検索（zipcloud API） ═══
+  async function searchZip() {
+    const zipInput = document.getElementById('zipCode');
+    const btn = document.getElementById('zipSearchBtn');
+    const hint = document.getElementById('zipHint');
+    const zip = zipInput.value.replace(/[^0-9]/g, '');
+
+    if (zip.length !== 7) {
+      hint.textContent = '7桁の郵便番号を入力してください';
+      hint.className = 'form-hint error';
+      return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = '検索中...';
+    hint.textContent = '住所を検索しています...';
+    hint.className = 'form-hint';
+
+    try {
+      const res = await fetch('https://zipcloud.ibsnet.co.jp/api/search?zipcode=' + zip);
+      const data = await res.json();
+
+      if (data.results && data.results.length > 0) {
+        const r = data.results[0];
+        const address = r.address1 + r.address2 + r.address3;
+        document.getElementById('addressField').value = address;
+        hint.textContent = '住所を自動入力しました';
+        hint.className = 'form-hint success';
+      } else {
+        hint.textContent = '該当する住所が見つかりませんでした';
+        hint.className = 'form-hint error';
+      }
+    } catch (e) {
+      hint.textContent = '検索に失敗しました。手動で入力してください';
+      hint.className = 'form-hint error';
+    } finally {
+      btn.disabled = false;
+      btn.textContent = '住所検索';
+    }
+  }
+
+  // 郵便番号入力時に自動フォーマット＆7桁で自動検索
+  document.getElementById('zipCode').addEventListener('input', function() {
+    let v = this.value.replace(/[^0-9]/g, '');
+    if (v.length > 3) v = v.slice(0, 3) + '-' + v.slice(3);
+    if (v.length > 8) v = v.slice(0, 8);
+    this.value = v;
+    if (v.replace('-', '').length === 7) searchZip();
+  });
+
+  // ═══ 路線→駅 連動 ═══
+  const STATION_DATA = {
+    'JR山手線': ['東京','神田','秋葉原','御徒町','上野','鶯谷','日暮里','西日暮里','田端','駒込','巣鴨','大塚','池袋','目白','高田馬場','新大久保','新宿','代々木','原宿','渋谷','恵比寿','目黒','五反田','大崎','品川','田町','浜松町','新橋','有楽町'],
+    'JR中央線': ['東京','神田','御茶ノ水','四ツ谷','新宿','中野','高円寺','阿佐ヶ谷','荻窪','西荻窪','吉祥寺','三鷹','武蔵境','東小金井','武蔵小金井','国分寺','西国分寺','国立','立川','日野','豊田','八王子'],
+    'JR総武線': ['三鷹','吉祥寺','西荻窪','荻窪','阿佐ヶ谷','高円寺','中野','東中野','大久保','新宿','代々木','千駄ヶ谷','信濃町','四ツ谷','市ヶ谷','飯田橋','水道橋','御茶ノ水','秋葉原','浅草橋','両国','錦糸町','亀戸','平井','新小岩','小岩','市川','本八幡','下総中山','西船橋','船橋','津田沼'],
+    'JR京浜東北線': ['大宮','さいたま新都心','与野','北浦和','浦和','南浦和','蕨','西川口','川口','赤羽','東十条','王子','上中里','田端','西日暮里','日暮里','鶯谷','上野','御徒町','秋葉原','神田','東京','有楽町','新橋','浜松町','田町','品川','大井町','大森','蒲田','川崎','鶴見','横浜'],
+    'JR埼京線': ['大宮','北与野','与野本町','南与野','中浦和','武蔵浦和','北戸田','戸田','戸田公園','浮間舟渡','北赤羽','赤羽','十条','板橋','池袋','新宿','渋谷','恵比寿','大崎'],
+    'JR湘南新宿ライン': ['大宮','浦和','赤羽','池袋','新宿','渋谷','恵比寿','大崎','武蔵小杉','横浜','大船'],
+    '東京メトロ銀座線': ['渋谷','表参道','外苑前','青山一丁目','赤坂見附','溜池山王','虎ノ門','新橋','銀座','京橋','日本橋','三越前','神田','末広町','上野広小路','上野','稲荷町','田原町','浅草'],
+    '東京メトロ丸ノ内線': ['荻窪','南阿佐ヶ谷','新高円寺','東高円寺','新中野','中野坂上','西新宿','新宿','新宿三丁目','新宿御苑前','四谷三丁目','四ツ谷','赤坂見附','国会議事堂前','霞ヶ関','銀座','東京','大手町','淡路町','御茶ノ水','本郷三丁目','後楽園','茗荷谷','新大塚','池袋'],
+    '東京メトロ日比谷線': ['中目黒','恵比寿','広尾','六本木','神谷町','霞ヶ関','日比谷','銀座','東銀座','築地','八丁堀','茅場町','人形町','小伝馬町','秋葉原','仲御徒町','上野','入谷','三ノ輪','南千住','北千住'],
+    '東京メトロ東西線': ['中野','落合','高田馬場','早稲田','神楽坂','飯田橋','九段下','竹橋','大手町','日本橋','茅場町','門前仲町','木場','東陽町','南砂町','西葛西','葛西','浦安','南行徳','行徳','妙典','原木中山','西船橋'],
+    '東京メトロ千代田線': ['代々木上原','代々木公園','明治神宮前','表参道','乃木坂','赤坂','国会議事堂前','霞ヶ関','日比谷','二重橋前','大手町','新御茶ノ水','湯島','根津','千駄木','西日暮里','町屋','北千住','綾瀬','北綾瀬'],
+    '東京メトロ有楽町線': ['和光市','地下鉄成増','地下鉄赤塚','平和台','氷川台','小竹向原','千川','要町','池袋','東池袋','護国寺','江戸川橋','飯田橋','市ヶ谷','麹町','永田町','桜田門','有楽町','銀座一丁目','新富町','月島','豊洲','辰巳','新木場'],
+    '東京メトロ半蔵門線': ['渋谷','表参道','青山一丁目','永田町','半蔵門','九段下','神保町','大手町','三越前','水天宮前','清澄白河','住吉','錦糸町','押上'],
+    '東京メトロ南北線': ['目黒','白金台','白金高輪','麻布十番','六本木一丁目','溜池山王','永田町','四ツ谷','市ヶ谷','飯田橋','後楽園','東大前','本駒込','駒込','西ヶ原','王子','王子神谷','志茂','赤羽岩淵'],
+    '東京メトロ副都心線': ['和光市','地下鉄成増','地下鉄赤塚','平和台','氷川台','小竹向原','千川','要町','池袋','雑司が谷','西早稲田','東新宿','新宿三丁目','北参道','明治神宮前','渋谷'],
+    '都営大江戸線': ['新宿西口','東新宿','若松河田','牛込柳町','牛込神楽坂','飯田橋','春日','本郷三丁目','上野御徒町','新御徒町','蔵前','両国','森下','清澄白河','門前仲町','月島','勝どき','築地市場','汐留','大門','赤羽橋','麻布十番','六本木','青山一丁目','国立競技場','代々木','新宿','都庁前','西新宿五丁目','中野坂上','東中野','中井','落合南長崎','新江古田','練馬','豊島園','練馬春日町','光が丘'],
+    '都営三田線': ['目黒','白金台','白金高輪','三田','芝公園','御成門','内幸町','日比谷','大手町','神保町','水道橋','春日','白山','千石','巣鴨','西巣鴨','新板橋','板橋区役所前','板橋本町','本蓮沼','志村坂上','志村三丁目','蓮根','西台','高島平','新高島平','西高島平'],
+    '都営新宿線': ['新宿','新宿三丁目','曙橋','市ヶ谷','九段下','神保町','小川町','岩本町','馬喰横山','浜町','森下','菊川','住吉','西大島','大島','東大島','船堀','一之江','瑞江','篠崎','本八幡'],
+    '都営浅草線': ['西馬込','馬込','中延','戸越','五反田','高輪台','泉岳寺','三田','大門','新橋','東銀座','宝町','日本橋','人形町','東日本橋','浅草橋','蔵前','浅草','本所吾妻橋','押上'],
+    '東急東横線': ['渋谷','代官山','中目黒','祐天寺','学芸大学','都立大学','自由が丘','田園調布','多摩川','新丸子','武蔵小杉','元住吉','日吉','綱島','大倉山','菊名','妙蓮寺','白楽','東白楽','反町','横浜'],
+    '東急田園都市線': ['渋谷','池尻大橋','三軒茶屋','駒沢大学','桜新町','用賀','二子玉川','二子新地','高津','溝の口','梶が谷','宮崎台','宮前平','鷺沼','たまプラーザ','あざみ野','江田','市が尾','藤が丘','青葉台','田奈','長津田','つくし野','すずかけ台','南町田グランベリーパーク','つきみ野','中央林間'],
+    '小田急線': ['新宿','南新宿','参宮橋','代々木八幡','代々木上原','東北沢','下北沢','世田谷代田','梅ヶ丘','豪徳寺','経堂','千歳船橋','祖師ヶ谷大蔵','成城学園前','喜多見','狛江','和泉多摩川','登戸','向ヶ丘遊園','生田','読売ランド前','百合ヶ丘','新百合ヶ丘','町田'],
+    '京王線': ['新宿','笹塚','代田橋','明大前','下高井戸','桜上水','上北沢','八幡山','芦花公園','千歳烏山','仙川','つつじヶ丘','柴崎','国領','布田','調布','西調布','飛田給','武蔵野台','多磨霊園','東府中','府中','分倍河原','中河原','聖蹟桜ヶ丘','百草園','高幡不動','南平','平山城址公園','長沼','北野','京王八王子'],
+    '西武新宿線': ['西武新宿','高田馬場','下落合','中井','新井薬師前','沼袋','野方','都立家政','鷺ノ宮','下井草','井荻','上井草','上石神井','武蔵関','東伏見','西武柳沢','田無','花小金井','小平','久米川','東村山','所沢'],
+    '西武池袋線': ['池袋','椎名町','東長崎','江古田','桜台','練馬','中村橋','富士見台','練馬高野台','石神井公園','大泉学園','保谷','ひばりヶ丘','東久留米','清瀬','秋津','所沢'],
+    '東武東上線': ['池袋','北池袋','下板橋','大山','中板橋','ときわ台','上板橋','東武練馬','下赤塚','成増','和光市','朝霞','朝霞台','志木','柳瀬川','みずほ台','鶴瀬','ふじみ野','上福岡','川越'],
+    '東武スカイツリーライン': ['浅草','とうきょうスカイツリー','押上','曳舟','東向島','鐘ヶ淵','堀切','牛田','北千住','小菅','五反野','梅島','西新井','竹ノ塚','谷塚','草加','越谷','北越谷','春日部'],
+    '京急線': ['泉岳寺','品川','北品川','新馬場','青物横丁','鮫洲','立会川','大森海岸','平和島','大森町','梅屋敷','京急蒲田','雑色','六郷土手','京急川崎','横浜'],
+    '京成線': ['京成上野','日暮里','新三河島','町屋','千住大橋','京成関屋','堀切菖蒲園','お花茶屋','青砥','京成高砂','京成小岩','京成船橋'],
+    'つくばエクスプレス': ['秋葉原','新御徒町','浅草','南千住','北千住','青井','六町','八潮','三郷中央','南流山','流山セントラルパーク','流山おおたかの森','柏の葉キャンパス','守谷','つくば'],
+  };
+
+  function updateStations() {
+    const line = document.getElementById('railLine').value;
+    const sel = document.getElementById('stationSelect');
+    sel.innerHTML = '<option value="">選択してください</option>';
+
+    if (line === 'その他') {
+      // 自由入力に切り替え
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.name = 'nearest_station';
+      input.id = 'stationSelect';
+      input.placeholder = '駅名を入力';
+      sel.parentNode.replaceChild(input, sel);
+      return;
+    }
+
+    const stations = STATION_DATA[line] || [];
+    stations.forEach(st => {
+      const opt = document.createElement('option');
+      opt.value = line + ' ' + st + '駅';
+      opt.textContent = st + '駅';
+      sel.appendChild(opt);
+    });
+  }
+
+  // ═══ 物件一覧を読み込み ═══
   async function loadProperties() {
     try {
       const res = await fetch(API + '/api/properties');
@@ -418,7 +759,7 @@
     }
   }
 
-  // 物件登録
+  // ═══ 物件登録 ═══
   async function submitProperty(e) {
     e.preventDefault();
     const form = document.getElementById('propertyForm');
@@ -438,6 +779,29 @@
       }
     }
 
+    // 階数を統合（例: "3階建ての2階"）
+    const fb = fd.get('floor_building');
+    const fu = fd.get('floor_unit');
+    if (fb && fu) {
+      body.floor = fb + '階建ての' + fu + '階';
+    } else if (fb) {
+      body.floor = fb + '階建て';
+    } else if (fu) {
+      body.floor = fu + '階';
+    }
+    delete body.floor_building;
+    delete body.floor_unit;
+
+    // 路線名はnameに含めず別途保存（nearest_stationに含まれている）
+    delete body.rail_line;
+
+    // 設備チェックボックスを収集
+    const facilities = [];
+    document.querySelectorAll('#facilityGrid input:checked').forEach(cb => {
+      facilities.push(cb.value);
+    });
+    body.facility_list = facilities.join('\n');
+
     try {
       const res = await fetch(API + '/api/properties', {
         method: 'POST',
@@ -448,6 +812,9 @@
       const data = await res.json();
       showToast(data.name + ' を登録しました');
       form.reset();
+      // チェックボックスのUIリセット
+      document.querySelectorAll('.facility-chip.checked').forEach(c => c.classList.remove('checked'));
+      document.getElementById('stationSelect').innerHTML = '<option value="">路線を選択してください</option>';
       loadProperties();
     } catch (err) {
       showToast('登録に失敗しました: ' + err.message, true);
@@ -457,7 +824,7 @@
     }
   }
 
-  // 物件削除
+  // ═══ 物件削除 ═══
   async function deleteProperty(pid) {
     if (!confirm('この物件を削除しますか？')) return;
     try {
@@ -483,7 +850,9 @@
     return div.innerHTML;
   }
 
-  // 初期読み込み
+  // ═══ 初期化 ═══
+  initFacilities();
+  initBuiltYear();
   loadProperties();
 </script>
 </body>
