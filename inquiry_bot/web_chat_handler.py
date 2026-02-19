@@ -34,6 +34,13 @@ class ChatResponse(BaseModel):
     escalated: bool = False
 
 
+class FeedbackRequest(BaseModel):
+    """フィードバックリクエスト."""
+    session_id: str
+    type: str  # "positive" or "negative"
+    message_index: int = 0
+
+
 def create_app(bot_engine: Optional[BotEngine] = None) -> FastAPI:
     """FastAPIアプリケーションを生成."""
     config = yaml.safe_load(CONFIG_PATH.read_text(encoding="utf-8"))
@@ -116,6 +123,24 @@ def create_app(bot_engine: Optional[BotEngine] = None) -> FastAPI:
     async def monthly_report():
         """月次サマリーを取得（Coconala出品用の実績データ）."""
         return {"report": bot.analytics.generate_monthly_summary()}
+
+    @app.post("/api/feedback")
+    async def feedback(req: FeedbackRequest):
+        """チャット回答へのフィードバックを記録."""
+        logger.info(
+            "Feedback received: session=%s type=%s msg_index=%d",
+            req.session_id, req.type, req.message_index,
+        )
+        try:
+            bot.analytics.record_feedback(
+                session_id=req.session_id,
+                feedback_type=req.type,
+                message_index=req.message_index,
+            )
+        except AttributeError:
+            # analytics にrecord_feedbackが未実装の場合はログのみ
+            pass
+        return {"status": "ok"}
 
     @app.get("/chat", response_class=HTMLResponse)
     async def chat_demo():
