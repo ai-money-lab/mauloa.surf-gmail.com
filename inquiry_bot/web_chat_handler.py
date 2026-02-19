@@ -225,10 +225,6 @@ def create_app(bot_engine: Optional[BotEngine] = None) -> FastAPI:
     # Bot Engine初期化
     bot = bot_engine or BotEngine()
 
-    # 静的ファイル（ウィジェット）
-    if WIDGET_DIR.exists():
-        app.mount("/widget", StaticFiles(directory=str(WIDGET_DIR)), name="widget")
-
     @app.post("/api/chat", response_model=ChatResponse)
     async def chat(req: ChatRequest):
         """チャットメッセージを送信して応答を取得."""
@@ -420,6 +416,10 @@ def create_app(bot_engine: Optional[BotEngine] = None) -> FastAPI:
         if html_path.exists():
             return HTMLResponse(html_path.read_text(encoding="utf-8"))
         return HTMLResponse("<h1>Admin page not found</h1>", status_code=404)
+
+    # 静的ファイル（ウィジェット）— ルート定義の後にマウント
+    if WIDGET_DIR.exists():
+        app.mount("/widget", StaticFiles(directory=str(WIDGET_DIR)), name="widget")
 
     return app
 
