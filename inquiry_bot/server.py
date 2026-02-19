@@ -12,7 +12,6 @@ from pathlib import Path
 
 import yaml
 from fastapi import FastAPI, Request, Response
-from fastapi.middleware.cors import CORSMiddleware
 
 from inquiry_bot.bot_engine import BotEngine
 from inquiry_bot.line_handler import LineHandler
@@ -25,7 +24,7 @@ CONFIG_PATH = Path(__file__).parent / "config.yaml"
 
 def create_server() -> FastAPI:
     """LINE + Web統合サーバーを作成."""
-    config = yaml.safe_load(CONFIG_PATH.read_text(encoding="utf-8"))
+    yaml.safe_load(CONFIG_PATH.read_text(encoding="utf-8"))
 
     # 共有BotEngine（LINE/Web両方で同じインスタンスを使用）
     bot_engine = BotEngine()
