@@ -18,6 +18,7 @@ from inquiry_bot.bot_engine import BotEngine
 logger = logging.getLogger(__name__)
 
 CONFIG_PATH = Path(__file__).parent / "config.yaml"
+PROPERTIES_PATH = Path(__file__).parent / "properties.yaml"
 WIDGET_DIR = Path(__file__).parent / "web_widget"
 
 
@@ -56,6 +57,45 @@ class FeedbackRequest(BaseModel):
     session_id: str
     type: str  # "positive" or "negative"
     message_index: int = 0
+
+
+class PropertyRegistration(BaseModel):
+    """物件登録リクエスト."""
+    name: str
+    address: str = ""
+    building_type: str = "マンション"
+    structure: str = "RC造"
+    floor: str = ""
+    built_year: Optional[int] = None
+    layout: str = "1K"
+    area_sqm: Optional[float] = None
+    rent: Optional[int] = None
+    management_fee: Optional[int] = 0
+    deposit: str = ""
+    key_money: str = ""
+    brokerage_fee: str = ""
+    vacancy_status: str = "空室あり"
+    available_date: str = "即入居可"
+    nearest_station: str = ""
+    walk_minutes: Optional[int] = None
+    pet_policy: str = "ペット不可"
+    parking_info: str = ""
+    facility_list: str = ""
+    matterport_url: str = ""
+    notes: str = ""
+
+
+def _save_properties_yaml(property_data: dict) -> None:
+    """物件データをYAMLファイルに保存."""
+    try:
+        full = yaml.safe_load(PROPERTIES_PATH.read_text(encoding="utf-8")) or {}
+    except Exception:
+        full = {}
+    full["properties"] = property_data
+    PROPERTIES_PATH.write_text(
+        yaml.dump(full, allow_unicode=True, default_flow_style=False),
+        encoding="utf-8",
+    )
 
 
 def _build_property_card(pid: str, info: dict) -> PropertyCard:
@@ -299,6 +339,72 @@ def create_app(bot_engine: Optional[BotEngine] = None) -> FastAPI:
             pass
         return {"status": "ok"}
 
+    # ═══ 物件管理API ═══
+
+    @app.get("/api/properties")
+    async def list_properties():
+        """登録済み物件一覧を返す."""
+        return {"properties": bot.kb.property_data}
+
+    @app.post("/api/properties")
+    async def register_property(req: PropertyRegistration):
+        """新規物件を登録."""
+        # IDを生成（物件名からスラグ化）
+        pid = re.sub(r"[^\w]", "_", req.name).lower().strip("_")
+        if not pid:
+            pid = f"property_{uuid.uuid4().hex[:8]}"
+
+        total_monthly = (req.rent or 0) + (req.management_fee or 0)
+        data = {
+            "name": req.name,
+            "address": req.address,
+            "building_type": req.building_type,
+            "structure": req.structure,
+            "floor": req.floor,
+            "built_year": req.built_year,
+            "layout": req.layout,
+            "area_sqm": req.area_sqm,
+            "rent": req.rent,
+            "management_fee": req.management_fee,
+            "total_monthly": total_monthly,
+            "deposit": req.deposit,
+            "key_money": req.key_money,
+            "brokerage_fee": req.brokerage_fee,
+            "vacancy_status": req.vacancy_status,
+            "available_date": req.available_date,
+            "nearest_station": req.nearest_station,
+            "walk_minutes": req.walk_minutes,
+            "pet_policy": req.pet_policy,
+            "parking_info": req.parking_info,
+            "facility_list": req.facility_list,
+            "matterport_url": req.matterport_url,
+            "notes": req.notes,
+        }
+
+        # メモリに追加
+        bot.kb.property_data[pid] = data
+
+        # YAMLに保存
+        _save_properties_yaml(bot.kb.property_data)
+
+        # システムプロンプトを再構築
+        bot.system_prompt = bot._build_system_prompt()
+
+        logger.info("Property registered: %s (%s)", req.name, pid)
+        return {"status": "ok", "property_id": pid, "name": req.name}
+
+    @app.delete("/api/properties/{property_id}")
+    async def delete_property(property_id: str):
+        """物件を削除."""
+        if property_id not in bot.kb.property_data:
+            raise HTTPException(status_code=404, detail="Property not found")
+        del bot.kb.property_data[property_id]
+        _save_properties_yaml(bot.kb.property_data)
+        bot.system_prompt = bot._build_system_prompt()
+        return {"status": "ok"}
+
+    # ═══ ページ ═══
+
     @app.get("/chat", response_class=HTMLResponse)
     async def chat_demo():
         """デモ用チャットページ."""
@@ -306,6 +412,14 @@ def create_app(bot_engine: Optional[BotEngine] = None) -> FastAPI:
         if html_path.exists():
             return HTMLResponse(html_path.read_text(encoding="utf-8"))
         return HTMLResponse("<h1>Widget not found</h1>", status_code=404)
+
+    @app.get("/admin/properties", response_class=HTMLResponse)
+    async def admin_properties():
+        """物件管理ページ."""
+        html_path = WIDGET_DIR / "admin_properties.html"
+        if html_path.exists():
+            return HTMLResponse(html_path.read_text(encoding="utf-8"))
+        return HTMLResponse("<h1>Admin page not found</h1>", status_code=404)
 
     return app
 

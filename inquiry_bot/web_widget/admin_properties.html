@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>物件管理 - ROCKEDGE</title>
+  <style>
+    :root {
+      --bg: #f4f5f7;
+      --bg-card: #ffffff;
+      --text: #1a1a2e;
+      --text-sub: #5f6368;
+      --accent: #e94560;
+      --accent-hover: #d63b55;
+      --border: #e1e3e6;
+      --success: #22c55e;
+      --font: -apple-system, BlinkMacSystemFont, 'Hiragino Sans', 'Noto Sans JP', sans-serif;
+    }
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: var(--font); background: var(--bg); color: var(--text); min-height: 100vh; }
+
+    .header {
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      color: #fff;
+      padding: 20px 24px;
+    }
+    .header h1 { font-size: 20px; font-weight: 700; }
+    .header p { font-size: 13px; opacity: 0.7; margin-top: 4px; }
+
+    .container { max-width: 800px; margin: 0 auto; padding: 24px 16px; }
+
+    /* 登録済み物件一覧 */
+    .property-list { margin-bottom: 32px; }
+    .property-list h2 { font-size: 16px; margin-bottom: 12px; color: var(--text-sub); }
+    .property-item {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 16px;
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .property-item-info { flex: 1; }
+    .property-item-name { font-weight: 700; font-size: 14px; }
+    .property-item-detail { font-size: 12px; color: var(--text-sub); margin-top: 2px; }
+    .property-item-status {
+      font-size: 11px; font-weight: 700; padding: 3px 10px;
+      border-radius: 20px; background: var(--success); color: #fff;
+    }
+    .property-item-status.full { background: var(--text-sub); }
+    .delete-btn {
+      margin-left: 12px; padding: 6px 12px; border: 1px solid #ef4444;
+      border-radius: 8px; background: #fff; color: #ef4444; font-size: 12px;
+      cursor: pointer; font-family: var(--font);
+    }
+    .delete-btn:hover { background: #fef2f2; }
+    .empty-state { text-align: center; padding: 24px; color: var(--text-sub); font-size: 14px; }
+
+    /* フォーム */
+    .form-card {
+      background: var(--bg-card);
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      padding: 24px;
+    }
+    .form-card h2 { font-size: 18px; font-weight: 700; margin-bottom: 20px; }
+
+    .form-section {
+      margin-bottom: 20px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--border);
+    }
+    .form-section:last-of-type { border-bottom: none; }
+    .form-section-title {
+      font-size: 13px; font-weight: 700; color: var(--accent);
+      margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px;
+    }
+
+    .form-row { display: flex; gap: 12px; margin-bottom: 12px; }
+    .form-row > * { flex: 1; }
+
+    .form-group { margin-bottom: 12px; }
+    .form-group label {
+      display: block; font-size: 12px; font-weight: 600;
+      color: var(--text-sub); margin-bottom: 4px;
+    }
+    .form-group label .required {
+      color: var(--accent); font-size: 10px; margin-left: 2px;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      font-size: 14px;
+      font-family: var(--font);
+      background: #fff;
+      color: var(--text);
+      transition: border-color 150ms;
+    }
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(233,69,96,0.08);
+    }
+    .form-group select {
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%235f6368' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      padding-right: 32px;
+    }
+    .form-group textarea { resize: vertical; min-height: 60px; }
+    .form-group input[type="number"] { -moz-appearance: textfield; }
+
+    .form-hint { font-size: 11px; color: var(--text-sub); margin-top: 3px; }
+
+    .submit-btn {
+      width: 100%;
+      padding: 14px;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: var(--font);
+      transition: background 150ms;
+    }
+    .submit-btn:hover { background: var(--accent-hover); }
+    .submit-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .toast {
+      position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-20px);
+      background: #1a1a2e; color: #fff; padding: 12px 24px; border-radius: 10px;
+      font-size: 14px; font-weight: 500; opacity: 0; transition: all 250ms;
+      z-index: 100; pointer-events: none;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    .toast.error { background: #ef4444; }
+
+    @media (max-width: 600px) {
+      .form-row { flex-direction: column; gap: 0; }
+      .container { padding: 16px 12px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <h1>物件管理</h1>
+  <p>物件情報の登録・管理。登録するとチャットBotが自動で案内します。</p>
+</div>
+
+<div class="container">
+
+  <!-- 登録済み物件一覧 -->
+  <div class="property-list">
+    <h2>登録済み物件</h2>
+    <div id="propertyList"><div class="empty-state">読み込み中...</div></div>
+  </div>
+
+  <!-- 新規登録フォーム -->
+  <div class="form-card">
+    <h2>新規物件登録</h2>
+    <form id="propertyForm" onsubmit="submitProperty(event)">
+
+      <!-- 基本情報 -->
+      <div class="form-section">
+        <div class="form-section-title">基本情報</div>
+        <div class="form-group">
+          <label>物件名 <span class="required">*必須</span></label>
+          <input type="text" name="name" required placeholder="例: ROCKEDGEマンション 301号室">
+        </div>
+        <div class="form-group">
+          <label>住所</label>
+          <input type="text" name="address" placeholder="例: 東京都渋谷区神宮前1-2-3">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>建物種別</label>
+            <select name="building_type">
+              <option value="マンション">マンション</option>
+              <option value="アパート">アパート</option>
+              <option value="戸建">戸建</option>
+              <option value="テラスハウス">テラスハウス</option>
+              <option value="ビル">ビル</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>構造</label>
+            <select name="structure">
+              <option value="RC造">RC造（鉄筋コンクリート）</option>
+              <option value="SRC造">SRC造（鉄骨鉄筋コンクリート）</option>
+              <option value="S造">S造（鉄骨）</option>
+              <option value="木造">木造</option>
+              <option value="軽量鉄骨">軽量鉄骨</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>階数</label>
+            <input type="text" name="floor" placeholder="例: 3階建ての2階">
+          </div>
+          <div class="form-group">
+            <label>築年</label>
+            <input type="number" name="built_year" placeholder="例: 2020" min="1950" max="2030">
+          </div>
+        </div>
+      </div>
+
+      <!-- 間取り・面積 -->
+      <div class="form-section">
+        <div class="form-section-title">間取り・面積</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>間取り</label>
+            <select name="layout">
+              <option value="1R">1R</option>
+              <option value="1K" selected>1K</option>
+              <option value="1DK">1DK</option>
+              <option value="1LDK">1LDK</option>
+              <option value="2K">2K</option>
+              <option value="2DK">2DK</option>
+              <option value="2LDK">2LDK</option>
+              <option value="3DK">3DK</option>
+              <option value="3LDK">3LDK</option>
+              <option value="4LDK以上">4LDK以上</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>面積（㎡）</label>
+            <input type="number" name="area_sqm" step="0.1" placeholder="例: 35.5">
+          </div>
+        </div>
+      </div>
+
+      <!-- 賃料・費用 -->
+      <div class="form-section">
+        <div class="form-section-title">賃料・費用</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>賃料（円）<span class="required">*必須</span></label>
+            <input type="number" name="rent" required placeholder="例: 85000" min="0" step="1000">
+          </div>
+          <div class="form-group">
+            <label>管理費（円）</label>
+            <input type="number" name="management_fee" placeholder="例: 5000" min="0" step="500" value="0">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>敷金</label>
+            <select name="deposit">
+              <option value="なし">なし</option>
+              <option value="賃料0.5ヶ月分">賃料0.5ヶ月分</option>
+              <option value="賃料1ヶ月分" selected>賃料1ヶ月分</option>
+              <option value="賃料2ヶ月分">賃料2ヶ月分</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>礼金</label>
+            <select name="key_money">
+              <option value="なし" selected>なし</option>
+              <option value="賃料0.5ヶ月分">賃料0.5ヶ月分</option>
+              <option value="賃料1ヶ月分">賃料1ヶ月分</option>
+              <option value="賃料2ヶ月分">賃料2ヶ月分</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>仲介手数料</label>
+          <select name="brokerage_fee">
+            <option value="賃料0.5ヶ月分">賃料0.5ヶ月分</option>
+            <option value="賃料1ヶ月分" selected>賃料1ヶ月分</option>
+            <option value="なし">なし</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- 空室状況 -->
+      <div class="form-section">
+        <div class="form-section-title">空室・入居情報</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>空室状況</label>
+            <select name="vacancy_status">
+              <option value="空室あり" selected>空室あり</option>
+              <option value="満室">満室</option>
+              <option value="退去予定あり">退去予定あり</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>入居可能日</label>
+            <select name="available_date">
+              <option value="即入居可" selected>即入居可</option>
+              <option value="来月から">来月から</option>
+              <option value="要相談">要相談</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- アクセス -->
+      <div class="form-section">
+        <div class="form-section-title">アクセス</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>最寄り駅</label>
+            <input type="text" name="nearest_station" placeholder="例: 山手線 渋谷駅">
+          </div>
+          <div class="form-group">
+            <label>徒歩（分）</label>
+            <input type="number" name="walk_minutes" placeholder="例: 8" min="1" max="60">
+          </div>
+        </div>
+      </div>
+
+      <!-- 条件 -->
+      <div class="form-section">
+        <div class="form-section-title">条件・設備</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>ペット</label>
+            <select name="pet_policy">
+              <option value="ペット不可" selected>ペット不可</option>
+              <option value="小型犬1匹まで可">小型犬1匹まで可</option>
+              <option value="猫1匹まで可">猫1匹まで可</option>
+              <option value="小型ペット可（要相談）">小型ペット可（要相談）</option>
+              <option value="ペット可">ペット可</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>駐車場</label>
+            <select name="parking_info">
+              <option value="" selected>なし</option>
+              <option value="敷地内駐車場あり">敷地内駐車場あり</option>
+              <option value="近隣月極駐車場あり">近隣月極駐車場あり</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>設備一覧</label>
+          <textarea name="facility_list" rows="3" placeholder="例:&#10;エアコン&#10;独立洗面台&#10;浴室乾燥機&#10;オートロック"></textarea>
+          <div class="form-hint">1行に1つずつ入力してください</div>
+        </div>
+      </div>
+
+      <!-- その他 -->
+      <div class="form-section">
+        <div class="form-section-title">その他</div>
+        <div class="form-group">
+          <label>3Dツアー URL</label>
+          <input type="url" name="matterport_url" placeholder="https://...">
+        </div>
+        <div class="form-group">
+          <label>備考</label>
+          <textarea name="notes" rows="2" placeholder="特記事項があれば入力"></textarea>
+        </div>
+      </div>
+
+      <button type="submit" class="submit-btn" id="submitBtn">物件を登録する</button>
+    </form>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  const API = '';
+
+  // 物件一覧を読み込み
+  async function loadProperties() {
+    try {
+      const res = await fetch(API + '/api/properties');
+      const data = await res.json();
+      const list = document.getElementById('propertyList');
+      const props = data.properties || {};
+      const keys = Object.keys(props);
+
+      if (keys.length === 0) {
+        list.innerHTML = '<div class="empty-state">登録済み物件はありません</div>';
+        return;
+      }
+
+      list.innerHTML = '';
+      keys.forEach(pid => {
+        const p = props[pid];
+        const rent = p.rent ? Number(p.rent).toLocaleString() + '円' : '';
+        const status = (p.vacancy_status || '').includes('空室') ? '空室' : '満室';
+        const statusClass = status === '空室' ? '' : ' full';
+
+        const item = document.createElement('div');
+        item.className = 'property-item';
+        item.innerHTML =
+          '<div class="property-item-info">' +
+            '<div class="property-item-name">' + escapeHtml(p.name || pid) + '</div>' +
+            '<div class="property-item-detail">' +
+              (p.layout || '') + ' / ' + (p.area_sqm || '') + '㎡ / ' + rent +
+            '</div>' +
+          '</div>' +
+          '<span class="property-item-status' + statusClass + '">' + status + '</span>' +
+          '<button class="delete-btn" onclick="deleteProperty(\'' + pid + '\')">削除</button>';
+        list.appendChild(item);
+      });
+    } catch (e) {
+      document.getElementById('propertyList').innerHTML =
+        '<div class="empty-state">読み込みエラー</div>';
+    }
+  }
+
+  // 物件登録
+  async function submitProperty(e) {
+    e.preventDefault();
+    const form = document.getElementById('propertyForm');
+    const btn = document.getElementById('submitBtn');
+    btn.disabled = true;
+    btn.textContent = '登録中...';
+
+    const fd = new FormData(form);
+    const body = {};
+    for (const [key, val] of fd.entries()) {
+      if (['rent', 'management_fee', 'built_year', 'walk_minutes'].includes(key)) {
+        body[key] = val ? Number(val) : null;
+      } else if (key === 'area_sqm') {
+        body[key] = val ? parseFloat(val) : null;
+      } else {
+        body[key] = val;
+      }
+    }
+
+    try {
+      const res = await fetch(API + '/api/properties', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const data = await res.json();
+      showToast(data.name + ' を登録しました');
+      form.reset();
+      loadProperties();
+    } catch (err) {
+      showToast('登録に失敗しました: ' + err.message, true);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = '物件を登録する';
+    }
+  }
+
+  // 物件削除
+  async function deleteProperty(pid) {
+    if (!confirm('この物件を削除しますか？')) return;
+    try {
+      const res = await fetch(API + '/api/properties/' + pid, { method: 'DELETE' });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      showToast('削除しました');
+      loadProperties();
+    } catch (err) {
+      showToast('削除に失敗しました', true);
+    }
+  }
+
+  function showToast(text, isError) {
+    const t = document.getElementById('toast');
+    t.textContent = text;
+    t.className = 'toast show' + (isError ? ' error' : '');
+    setTimeout(() => t.className = 'toast', 2500);
+  }
+
+  function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
+  // 初期読み込み
+  loadProperties();
+</script>
+</body>
+</html>
