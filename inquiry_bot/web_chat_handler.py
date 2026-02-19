@@ -401,12 +401,14 @@ def create_app(bot_engine: Optional[BotEngine] = None) -> FastAPI:
 
     # ═══ ページ ═══
 
+    _no_cache = {"Cache-Control": "no-cache, no-store, must-revalidate", "Pragma": "no-cache"}
+
     @app.get("/chat", response_class=HTMLResponse)
     async def chat_demo():
         """デモ用チャットページ."""
         html_path = WIDGET_DIR / "index.html"
         if html_path.exists():
-            return HTMLResponse(html_path.read_text(encoding="utf-8"))
+            return HTMLResponse(html_path.read_text(encoding="utf-8"), headers=_no_cache)
         return HTMLResponse("<h1>Widget not found</h1>", status_code=404)
 
     @app.get("/admin/properties", response_class=HTMLResponse)
@@ -414,7 +416,7 @@ def create_app(bot_engine: Optional[BotEngine] = None) -> FastAPI:
         """物件管理ページ."""
         html_path = WIDGET_DIR / "admin_properties.html"
         if html_path.exists():
-            return HTMLResponse(html_path.read_text(encoding="utf-8"))
+            return HTMLResponse(html_path.read_text(encoding="utf-8"), headers=_no_cache)
         return HTMLResponse("<h1>Admin page not found</h1>", status_code=404)
 
     # 静的ファイル（ウィジェット）— ルート定義の後にマウント
