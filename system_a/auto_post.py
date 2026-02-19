@@ -5,6 +5,7 @@ import logging
 import os
 import time
 from datetime import datetime, timezone, timedelta
+from pathlib import Path
 
 import requests
 from dotenv import load_dotenv
@@ -17,6 +18,7 @@ load_dotenv()
 logger = logging.getLogger(__name__)
 
 JST = timezone(timedelta(hours=9))
+POSTED_LOG_PATH = Path(__file__).parent.parent / "data" / "system_a" / "posted_tweets.json"
 
 
 class AutoPoster:
@@ -94,10 +96,17 @@ class AutoPoster:
         else:
             result = self.post_tweet(text)
 
-        # Record to Sheets
+        # Build record
         now = datetime.now(JST)
+        tweet_id = ""
+        if isinstance(result, dict):
+            tweet_id = result.get("data", {}).get("id", "")
+        elif isinstance(result, list) and result:
+            tweet_id = result[0].get("data", {}).get("id", "")
+
         record = {
             "datetime": now.isoformat(),
+            "tweet_id": tweet_id,
             "pillar": str(post.get("pillar", "")),
             "pipeline": post.get("pipeline", ""),
             "pattern": post.get("pattern", ""),
@@ -106,12 +115,31 @@ class AutoPoster:
             "status": "posted",
         }
 
+        # Save to local log
+        self._save_to_local_log(record)
+
+        # Record to Sheets
         try:
             self.sheets.record_post(record)
         except Exception as e:
             logger.warning("Failed to record to Sheets: %s", e)
 
         return result
+
+    def _save_to_local_log(self, record: dict) -> None:
+        """Append a posted tweet record to the local JSON log."""
+        existing = []
+        if POSTED_LOG_PATH.exists():
+            try:
+                existing = json.loads(POSTED_LOG_PATH.read_text(encoding="utf-8"))
+            except Exception:
+                existing = []
+
+        existing.append(record)
+        POSTED_LOG_PATH.parent.mkdir(parents=True, exist_ok=True)
+        POSTED_LOG_PATH.write_text(
+            json.dumps(existing, ensure_ascii=False, indent=2), encoding="utf-8"
+        )
 
     def execute_scheduled(self, posts: list) -> None:
         """Execute scheduled posts at their designated times."""

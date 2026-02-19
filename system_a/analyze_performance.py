@@ -22,6 +22,7 @@ DATA_DIR = BASE_DIR / "data" / "system_a"
 REPORTS_DIR = BASE_DIR / "reports" / "system_a"
 CONFIG_PATH = BASE_DIR / "config" / "config.yaml"
 WINNING_PATTERNS_PATH = DATA_DIR / "winning_patterns.json"
+POSTED_LOG_PATH = DATA_DIR / "posted_tweets.json"
 
 
 class PerformanceAnalyzer:
@@ -243,11 +244,47 @@ class PerformanceAnalyzer:
         logger.info("Report saved: %s", report_path)
         return str(report_path)
 
+    def _load_posts(self, days: int = 1) -> list:
+        """Load posted tweets from local log, filtered by recent N days."""
+        if not POSTED_LOG_PATH.exists():
+            logger.info("No posted tweets log found at %s", POSTED_LOG_PATH)
+            return []
+
+        try:
+            all_posts = json.loads(POSTED_LOG_PATH.read_text(encoding="utf-8"))
+        except Exception as e:
+            logger.warning("Failed to read posted tweets log: %s", e)
+            return []
+
+        cutoff = datetime.now(JST) - timedelta(days=days)
+        filtered = []
+        for post in all_posts:
+            try:
+                posted_at = datetime.fromisoformat(post["datetime"])
+                if posted_at >= cutoff:
+                    filtered.append(post)
+            except (KeyError, ValueError):
+                continue
+
+        logger.info("Loaded %d posts from last %d day(s)", len(filtered), days)
+        return filtered
+
+    def _enrich_with_metrics(self, posts: list) -> list:
+        """Fetch X API metrics for each post and merge into post data."""
+        enriched = []
+        for post in posts:
+            tweet_id = post.get("tweet_id", "")
+            if tweet_id:
+                metrics = self.fetch_tweet_metrics(tweet_id)
+                post.update(metrics)
+            enriched.append(post)
+        return enriched
+
     def run_daily(self) -> None:
         """Run daily analysis."""
         logger.info("Running daily performance analysis...")
-        # In production, load posts from Sheets/DB with metrics
-        posts = []  # TODO: Load from sheets
+        posts = self._load_posts(days=1)
+        posts = self._enrich_with_metrics(posts)
         if posts:
             self.generate_report(posts, "daily")
             self.update_winning_patterns(posts)
@@ -255,7 +292,8 @@ class PerformanceAnalyzer:
     def run_weekly(self) -> None:
         """Run weekly analysis with ratio adjustment."""
         logger.info("Running weekly performance analysis...")
-        posts = []  # TODO: Load from sheets
+        posts = self._load_posts(days=7)
+        posts = self._enrich_with_metrics(posts)
         if posts:
             pipeline_stats = self.analyze_by_pipeline(posts)
             self.auto_adjust_pipeline_ratio(pipeline_stats)
