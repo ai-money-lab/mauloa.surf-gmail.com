@@ -484,33 +484,34 @@
       background: var(--border);
     }
 
-    /* ═══ クイックリプライ (Zendesk chip style) ═══ */
+    /* ═══ クイックリプライ (主要操作ボタン) ═══ */
     .quick-replies {
       display: flex;
-      gap: 6px;
+      gap: 8px;
       flex-wrap: wrap;
-      padding: 4px 16px 8px;
+      padding: 8px 16px 10px;
       animation: messageSlideIn var(--transition-normal) ease-out;
     }
 
     .quick-replies:empty { display: none; }
 
     .quick-reply-btn {
-      padding: 8px 16px;
-      border: 1.5px solid var(--accent-border);
+      padding: 10px 18px;
+      border: 2px solid var(--accent);
       border-radius: var(--radius-full);
       background: var(--bg-primary);
       color: var(--accent);
-      font-size: 13px;
-      font-weight: 500;
+      font-size: 14px;
+      font-weight: 600;
       cursor: pointer;
       transition: all var(--transition-fast);
       font-family: var(--font-sans);
       white-space: nowrap;
-      min-height: 36px;
+      min-height: 40px;
       line-height: 1;
       display: inline-flex;
       align-items: center;
+      gap: 6px;
     }
 
     .quick-reply-btn:hover {
@@ -518,7 +519,7 @@
       color: #fff;
       border-color: var(--accent);
       transform: translateY(-1px);
-      box-shadow: var(--shadow-sm);
+      box-shadow: var(--shadow-md);
     }
 
     .quick-reply-btn:focus-visible {
@@ -1065,7 +1066,7 @@
     <div class="welcome-card" id="welcomeCard">
       <div class="welcome-icon" aria-hidden="true">&#128075;</div>
       <h2>こんにちは！</h2>
-      <p>ROCKEDGE Property ManagementのAIアシスタントです。<br>物件のご質問、内見予約、空室確認など何でもお気軽にどうぞ。</p>
+      <p>ROCKEDGE Property ManagementのAIアシスタントです。<br>下のボタンからお気軽にお問い合わせください。</p>
       <div class="response-time">通常3秒以内に回答します</div>
     </div>
 
@@ -1087,11 +1088,11 @@
   </button>
 
   <!-- クイックリプライ -->
-  <div class="quick-replies" id="quickReplies" role="group" aria-label="クイック返信">
-    <button class="quick-reply-btn" onclick="sendQuickReply('空室を確認したい')">空室確認</button>
-    <button class="quick-reply-btn" onclick="sendQuickReply('内見を予約したい')">内見予約</button>
-    <button class="quick-reply-btn" onclick="sendQuickReply('賃料を教えてください')">賃料・費用</button>
-    <button class="quick-reply-btn" onclick="sendQuickReply('設備について教えてください')">設備・仕様</button>
+  <div class="quick-replies" id="quickReplies" role="group" aria-label="お問い合わせメニュー">
+    <button class="quick-reply-btn" onclick="sendQuickReply('空室を確認したい')">&#127968; 空室確認</button>
+    <button class="quick-reply-btn" onclick="sendQuickReply('内見を予約したい')">&#128197; 内見予約</button>
+    <button class="quick-reply-btn" onclick="sendQuickReply('賃料を教えてください')">&#128176; 賃料・費用</button>
+    <button class="quick-reply-btn" onclick="sendQuickReply('設備について教えてください')">&#128295; 設備・仕様</button>
   </div>
 
   <!-- 入力エリア -->
@@ -1100,7 +1101,7 @@
       <textarea
         class="chat-input"
         id="chatInput"
-        placeholder="メッセージを入力..."
+        placeholder="選択肢をタップ、または入力..."
         autocomplete="off"
         rows="1"
         aria-label="メッセージ入力"

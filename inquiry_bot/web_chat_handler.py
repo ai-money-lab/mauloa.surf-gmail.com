@@ -1,6 +1,7 @@
 """Web Chat API Handler — FastAPIベースのWebチャットAPIサーバー."""
 
 import logging
+import re
 import uuid
 from pathlib import Path
 from typing import List, Optional
@@ -108,6 +109,61 @@ def _extract_property_cards(
     return cards
 
 
+def _clean_reply_for_cards(reply_text: str, card_names: List[str]) -> str:
+    """物件カード表示時に回答テキストから冗長な物件リスト部分を除去."""
+    lines = reply_text.split("\n")
+    result_lines = []
+    in_listing = False
+
+    for line in lines:
+        stripped = line.strip()
+
+        # 物件リストヘッダー検出（例: 【現在空室の物件】）
+        if "【" in stripped and ("物件" in stripped or "空室" in stripped):
+            in_listing = True
+            continue
+
+        # 物件名が含まれる行
+        if any(name in stripped for name in card_names):
+            in_listing = True
+            continue
+
+        # リスト内の詳細行をスキップ
+        if in_listing:
+            detail_keywords = [
+                "賃料", "管理費", "間取", "㎡", "最寄", "徒歩",
+                "入居", "敷金", "礼金", "号室", "階建",
+            ]
+            if stripped.startswith(("・", "- ", "　", "  ")):
+                continue
+            if any(kw in stripped for kw in detail_keywords):
+                continue
+            if stripped == "":
+                continue
+            # 物件選択を促す文もスキップ
+            if any(kw in stripped for kw in [
+                "どちら", "どの物件", "ご希望", "お選び", "気になる",
+            ]):
+                continue
+            in_listing = False
+
+        result_lines.append(line)
+
+    text = "\n".join(result_lines).strip()
+
+    # 末尾の物件選択促進文を除去
+    text = re.sub(
+        r"\n*(?:どちら|どの|ご希望の|気になる).*?(?:でしょうか|ですか|ください)[。？?]*\s*$",
+        "", text,
+    ).strip()
+
+    if not text:
+        text = "空室物件をご案内いたします。"
+
+    text += "\n\n気になる物件をタップしてください。"
+    return text
+
+
 def create_app(bot_engine: Optional[BotEngine] = None) -> FastAPI:
     """FastAPIアプリケーションを生成."""
     config = yaml.safe_load(CONFIG_PATH.read_text(encoding="utf-8"))
@@ -168,12 +224,22 @@ def create_app(bot_engine: Optional[BotEngine] = None) -> FastAPI:
                 options = ["担当者と話したい", "他の問い合わせ"]
 
         # 物件カード: 回答テキストに物件名が含まれている場合にカードデータを付与
-        property_cards = _extract_property_cards(
-            response.get("reply", ""), bot.kb.property_data,
-        )
+        reply_text = response["reply"]
+        property_cards = _extract_property_cards(reply_text, bot.kb.property_data)
+
+        # 物件カードがある場合: テキスト内の物件リスト部分を除去
+        if property_cards:
+            card_names = [c.name for c in property_cards]
+            reply_text = _clean_reply_for_cards(reply_text, card_names)
+            # 物件カード表示時は物件選択を促す選択肢は不要
+            options = []
+
+        # 全カテゴリでフォールバック選択肢を保証（入力不要を徹底）
+        if not options and not property_cards:
+            options = ["空室を確認したい", "内見を予約したい", "その他の質問"]
 
         return ChatResponse(
-            reply=response["reply"],
+            reply=reply_text,
             session_id=session_id,
             category=response.get("category", "general"),
             escalated=response.get("escalated", False),
