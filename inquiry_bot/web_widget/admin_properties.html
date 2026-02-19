@@ -355,7 +355,7 @@
         <div class="form-row">
           <div class="form-group">
             <label>賃料 <span class="required">*必須</span></label>
-            <select name="rent" required>
+            <select id="rentSelect" onchange="toggleRentInput()">
               <option value="">選択してください</option>
               <option value="30000">3万円</option>
               <option value="35000">3.5万円</option>
@@ -381,7 +381,11 @@
               <option value="200000">20万円</option>
               <option value="250000">25万円</option>
               <option value="300000">30万円以上</option>
+              <option value="custom">その他（直接入力）</option>
             </select>
+            <input type="number" id="rentCustom" name="rent" placeholder="金額を入力（円）"
+                   min="0" step="1000" style="display:none; margin-top:6px;" required>
+            <input type="hidden" id="rentHidden" name="rent" value="">
           </div>
           <div class="form-group">
             <label>管理費</label>
@@ -610,6 +614,25 @@
     }
   }
 
+  // ═══ 賃料: 選択 or 直接入力 ═══
+  function toggleRentInput() {
+    const sel = document.getElementById('rentSelect');
+    const custom = document.getElementById('rentCustom');
+    const hidden = document.getElementById('rentHidden');
+    if (sel.value === 'custom') {
+      custom.style.display = 'block';
+      custom.required = true;
+      custom.focus();
+      hidden.disabled = true;
+    } else {
+      custom.style.display = 'none';
+      custom.required = false;
+      custom.value = '';
+      hidden.disabled = false;
+      hidden.value = sel.value;
+    }
+  }
+
   // ═══ 郵便番号→住所 自動検索（zipcloud API） ═══
   async function searchZip() {
     const zipInput = document.getElementById('zipCode');
@@ -779,6 +802,15 @@
       }
     }
 
+    // 賃料: selectの値 or 直接入力の値を確定
+    const rentSel = document.getElementById('rentSelect');
+    const rentCustom = document.getElementById('rentCustom');
+    if (rentSel.value === 'custom') {
+      body.rent = rentCustom.value ? Number(rentCustom.value) : null;
+    } else {
+      body.rent = rentSel.value ? Number(rentSel.value) : null;
+    }
+
     // 階数を統合（例: "3階建ての2階"）
     const fb = fd.get('floor_building');
     const fu = fd.get('floor_unit');
@@ -812,6 +844,9 @@
       const data = await res.json();
       showToast(data.name + ' を登録しました');
       form.reset();
+      // 賃料UIリセット
+      document.getElementById('rentCustom').style.display = 'none';
+      document.getElementById('rentHidden').disabled = false;
       // チェックボックスのUIリセット
       document.querySelectorAll('.facility-chip.checked').forEach(c => c.classList.remove('checked'));
       document.getElementById('stationSelect').innerHTML = '<option value="">路線を選択してください</option>';
