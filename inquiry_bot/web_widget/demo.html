@@ -5,208 +5,408 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>問い合わせ自動対応Bot デモ | ROCKEDGE</title>
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Hiragino Sans', 'Noto Sans JP', sans-serif;
-      background: #f8f9fa;
-      color: #1a1a2e;
+    :root {
+      --primary: #1a1a2e;
+      --accent: #e94560;
+      --bg: #fafbfc;
+      --surface: #ffffff;
+      --text: #1a1a2e;
+      --text-secondary: #5f6368;
+      --text-tertiary: #9aa0a6;
+      --border: #e8eaed;
+      --font: -apple-system, BlinkMacSystemFont, 'Hiragino Sans', 'Noto Sans JP', 'Segoe UI', sans-serif;
     }
 
-    /* ヒーロー */
-    .hero {
-      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
-      color: #fff;
-      padding: 60px 20px;
-      text-align: center;
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      -webkit-font-smoothing: antialiased;
     }
-    .hero h1 { font-size: 28px; margin-bottom: 12px; }
-    .hero p { font-size: 16px; opacity: 0.9; max-width: 600px; margin: 0 auto 24px; line-height: 1.6; }
-    .hero-badge {
-      display: inline-block;
-      background: #e94560;
+
+    /* ═══ ヒーロー ═══ */
+    .hero {
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 40%, #0f3460 100%);
       color: #fff;
+      padding: 80px 24px 100px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 60px;
+      background: linear-gradient(to top, var(--bg), transparent);
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(233, 69, 96, 0.15);
+      color: var(--accent);
       padding: 6px 16px;
       border-radius: 20px;
       font-size: 13px;
       font-weight: 600;
+      margin-bottom: 20px;
+      border: 1px solid rgba(233, 69, 96, 0.3);
     }
 
-    /* KPIカード */
-    .kpi-section {
-      max-width: 800px;
-      margin: -40px auto 40px;
-      padding: 0 20px;
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      gap: 16px;
-    }
-    .kpi-card {
-      background: #fff;
-      border-radius: 12px;
-      padding: 20px;
-      text-align: center;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.08);
-    }
-    .kpi-number {
+    .hero h1 {
       font-size: 36px;
-      font-weight: 700;
-      color: #e94560;
-      line-height: 1;
+      font-weight: 800;
+      line-height: 1.3;
+      margin-bottom: 16px;
+      letter-spacing: -0.5px;
     }
+
+    .hero p {
+      font-size: 16px;
+      opacity: 0.85;
+      max-width: 560px;
+      margin: 0 auto;
+      line-height: 1.7;
+    }
+
+    @media (max-width: 480px) {
+      .hero { padding: 60px 20px 80px; }
+      .hero h1 { font-size: 26px; }
+    }
+
+    /* ═══ KPIカード ═══ */
+    .kpi-section {
+      max-width: 880px;
+      margin: -50px auto 48px;
+      padding: 0 24px;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      position: relative;
+      z-index: 1;
+    }
+
+    @media (max-width: 600px) {
+      .kpi-section { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    .kpi-card {
+      background: var(--surface);
+      border-radius: 14px;
+      padding: 24px 16px;
+      text-align: center;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+      border: 1px solid var(--border);
+      transition: transform 200ms, box-shadow 200ms;
+    }
+
+    .kpi-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+    }
+
+    .kpi-number {
+      font-size: 40px;
+      font-weight: 800;
+      color: var(--accent);
+      line-height: 1;
+      letter-spacing: -1px;
+    }
+
+    .kpi-unit { font-size: 18px; font-weight: 600; }
     .kpi-label {
       font-size: 13px;
-      color: #6c757d;
+      color: var(--text-secondary);
       margin-top: 6px;
+      font-weight: 500;
     }
-    .kpi-unit { font-size: 16px; }
 
-    /* 特徴セクション */
-    .features {
-      max-width: 800px;
-      margin: 0 auto 40px;
-      padding: 0 20px;
+    /* ═══ セクション共通 ═══ */
+    section {
+      max-width: 880px;
+      margin: 0 auto 56px;
+      padding: 0 24px;
     }
-    .features h2 {
-      font-size: 22px;
-      margin-bottom: 20px;
+
+    .section-header {
       text-align: center;
+      margin-bottom: 32px;
     }
+
+    .section-header h2 {
+      font-size: 26px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .section-header p {
+      font-size: 15px;
+      color: var(--text-secondary);
+    }
+
+    /* ═══ 特徴グリッド ═══ */
     .feature-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      grid-template-columns: repeat(2, 1fr);
       gap: 16px;
     }
-    .feature-card {
-      background: #fff;
-      border-radius: 12px;
-      padding: 24px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-    }
-    .feature-card h3 {
-      font-size: 16px;
-      margin-bottom: 8px;
-      color: #1a1a2e;
-    }
-    .feature-card p {
-      font-size: 14px;
-      color: #6c757d;
-      line-height: 1.6;
-    }
-    .feature-icon {
-      font-size: 28px;
-      margin-bottom: 12px;
+
+    @media (max-width: 600px) {
+      .feature-grid { grid-template-columns: 1fr; }
     }
 
-    /* デモセクション */
-    .demo-section {
-      max-width: 800px;
-      margin: 0 auto 40px;
-      padding: 0 20px;
-      text-align: center;
+    .feature-card {
+      background: var(--surface);
+      border-radius: 14px;
+      padding: 28px 24px;
+      border: 1px solid var(--border);
+      transition: transform 200ms, box-shadow 200ms;
     }
-    .demo-section h2 { font-size: 22px; margin-bottom: 12px; }
-    .demo-section p { color: #6c757d; margin-bottom: 20px; }
+
+    .feature-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+    }
+
+    .feature-icon {
+      width: 44px;
+      height: 44px;
+      background: rgba(233, 69, 96, 0.08);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      margin-bottom: 14px;
+    }
+
+    .feature-card h3 {
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .feature-card p {
+      font-size: 14px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+
+    /* ═══ デモセクション ═══ */
+    .demo-section { text-align: center; }
+
     .demo-examples {
       display: flex;
       flex-wrap: wrap;
       gap: 8px;
       justify-content: center;
-      margin-bottom: 20px;
-    }
-    .demo-example {
-      padding: 8px 16px;
-      background: #fff;
-      border: 1px solid #dee2e6;
-      border-radius: 20px;
-      font-size: 13px;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    .demo-example:hover {
-      border-color: #e94560;
-      color: #e94560;
     }
 
-    /* プランセクション */
-    .plans {
-      max-width: 800px;
-      margin: 0 auto 40px;
-      padding: 0 20px;
+    .demo-chip {
+      padding: 10px 18px;
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: 100px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text);
+      cursor: pointer;
+      transition: all 150ms;
+      font-family: var(--font);
     }
-    .plans h2 { font-size: 22px; margin-bottom: 20px; text-align: center; }
-    .plan-grid {
+
+    .demo-chip:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: rgba(233, 69, 96, 0.04);
+      transform: translateY(-1px);
+    }
+
+    /* ═══ UX Features (新セクション) ═══ */
+    .ux-features {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      grid-template-columns: repeat(3, 1fr);
       gap: 16px;
     }
-    .plan-card {
-      background: #fff;
-      border-radius: 12px;
-      padding: 24px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-      position: relative;
-    }
-    .plan-card.recommended {
-      border: 2px solid #e94560;
-    }
-    .plan-badge {
-      position: absolute;
-      top: -10px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: #e94560;
-      color: #fff;
-      padding: 4px 12px;
-      border-radius: 10px;
-      font-size: 12px;
-      font-weight: 600;
-    }
-    .plan-name { font-size: 18px; font-weight: 600; margin-bottom: 4px; }
-    .plan-price {
-      font-size: 28px;
-      font-weight: 700;
-      color: #e94560;
-      margin-bottom: 12px;
-    }
-    .plan-price span { font-size: 14px; font-weight: 400; color: #6c757d; }
-    .plan-features { list-style: none; font-size: 13px; }
-    .plan-features li {
-      padding: 4px 0;
-      color: #495057;
-    }
-    .plan-features li::before {
-      content: "✓ ";
-      color: #4ade80;
-      font-weight: 600;
+
+    @media (max-width: 600px) {
+      .ux-features { grid-template-columns: 1fr; }
     }
 
-    /* CTA */
+    .ux-feature {
+      background: var(--surface);
+      border-radius: 14px;
+      padding: 20px;
+      border: 1px solid var(--border);
+      text-align: center;
+    }
+
+    .ux-feature .ux-icon {
+      font-size: 28px;
+      margin-bottom: 10px;
+    }
+
+    .ux-feature h4 {
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .ux-feature p {
+      font-size: 12px;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+
+    /* ═══ プランセクション ═══ */
+    .plan-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      align-items: start;
+    }
+
+    @media (max-width: 700px) {
+      .plan-grid { grid-template-columns: 1fr; }
+    }
+
+    .plan-card {
+      background: var(--surface);
+      border-radius: 14px;
+      padding: 28px 24px;
+      border: 1px solid var(--border);
+      position: relative;
+      transition: transform 200ms, box-shadow 200ms;
+    }
+
+    .plan-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+    }
+
+    .plan-card.recommended {
+      border: 2px solid var(--accent);
+      box-shadow: 0 4px 16px rgba(233, 69, 96, 0.12);
+    }
+
+    .plan-badge {
+      position: absolute;
+      top: -12px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--accent);
+      color: #fff;
+      padding: 4px 14px;
+      border-radius: 100px;
+      font-size: 11px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .plan-name {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .plan-price {
+      font-size: 32px;
+      font-weight: 800;
+      color: var(--accent);
+      margin-bottom: 16px;
+      letter-spacing: -1px;
+    }
+
+    .plan-price span {
+      font-size: 14px;
+      font-weight: 400;
+      color: var(--text-secondary);
+    }
+
+    .plan-features {
+      list-style: none;
+      font-size: 13px;
+    }
+
+    .plan-features li {
+      padding: 5px 0;
+      color: var(--text-secondary);
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      line-height: 1.4;
+    }
+
+    .plan-features li::before {
+      content: '';
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      background: rgba(34, 197, 94, 0.1);
+      border-radius: 50%;
+      flex-shrink: 0;
+      margin-top: 1px;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%2322c55e' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: center;
+      background-size: 10px;
+    }
+
+    /* ═══ CTA ═══ */
     .cta {
-      background: #1a1a2e;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
       color: #fff;
       text-align: center;
-      padding: 40px 20px;
+      padding: 56px 24px;
     }
-    .cta h2 { font-size: 22px; margin-bottom: 12px; }
-    .cta p { opacity: 0.8; margin-bottom: 20px; }
+
+    .cta h2 {
+      font-size: 26px;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .cta p {
+      opacity: 0.8;
+      margin-bottom: 24px;
+      font-size: 15px;
+    }
+
     .cta-btn {
-      display: inline-block;
-      background: #e94560;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--accent);
       color: #fff;
-      padding: 12px 32px;
-      border-radius: 8px;
+      padding: 14px 32px;
+      border-radius: 12px;
       text-decoration: none;
       font-weight: 600;
       font-size: 15px;
-      transition: transform 0.2s;
+      transition: transform 200ms, box-shadow 200ms;
+      border: none;
+      cursor: pointer;
+      font-family: var(--font);
     }
-    .cta-btn:hover { transform: scale(1.05); }
 
+    .cta-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(233, 69, 96, 0.3);
+    }
+
+    /* ═══ Footer ═══ */
     .footer {
       text-align: center;
-      padding: 20px;
+      padding: 24px;
       font-size: 12px;
-      color: #adb5bd;
+      color: var(--text-tertiary);
     }
   </style>
 </head>
@@ -214,7 +414,7 @@
 
 <!-- ヒーロー -->
 <div class="hero">
-  <div class="hero-badge">AI自動応答Bot</div>
+  <div class="hero-badge">AI自動応答Bot v2</div>
   <h1>問い合わせ対応を<br>AIが24時間自動化</h1>
   <p>LINE + Webチャット対応。不動産・クリニック・サロンなど業種特化のAIが、お客様の問い合わせに即座に正確に回答。対応時間を最大70%削減します。</p>
 </div>
@@ -240,8 +440,11 @@
 </div>
 
 <!-- 特徴 -->
-<div class="features">
-  <h2>選ばれる理由</h2>
+<section>
+  <div class="section-header">
+    <h2>選ばれる理由</h2>
+    <p>Intercom / Crisp 級のUXを、月額1万円以下で</p>
+  </div>
   <div class="feature-grid">
     <div class="feature-card">
       <div class="feature-icon">&#129302;</div>
@@ -256,7 +459,7 @@
     <div class="feature-card">
       <div class="feature-icon">&#128680;</div>
       <h3>安心のエスカレーション</h3>
-      <p>クレーム・複雑な相談は自動で担当者に通知。お客様を放置しない設計。</p>
+      <p>クレーム・複雑な相談は自動で担当者にLINE/Slack通知。お客様を放置しない設計。</p>
     </div>
     <div class="feature-card">
       <div class="feature-icon">&#128200;</div>
@@ -264,25 +467,70 @@
       <p>問い合わせ内容・カテゴリ・時間帯をGoogle Sheetsに自動記録。業務改善に直結。</p>
     </div>
   </div>
-</div>
+</section>
+
+<!-- UX Features (新セクション) -->
+<section>
+  <div class="section-header">
+    <h2>プレミアムなチャット体験</h2>
+    <p>世界トップクラスのチャットウィジェットから学んだUX設計</p>
+  </div>
+  <div class="ux-features">
+    <div class="ux-feature">
+      <div class="ux-icon">&#127769;</div>
+      <h4>ダークモード</h4>
+      <p>OS設定に自動連動。手動切替も可能。目に優しい夜間表示。</p>
+    </div>
+    <div class="ux-feature">
+      <div class="ux-icon">&#128276;</div>
+      <h4>通知音</h4>
+      <p>新着メッセージをWeb Audio APIで軽量通知。ON/OFF切替可能。</p>
+    </div>
+    <div class="ux-feature">
+      <div class="ux-icon">&#9855;</div>
+      <h4>WCAG 2.2 AA準拠</h4>
+      <p>キーボード操作・スクリーンリーダー・フォーカス管理に完全対応。</p>
+    </div>
+    <div class="ux-feature">
+      <div class="ux-icon">&#128172;</div>
+      <h4>プロアクティブ挨拶</h4>
+      <p>訪問5秒後にIntercom式の吹き出しで自動アプローチ。</p>
+    </div>
+    <div class="ux-feature">
+      <div class="ux-icon">&#128077;</div>
+      <h4>回答フィードバック</h4>
+      <p>各回答に「役に立った/立たなかった」ボタン。AI品質を継続改善。</p>
+    </div>
+    <div class="ux-feature">
+      <div class="ux-icon">&#128241;</div>
+      <h4>モバイル最適化</h4>
+      <p>フルスクリーン表示。タッチ最適化された44px以上のタップターゲット。</p>
+    </div>
+  </div>
+</section>
 
 <!-- デモ -->
-<div class="demo-section">
-  <h2>実際に試してみてください</h2>
-  <p>右下のチャットアイコンから、以下のような質問を試せます</p>
-  <div class="demo-examples">
-    <div class="demo-example">空いていますか？</div>
-    <div class="demo-example">内見したい</div>
-    <div class="demo-example">賃料はいくら？</div>
-    <div class="demo-example">初期費用を教えて</div>
-    <div class="demo-example">ペット飼える？</div>
-    <div class="demo-example">設備は？</div>
+<section class="demo-section">
+  <div class="section-header">
+    <h2>実際に試してみてください</h2>
+    <p>右下のチャットアイコンから、以下のような質問を試せます</p>
   </div>
-</div>
+  <div class="demo-examples">
+    <button class="demo-chip">空いていますか？</button>
+    <button class="demo-chip">内見したい</button>
+    <button class="demo-chip">賃料はいくら？</button>
+    <button class="demo-chip">初期費用を教えて</button>
+    <button class="demo-chip">ペット飼える？</button>
+    <button class="demo-chip">設備は？</button>
+  </div>
+</section>
 
 <!-- プラン -->
-<div class="plans">
-  <h2>料金プラン</h2>
+<section>
+  <div class="section-header">
+    <h2>料金プラン</h2>
+    <p>業種・規模に合わせた3プラン</p>
+  </div>
   <div class="plan-grid">
     <div class="plan-card">
       <div class="plan-name">ライト</div>
@@ -303,6 +551,7 @@
         <li>ライトの全機能</li>
         <li>FAQ 50問〜</li>
         <li>Webチャットウィジェット</li>
+        <li>ダークモード対応</li>
         <li>エスカレーション機能</li>
         <li>Google Sheets自動記録</li>
         <li>Zoom設定サポート</li>
@@ -316,6 +565,7 @@
         <li>スタンダードの全機能</li>
         <li>FAQ 100問〜</li>
         <li>物件DB連携</li>
+        <li>回答フィードバック分析</li>
         <li>日次レポート自動送信</li>
         <li>リッチメニュー設計</li>
         <li>3ヶ月メンテナンス</li>
@@ -323,13 +573,16 @@
       </ul>
     </div>
   </div>
-</div>
+</section>
 
 <!-- CTA -->
 <div class="cta">
   <h2>まずは無料相談から</h2>
   <p>御社の業務に合ったBot構成をご提案します</p>
-  <a href="#" class="cta-btn">お問い合わせはこちら</a>
+  <a href="#" class="cta-btn">
+    お問い合わせはこちら
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+  </a>
 </div>
 
 <div class="footer">
@@ -337,11 +590,12 @@
 </div>
 
 <!-- チャットウィジェット埋め込み -->
-<script>
-  // 実際のデプロイ時はAPIのURLに変更
-  window.INQUIRY_BOT_API = '';
+<script src="embed.js"
+        data-api=""
+        data-position="bottom-right"
+        data-greeting="こんにちは！物件のご質問やお困りごとはありませんか？お気軽にどうぞ。"
+        data-delay="3">
 </script>
-<script src="embed.js" data-api="" data-position="bottom-right"></script>
 
 </body>
 </html>
