@@ -58,54 +58,51 @@ class FeedbackRequest(BaseModel):
     message_index: int = 0
 
 
-def _extract_property_cards(
-    reply_text: str, property_data: dict,
-) -> List[PropertyCard]:
-    """回答テキストから物件名を検出し、該当する物件カードを生成."""
+def _build_property_card(pid: str, info: dict) -> PropertyCard:
+    """物件データからPropertyCardを構築."""
+    rent = info.get("rent", 0)
+    rent_str = f"{rent:,}円" if isinstance(rent, (int, float)) else str(rent)
+    mgmt = info.get("management_fee", 0)
+    if mgmt:
+        rent_str += f"（管理費 {mgmt:,}円）"
+
+    features = []
+    if info.get("available_date"):
+        features.append(info["available_date"])
+    if info.get("pet_policy") and "不可" not in str(info["pet_policy"]):
+        features.append("ペット可")
+    if info.get("facility_list"):
+        fac = str(info["facility_list"])
+        if "インターネット無料" in fac:
+            features.append("ネット無料")
+        if "オートロック" in fac:
+            features.append("オートロック")
+        if "宅配ボックス" in fac:
+            features.append("宅配BOX")
+
+    return PropertyCard(
+        id=pid,
+        name=info.get("name", pid),
+        rent=rent_str,
+        layout=info.get("layout", ""),
+        area=f"{info.get('area_sqm', '')}㎡",
+        station=info.get("nearest_station", ""),
+        walk_minutes=info.get("walk_minutes", 0),
+        pet=info.get("pet_policy", ""),
+        status=info.get("vacancy_status", ""),
+        features=features[:4],
+    )
+
+
+def _get_available_property_cards(property_data: dict) -> List[PropertyCard]:
+    """空室ありの全物件をカードとして返す."""
     if not property_data:
         return []
-
-    cards: List[PropertyCard] = []
+    cards = []
     for pid, info in property_data.items():
-        name = info.get("name", "")
-        if not name:
-            continue
-        # 物件名(またはその主要部分)が回答テキストに含まれているか
-        if name in reply_text or pid in reply_text:
-            rent = info.get("rent", 0)
-            rent_str = f"{rent:,}円" if isinstance(rent, (int, float)) else str(rent)
-            mgmt = info.get("management_fee", 0)
-            if mgmt:
-                rent_str += f"（管理費 {mgmt:,}円）"
-
-            # 主要特徴を抽出
-            features = []
-            if info.get("available_date"):
-                features.append(info["available_date"])
-            if info.get("pet_policy") and "不可" not in str(info["pet_policy"]):
-                features.append("ペット可")
-            if info.get("facility_list"):
-                fac = str(info["facility_list"])
-                if "インターネット無料" in fac:
-                    features.append("ネット無料")
-                if "オートロック" in fac:
-                    features.append("オートロック")
-                if "宅配ボックス" in fac:
-                    features.append("宅配BOX")
-
-            cards.append(PropertyCard(
-                id=pid,
-                name=name,
-                rent=rent_str,
-                layout=info.get("layout", ""),
-                area=f"{info.get('area_sqm', '')}㎡",
-                station=info.get("nearest_station", ""),
-                walk_minutes=info.get("walk_minutes", 0),
-                pet=info.get("pet_policy", ""),
-                status=info.get("vacancy_status", ""),
-                features=features[:4],
-            ))
-
+        status = info.get("vacancy_status", "")
+        if "空室" in status:
+            cards.append(_build_property_card(pid, info))
     return cards
 
 
@@ -223,9 +220,13 @@ def create_app(bot_engine: Optional[BotEngine] = None) -> FastAPI:
             elif cat == "maintenance":
                 options = ["担当者と話したい", "他の問い合わせ"]
 
-        # 物件カード: 回答テキストに物件名が含まれている場合にカードデータを付与
+        # 物件カード: カテゴリがvacancyの場合は常に空室物件カードを表示
         reply_text = response["reply"]
-        property_cards = _extract_property_cards(reply_text, bot.kb.property_data)
+        category = response.get("category", "general")
+        property_cards: List[PropertyCard] = []
+
+        if category == "vacancy" and bot.kb.property_data:
+            property_cards = _get_available_property_cards(bot.kb.property_data)
 
         # 物件カードがある場合: テキスト内の物件リスト部分を除去
         if property_cards:
