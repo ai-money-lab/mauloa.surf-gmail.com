@@ -4,9 +4,7 @@ Runs all 3 pipelines, selects posts, and schedules them.
 Designed to be called via cron at 06:00 JST daily.
 """
 
-import json
 import logging
-import time
 from datetime import datetime, timezone, timedelta
 
 from core.notifier import Notifier

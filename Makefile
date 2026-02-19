@@ -122,7 +122,7 @@ logs:
 
 # ─── テスト ───
 test:
-	pytest tests/ -v --tb=short
+	PYTHONPATH=. python -m pytest tests/ -v --tb=short
 
 lint:
 	@pip install ruff -q 2>/dev/null

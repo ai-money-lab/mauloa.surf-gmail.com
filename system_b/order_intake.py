@@ -1,6 +1,5 @@
 """Order intake module — detects new orders from email/webhook."""
 
-import json
 import logging
 from datetime import datetime, timezone, timedelta
 

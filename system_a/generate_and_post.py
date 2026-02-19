@@ -28,10 +28,10 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-from core.claude_client import ClaudeClient
-from core.quality_checker import QualityChecker
-from system_a.auto_post import AutoPoster
-from system_a.theme_rotator import ThemeRotator
+from core.claude_client import ClaudeClient  # noqa: E402
+from core.quality_checker import QualityChecker  # noqa: E402
+from system_a.auto_post import AutoPoster  # noqa: E402
+from system_a.theme_rotator import ThemeRotator  # noqa: E402
 
 logger = logging.getLogger(__name__)
 

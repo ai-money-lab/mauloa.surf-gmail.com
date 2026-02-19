@@ -97,8 +97,8 @@ def faq_update_check():
 
     # 低信頼度（FAQマッチなし）の質問を抽出
     low_confidence = [
-        l for l in logs
-        if l.get("confidence", 1.0) < 0.5 and not l.get("escalated")
+        entry for entry in logs
+        if entry.get("confidence", 1.0) < 0.5 and not entry.get("escalated")
     ]
 
     if not low_confidence:
@@ -107,9 +107,9 @@ def faq_update_check():
 
     # カテゴリ別に集計
     patterns = {}
-    for l in low_confidence:
-        msg = l.get("message", "")
-        cat = l.get("category", "unknown")
+    for entry in low_confidence:
+        msg = entry.get("message", "")
+        cat = entry.get("category", "unknown")
         key = f"{cat}: {msg[:50]}"
         patterns[key] = patterns.get(key, 0) + 1
 

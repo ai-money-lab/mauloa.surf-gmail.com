@@ -2,7 +2,7 @@
 
 import argparse
 import logging
-from datetime import datetime, timezone, timedelta
+from datetime import timezone, timedelta
 
 from core.notifier import Notifier
 from system_c.agents.realestate_data_agent import RealEstateDataAgent
@@ -30,13 +30,13 @@ class SystemCScheduler:
         logger.info("System C: Running daily watch tasks...")
 
         try:
-            market_result = self.market_agent.daily_market_watch()
+            self.market_agent.daily_market_watch()
             logger.info("Market watch complete")
         except Exception as e:
             logger.error("Market watch failed: %s", e)
 
         try:
-            regulation_result = self.regulation_agent.run_daily()
+            self.regulation_agent.run_daily()
             logger.info("Regulation watch complete")
         except Exception as e:
             logger.error("Regulation watch failed: %s", e)
@@ -48,7 +48,7 @@ class SystemCScheduler:
         logger.info("System C: Running weekly tech trends...")
 
         try:
-            tech_result = self.tech_agent.run()
+            self.tech_agent.run()
             logger.info("Tech trends report complete")
         except Exception as e:
             logger.error("Tech trends failed: %s", e)

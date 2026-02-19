@@ -103,9 +103,9 @@ def main():
 
     prompt_path = os.path.join(base, "..", "prompts", "inquiry_bot_system.txt")
     if os.path.exists(prompt_path):
-        print(f"  [OK] prompts/inquiry_bot_system.txt")
+        print("  [OK] prompts/inquiry_bot_system.txt")
     else:
-        print(f"  [NG] prompts/inquiry_bot_system.txt — ファイルが見つかりません")
+        print("  [NG] prompts/inquiry_bot_system.txt — ファイルが見つかりません")
         all_ok = False
 
     # 結果

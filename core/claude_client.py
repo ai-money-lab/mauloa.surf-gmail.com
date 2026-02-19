@@ -59,6 +59,6 @@ class ClaudeClient:
         if text.startswith("```"):
             lines = text.split("\n")
             # Remove first and last lines (code fences)
-            lines = [l for l in lines[1:] if not l.strip().startswith("```")]
+            lines = [line for line in lines[1:] if not line.strip().startswith("```")]
             text = "\n".join(lines)
         return json.loads(text)

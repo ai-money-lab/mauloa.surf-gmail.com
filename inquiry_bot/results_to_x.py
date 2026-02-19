@@ -26,7 +26,7 @@ def generate_bot_results_posts() -> list[dict]:
         return []
 
     total = len(logs)
-    auto_resolved = sum(1 for l in logs if not l.get("escalated", False))
+    auto_resolved = sum(1 for entry in logs if not entry.get("escalated", False))
     auto_rate = (auto_resolved / total * 100) if total > 0 else 0
     saved_hours = (auto_resolved * analytics.HUMAN_RESPONSE_MINUTES) / 60
 
@@ -79,8 +79,8 @@ def generate_bot_results_posts() -> list[dict]:
         })
 
     # パターン3: 24時間対応の実績
-    night_inquiries = sum(1 for l in logs
-                         if l.get("hour", 12) < 9 or l.get("hour", 12) >= 18)
+    night_inquiries = sum(1 for entry in logs
+                         if entry.get("hour", 12) < 9 or entry.get("hour", 12) >= 18)
     if night_inquiries > 0:
         night_rate = (night_inquiries / total * 100) if total > 0 else 0
         posts.append({

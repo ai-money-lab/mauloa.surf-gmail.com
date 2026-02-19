@@ -2,7 +2,6 @@
 
 import os
 import logging
-from typing import Optional
 
 from dotenv import load_dotenv
 

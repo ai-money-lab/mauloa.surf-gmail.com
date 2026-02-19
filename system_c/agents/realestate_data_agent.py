@@ -11,7 +11,6 @@ from datetime import datetime, timezone, timedelta
 from pathlib import Path
 
 import requests
-from bs4 import BeautifulSoup
 
 from core.claude_client import ClaudeClient
 from core.quality_checker import QualityChecker

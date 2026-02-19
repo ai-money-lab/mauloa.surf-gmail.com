@@ -2,13 +2,12 @@
 
 import logging
 import re
-import time
 import uuid
 from pathlib import Path
 from typing import List, Optional
 
 import yaml
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
@@ -424,8 +423,6 @@ def create_app(bot_engine: Optional[BotEngine] = None) -> FastAPI:
     @app.get("/admin/properties", response_class=HTMLResponse)
     async def admin_properties():
         """物件管理ページ（キャッシュ回避のためリダイレクト）."""
-        from fastapi.responses import RedirectResponse
-        from starlette.requests import Request as _Req
         # v パラメータが無い場合はタイムスタンプ付きURLにリダイレクト
         return HTMLResponse(_read_no_cache(WIDGET_DIR / "admin_properties.html"), headers=_no_cache)
 

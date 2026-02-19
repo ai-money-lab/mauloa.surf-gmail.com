@@ -2,7 +2,6 @@
 
 import json
 import logging
-import os
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
 from typing import Optional
@@ -98,7 +97,7 @@ class BotEngine:
             }
         """
         # セッション取得/作成
-        session = self.conversation.get_or_create_session(
+        self.conversation.get_or_create_session(
             session_id, channel, user_id
         )
 
@@ -204,7 +203,7 @@ class BotEngine:
             text = raw.strip()
             if text.startswith("```"):
                 lines = text.split("\n")
-                lines = [l for l in lines[1:] if not l.strip().startswith("```")]
+                lines = [line for line in lines[1:] if not line.strip().startswith("```")]
                 text = "\n".join(lines)
             return json.loads(text)
         except json.JSONDecodeError:

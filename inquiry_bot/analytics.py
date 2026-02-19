@@ -68,32 +68,32 @@ class InquiryAnalytics:
         if date is None:
             date = datetime.now(JST).strftime("%Y-%m-%d")
 
-        logs = [l for l in self.load_logs(1) if l.get("date") == date]
+        logs = [entry for entry in self.load_logs(1) if entry.get("date") == date]
 
         if not logs:
             return f"📊 {date} の問い合わせ: 0件"
 
         total = len(logs)
-        auto_resolved = sum(1 for l in logs if not l.get("escalated", False))
+        auto_resolved = sum(1 for entry in logs if not entry.get("escalated", False))
         escalated = total - auto_resolved
         auto_rate = (auto_resolved / total * 100) if total > 0 else 0
 
         # カテゴリ別
         categories = {}
-        for l in logs:
-            cat = l.get("category", "unknown")
+        for entry in logs:
+            cat = entry.get("category", "unknown")
             categories[cat] = categories.get(cat, 0) + 1
 
         # チャネル別
         channels = {}
-        for l in logs:
-            ch = l.get("channel", "unknown")
+        for entry in logs:
+            ch = entry.get("channel", "unknown")
             channels[ch] = channels.get(ch, 0) + 1
 
         # 時間帯別
         hours = {}
-        for l in logs:
-            h = l.get("hour", 0)
+        for entry in logs:
+            h = entry.get("hour", 0)
             hours[h] = hours.get(h, 0) + 1
         peak_hour = max(hours, key=hours.get) if hours else "-"
 
@@ -136,13 +136,13 @@ class InquiryAnalytics:
             return "データなし（運用開始前）"
 
         total = len(logs)
-        auto_resolved = sum(1 for l in logs if not l.get("escalated", False))
+        auto_resolved = sum(1 for entry in logs if not entry.get("escalated", False))
         auto_rate = (auto_resolved / total * 100) if total > 0 else 0
         saved_minutes = auto_resolved * self.HUMAN_RESPONSE_MINUTES
         saved_hours = saved_minutes / 60
 
         # 日別の平均
-        dates = set(l.get("date", "") for l in logs)
+        dates = set(entry.get("date", "") for entry in logs)
         daily_avg = total / len(dates) if dates else 0
 
         summary = f"""📊 問い合わせBot 月次サマリー（過去30日間）
