@@ -168,10 +168,15 @@ class PostSelector:
                 post["scheduled_time"] = self.post_times[-1]
         return selected
 
+    def _text_key(self, post: dict) -> str:
+        """Get hashable text key from post (text may be str or list)."""
+        text = post.get("text", "")
+        return "\n".join(text) if isinstance(text, list) else text
+
     def save_stock_pool(self, approved: list, selected: list) -> None:
         """Save unused approved candidates to stock pool."""
-        selected_texts = {p["text"] for p in selected}
-        stock = [p for p in approved if p["text"] not in selected_texts]
+        selected_texts = {self._text_key(p) for p in selected}
+        stock = [p for p in approved if self._text_key(p) not in selected_texts]
 
         if stock:
             stock_dir = DATA_DIR / "stock_pool"

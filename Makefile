@@ -6,6 +6,9 @@
 .PHONY: help setup test bot-start bot-stop bot-dev deploy-render deploy-docker \
         report-daily report-monthly faq-check health logs clean
 
+# プロジェクトルートをPYTHONPATHに追加（core/ 等のimport解決）
+export PYTHONPATH := $(CURDIR):$(PYTHONPATH)
+
 # デフォルト: ヘルプ表示
 help:
 	@echo ""
@@ -141,23 +144,23 @@ cron-install:
 	(crontab -l 2>/dev/null | grep -v "hiroki-ai-empire\|inquiry_bot.scheduler\|system_a/\|system_c/\|system_d/"; \
 	echo "# ═══ HIROKI AI Empire — 自動化タスク ═══"; \
 	echo "# System A: X投稿パイプライン（毎日6時）"; \
-	echo "0 6 * * * cd $$PROJECT_ROOT && python system_a/daily_pipeline.py >> data/cron.log 2>&1"; \
+	echo "0 6 * * * cd $$PROJECT_ROOT && PYTHONPATH=$$PROJECT_ROOT python system_a/daily_pipeline.py >> data/cron.log 2>&1"; \
 	echo "# System A: パフォーマンス分析（毎日21時）"; \
-	echo "0 21 * * * cd $$PROJECT_ROOT && python system_a/analyze_performance.py >> data/cron.log 2>&1"; \
+	echo "0 21 * * * cd $$PROJECT_ROOT && PYTHONPATH=$$PROJECT_ROOT python system_a/analyze_performance.py >> data/cron.log 2>&1"; \
 	echo "# System C: データ収集（毎日7時）"; \
-	echo "0 7 * * * cd $$PROJECT_ROOT && python system_c/scheduler.py --task daily_watch >> data/cron.log 2>&1"; \
+	echo "0 7 * * * cd $$PROJECT_ROOT && PYTHONPATH=$$PROJECT_ROOT python system_c/scheduler.py --task daily_watch >> data/cron.log 2>&1"; \
 	echo "# System C: 週次テックトレンド（月曜8時）"; \
-	echo "0 8 * * 1 cd $$PROJECT_ROOT && python system_c/scheduler.py --task weekly_tech >> data/cron.log 2>&1"; \
+	echo "0 8 * * 1 cd $$PROJECT_ROOT && PYTHONPATH=$$PROJECT_ROOT python system_c/scheduler.py --task weekly_tech >> data/cron.log 2>&1"; \
 	echo "# System D: 実績コンテンツ生成（金曜20時）"; \
-	echo "0 20 * * 5 cd $$PROJECT_ROOT && python system_d/generate_results_content.py >> data/cron.log 2>&1"; \
+	echo "0 20 * * 5 cd $$PROJECT_ROOT && PYTHONPATH=$$PROJECT_ROOT python system_d/generate_results_content.py >> data/cron.log 2>&1"; \
 	echo "# Bot: 日次レポート（毎日21時）"; \
-	echo "0 21 * * * cd $$PROJECT_ROOT && python -m inquiry_bot.scheduler daily_report >> data/cron.log 2>&1"; \
+	echo "0 21 * * * cd $$PROJECT_ROOT && PYTHONPATH=$$PROJECT_ROOT python -m inquiry_bot.scheduler daily_report >> data/cron.log 2>&1"; \
 	echo "# Bot: ヘルスチェック（5分毎）"; \
-	echo "*/5 * * * * cd $$PROJECT_ROOT && python -m inquiry_bot.scheduler health_check >> data/cron.log 2>&1"; \
+	echo "*/5 * * * * cd $$PROJECT_ROOT && PYTHONPATH=$$PROJECT_ROOT python -m inquiry_bot.scheduler health_check >> data/cron.log 2>&1"; \
 	echo "# Bot: FAQ更新チェック（月曜9時）"; \
-	echo "0 9 * * 1 cd $$PROJECT_ROOT && python -m inquiry_bot.scheduler faq_update_check >> data/cron.log 2>&1"; \
+	echo "0 9 * * 1 cd $$PROJECT_ROOT && PYTHONPATH=$$PROJECT_ROOT python -m inquiry_bot.scheduler faq_update_check >> data/cron.log 2>&1"; \
 	echo "# Bot: X投稿案生成（金曜19時、System D前）"; \
-	echo "0 19 * * 5 cd $$PROJECT_ROOT && python -m inquiry_bot.scheduler results_to_x >> data/cron.log 2>&1"; \
+	echo "0 19 * * 5 cd $$PROJECT_ROOT && PYTHONPATH=$$PROJECT_ROOT python -m inquiry_bot.scheduler results_to_x >> data/cron.log 2>&1"; \
 	) | crontab -
 	@echo "✅ crontab 登録完了"
 	@crontab -l | grep -A1 "AI Empire"
