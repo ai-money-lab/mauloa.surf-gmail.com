@@ -849,6 +849,42 @@
       border-style: dashed;
     }
 
+    /* ═══ 物件ソートボタン ═══ */
+    .property-sort {
+      display: flex;
+      gap: 6px;
+      padding: 4px 0 6px 36px;
+      animation: messageSlideIn var(--transition-normal) ease-out;
+    }
+
+    .property-sort-btn {
+      padding: 5px 12px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-full);
+      background: var(--bg-primary);
+      color: var(--text-secondary);
+      font-size: 11px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all var(--transition-fast);
+      font-family: var(--font-sans);
+      white-space: nowrap;
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+    }
+
+    .property-sort-btn:hover {
+      border-color: var(--accent-border);
+      color: var(--accent);
+    }
+
+    .property-sort-btn.active {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+
     /* ═══ 物件カード (タップ可能カルーセル) ═══ */
     .property-cards-wrapper {
       padding: 6px 0 4px 36px;
@@ -1382,10 +1418,38 @@
     if (isAtBottom) scrollToBottom(true);
   }
 
-  // ═══ 物件カード表示（タップで選択） ═══
+  // ═══ 物件カード表示（タップで選択 + ソート機能） ═══
   function showPropertyCards(cards) {
     const messages = document.getElementById('chatMessages');
     const typing = document.getElementById('typingIndicator');
+
+    // ソートボタン（2件以上で表示）
+    let sortBar = null;
+    if (cards.length >= 2) {
+      sortBar = document.createElement('div');
+      sortBar.className = 'property-sort';
+      sortBar.setAttribute('role', 'group');
+      sortBar.setAttribute('aria-label', '並び替え');
+
+      const sorts = [
+        { key: 'rent-asc', label: '賃料が安い順' },
+        { key: 'area-desc', label: '広い順' },
+        { key: 'walk-asc', label: '駅近順' },
+      ];
+
+      sorts.forEach(s => {
+        const btn = document.createElement('button');
+        btn.className = 'property-sort-btn';
+        btn.textContent = s.label;
+        btn.dataset.sortKey = s.key;
+        btn.onclick = function() {
+          sortBar.querySelectorAll('.property-sort-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          applySortToCards(container, cards, s.key);
+        };
+        sortBar.appendChild(btn);
+      });
+    }
 
     const wrapper = document.createElement('div');
     wrapper.className = 'property-cards-wrapper';
@@ -1395,6 +1459,45 @@
     const container = document.createElement('div');
     container.className = 'property-cards';
 
+    renderCardElements(container, cards);
+
+    wrapper.appendChild(container);
+
+    // カルーセルドットナビ (3件以上の場合)
+    if (cards.length >= 3) {
+      const nav = document.createElement('div');
+      nav.className = 'carousel-nav';
+      cards.forEach((_, i) => {
+        const dot = document.createElement('button');
+        dot.className = 'carousel-dot' + (i === 0 ? ' active' : '');
+        dot.setAttribute('aria-label', '物件 ' + (i + 1));
+        dot.onclick = () => {
+          const cardWidth = 230;
+          container.scrollTo({ left: cardWidth * i, behavior: 'smooth' });
+        };
+        nav.appendChild(dot);
+      });
+      wrapper.appendChild(nav);
+
+      container.addEventListener('scroll', () => {
+        const scrollLeft = container.scrollLeft;
+        const cardWidth = 230;
+        const activeIdx = Math.round(scrollLeft / cardWidth);
+        nav.querySelectorAll('.carousel-dot').forEach((d, i) => {
+          d.classList.toggle('active', i === activeIdx);
+        });
+      });
+    }
+
+    if (sortBar) messages.insertBefore(sortBar, typing);
+    messages.insertBefore(wrapper, typing);
+    if (isAtBottom) scrollToBottom(true);
+  }
+
+  // ═══ カード要素をコンテナに描画 ═══
+  function renderCardElements(container, cards) {
+    container.innerHTML = '';
+
     cards.forEach(card => {
       const el = document.createElement('div');
       el.className = 'property-card';
@@ -1402,17 +1505,14 @@
       el.setAttribute('role', 'button');
       el.setAttribute('aria-label', card.name + ' ' + card.rent);
 
-      // ステータスバッジ
       const statusBadge = card.status && card.status.includes('空室')
         ? '<div class="property-card-status">空室あり</div>'
         : card.status ? '<div class="property-card-status unavailable">' + escapeHtml(card.status) + '</div>' : '';
 
-      // 管理費を分離表示
       const rentParts = card.rent.split('（');
       const mainRent = rentParts[0];
       const mgmtFee = rentParts[1] ? '（' + rentParts[1] : '';
 
-      // 特徴タグ
       const featureTags = (card.features || [])
         .map(f => '<span class="property-card-feature">' + escapeHtml(f) + '</span>')
         .join('');
@@ -1431,15 +1531,12 @@
         '<div class="property-card-action">詳しく見る <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></div>';
 
       el.onclick = function() {
-        // 全カードをused状態に、選択したカードをselected状態に
         container.querySelectorAll('.property-card').forEach(c => c.classList.add('used'));
         el.classList.add('selected');
-        // 物件名で問い合わせを送信
         document.getElementById('chatInput').value = card.name + 'の詳細を教えてください';
         sendMessage();
       };
 
-      // キーボード対応
       el.onkeydown = function(e) {
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();
@@ -1449,38 +1546,32 @@
 
       container.appendChild(el);
     });
+  }
 
-    wrapper.appendChild(container);
-
-    // カルーセルドットナビ (3件以上の場合)
-    if (cards.length >= 3) {
-      const nav = document.createElement('div');
-      nav.className = 'carousel-nav';
-      cards.forEach((_, i) => {
-        const dot = document.createElement('button');
-        dot.className = 'carousel-dot' + (i === 0 ? ' active' : '');
-        dot.setAttribute('aria-label', '物件 ' + (i + 1));
-        dot.onclick = () => {
-          const cardWidth = 230; // flex-basis + gap
-          container.scrollTo({ left: cardWidth * i, behavior: 'smooth' });
-        };
-        nav.appendChild(dot);
-      });
-      wrapper.appendChild(nav);
-
-      // スクロールでドットを更新
-      container.addEventListener('scroll', () => {
-        const scrollLeft = container.scrollLeft;
-        const cardWidth = 230;
-        const activeIdx = Math.round(scrollLeft / cardWidth);
-        nav.querySelectorAll('.carousel-dot').forEach((d, i) => {
-          d.classList.toggle('active', i === activeIdx);
-        });
-      });
+  // ═══ ソート適用 ═══
+  function applySortToCards(container, cards, sortKey) {
+    // 賃料の数値を抽出（"85,000円" → 85000）
+    function parseRent(rentStr) {
+      const m = rentStr.replace(/,/g, '').match(/(\d+)/);
+      return m ? parseInt(m[1], 10) : 0;
+    }
+    // 面積の数値を抽出（"35.5㎡" → 35.5）
+    function parseArea(areaStr) {
+      const m = areaStr.match(/([\d.]+)/);
+      return m ? parseFloat(m[1]) : 0;
     }
 
-    messages.insertBefore(wrapper, typing);
-    if (isAtBottom) scrollToBottom(true);
+    const sorted = [...cards];
+    if (sortKey === 'rent-asc') {
+      sorted.sort((a, b) => parseRent(a.rent) - parseRent(b.rent));
+    } else if (sortKey === 'area-desc') {
+      sorted.sort((a, b) => parseArea(b.area) - parseArea(a.area));
+    } else if (sortKey === 'walk-asc') {
+      sorted.sort((a, b) => (a.walk_minutes || 99) - (b.walk_minutes || 99));
+    }
+
+    renderCardElements(container, sorted);
+    container.scrollTo({ left: 0, behavior: 'smooth' });
   }
 
   // ═══ クイックリプライ（初期表示用） ═══
