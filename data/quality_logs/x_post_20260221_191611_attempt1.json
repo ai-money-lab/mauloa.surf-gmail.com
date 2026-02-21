@@ -1,0 +1,36 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 6,
+    "persona_match": 5,
+    "pillar_alignment": 4,
+    "algorithm_optimization": 3,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 8,
+    "cta_ending": 2,
+    "originality": 6,
+    "tone_balance": 5,
+    "algorithm_hooks": 3
+  },
+  "total_score": 72,
+  "threshold": 80,
+  "result": "rejected",
+  "rejection_reasons": [
+    "合計スコアが80未満（72点）",
+    "CTAが全く含まれていない",
+    "アルゴリズム最適化要素が不足",
+    "Pillar 5との関連性が不明確",
+    "エンゲージメントを促す要素が不足"
+  ],
+  "improvement_suggestions": [
+    "具体的なCTAを追加（「あなたの不動産投資戦略は準備できていますか？」等）",
+    "エンゲージメント促進要素を追加（質問形式や意見を求める文言）",
+    "Pillar 5の内容に沿った具体的な文脈を追加",
+    "ハッシュタグや絵文字でアルゴリズム最適化を図る",
+    "AI化による影響や対策について具体的な視点を追加"
+  ],
+  "checked_at": "2026-02-21T19:16:11.591583+09:00"
+}

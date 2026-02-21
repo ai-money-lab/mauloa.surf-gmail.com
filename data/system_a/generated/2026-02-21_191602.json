@@ -1,0 +1,35 @@
+{
+  "pillar": 5,
+  "pillar_name": "テクノロジー×不動産",
+  "sub_theme": "AI×不動産の未来予測",
+  "pattern_a": {
+    "text": "3年後、物件査定の80%がAI化する",
+    "post_type": "punchline",
+    "char_count": 21,
+    "hook_type": "数字",
+    "cta_type": "二択"
+  },
+  "pattern_b": {
+    "text": "MATTERPORTを200件以上撮影してきて気づいたことがあります。AIによる物件査定の精度が、人間の査定士を上回るケースが増えているんです。特に築年数や立地条件が複雑に絡む案件では、AIの方が客観的で正確な判断を下すことも。でも最終的には人の感覚も必要ですね。",
+    "post_type": "condensed",
+    "char_count": 135,
+    "hook_type": "数字",
+    "cta_type": "問いかけ"
+  },
+  "pattern_c": {
+    "text": [
+      "5年以内に不動産業界で起きる変化を予測してみました",
+      "①VR内見が主流化②AI査定の精度向上③契約手続きの完全デジタル化④予測メンテナンスの普及。20年この業界にいて、今ほど変化のスピードを感じたことはありません。新しい技術を取り入れながらも、人と人との信頼関係は変わらず大切だと思います"
+    ],
+    "post_type": "thread",
+    "char_count": 165,
+    "hook_type": "数字",
+    "cta_type": "体験談募集"
+  },
+  "pipeline": "P3",
+  "theme": {
+    "pillar_number": 5,
+    "pillar_name": "テクノロジー×不動産",
+    "sub_theme": "AI×不動産の未来予測"
+  }
+}
