@@ -1,0 +1,38 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 3,
+    "persona_match": 2,
+    "pillar_alignment": 4,
+    "algorithm_optimization": 2,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 0,
+    "cta_ending": 0,
+    "originality": 3,
+    "tone_balance": 5,
+    "algorithm_hooks": 2
+  },
+  "total_score": 51,
+  "threshold": 80,
+  "result": "rejected",
+  "rejection_reasons": [
+    "コンテンツが短すぎて価値提供が不十分",
+    "数字やデータが含まれていない",
+    "CTAが全く含まれていない",
+    "フック力が弱く注意を引けない",
+    "アルゴリズム最適化要素が不足",
+    "独創性に欠ける単純な質問のみ"
+  ],
+  "improvement_suggestions": [
+    "原状回復と特殊清掃の具体的な違いや費用を数字で説明する",
+    "どちらを選ぶべきかの判断基準を3-5つのポイントで解説する",
+    "実際の事例や体験談を追加して具体性を高める",
+    "「コメントで教えてください」「リポストで拡散お願いします」等のCTAを追加",
+    "業界の最新動向や法的な観点からの情報を付加する",
+    "読者の関心を引く統計データや市場規模を冒頭に配置する"
+  ],
+  "checked_at": "2026-02-22T07:21:21.530174+09:00"
+}

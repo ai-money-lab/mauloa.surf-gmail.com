@@ -1,0 +1,24 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 7,
+    "persona_match": 8,
+    "pillar_alignment": 8,
+    "algorithm_optimization": 6,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 8,
+    "number_included": 8,
+    "cta_ending": 7,
+    "originality": 8,
+    "tone_balance": 8,
+    "algorithm_hooks": 6
+  },
+  "total_score": 92,
+  "threshold": 80,
+  "result": "auto_approved",
+  "rejection_reasons": [],
+  "improvement_suggestions": [],
+  "checked_at": "2026-02-22T07:21:11.832984+09:00"
+}
