@@ -33,9 +33,14 @@ products:
     template: "dx_consulting_report.md"
     output_format: "pdf"
 
-  # ═══ Tier 2: 中単価（5-15万円） ═══
+  # ═══ Tier 2: 中単価（5-15万円）═══
+  # *** 以下5サービスは凍結（2026-02-22決定）***
+  # 理由: イメージ画像なし、価格高すぎ、Claude Code成果物の差別化不足
+  # 別サービス案を検討後に再判断
+
   - id: "tier2_rental_valuation"
     name: "賃料査定AI分析レポート"
+    status: "frozen"  # 凍結: 2026-02-22
     price_range: [50000, 150000]
     description: "指定物件の適正賃料を周辺相場から算出"
     crew_tasks: ["rental_valuation"]
@@ -46,6 +51,7 @@ products:
 
   - id: "tier2_renovation_cost"
     name: "リフォーム費用比較レポート"
+    status: "frozen"  # 凍結: 2026-02-22
     price_range: [50000, 150000]
     description: "指定工事の相場調査+最適プラン提案"
     crew_tasks: ["renovation_cost"]
@@ -56,6 +62,7 @@ products:
 
   - id: "tier2_sell_strategy"
     name: "物件売却戦略レポート"
+    status: "frozen"  # 凍結: 2026-02-22
     price_range: [50000, 150000]
     description: "売却タイミング・価格設定・販売戦略の提案"
     crew_tasks: ["area_analysis"]
@@ -66,6 +73,7 @@ products:
 
   - id: "tier2_security_camera"
     name: "AI防犯カメラ導入提案書"
+    status: "frozen"  # 凍結: 2026-02-22
     price_range: [50000, 100000]
     description: "物件・施設に最適なAI防犯カメラの機種選定・配置設計・費用比較"
     deliverables:
@@ -82,6 +90,7 @@ products:
 
   - id: "tier2_special_cleaning"
     name: "特殊清掃・遺品整理コーディネート提案書"
+    status: "frozen"  # 凍結: 2026-02-22
     price_range: [30000, 80000]
     description: "特殊清掃/遺品整理/原状回復の業者選定・費用比較・段取り提案"
     deliverables:
@@ -119,8 +128,12 @@ products:
     tags: ["ai_agent", "line_bot", "web_chat", "automation"]
 
   # ═══ Tier 3: 低単価・量産（1-3万円/月） ═══
+  # *** 出品サービスとしては凍結（2026-02-22決定）***
+  # SNS投稿は自社運用（System A）としてファンベース育成目的で継続
+
   - id: "tier3_sns_management"
     name: "不動産会社向けSNS投稿代行"
+    status: "frozen"  # 凍結: 出品サービスとしては停止。自社SNS運用（System A）は継続
     price_range: [30000, 30000]
     description: "月20本のX/Instagram投稿案を自動生成"
     crew_tasks: []
@@ -133,6 +146,7 @@ products:
 
   - id: "tier3_market_newsletter"
     name: "週刊不動産マーケットニュース"
+    status: "frozen"  # 凍結: 2026-02-22
     price_range: [10000, 30000]
     description: "業界ニュースの自動要約+所見"
     crew_tasks: ["daily_watch", "weekly_tech"]
