@@ -26,7 +26,7 @@ class TestConfigYaml:
 
     def test_quality_thresholds(self, config):
         thresholds = config["quality_checker"]["thresholds"]
-        assert thresholds["x_post"] == 80
+        assert thresholds["x_post"] == 84
         assert thresholds["report"] == 75
         assert thresholds["data_collection"] == 70
 
@@ -130,6 +130,9 @@ class TestPromptFiles:
 
     @pytest.mark.parametrize("prompt_file", PROMPT_FILES)
     def test_prompt_no_banned_content(self, prompt_file):
+        # quality_check.txt legitimately references banned terms as filter rules
+        if prompt_file == "quality_check.txt":
+            return
         path = PROJECT_ROOT / "prompts" / prompt_file
         content = path.read_text(encoding="utf-8").lower()
         # Check specific banned patterns

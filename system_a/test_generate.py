@@ -58,7 +58,7 @@ def main():
 
     # Step 2: Quality check
     print("\n" + "=" * 60)
-    print("Quality Check (threshold=80)")
+    print("Quality Check (threshold=84)")
     print("=" * 60)
     checked = quality_check_patterns(result)
     for p in checked:

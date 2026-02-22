@@ -40,7 +40,7 @@ BASE_DIR = Path(__file__).parent.parent
 PROMPTS_DIR = BASE_DIR / "prompts"
 DATA_DIR = BASE_DIR / "data" / "system_a" / "generated"
 
-QUALITY_THRESHOLD = 80
+QUALITY_THRESHOLD = 84
 
 
 def generate_post(pillar: int = None) -> dict:
