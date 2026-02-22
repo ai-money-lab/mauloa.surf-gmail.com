@@ -1,0 +1,34 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 4,
+    "persona_match": 6,
+    "pillar_alignment": 7,
+    "algorithm_optimization": 3,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 8,
+    "cta_ending": 2,
+    "originality": 5,
+    "tone_balance": 7,
+    "algorithm_hooks": 3
+  },
+  "total_score": 75,
+  "threshold": 80,
+  "result": "rejected",
+  "rejection_reasons": [
+    "hook_powerが低い（4点）- 読者の注意を引く要素が不足",
+    "algorithm_optimizationが低い（3点）- エンゲージメントを促す要素が不足",
+    "cta_endingが低い（2点）- 行動喚起や続きを促す要素がない",
+    "algorithm_hooksが低い（3点）- アルゴリズムに評価される要素が不足"
+  ],
+  "improvement_suggestions": [
+    "具体的な成果や変化を追加（例：「朝5時起きで集中3時間→月収が2倍になった話」）",
+    "読者への問いかけを追加（例：「みなさんは朝の時間をどう活用してますか？」）",
+    "具体的な集中内容や方法を明記してより価値のある情報に",
+    "続きを読みたくなる要素を追加（例：「この習慣で人生が変わった理由↓」）"
+  ],
+  "checked_at": "2026-02-23T07:22:21.455293+09:00"
+}
