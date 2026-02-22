@@ -1,0 +1,36 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 7,
+    "persona_match": 6,
+    "pillar_alignment": 5,
+    "algorithm_optimization": 4,
+    "no_external_links": 10,
+    "no_banned_content": 0,
+    "character_limit": 8,
+    "number_included": 8,
+    "cta_ending": 3,
+    "originality": 6,
+    "tone_balance": 4,
+    "algorithm_hooks": 6
+  },
+  "total_score": 67,
+  "threshold": 80,
+  "result": "rejected",
+  "rejection_reasons": [
+    "煽り表現「知らないと損」系の文体構造を使用している",
+    "「実は」という煽り要素が含まれている",
+    "CTAが不十分でエンゲージメントを促していない",
+    "Pillar 2との整合性が不明確",
+    "アルゴリズム最適化要素が不足している"
+  ],
+  "improvement_suggestions": [
+    "煽り表現を排除し、事実ベースの表現に変更する（例：「防音工事13万円の代替案として、5000円の方法を試してみました」）",
+    "具体的なCTAを追加する（例：「同じような経験をした方はいますか？」）",
+    "Pillar 2の内容に明確に関連付ける",
+    "ハッシュタグや絵文字を適切に追加してアルゴリズム最適化を図る",
+    "より中立的で共感を呼ぶトーンに調整する"
+  ],
+  "checked_at": "2026-02-22T19:16:07.823550+09:00"
+}
