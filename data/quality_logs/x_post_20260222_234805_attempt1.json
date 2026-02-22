@@ -1,0 +1,36 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 6,
+    "persona_match": 4,
+    "pillar_alignment": 3,
+    "algorithm_optimization": 3,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 8,
+    "cta_ending": 2,
+    "originality": 7,
+    "tone_balance": 5,
+    "algorithm_hooks": 3
+  },
+  "total_score": 71,
+  "threshold": 80,
+  "result": "rejected",
+  "rejection_reasons": [
+    "合計スコアが80未満（71点）",
+    "pillar_alignmentが低い（Pillar4との関連性が不明確）",
+    "algorithm_optimizationが不十分（ハッシュタグや絵文字なし）",
+    "cta_endingが欠如（行動喚起がない）",
+    "algorithm_hooksが弱い（エンゲージメントを促す要素が少ない）"
+  ],
+  "improvement_suggestions": [
+    "不動産投資や物件選びに関する具体的な学びや気づきを追加してPillar4との関連性を明確化",
+    "関連ハッシュタグ（#不動産投資 #物件選び等）と適切な絵文字を追加",
+    "「皆さんはどんな工夫をしていますか？」等の質問でエンゲージメントを促進",
+    "体験談を詳しく展開し、読者にとって有益な情報を含める",
+    "投稿の最後に明確な行動喚起（コメント・いいね・シェア等）を追加"
+  ],
+  "checked_at": "2026-02-22T23:48:05.780745+09:00"
+}
