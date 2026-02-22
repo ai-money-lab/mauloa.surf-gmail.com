@@ -1,0 +1,38 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 4,
+    "persona_match": 5,
+    "pillar_alignment": 6,
+    "algorithm_optimization": 3,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 0,
+    "cta_ending": 4,
+    "originality": 3,
+    "tone_balance": 6,
+    "algorithm_hooks": 2
+  },
+  "total_score": 63,
+  "threshold": 80,
+  "result": "rejected",
+  "rejection_reasons": [
+    "hook_powerが低い（4点）- インパクトのある導入が不足",
+    "algorithm_optimizationが低い（3点）- エンゲージメントを促す要素が不足",
+    "number_includedが0点 - 具体的な数字や統計が含まれていない",
+    "cta_endingが低い（4点）- 弱い行動喚起",
+    "originalityが低い（3点）- ありきたりな比喩表現",
+    "algorithm_hooksが低い（2点）- アルゴリズムに最適化された要素が不足"
+  ],
+  "improvement_suggestions": [
+    "具体的な投資データや統計を含める（例：「過去10年のデータで見ると...」）",
+    "より強力なフック文で開始する（例：体験談や驚きの事実）",
+    "明確なCTAを追加する（例：「あなたの投資体験をコメントで教えてください」）",
+    "投資の具体例やケーススタディを含める",
+    "エンゲージメントを促すハッシュタグや絵文字を適切に使用する",
+    "より独自性のある視点や個人的な経験を盛り込む"
+  ],
+  "checked_at": "2026-02-22T13:48:32.195755+09:00"
+}
