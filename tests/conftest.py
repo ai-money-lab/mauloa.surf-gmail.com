@@ -71,7 +71,7 @@ def sample_tweet():
     """Sample tweet data."""
     return {
         "id": "123456789",
-        "text": "不動産業界24年のプロが教える内見の極意",
+        "text": "不動産業界のプロが教える内見の極意",
         "likeCount": 15000,
         "retweetCount": 3000,
         "replyCount": 500,
