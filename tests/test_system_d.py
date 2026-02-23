@@ -125,7 +125,7 @@ class TestResultsPostScheduler:
         from system_d.schedule_results_posts import ResultsPostScheduler
         scheduler = ResultsPostScheduler()
         assert scheduler.posts_per_week == 4
-        assert scheduler.target_pillars == [3, 5]
+        assert scheduler.target_pillars == [1, 2]
 
     @patch("system_d.schedule_results_posts.ResultsContentGenerator")
     def test_generate_and_schedule_limits_posts(self, mock_gen_cls, tmp_path):

@@ -32,8 +32,8 @@ class TestThemeRotatorConfig:
 
     def test_pillar1_has_expected_themes(self):
         pillars = DEFAULT_THEME_DB["pillars"]
-        assert "おとり物件の見分け方" in pillars["1"]["sub_themes"]
-        assert "仲介手数料の仕組みと相場" in pillars["1"]["sub_themes"]
+        assert "相続した不動産、まず何をすべきか" in pillars["1"]["sub_themes"]
+        assert "売却の流れと一般的なスケジュール" in pillars["1"]["sub_themes"]
 
     def test_pillar5_has_field_experience(self):
         pillars = DEFAULT_THEME_DB["pillars"]

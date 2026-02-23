@@ -49,7 +49,7 @@ class TestConfigYaml:
 
     def test_system_d_config(self, config):
         assert config["system_d"]["results_posts_per_week"] == 4
-        assert config["system_d"]["target_pillars"] == [3, 5]
+        assert config["system_d"]["target_pillars"] == [1, 2]
 
     def test_no_banned_content(self, config):
         text = str(config).lower()

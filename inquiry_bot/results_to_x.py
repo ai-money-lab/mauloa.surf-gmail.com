@@ -59,8 +59,8 @@ def generate_bot_results_posts() -> list[dict]:
     # パターン2: 時間削減の実績
     if saved_hours >= 10:
         posts.append({
-            "theme": "オーナー・大家さんの課題解決",
-            "pillar": 3,
+            "theme": "賃貸オーナーの物件管理",
+            "pillar": 2,
             "data": {
                 "saved_hours": f"{saved_hours:.0f}時間/月",
                 "equivalent_cost": f"約{int(saved_hours * 2000):,}円",
@@ -84,8 +84,8 @@ def generate_bot_results_posts() -> list[dict]:
     if night_inquiries > 0:
         night_rate = (night_inquiries / total * 100) if total > 0 else 0
         posts.append({
-            "theme": "部屋探し・契約のリアル",
-            "pillar": 1,
+            "theme": "部屋探し・住まいの知恵",
+            "pillar": 3,
             "data": {
                 "night_inquiries": night_inquiries,
                 "night_rate": f"{night_rate:.0f}%",
