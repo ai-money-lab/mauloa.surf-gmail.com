@@ -58,8 +58,12 @@ help:
 	@echo "   make system-e-optimize            システム間連携最適化"
 	@echo "   make system-e-full                フルサイクル実行"
 	@echo ""
-	@echo " NEXUS (Dual-AI Revenue Engine):"
+	@echo " NEXUS (Dual-AI Autonomous Revenue Engine):"
 	@echo "   make nexus              フル実行（最強モード）"
+	@echo "   make nexus-auto         完全自律ループ（CRAWL→TRY→DEBATE→EVOLVE）"
+	@echo "   make nexus-crawl        稼ぎ方をAIが探索"
+	@echo "   make nexus-trial        発見した機会をTRY"
+	@echo "   make nexus-evolve       成功パターンを進化・増殖"
 	@echo "   make nexus-single       1サイクル実行"
 	@echo "   make nexus-continuous   連続サイクル CYCLES=5"
 	@echo "   make nexus-swarm        全エージェント一斉稼働"
@@ -199,9 +203,21 @@ cron-install:
 	@echo "✅ crontab 登録完了"
 	@crontab -l | grep -A1 "AI Empire"
 
-# ─── NEXUS: Dual-AI Revenue Engine ───
+# ─── NEXUS: Dual-AI Autonomous Revenue Engine ───
 nexus:
 	python -m nexus.orchestrator.nexus_core --mode full
+
+nexus-auto:
+	python -m nexus.orchestrator.nexus_core --mode autonomous --cycles $(or $(CYCLES),3) --market "$(MARKET)"
+
+nexus-crawl:
+	python -m nexus.orchestrator.nexus_core --mode crawl --market "$(MARKET)"
+
+nexus-trial:
+	python -m nexus.orchestrator.nexus_core --mode trial --market "$(MARKET)"
+
+nexus-evolve:
+	python -m nexus.orchestrator.nexus_core --mode evolve
 
 nexus-single:
 	python -m nexus.orchestrator.nexus_core --mode single
