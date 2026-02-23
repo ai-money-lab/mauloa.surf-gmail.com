@@ -17,9 +17,9 @@ system_a:
   post_times: ["07:00", "12:00", "19:00"]
   min_interval_hours: 3
   pipeline_ratio:
-    pipeline1_jp_buzz: 40
-    pipeline2_data_driven: 35
-    pipeline3_ai_original: 25
+    pipeline1_jp_buzz: 40      # よくある困りごと回答型
+    pipeline2_data_driven: 35  # データ実用解説型
+    pipeline3_ai_original: 25  # 現場エピソード型
   pipeline_ratio_limits:
     min_per_pipeline: 15
     max_per_pipeline: 60
@@ -53,7 +53,7 @@ system_c:
 
 system_d:
   results_posts_per_week: 4
-  target_pillars: [3, 5]
+  target_pillars: [3, 5]  # 3=オーナー課題解決, 5=現場から見える景色
 
 inquiry_bot:
   enabled: true

@@ -32,12 +32,12 @@ class TestThemeRotatorConfig:
 
     def test_pillar1_has_expected_themes(self):
         pillars = DEFAULT_THEME_DB["pillars"]
-        assert "仲介手数料の仕組み" in pillars["1"]["sub_themes"]
-        assert "特殊清掃の現場から見える賃貸の現実" in pillars["1"]["sub_themes"]
+        assert "おとり物件の見分け方" in pillars["1"]["sub_themes"]
+        assert "仲介手数料の仕組みと相場" in pillars["1"]["sub_themes"]
 
-    def test_pillar5_has_matterport(self):
+    def test_pillar5_has_field_experience(self):
         pillars = DEFAULT_THEME_DB["pillars"]
-        assert "MATTERPORTの活用事例" in pillars["5"]["sub_themes"]
+        assert "MATTERPORTやAIを現場で使ってみた実感" in pillars["5"]["sub_themes"]
 
     def test_all_pillars_have_name_and_sub_themes(self):
         for num, data in DEFAULT_THEME_DB["pillars"].items():

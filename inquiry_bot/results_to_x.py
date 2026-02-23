@@ -35,7 +35,7 @@ def generate_bot_results_posts() -> list[dict]:
     # パターン1: 自動応答率の実績
     if auto_rate >= 80:
         posts.append({
-            "theme": "テクノロジー×不動産",
+            "theme": "現場から見える景色",
             "pillar": 5,
             "data": {
                 "auto_rate": f"{auto_rate:.0f}%",
@@ -59,8 +59,8 @@ def generate_bot_results_posts() -> list[dict]:
     # パターン2: 時間削減の実績
     if saved_hours >= 10:
         posts.append({
-            "theme": "経営者の日常",
-            "pillar": 4,
+            "theme": "オーナー・大家さんの課題解決",
+            "pillar": 3,
             "data": {
                 "saved_hours": f"{saved_hours:.0f}時間/月",
                 "equivalent_cost": f"約{int(saved_hours * 2000):,}円",
@@ -84,7 +84,7 @@ def generate_bot_results_posts() -> list[dict]:
     if night_inquiries > 0:
         night_rate = (night_inquiries / total * 100) if total > 0 else 0
         posts.append({
-            "theme": "不動産の裏側",
+            "theme": "部屋探し・契約のリアル",
             "pillar": 1,
             "data": {
                 "night_inquiries": night_inquiries,
