@@ -1,0 +1,36 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 6,
+    "persona_match": 5,
+    "pillar_alignment": 7,
+    "algorithm_optimization": 4,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 3,
+    "number_included": 0,
+    "cta_ending": 2,
+    "originality": 6,
+    "tone_balance": 7,
+    "algorithm_hooks": 4
+  },
+  "total_score": 64,
+  "threshold": 80,
+  "result": "rejected",
+  "rejection_reasons": [
+    "文字数が極端に少なく、X投稿として不十分（25文字程度）",
+    "数字やデータが含まれていない",
+    "CTAや行動喚起が不明確",
+    "アルゴリズム最適化要素が不足",
+    "エンゲージメントを促す具体的なフック要素が弱い"
+  ],
+  "improvement_suggestions": [
+    "退去クリーニングの具体的な費用データや統計を追加（例：「敷金返還率○○%の差」）",
+    "明確なCTAを追加（例：「あなたはどちら派？コメントで教えて」）",
+    "具体的な体験談や事例を含めて文字数を増やす",
+    "ハッシュタグや絵文字を活用してアルゴリズム最適化を図る",
+    "両派のメリット・デメリットを簡潔に提示して議論を促進"
+  ],
+  "checked_at": "2026-02-23T19:40:28.037699+09:00"
+}

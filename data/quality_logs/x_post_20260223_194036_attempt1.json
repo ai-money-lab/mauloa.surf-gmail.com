@@ -1,0 +1,34 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 7,
+    "persona_match": 9,
+    "pillar_alignment": 8,
+    "algorithm_optimization": 6,
+    "no_external_links": 10,
+    "no_banned_content": 0,
+    "character_limit": 8,
+    "number_included": 8,
+    "cta_ending": 4,
+    "originality": 7,
+    "tone_balance": 6,
+    "algorithm_hooks": 5
+  },
+  "total_score": 78,
+  "threshold": 80,
+  "result": "rejected",
+  "rejection_reasons": [
+    "煽り表現「ヤニ汚れ」が含まれている（絶対不合格条件に該当）",
+    "合計スコアが80未満（78点）",
+    "明確なCTAが不足している",
+    "アルゴリズム最適化要素が不十分"
+  ],
+  "improvement_suggestions": [
+    "「ヤニ汚れ」を「タバコによる汚れ」や「喫煙による変色」に変更する",
+    "投稿末尾に「退去時の費用負担で気になることはありますか？」等の質問型CTAを追加",
+    "「知っておきたい退去費用のポイント」等のハッシュタグを追加してアルゴリズム最適化を図る",
+    "具体的な金額例や割合を追加して数値要素を強化する"
+  ],
+  "checked_at": "2026-02-23T19:40:36.308246+09:00"
+}
