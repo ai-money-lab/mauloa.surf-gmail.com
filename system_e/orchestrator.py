@@ -1,0 +1,263 @@
+"""Orchestrator — System E の司令塔.
+
+すべてのAIエージェントとサブシステムを統括し、
+自律的な意思決定・実行・改善のサイクルを回す。
+
+使い方:
+    python -m system_e.orchestrator --mode debate --topic "投稿戦略の改善"
+    python -m system_e.orchestrator --mode evolve
+    python -m system_e.orchestrator --mode diagnose
+    python -m system_e.orchestrator --mode full-cycle
+"""
+
+import argparse
+import json
+import logging
+from datetime import datetime, timezone, timedelta
+from pathlib import Path
+from typing import Optional
+
+from core.claude_client import ClaudeClient
+from core.notifier import Notifier
+from system_e.debate import DebateProtocol, QuickConsensus
+from system_e.self_improve import EvolutionEngine
+from system_e.meta_optimizer import MetaOptimizer
+
+logger = logging.getLogger(__name__)
+
+JST = timezone(timedelta(hours=9))
+ORCHESTRATOR_LOG = Path(__file__).parent.parent / "data" / "system_e" / "orchestrator_log.jsonl"
+
+
+class Orchestrator:
+    """The brain of System E — coordinates all meta-intelligence activities.
+
+    Modes:
+        debate:     Multi-agent debate on a specific topic
+        quick:      Quick 2-agent consensus (Strategist + Critic)
+        evolve:     Self-improvement cycle based on performance data
+        diagnose:   Full system health diagnosis
+        optimize:   Optimize system interactions
+        full-cycle: Run everything in sequence
+    """
+
+    def __init__(self, claude_client: Optional[ClaudeClient] = None):
+        self.claude = claude_client or ClaudeClient()
+        self.debate = DebateProtocol(claude_client=self.claude)
+        self.quick = QuickConsensus(claude_client=self.claude)
+        self.evolution = EvolutionEngine(claude_client=self.claude)
+        self.meta = MetaOptimizer(claude_client=self.claude)
+        self.notifier = Notifier()
+        ORCHESTRATOR_LOG.parent.mkdir(parents=True, exist_ok=True)
+
+    def run_debate(self, topic: str, context: str = "") -> dict:
+        """Run a full 3-round multi-agent debate."""
+        logger.info("[Orchestrator] Starting debate: %s", topic[:80])
+        result = self.debate.run_debate(topic, context)
+        self._log_action("debate", {"topic": topic, "synthesis": result.get("synthesis")})
+        return result
+
+    def run_quick_consensus(self, task: str, context: str = "") -> dict:
+        """Run a quick 2-agent consensus."""
+        logger.info("[Orchestrator] Quick consensus: %s", task[:80])
+        result = self.quick.propose_and_critique(task, context)
+        self._log_action("quick_consensus", {"task": task, "synthesis": result.get("synthesis")})
+        return result
+
+    def run_evolution(self, metrics: Optional[dict] = None) -> dict:
+        """Run the self-improvement cycle."""
+        logger.info("[Orchestrator] Starting evolution cycle")
+
+        if metrics is None:
+            metrics = self._collect_default_metrics()
+
+        result = self.evolution.evolve_strategy(metrics)
+        self._log_action("evolution", {
+            "version": result.get("version"),
+            "changes": result.get("optimization_history", [{}])[-1].get("changes", []),
+        })
+
+        self.notifier.send_line(
+            f"System E 戦略進化 v{result.get('version', '?')}\n"
+            f"変更点: {len(result.get('optimization_history', [{}])[-1].get('changes', []))}件"
+        )
+
+        return result
+
+    def run_diagnosis(self) -> dict:
+        """Run a full system diagnosis."""
+        logger.info("[Orchestrator] Running system diagnosis")
+        result = self.meta.diagnose()
+        self._log_action("diagnosis", {
+            "systems_checked": list(result.get("health", {}).get("systems", {}).keys()),
+        })
+        return result
+
+    def run_interaction_optimization(self) -> dict:
+        """Optimize inter-system interactions."""
+        logger.info("[Orchestrator] Optimizing system interactions")
+        result = self.meta.optimize_system_interactions()
+        self._log_action("interaction_optimization", result)
+        return result
+
+    def run_full_cycle(self) -> dict:
+        """Execute the complete meta-intelligence cycle.
+
+        1. Diagnose all systems
+        2. Debate improvement strategies
+        3. Evolve based on findings
+        4. Generate weekly report
+        """
+        logger.info("=== FULL META-INTELLIGENCE CYCLE START ===")
+        cycle_result = {}
+
+        # Step 1: Diagnosis
+        logger.info("[1/4] System Diagnosis")
+        cycle_result["diagnosis"] = self.run_diagnosis()
+
+        # Step 2: Debate on improvements
+        logger.info("[2/4] Multi-Agent Debate")
+        diagnosis_summary = json.dumps(
+            cycle_result["diagnosis"].get("strategy_analysis", {}),
+            ensure_ascii=False,
+        )
+        cycle_result["debate"] = self.run_debate(
+            topic="システム全体のパフォーマンス改善戦略",
+            context=f"直近のシステム診断結果:\n{diagnosis_summary}",
+        )
+
+        # Step 3: Evolution
+        logger.info("[3/4] Strategy Evolution")
+        metrics = self._extract_metrics_from_diagnosis(cycle_result["diagnosis"])
+        cycle_result["evolution"] = self.run_evolution(metrics)
+
+        # Step 4: Weekly report
+        logger.info("[4/4] Weekly Report Generation")
+        cycle_result["weekly_report"] = self.meta.generate_weekly_report()
+
+        # Notify
+        self.notifier.send_line(
+            "System E フルサイクル完了\n"
+            f"戦略バージョン: v{cycle_result['evolution'].get('version', '?')}\n"
+            f"議論ラウンド: {len(cycle_result['debate'].get('rounds', []))}回"
+        )
+
+        self._log_action("full_cycle", {
+            "steps_completed": 4,
+            "strategy_version": cycle_result["evolution"].get("version"),
+        })
+
+        logger.info("=== FULL META-INTELLIGENCE CYCLE COMPLETE ===")
+        return cycle_result
+
+    def _collect_default_metrics(self) -> dict:
+        """Collect available metrics from the data directory."""
+        data_dir = Path(__file__).parent.parent / "data"
+
+        metrics = {
+            "collection_time": datetime.now(JST).isoformat(),
+            "x_posts": {},
+            "orders": {},
+            "information_gathering": {},
+        }
+
+        # X post data
+        x_data_dir = data_dir / "x_posts"
+        if x_data_dir.exists():
+            files = sorted(x_data_dir.glob("*.json"), reverse=True)
+            if files:
+                latest = json.loads(files[0].read_text(encoding="utf-8"))
+                metrics["x_posts"] = {
+                    "total_files": len(files),
+                    "latest": latest,
+                }
+
+        # Performance data
+        perf_dir = data_dir / "performance"
+        if perf_dir.exists():
+            files = sorted(perf_dir.glob("*.json"), reverse=True)
+            if files:
+                latest = json.loads(files[0].read_text(encoding="utf-8"))
+                metrics["x_posts"]["performance"] = latest
+
+        return metrics
+
+    def _extract_metrics_from_diagnosis(self, diagnosis: dict) -> dict:
+        """Extract usable metrics from a diagnosis result."""
+        health = diagnosis.get("health", {})
+        systems = health.get("systems", {})
+
+        metrics = {
+            "from_diagnosis": True,
+            "system_statuses": {
+                name: sys.get("status", "unknown")
+                for name, sys in systems.items()
+            },
+        }
+
+        # Add System A specific data if available
+        sys_a = systems.get("A", {})
+        if sys_a.get("data"):
+            metrics["x_posts"] = sys_a["data"]
+
+        return metrics
+
+    def _log_action(self, action: str, details: dict) -> None:
+        """Append action to orchestrator log."""
+        entry = {
+            "timestamp": datetime.now(JST).isoformat(),
+            "action": action,
+            "details": details,
+        }
+        with open(ORCHESTRATOR_LOG, "a", encoding="utf-8") as f:
+            f.write(json.dumps(entry, ensure_ascii=False) + "\n")
+
+
+def main():
+    parser = argparse.ArgumentParser(description="System E: Meta-Intelligence Orchestrator")
+    parser.add_argument(
+        "--mode",
+        choices=["debate", "quick", "evolve", "diagnose", "optimize", "full-cycle"],
+        default="diagnose",
+        help="実行モード",
+    )
+    parser.add_argument("--topic", type=str, default="", help="議論のトピック（debateモード用）")
+    args = parser.parse_args()
+
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+    )
+
+    orchestrator = Orchestrator()
+
+    if args.mode == "debate":
+        topic = args.topic or "HIROKI AI Empireの次の成長戦略"
+        result = orchestrator.run_debate(topic)
+        print(json.dumps(result.get("synthesis", {}), ensure_ascii=False, indent=2))
+
+    elif args.mode == "quick":
+        topic = args.topic or "今週最も優先すべきタスク"
+        result = orchestrator.run_quick_consensus(topic)
+        print(json.dumps(result.get("synthesis", {}), ensure_ascii=False, indent=2))
+
+    elif args.mode == "evolve":
+        result = orchestrator.run_evolution()
+        print(f"Strategy evolved to v{result.get('version', '?')}")
+
+    elif args.mode == "diagnose":
+        result = orchestrator.run_diagnosis()
+        print(json.dumps(result.get("optimization_plan", {}), ensure_ascii=False, indent=2))
+
+    elif args.mode == "optimize":
+        result = orchestrator.run_interaction_optimization()
+        print(json.dumps(result, ensure_ascii=False, indent=2))
+
+    elif args.mode == "full-cycle":
+        result = orchestrator.run_full_cycle()
+        report = result.get("weekly_report", {})
+        print(json.dumps(report, ensure_ascii=False, indent=2))
+
+
+if __name__ == "__main__":
+    main()

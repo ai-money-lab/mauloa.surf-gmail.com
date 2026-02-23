@@ -50,6 +50,14 @@ help:
 	@echo "   make system-c       データ収集実行"
 	@echo "   make system-d       実績コンテンツ生成"
 	@echo ""
+	@echo " System E (Meta-Intelligence):"
+	@echo "   make system-e-debate TOPIC='...'  AI4体で議論"
+	@echo "   make system-e-quick  TOPIC='...'  高速合意形成"
+	@echo "   make system-e-evolve              戦略自動進化"
+	@echo "   make system-e-diagnose            全システム診断"
+	@echo "   make system-e-optimize            システム間連携最適化"
+	@echo "   make system-e-full                フルサイクル実行"
+	@echo ""
 	@echo " その他:"
 	@echo "   make clean          キャッシュ/一時ファイル削除"
 	@echo "   make cron-install   crontab一括登録"
@@ -126,7 +134,7 @@ test:
 
 lint:
 	@pip install ruff -q 2>/dev/null
-	ruff check inquiry_bot/ core/ system_a/ system_b/ system_c/ system_d/ --select E,W,F --ignore E501
+	ruff check inquiry_bot/ core/ system_a/ system_b/ system_c/ system_d/ system_e/ --select E,W,F --ignore E501
 
 # ─── System A-D ───
 system-a:
@@ -137,6 +145,25 @@ system-c:
 
 system-d:
 	python system_d/generate_results_content.py
+
+# ─── System E: Meta-Intelligence ───
+system-e-debate:
+	python -m system_e.orchestrator --mode debate --topic "$(TOPIC)"
+
+system-e-quick:
+	python -m system_e.orchestrator --mode quick --topic "$(TOPIC)"
+
+system-e-evolve:
+	python -m system_e.orchestrator --mode evolve
+
+system-e-diagnose:
+	python -m system_e.orchestrator --mode diagnose
+
+system-e-optimize:
+	python -m system_e.orchestrator --mode optimize
+
+system-e-full:
+	python -m system_e.orchestrator --mode full-cycle
 
 # ─── crontab一括登録 ───
 cron-install:
