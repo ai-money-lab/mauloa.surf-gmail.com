@@ -1,0 +1,37 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 6,
+    "persona_match": 5,
+    "pillar_alignment": 7,
+    "algorithm_optimization": 3,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 0,
+    "cta_ending": 0,
+    "originality": 4,
+    "tone_balance": 6,
+    "algorithm_hooks": 3
+  },
+  "total_score": 64,
+  "threshold": 80,
+  "result": "rejected",
+  "rejection_reasons": [
+    "合計スコアが80未満（64点）",
+    "数字が含まれていない",
+    "CTAが含まれていない",
+    "アルゴリズム最適化が不十分",
+    "独創性が低い（よくある質問形式）",
+    "アルゴリズムフック要素が不足"
+  ],
+  "improvement_suggestions": [
+    "具体的な数字を含める（例：「間取り図の『R』って何ですか？実は90%の人が知らない意味が...」）",
+    "明確なCTAを追加（例：「コメントで教えてください」「いいねで教えて」）",
+    "より具体的で興味を引く表現に変更（例：「賃貸探しで見つけた謎の『R』の正体」）",
+    "エンゲージメントを促す要素を追加（例：「あなたは知ってましたか？」）",
+    "体験談や具体例を含めてオリジナリティを高める"
+  ],
+  "checked_at": "2026-02-24T07:38:28.385789+09:00"
+}
