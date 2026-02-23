@@ -1,0 +1,36 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 7,
+    "persona_match": 5,
+    "pillar_alignment": 6,
+    "algorithm_optimization": 4,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 8,
+    "cta_ending": 2,
+    "originality": 6,
+    "tone_balance": 5,
+    "algorithm_hooks": 4
+  },
+  "total_score": 77,
+  "threshold": 80,
+  "result": "rejected",
+  "rejection_reasons": [
+    "合計スコアが80未満（77点）",
+    "CTAが不十分で行動喚起が弱い",
+    "アルゴリズム最適化要素が不足",
+    "内容が短すぎて価値提供が限定的",
+    "エンゲージメントを促す要素が少ない"
+  ],
+  "improvement_suggestions": [
+    "具体的なCTAを追加（「コメントで予想を教えてください」「リツイートで拡散お願いします」等）",
+    "ハッシュタグやメンションを適切に追加してアルゴリズム最適化",
+    "広告料の差額が消費者や事業者に与える影響について具体例を1-2行追加",
+    "「あなたの業界ではどうですか？」等の参加型要素を追加",
+    "絵文字を1-2個追加して視認性向上"
+  ],
+  "checked_at": "2026-02-23T13:58:20.767417+09:00"
+}
