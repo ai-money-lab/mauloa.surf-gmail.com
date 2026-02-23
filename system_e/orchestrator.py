@@ -3,6 +3,8 @@
 すべてのAIエージェントとサブシステムを統括し、
 自律的な意思決定・実行・改善のサイクルを回す。
 
+外部モジュール（core/）に依存せず、単体で動作する。
+
 使い方:
     python -m system_e.orchestrator --mode debate --topic "投稿戦略の改善"
     python -m system_e.orchestrator --mode evolve
@@ -15,10 +17,9 @@ import json
 import logging
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
-from typing import Optional
+from typing import Callable, Optional
 
-from core.claude_client import ClaudeClient
-from core.notifier import Notifier
+from system_e.client import ClaudeClient
 from system_e.debate import DebateProtocol, QuickConsensus
 from system_e.self_improve import EvolutionEngine
 from system_e.meta_optimizer import MetaOptimizer
@@ -26,7 +27,7 @@ from system_e.meta_optimizer import MetaOptimizer
 logger = logging.getLogger(__name__)
 
 JST = timezone(timedelta(hours=9))
-ORCHESTRATOR_LOG = Path(__file__).parent.parent / "data" / "system_e" / "orchestrator_log.jsonl"
+ORCHESTRATOR_LOG = Path(__file__).parent / "data" / "orchestrator_log.jsonl"
 
 
 class Orchestrator:
@@ -39,15 +40,24 @@ class Orchestrator:
         diagnose:   Full system health diagnosis
         optimize:   Optimize system interactions
         full-cycle: Run everything in sequence
+
+    Args:
+        claude_client: Optional pre-configured ClaudeClient.
+        on_notify: Optional callback for notifications (replaces core.notifier).
+            Signature: (message: str) -> None
     """
 
-    def __init__(self, claude_client: Optional[ClaudeClient] = None):
+    def __init__(
+        self,
+        claude_client: Optional[ClaudeClient] = None,
+        on_notify: Optional[Callable[[str], None]] = None,
+    ):
         self.claude = claude_client or ClaudeClient()
         self.debate = DebateProtocol(claude_client=self.claude)
         self.quick = QuickConsensus(claude_client=self.claude)
         self.evolution = EvolutionEngine(claude_client=self.claude)
         self.meta = MetaOptimizer(claude_client=self.claude)
-        self.notifier = Notifier()
+        self._notify = on_notify or (lambda msg: logger.info("[Notify] %s", msg))
         ORCHESTRATOR_LOG.parent.mkdir(parents=True, exist_ok=True)
 
     def run_debate(self, topic: str, context: str = "") -> dict:
@@ -65,11 +75,19 @@ class Orchestrator:
         return result
 
     def run_evolution(self, metrics: Optional[dict] = None) -> dict:
-        """Run the self-improvement cycle."""
+        """Run the self-improvement cycle.
+
+        Args:
+            metrics: Performance metrics to base evolution on.
+                If None, uses an empty placeholder.
+        """
         logger.info("[Orchestrator] Starting evolution cycle")
 
         if metrics is None:
-            metrics = self._collect_default_metrics()
+            metrics = {
+                "collection_time": datetime.now(JST).isoformat(),
+                "note": "No external metrics provided. Using self-contained evolution.",
+            }
 
         result = self.evolution.evolve_strategy(metrics)
         self._log_action("evolution", {
@@ -77,43 +95,60 @@ class Orchestrator:
             "changes": result.get("optimization_history", [{}])[-1].get("changes", []),
         })
 
-        self.notifier.send_line(
+        self._notify(
             f"System E 戦略進化 v{result.get('version', '?')}\n"
             f"変更点: {len(result.get('optimization_history', [{}])[-1].get('changes', []))}件"
         )
 
         return result
 
-    def run_diagnosis(self) -> dict:
-        """Run a full system diagnosis."""
+    def run_diagnosis(self, system_health: Optional[dict] = None) -> dict:
+        """Run a full system diagnosis.
+
+        Args:
+            system_health: Health data from external systems.
+                If None, performs self-diagnosis only.
+        """
         logger.info("[Orchestrator] Running system diagnosis")
-        result = self.meta.diagnose()
+        result = self.meta.diagnose(system_health)
         self._log_action("diagnosis", {
             "systems_checked": list(result.get("health", {}).get("systems", {}).keys()),
         })
         return result
 
-    def run_interaction_optimization(self) -> dict:
-        """Optimize inter-system interactions."""
+    def run_interaction_optimization(self, architecture: str = "") -> dict:
+        """Optimize inter-system interactions.
+
+        Args:
+            architecture: Description of the system architecture to optimize.
+        """
         logger.info("[Orchestrator] Optimizing system interactions")
-        result = self.meta.optimize_system_interactions()
+        result = self.meta.optimize_interactions(architecture)
         self._log_action("interaction_optimization", result)
         return result
 
-    def run_full_cycle(self) -> dict:
+    def run_full_cycle(
+        self,
+        system_health: Optional[dict] = None,
+        metrics: Optional[dict] = None,
+    ) -> dict:
         """Execute the complete meta-intelligence cycle.
 
-        1. Diagnose all systems
+        1. Diagnose systems
         2. Debate improvement strategies
         3. Evolve based on findings
-        4. Generate weekly report
+        4. Generate report
+
+        Args:
+            system_health: External system health data for diagnosis.
+            metrics: Performance metrics for evolution.
         """
         logger.info("=== FULL META-INTELLIGENCE CYCLE START ===")
         cycle_result = {}
 
         # Step 1: Diagnosis
         logger.info("[1/4] System Diagnosis")
-        cycle_result["diagnosis"] = self.run_diagnosis()
+        cycle_result["diagnosis"] = self.run_diagnosis(system_health)
 
         # Step 2: Debate on improvements
         logger.info("[2/4] Multi-Agent Debate")
@@ -128,15 +163,16 @@ class Orchestrator:
 
         # Step 3: Evolution
         logger.info("[3/4] Strategy Evolution")
-        metrics = self._extract_metrics_from_diagnosis(cycle_result["diagnosis"])
-        cycle_result["evolution"] = self.run_evolution(metrics)
+        evo_metrics = metrics or self._extract_metrics_from_diagnosis(cycle_result["diagnosis"])
+        cycle_result["evolution"] = self.run_evolution(evo_metrics)
 
-        # Step 4: Weekly report
-        logger.info("[4/4] Weekly Report Generation")
-        cycle_result["weekly_report"] = self.meta.generate_weekly_report()
+        # Step 4: Report
+        logger.info("[4/4] Report Generation")
+        cycle_result["report"] = self.meta.generate_report(
+            cycle_result["diagnosis"].get("health")
+        )
 
-        # Notify
-        self.notifier.send_line(
+        self._notify(
             "System E フルサイクル完了\n"
             f"戦略バージョン: v{cycle_result['evolution'].get('version', '?')}\n"
             f"議論ラウンド: {len(cycle_result['debate'].get('rounds', []))}回"
@@ -150,57 +186,18 @@ class Orchestrator:
         logger.info("=== FULL META-INTELLIGENCE CYCLE COMPLETE ===")
         return cycle_result
 
-    def _collect_default_metrics(self) -> dict:
-        """Collect available metrics from the data directory."""
-        data_dir = Path(__file__).parent.parent / "data"
-
-        metrics = {
-            "collection_time": datetime.now(JST).isoformat(),
-            "x_posts": {},
-            "orders": {},
-            "information_gathering": {},
-        }
-
-        # X post data
-        x_data_dir = data_dir / "x_posts"
-        if x_data_dir.exists():
-            files = sorted(x_data_dir.glob("*.json"), reverse=True)
-            if files:
-                latest = json.loads(files[0].read_text(encoding="utf-8"))
-                metrics["x_posts"] = {
-                    "total_files": len(files),
-                    "latest": latest,
-                }
-
-        # Performance data
-        perf_dir = data_dir / "performance"
-        if perf_dir.exists():
-            files = sorted(perf_dir.glob("*.json"), reverse=True)
-            if files:
-                latest = json.loads(files[0].read_text(encoding="utf-8"))
-                metrics["x_posts"]["performance"] = latest
-
-        return metrics
-
     def _extract_metrics_from_diagnosis(self, diagnosis: dict) -> dict:
         """Extract usable metrics from a diagnosis result."""
         health = diagnosis.get("health", {})
         systems = health.get("systems", {})
 
-        metrics = {
+        return {
             "from_diagnosis": True,
             "system_statuses": {
                 name: sys.get("status", "unknown")
                 for name, sys in systems.items()
             },
         }
-
-        # Add System A specific data if available
-        sys_a = systems.get("A", {})
-        if sys_a.get("data"):
-            metrics["x_posts"] = sys_a["data"]
-
-        return metrics
 
     def _log_action(self, action: str, details: dict) -> None:
         """Append action to orchestrator log."""
@@ -232,7 +229,7 @@ def main():
     orchestrator = Orchestrator()
 
     if args.mode == "debate":
-        topic = args.topic or "HIROKI AI Empireの次の成長戦略"
+        topic = args.topic or "次の成長戦略を議論する"
         result = orchestrator.run_debate(topic)
         print(json.dumps(result.get("synthesis", {}), ensure_ascii=False, indent=2))
 
@@ -255,7 +252,7 @@ def main():
 
     elif args.mode == "full-cycle":
         result = orchestrator.run_full_cycle()
-        report = result.get("weekly_report", {})
+        report = result.get("report", {})
         print(json.dumps(report, ensure_ascii=False, indent=2))
 
 

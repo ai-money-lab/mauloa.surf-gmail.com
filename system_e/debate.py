@@ -12,7 +12,7 @@ from datetime import datetime, timezone, timedelta
 from pathlib import Path
 from typing import Optional
 
-from core.claude_client import ClaudeClient
+from system_e.client import ClaudeClient
 from system_e.agents import (
     AgentPersona,
     AgentRunner,
@@ -24,7 +24,7 @@ from system_e.agents import (
 logger = logging.getLogger(__name__)
 
 JST = timezone(timedelta(hours=9))
-DEBATE_LOG_DIR = Path(__file__).parent.parent / "data" / "system_e" / "debates"
+DEBATE_LOG_DIR = Path(__file__).parent / "data" / "debates"
 
 
 class DebateProtocol:

@@ -10,14 +10,14 @@ from datetime import datetime, timezone, timedelta
 from pathlib import Path
 from typing import Optional
 
-from core.claude_client import ClaudeClient
+from system_e.client import ClaudeClient
 from system_e.agents import AgentRunner, OPTIMIZER, INNOVATOR, CRITIC
 
 logger = logging.getLogger(__name__)
 
 JST = timezone(timedelta(hours=9))
-EVOLUTION_DIR = Path(__file__).parent.parent / "data" / "system_e" / "evolution"
-STRATEGY_FILE = Path(__file__).parent.parent / "data" / "system_e" / "current_strategy.json"
+EVOLUTION_DIR = Path(__file__).parent / "data" / "evolution"
+STRATEGY_FILE = Path(__file__).parent / "data" / "current_strategy.json"
 
 
 class EvolutionEngine:
