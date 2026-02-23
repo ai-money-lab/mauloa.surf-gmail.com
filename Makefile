@@ -58,6 +58,13 @@ help:
 	@echo "   make system-e-optimize            システム間連携最適化"
 	@echo "   make system-e-full                フルサイクル実行"
 	@echo ""
+	@echo " NEXUS (Dual-AI Revenue Engine):"
+	@echo "   make nexus              フル実行（最強モード）"
+	@echo "   make nexus-single       1サイクル実行"
+	@echo "   make nexus-continuous   連続サイクル CYCLES=5"
+	@echo "   make nexus-swarm        全エージェント一斉稼働"
+	@echo "   make nexus-full         フル実行 CYCLES=3 MARKET='...'"
+	@echo ""
 	@echo " その他:"
 	@echo "   make clean          キャッシュ/一時ファイル削除"
 	@echo "   make cron-install   crontab一括登録"
@@ -191,6 +198,22 @@ cron-install:
 	) | crontab -
 	@echo "✅ crontab 登録完了"
 	@crontab -l | grep -A1 "AI Empire"
+
+# ─── NEXUS: Dual-AI Revenue Engine ───
+nexus:
+	python -m nexus.orchestrator.nexus_core --mode full
+
+nexus-single:
+	python -m nexus.orchestrator.nexus_core --mode single
+
+nexus-continuous:
+	python -m nexus.orchestrator.nexus_core --mode continuous --cycles $(or $(CYCLES),3)
+
+nexus-swarm:
+	python -m nexus.orchestrator.nexus_core --mode swarm
+
+nexus-full:
+	python -m nexus.orchestrator.nexus_core --mode full --cycles $(or $(CYCLES),3) --market "$(MARKET)"
 
 # ─── クリーンアップ ───
 clean:
