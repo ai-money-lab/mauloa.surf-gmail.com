@@ -47,7 +47,7 @@ LINE公式アカウントとWebサイトに対応したAI問い合わせ自動�
 
 ## 実績・スキル
 
-- 不動産管理会社（ROCKEDGE Property Management）代表、業界歴20年超
+- 不動産管理会社（ROCKEDGE Property Management）代表、業界歴24年
 - 自社でAI問い合わせBotを構築・運用中（月間対応時間70%削減）
 - Claude AI / Dify / n8n / LINE Messaging API の開発実績
 - MATTERPORT 3Dスキャン × AIの連携実績
