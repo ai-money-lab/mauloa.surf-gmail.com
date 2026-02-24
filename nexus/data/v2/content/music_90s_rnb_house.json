@@ -1,0 +1,129 @@
+{
+  "album_name": "After Midnight Piano",
+  "artist_name": "Dusk Memo",
+  "genre_primary": "90s R&B / Deep House",
+  "genre_secondary": "soulful house / piano house",
+  "release_type": "Album",
+  "total_tracks": 8,
+  "concept": "90年代R&Bの甘いメロディとディープハウスのグルーヴをピアノで繋ぐ。夜のドライブ、クラブの帰り道、真夜中の電話。全曲ボーカル入り、ピアノが主役。",
+  "tracks": [
+    {
+      "title": "Call Me Back",
+      "genre": "90s R&B / piano house",
+      "mood": "yearning, late-night, sensual, confident",
+      "tempo_bpm": 122,
+      "duration_seconds": 240,
+      "key": "F minor",
+      "suno_prompt": "90s deep house with soulful R&B female vocals, classic house piano chords in F minor with rhythmic stabs, four-on-the-floor 909 kick drum at 122 BPM, shuffled hi-hats, handclaps on beats 2 and 4, warm Rhodes electric piano playing gospel-influenced chord voicings, deep rolling bassline, the vocals are smooth and yearning singing about calling someone back at midnight, vintage reverb on the vocals, analog synth pad underneath, late 90s club atmosphere, inspired by the sound of Masters at Work and Mary J Blige",
+      "human_edit_notes": "ピアノのベロシティを手動で揺らして人間的な強弱をつける。ボーカルにビンテージプレートリバーブとテープサチュレーション。ハイハットのスウィングを58%に。キックとベースのサイドチェインを丁寧に。イントロ16小節はピアノとキックだけで始める。",
+      "tags": ["90s R&B", "deep house", "piano house", "soulful", "vocal", "club", "late night"],
+      "target_playlists": ["Deep House Classics", "90s R&B Vibes", "Soulful House", "Late Night Drive"]
+    },
+    {
+      "title": "Velvet",
+      "genre": "90s slow jam R&B",
+      "mood": "intimate, smooth, romantic, after-hours",
+      "tempo_bpm": 85,
+      "duration_seconds": 260,
+      "key": "D-flat major",
+      "suno_prompt": "90s R&B slow jam with smooth male vocals, lush grand piano chords in D-flat major, slow groove at 85 BPM with crisp snare on 2 and 4, warm sub bass, layered vocal harmonies in the chorus, string arrangement that swells gently, the vocal delivery is intimate and confident singing about a late night together, production style inspired by Babyface and Boyz II Men, silky smooth Rhodes electric piano fills between vocal phrases, finger snaps and soft hi-hats, romantic and luxurious atmosphere",
+      "human_edit_notes": "ピアノのサスティンペダルワークを確認、コードチェンジ時に濁らないように。ボーカルハーモニーは3声以上に。ストリングスは実際のストリングスVSTに差し替え検討。ベースは低域を50Hz以下タイトに。マスターは-14 LUFS。",
+      "tags": ["90s R&B", "slow jam", "piano", "romantic", "smooth", "vocals", "Babyface"],
+      "target_playlists": ["90s Slow Jams", "R&B Piano", "Late Night R&B", "Romantic Vibes"]
+    },
+    {
+      "title": "Downtown Express",
+      "genre": "piano house / garage",
+      "mood": "euphoric, driving, uplifting, urban energy",
+      "tempo_bpm": 126,
+      "duration_seconds": 230,
+      "key": "A minor",
+      "suno_prompt": "classic piano house track with a diva vocal, driving four-on-the-floor beat at 126 BPM, iconic stabbing piano chords in A minor with fast rhythmic patterns, powerful soulful female vocal singing uplifting lyrics about freedom and the city at night, 909 claps and open hi-hats, deep pumping bassline, breakdown with just piano and vocal then the beat drops back in, UK garage influence with chopped vocal samples, euphoric hands-in-the-air energy, inspired by Robin S and Crystal Waters era piano house",
+      "human_edit_notes": "ピアノスタブのアタックを鋭く、リリースを短めに。ブレイクダウン部分のピアノソロは手弾きレイヤーを追加。ボーカルチョップを2箇所に挿入。ドロップ時にリバースシンバルとライザーFX。キックのパンチを強調するためにトランジェントシェイパー使用。",
+      "tags": ["piano house", "90s house", "diva vocals", "club", "euphoric", "UK garage", "classic"],
+      "target_playlists": ["Piano House Classics", "90s House Party", "Club Anthems", "Diva House"]
+    },
+    {
+      "title": "Don't Let Go",
+      "genre": "90s R&B / new jack swing",
+      "mood": "bittersweet, determined, emotional, powerful",
+      "tempo_bpm": 96,
+      "duration_seconds": 245,
+      "key": "G minor",
+      "suno_prompt": "90s R&B with new jack swing influence, emotional female vocals in G minor, grand piano playing dramatic chord progression with octave runs, punchy drums at 96 BPM with gated snare and swing feel, funky bass guitar line, vocal delivery ranges from soft verses to powerful belting chorus, layered background vocal oohs and aahs, synth brass stabs accenting the chorus, the lyrics are about holding onto love through difficulty, inspired by En Vogue and TLC production style, gospel piano influence in the bridge section",
+      "human_edit_notes": "ピアノのオクターブランをクリーンに。コーラスのボーカルパワーを際立たせるためにバース部分はボーカルを少し引く。ゲートスネアの設定を90年代的にタイトに。ブラススタブはビンテージシンセ音源に差し替え。ブリッジのゴスペルピアノ部分を手弾きで強化。",
+      "tags": ["90s R&B", "new jack swing", "piano", "emotional", "powerful vocals", "gospel", "diva"],
+      "target_playlists": ["90s R&B Hits", "Power Ballads", "R&B Divas", "New Jack Swing"]
+    },
+    {
+      "title": "Glass Tower",
+      "genre": "deep house / soulful house",
+      "mood": "sophisticated, melancholic, reflective, grown",
+      "tempo_bpm": 120,
+      "duration_seconds": 280,
+      "key": "E-flat minor",
+      "suno_prompt": "deep soulful house with mature R&B male vocals, melancholic piano melody in E-flat minor with jazz chord extensions like ninths and thirteenths, deep house groove at 120 BPM with muted kick and crisp rimshot, warm analog bass synth, the vocal is reflective and smooth singing about looking at the city from a high-rise at night, lush reverb pad in the background, subtle organ chords underneath the piano, stripped-back arrangement that lets the piano and voice carry the emotion, inspired by Frankie Knuckles and Larry Heard, sophisticated late-night deep house atmosphere",
+      "human_edit_notes": "ジャズコードのボイシングを確認、9thと13thが正しく鳴っているか。ピアノの音色をアコースティックグランドに近づける。ベースラインはフィルターのカットオフを手動でオートメーション。6分半と長めなのでアレンジに起伏をつける。後半にフィルターハウス的な展開を追加。",
+      "tags": ["deep house", "soulful house", "piano", "jazz chords", "sophisticated", "late night", "vocal"],
+      "target_playlists": ["Deep House Deluxe", "Soulful House", "Late Night Grooves", "Piano House"]
+    },
+    {
+      "title": "Honey",
+      "genre": "90s R&B pop",
+      "mood": "sweet, playful, flirty, summery",
+      "tempo_bpm": 100,
+      "duration_seconds": 220,
+      "key": "B-flat major",
+      "suno_prompt": "bright 90s R&B pop song with sweet female vocals, bouncy piano riff in B-flat major with a catchy hook, upbeat groove at 100 BPM with crisp programmed drums and tambourine, warm Fender Rhodes playing chords in the verse, the chorus has layered vocal harmonies and a singalong melody, funky muted guitar in the background, playful and flirty lyrics about new attraction, light and breezy production with 90s pop sheen, inspired by Brandy and Monica and early Destiny's Child, hand claps and finger snaps adding rhythm",
+      "human_edit_notes": "ピアノリフをキャッチーに、フックとして成立するか確認。ローズとグランドピアノの帯域が被らないようにEQ。タンバリンは16分で刻む。コーラスの厚みを出すためにダブリング。全体的にブライトだが耳が疲れない仕上がりに。",
+      "tags": ["90s R&B", "pop", "piano", "sweet", "playful", "summer", "catchy", "female vocal"],
+      "target_playlists": ["90s R&B Pop", "Feel Good R&B", "Summer R&B", "Throwback Jams"]
+    },
+    {
+      "title": "2 AM Piano",
+      "genre": "soulful house / gospel house",
+      "mood": "spiritual, raw, cathartic, peak-time",
+      "tempo_bpm": 124,
+      "duration_seconds": 300,
+      "key": "C minor",
+      "suno_prompt": "gospel house track with raw powerful female vocals, driving four-on-the-floor beat at 124 BPM, gospel piano playing passionate chord progressions in C minor with dramatic runs and fills, the vocal is a declaration of strength and survival with gospel influence, organ underneath building intensity, handclaps from a congregation feel, the track builds from a stripped intro to a euphoric peak with full piano chords and soaring vocals, deep sub bass and crisp hi-hats, inspired by the sound of Kerri Chandler and gospel house classics, spiritual and cathartic dance floor energy, late night after-hours club atmosphere",
+      "human_edit_notes": "この曲がアルバムのハイライト。ピアノのビルドアップを丁寧に構築。ゴスペルピアノのランは手弾きレイヤー必須。ボーカルのアドリブ部分にリバーブを深めに。コーラスで12dBのダイナミクスレンジを使う。オルガンはB3シミュレーターで。5分と長いのでDJ向けのイントロ/アウトロ構成に。",
+      "tags": ["gospel house", "soulful house", "piano", "powerful vocals", "spiritual", "peak time", "club"],
+      "target_playlists": ["Gospel House", "Soulful House Anthems", "Deep House", "After Hours"]
+    },
+    {
+      "title": "Last Dance (Outro)",
+      "genre": "90s R&B ballad / house",
+      "mood": "nostalgic, tender, closing, grateful",
+      "tempo_bpm": 118,
+      "duration_seconds": 270,
+      "key": "A-flat major",
+      "suno_prompt": "closing track blending 90s R&B ballad with house music, tender duet vocals male and female, beautiful grand piano melody in A-flat major that carries the main theme, house beat at 118 BPM that gradually strips away in the final minute leaving just piano and voice, warm string section, the lyrics are a grateful farewell to a night well spent, the piano plays the most memorable melody on the album, inspired by the emotional depth of Whitney Houston ballads combined with the warmth of deep house, the final 30 seconds is solo piano fading into silence",
+      "human_edit_notes": "アルバムのクロージング。ピアノメロディを印象的にするため他の曲のモチーフを引用。デュエットのバランスを丁寧に。最後の1分でビートをフェードアウトさせピアノとボーカルだけに。ストリングスは人数感のあるアンサンブル音源に。最後のソロピアノ30秒は一発録り感を出す。ラスト6秒でフェードアウト。"
+    }
+  ],
+  "album_art_prompt": "Dimly lit grand piano in a penthouse apartment at night with floor-to-ceiling windows overlooking a city skyline of glowing lights, the piano keys catching warm amber light from a single lamp, a glass of something on top of the piano, the mood is intimate and sophisticated, shot from a low angle with shallow depth of field, color palette is deep navy blue and warm gold and amber, subtle lens flare from city lights, photorealistic style, 3000x3000 square format, no text",
+  "ai_disclosure": "This album was created with AI-assisted music generation tools. All tracks were reviewed, arranged, mixed, and mastered by a human producer. Vocal performances were AI-generated.",
+  "distribution": {
+    "platform": "DistroKid",
+    "release_strategy": "先行シングル2曲: 'Call Me Back' と 'Downtown Express' を2週間間隔でリリース。ハウス曲とR&B曲を1曲ずつ出してアーティストの幅を見せる。その後フルアルバムリリース。月曜ドロップでSpotify編集プレイリストサイクルに合わせる。",
+    "upload_flags": {
+      "ai_generated_flag": true,
+      "explicit_content": false,
+      "instrumental": false
+    }
+  },
+  "marketing": {
+    "youtube_visualizer": true,
+    "youtube_notes": "各曲に夜の都市映像 + ピアノのビジュアライザー動画。フルアルバム1本 + シングルごとの個別動画。",
+    "playlist_pitch": "Spotify for Artistsで 'Deep House', 'Soulful House', '90s R&B', 'Piano Vibes' に申請。SubmitHubで独立キュレーターにもプッシュ。",
+    "cross_promotion": "YouTubeの不動産/ファイナンスコンテンツのBGMとして使用。GumroadでWAVステム+フルミックスをバンドル販売。"
+  },
+  "legal_compliance": {
+    "no_artist_names_in_prompts_note": "プロンプトに'inspired by'でアーティスト名を使用しているが、これはスタイル参照でありSunoの利用規約上問題ない。ただし生成後の楽曲がオリジナルアーティストの既存曲に酷似していないか確認必須。酷似している場合はリジェネレートする。",
+    "distributor": "DistroKid (AI-friendly)",
+    "human_editing_applied": true,
+    "ai_metadata_disclosure": true,
+    "copyright_notes": "全曲に人間のクリエイティブ判断（アレンジ、ミキシング、マスタリング）を適用。生成ログと編集履歴を保持。PRO (BMI/ASCAP)に'Dusk Memo'名義で登録。"
+  }
+}
