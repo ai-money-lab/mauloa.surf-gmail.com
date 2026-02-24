@@ -45,6 +45,14 @@ MUSIC_PROMPT = """あなたはAI音楽プロデューサーです。
 - 2-4分の長さが最適（短すぎると再生単価が下がる）
 - タイトルとアーティスト名は英語が有利（グローバルリーチ）
 
+法的コンプライアンス（必須）:
+- Sunoプロンプトに実在のアーティスト名を絶対に含めない
+- 既存楽曲の模倣・盗用を示唆するプロンプトを使わない
+- DistroKidで配信（AI音楽に最も柔軟）、TuneCorは100%AI拒否
+- Spotifyは年間1,000再生未満はロイヤリティ対象外
+- AI生成であることをメタデータに明示する
+- 人間による編集・アレンジを加えて著作権を強化する指示を含める
+
 出力（JSON）:
 - "tracks": トラックリスト（5-10曲）
   - 各トラック: {
@@ -53,13 +61,15 @@ MUSIC_PROMPT = """あなたはAI音楽プロデューサーです。
       "mood": "雰囲気キーワード（Sunoプロンプト用）",
       "tempo_bpm": BPM,
       "duration_seconds": 秒数,
-      "suno_prompt": "Sunoに渡す生成プロンプト（英語）",
+      "suno_prompt": "Sunoに渡す生成プロンプト（英語・アーティスト名禁止）",
+      "human_edit_notes": "人間が加えるべき編集・アレンジの指示",
       "tags": ["タグ1", "タグ2"],
       "target_playlists": ["狙うプレイリスト名"]
     }
 - "album_name": アルバム/EP名
 - "artist_name": アーティスト名（ブランド）
-- "distribution_notes": 配信時の注意点"""
+- "ai_disclosure": "AI生成であることの明示文"
+- "distribution_notes": 配信時の注意点（DistroKid推奨）"""
 
 VIDEO_PROMPT = """あなたはYouTubeコンテンツストラテジストです。
 ファセレス（顔出しなし）チャンネルで高再生される動画の台本を作成してください。
@@ -71,21 +81,32 @@ VIDEO_PROMPT = """あなたはYouTubeコンテンツストラテジストです�
 - SEOタイトルにメインキーワードを含める
 - 説明欄の最初の2行がクリック率に影響
 
+法的コンプライアンス（2025年7月YouTube規約改定対応・必須）:
+- AI生成コンテンツである旨の開示が必須（説明欄に明記）
+- 低品質AIコンテンツは収益化剥奪の対象
+- 「大量生産・反復的・独自の洞察なし」は不可
+- 実在の人物のAI合成音声・映像は禁止
+- 台本は独自の分析・専門知識を含む「実質的に変革的」なものにする
+- 収益化要件: チャンネル登録者1,000人 + 公開再生時間4,000時間
+
 出力（JSON）:
 - "title": "SEO最適化されたタイトル",
 - "thumbnail_text": "サムネイルテキスト（7文字以内）",
-- "description": "説明欄テキスト（最初の2行が重要）",
+- "description": "説明欄テキスト（AI開示文を含む）",
+- "ai_disclosure": "この動画はAIツールを活用して制作されています",
 - "tags": ["SEOタグ"],
 - "script": {
     "hook": "最初の5秒のセリフ（視聴者を引きつける）",
     "sections": [
-      {"title": "セクション名", "narration": "ナレーション全文", "visual_description": "画面に映すもの"}
+      {"title": "セクション名", "narration": "ナレーション全文（独自分析を含む）", "visual_description": "画面に映すもの"}
     ],
     "outro": "締めのセリフ + CTA"
   },
 - "estimated_length_minutes": 分数,
 - "target_audience": "ターゲット視聴者",
-- "seo_keywords": ["検索キーワード"]"""
+- "seo_keywords": ["検索キーワード"],
+- "original_insight": "この動画独自の分析・知見（他にはない価値）"
+"""
 
 DIGITAL_PRODUCT_PROMPT = """あなたはデジタル商品の設計者です。
 Gumroadで実際に売れる商品を設計・生成してください。
@@ -116,15 +137,22 @@ Gumroadで実際に売れる商品を設計・生成してください。
 - "keywords": ["検索用キーワード"]"""
 
 STOCK_CONTENT_PROMPT = """あなたはストックコンテンツの専門家です。
-Adobe StockとPond5で売れる素材の仕様を設計してください。
+Adobe StockとShutterstockで売れるAI生成素材の仕様を設計してください。
 
 重要な知識:
 - AI生成コンテンツは「Created using generative AI tools」の明示が必須
-- 特定アーティスト名/ブランド名の使用は厳禁
+- 特定アーティスト名/ブランド名の使用は厳禁（IPストライク3回で永久BAN）
 - 不動産、ビジネス、テクノロジー系の需要が高い
 - ハイパーリアルより明らかにAI的なスタイルの方が承認されやすい
-- Adobe Stockは最もAIフレンドリー
-- Pond5はクリエイターが価格設定可能
+
+法的コンプライアンス（必須）:
+- Adobe Stock: AI明示チェックボックス必須、33%コミッション、最低4MP
+- Shutterstock: AI明示タグ必須、15-40%コミッション（累計売上で変動）
+- Pond5: AI画像は不可（AI動画・音楽は可）
+- Getty Images: AI全面禁止（投稿不可）
+- プロンプトに実在のアーティスト名・ブランド名・有名人名を絶対に含めない
+- 著作権保護された作品の模倣を示唆するプロンプトを使わない
+- 生成AIツール名（Midjourney, DALL-E等）をメタデータに含めない
 
 出力（JSON）:
 - "collection_name": "コレクション名",
@@ -132,15 +160,16 @@ Adobe StockとPond5で売れる素材の仕様を設計してください。
   - 各素材: {
       "title": "タイトル（英語）",
       "description": "説明（英語・50文字以上）",
-      "generation_prompt": "画像生成AIに渡すプロンプト（英語）",
+      "generation_prompt": "画像生成AIに渡すプロンプト（英語・アーティスト名禁止）",
       "style": "スタイル指定",
       "category": "カテゴリ",
       "tags": ["タグ1", "タグ2", ...],
       "orientation": "horizontal/vertical/square",
       "suggested_price_usd": 価格
     }
-- "target_platforms": ["adobe_stock", "pond5"],
-- "ai_disclosure": "AI生成の明示文"
+- "target_platforms": ["adobe_stock", "shutterstock"],
+- "ai_disclosure": "Created using generative AI tools",
+- "legal_checklist": ["アーティスト名不使用", "ブランド名不使用", "AI明示済み"]
 """
 
 SAAS_PROMPT = """あなたはマイクロSaaSの設計者です。
@@ -210,8 +239,8 @@ ASSET_TO_PLATFORMS: dict[AssetType, list[Platform]] = {
     AssetType.TEMPLATE: [Platform.GUMROAD],
     AssetType.TOOL: [Platform.GUMROAD],
     AssetType.PROMPT_PACK: [Platform.GUMROAD, Platform.NOTE],
-    AssetType.STOCK_IMAGE: [Platform.ADOBE_STOCK, Platform.POND5],
-    AssetType.STOCK_VIDEO: [Platform.ADOBE_STOCK, Platform.POND5],
+    AssetType.STOCK_IMAGE: [Platform.ADOBE_STOCK, Platform.SHUTTERSTOCK],
+    AssetType.STOCK_VIDEO: [Platform.ADOBE_STOCK, Platform.SHUTTERSTOCK, Platform.POND5],
     AssetType.API_SERVICE: [Platform.SELF_HOSTED],
 }
 

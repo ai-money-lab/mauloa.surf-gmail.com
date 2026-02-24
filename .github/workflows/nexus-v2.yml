@@ -1,0 +1,80 @@
+# GitHub Actions — NEXUS V2: デジタルアセット量産パイプライン
+#
+# スケジュール:
+#   - 毎日 09:00 JST: 日次サイクル（分析→生成→配信準備）
+#   - 毎週月曜 09:00 JST: 週次サイクル（全チャネル分析→議論→最適化）
+#
+# 手動実行も可能（workflow_dispatch）
+
+name: NEXUS V2 Revenue Engine
+
+on:
+  schedule:
+    - cron: '0 0 * * *'     # 毎日 09:00 JST (UTC 00:00)
+    - cron: '0 0 * * 1'     # 毎週月曜 09:00 JST (UTC 00:00)
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: '実行モード'
+        required: true
+        type: choice
+        options:
+          - 'daily'
+          - 'weekly'
+          - 'create'
+          - 'status'
+          - 'debate'
+      dry_run:
+        description: 'ドライラン（ログ出力のみ）'
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+jobs:
+  nexus-v2:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          pip install anthropic requests python-dotenv pyyaml
+
+      - name: Determine mode
+        id: mode
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "mode=${{ inputs.mode }}" >> $GITHUB_OUTPUT
+          elif [ "$(date -u +%u)" = "1" ]; then
+            echo "mode=weekly" >> $GITHUB_OUTPUT
+          else
+            echo "mode=daily" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Run NEXUS V2
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          NEXUS_MODEL: claude-sonnet-4-20250514
+        run: |
+          echo "Running NEXUS V2 in ${{ steps.mode.outputs.mode }} mode..."
+          PYTHONPATH=. python -m nexus.v2.run ${{ steps.mode.outputs.mode }}
+
+      - name: Commit results
+        if: success()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -f nexus/data/v2/
+          git diff --cached --quiet || git commit -m "auto: NEXUS V2 ${{ steps.mode.outputs.mode }} run $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          git push

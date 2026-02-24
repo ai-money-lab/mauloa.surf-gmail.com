@@ -135,7 +135,7 @@ CHANNEL_CONFIGS: dict[RevenueChannel, ChannelConfig] = {
     RevenueChannel.STOCK_CONTENT: ChannelConfig(
         channel=RevenueChannel.STOCK_CONTENT,
         revenue_model=RevenueModel.PER_DOWNLOAD,
-        platforms=[Platform.ADOBE_STOCK, Platform.POND5],
+        platforms=[Platform.ADOBE_STOCK, Platform.SHUTTERSTOCK],
         asset_types=[AssetType.STOCK_IMAGE, AssetType.STOCK_VIDEO],
         avg_revenue_per_unit=100,       # 1素材あたり月100円
         creation_cost=5,                # 画像生成APIコスト
@@ -143,7 +143,9 @@ CHANNEL_CONFIGS: dict[RevenueChannel, ChannelConfig] = {
         scalability="high",
         description=(
             "AI生成の不動産ビジュアル、建築コンセプト、ビジネスシーン画像。"
-            "Adobe Stock（AI内容の明示必須）、Pond5で販売。"
+            "Adobe Stock（33%コミッション、AI明示必須）、Shutterstock（15-40%、AI明示必須）。"
+            "Pond5はAI画像不可のため除外。Pond5はAI動画・音楽のみ対応。"
+            "Getty ImagesはAI全面禁止。"
             "DLあたり$0.25-3.00、月500素材で月50,000円。"
         ),
     ),
