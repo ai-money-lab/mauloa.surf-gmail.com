@@ -1,0 +1,141 @@
+{
+  "album_name": "Midnight Keys",
+  "artist_name": "Dusk Memo",
+  "ai_disclosure": "This album was created with AI-assisted music generation tools. All tracks were reviewed, edited, mixed, and mastered by a human producer. Distributed in compliance with DistroKid's AI-generated music policies.",
+  "distribution_notes": "Distribute via DistroKid. Select 'AI-generated' flag during upload. Target: Spotify, Apple Music, YouTube Music, Amazon Music, Tidal. Register with BMI/ASCAP under 'Dusk Memo'. Release lead single 'Don't Let Go' two weeks before full album.",
+  "genre_primary": "R&B",
+  "genre_secondary": "90s R&B / new jack swing / soul",
+  "release_type": "Album",
+  "total_tracks": 8,
+  "tracks": [
+    {
+      "title": "Don't Let Go",
+      "genre": "90s R&B",
+      "mood": "sensual, smooth, late night, longing",
+      "tempo_bpm": 92,
+      "duration_seconds": 240,
+      "key": "E-flat major",
+      "suno_prompt": "90s R&B slow jam with lush Rhodes electric piano chords in E-flat major, smooth female vocals singing about not wanting to let someone go, tight TR-808 drum machine with crisp snare and deep kick at 92 BPM, silky bass synth line, layered background vocal harmonies on the chorus, subtle string pad swells, new jack swing influence, warm analog production, Babyface-era ballad feel, bridge with ad-lib vocal runs over stripped piano chords, polished and radio-ready mix",
+      "human_edit_notes": "Add real Rhodes keyboard layer for authenticity. Ensure vocal sits on top of mix with de-essing at 6-8kHz. Add subtle chorus effect to background vocals. Apply gentle sidechain compression from kick to bass. Verify vocal tuning is natural — avoid over-correction. Add a vinyl warmth plugin on the master bus. Crossfade intro piano for 3 seconds.",
+      "tags": ["R&B", "90s", "slow jam", "piano", "vocals", "soul", "smooth", "ballad"],
+      "target_playlists": ["R&B Classics", "Slow Jams", "Smooth R&B", "Late Night R&B", "90s Throwback"]
+    },
+    {
+      "title": "Pages",
+      "genre": "90s R&B / soul",
+      "mood": "heartfelt, vulnerable, nostalgic, warm",
+      "tempo_bpm": 78,
+      "duration_seconds": 255,
+      "key": "A-flat major",
+      "suno_prompt": "heartfelt 90s R&B soul ballad, expressive male vocals singing about lost love and memories, Wurlitzer electric piano playing gospel-influenced chord voicings in A-flat major, slow tempo at 78 BPM, programmed drums with soft kick and finger snaps, deep warm bass, lush string arrangement in the chorus, vocal ad-libs with melisma runs, Boyz II Men and Brian McKnight influence, intimate and confessional tone, key change up a half step in the final chorus, analog tape warmth throughout",
+      "human_edit_notes": "The key change in the final chorus is critical — verify it modulates cleanly to A major. Layer a real Wurlitzer or Fender Rhodes recording. Add reverb throws on vocal phrases at the end of lines. The string arrangement should swell in the chorus but stay below the vocal. Pan background vocals wide left/right. Master to -14 LUFS.",
+      "tags": ["R&B", "soul", "90s", "ballad", "piano", "vocals", "heartfelt", "classic"],
+      "target_playlists": ["Soul Ballads", "90s R&B", "Heartbreak Songs", "Smooth Vocals", "Classic R&B"]
+    },
+    {
+      "title": "Round Midnight",
+      "genre": "90s R&B / jazz fusion",
+      "mood": "smoky, sophisticated, seductive, cool",
+      "tempo_bpm": 86,
+      "duration_seconds": 235,
+      "key": "D minor",
+      "suno_prompt": "sophisticated 90s R&B with jazz influence, smoky female vocals with a cool detached delivery, grand piano playing jazz voicings with 7th and 9th chords in D minor, live-sounding drums with brushed hi-hat and rim shot at 86 BPM, walking bass line, muted trumpet solo in the bridge, late night jazz club atmosphere, Sade and Anita Baker influence, seductive and understated mood, minimal production with space between notes, warm reverb on vocals, ending with solo piano and voice",
+      "human_edit_notes": "This track needs space — resist the urge to fill gaps. The piano voicings should use extended jazz chords (Dm9, Gm7, Cmaj9). If the trumpet solo sounds synthetic, replace with a filtered synth brass or remove entirely. Keep the drums dry and intimate. Apply light tape saturation. The ending piano-and-voice section should have room ambience reverb only. Check that bass doesn't overpower the piano in 200-400Hz range.",
+      "tags": ["R&B", "jazz", "90s", "piano", "sophisticated", "vocals", "smoky", "night"],
+      "target_playlists": ["Jazz R&B", "Late Night Vibes", "Smooth Jazz Soul", "Sophisticated R&B", "After Hours"]
+    },
+    {
+      "title": "Stay Tonight",
+      "genre": "new jack swing / R&B",
+      "mood": "upbeat, flirty, groovy, confident",
+      "tempo_bpm": 108,
+      "duration_seconds": 220,
+      "key": "B-flat major",
+      "suno_prompt": "upbeat 90s new jack swing R&B, bright Korg M1 piano stabs and Rhodes chords in B-flat major, punchy TR-808 and TR-909 drum programming at 108 BPM with crisp snare and swung hi-hats, confident male vocals with a charismatic delivery, funky synth bass with octave slides, catchy call-and-response chorus with female backing vocals, finger snaps and handclaps layered on beats 2 and 4, Teddy Riley and Jimmy Jam & Terry Lewis production style, energetic but smooth, radio-friendly hook, breakdown section with beatbox and vocal stacking",
+      "human_edit_notes": "The M1 piano stabs are essential — use the classic 'Piano 16' patch sound if possible. Swing the hi-hats at 62% for authentic new jack feel. The bass should have a slight pitch bend on the slides. Make the call-and-response chorus punchy with tight vocal edits. Add a vinyl scratch sample in the breakdown. Compress the drums harder than other tracks for that punchy 90s sound. This is the uptempo single — needs to hit hard.",
+      "tags": ["new jack swing", "R&B", "90s", "upbeat", "piano", "dance", "vocals", "funky"],
+      "target_playlists": ["90s R&B Hits", "New Jack Swing", "Throwback Jams", "R&B Party", "Funky Soul"]
+    },
+    {
+      "title": "Glass of Wine",
+      "genre": "90s R&B / quiet storm",
+      "mood": "romantic, intimate, warm, candlelit",
+      "tempo_bpm": 72,
+      "duration_seconds": 265,
+      "key": "G-flat major",
+      "suno_prompt": "romantic 90s quiet storm R&B, intimate female vocals whispering then building to powerful chest voice on the chorus, acoustic piano with rich chord voicings in G-flat major, slow groove at 72 BPM with brushed snare and deep 808 kick, fretless bass gliding between notes, lush orchestral string section swelling in the chorus, candlelit romantic atmosphere, Luther Vandross and Whitney Houston era influence, spoken word intro over solo piano, emotional crescendo in the bridge with layered vocals, warm and intimate production",
+      "human_edit_notes": "The spoken word intro should be 8 bars of solo piano with voice — keep it dry and intimate. The transition to the full arrangement should be gradual. Use a real acoustic piano sample library (e.g., Keyscape) for authenticity. The fretless bass is essential for that smooth glide sound. Strings should be wide in stereo but not overwhelm the vocal. The bridge vocal layers should crescendo naturally. Apply de-essing carefully — keep the breathiness. Master this track slightly quieter (-15 LUFS) for dynamic range.",
+      "tags": ["quiet storm", "R&B", "romantic", "piano", "90s", "vocals", "ballad", "intimate"],
+      "target_playlists": ["Quiet Storm", "Romantic R&B", "Candlelight Dinner", "90s Love Songs", "Smooth Ballads"]
+    },
+    {
+      "title": "Concrete Roses",
+      "genre": "90s R&B / hip hop soul",
+      "mood": "emotional, street, soulful, raw, uplifting",
+      "tempo_bpm": 95,
+      "duration_seconds": 230,
+      "key": "C minor",
+      "suno_prompt": "emotional 90s hip hop soul R&B, soulful female vocals with raw power and gospel runs, sampled piano loop chopped and pitched in C minor with vinyl texture, boom bap drums at 95 BPM with hard-hitting kick and crispy snare, deep sub bass, dramatic orchestral hits on the chorus, Mary J. Blige and Lauryn Hill influence, street but soulful atmosphere, vulnerability in the verses building to triumphant chorus, scratched vocal sample in the intro, bridge with acapella vocal harmonies over finger snaps",
+      "human_edit_notes": "The chopped piano should feel like a classic hip hop soul sample — add vinyl crackle and slight pitch warble. Drums should hit harder than typical R&B — this is hip hop soul. The orchestral hits should be dramatic but not cheesy. The scratch in the intro should be subtle. The acapella bridge needs tight harmonies — pan voices left/center/right. Add a subtle bass 808 slide at the end of phrases. This track bridges R&B and hip hop — keep it raw.",
+      "tags": ["hip hop soul", "R&B", "90s", "piano", "soulful", "vocals", "raw", "emotional"],
+      "target_playlists": ["Hip Hop Soul", "90s R&B", "Soulful Vibes", "Women of R&B", "Classic Soul"]
+    },
+    {
+      "title": "4 AM",
+      "genre": "90s R&B / slow jam",
+      "mood": "vulnerable, sleepless, confessional, aching",
+      "tempo_bpm": 66,
+      "duration_seconds": 275,
+      "key": "F minor",
+      "suno_prompt": "late night 90s R&B slow jam, vulnerable male vocals with a falsetto on the chorus, solo grand piano intro in F minor playing a haunting minor key melody, slow groove at 66 BPM with minimal percussion — just a deep kick and finger snaps, fretless bass entering in the second verse, lush pad synth holding long notes in the background, emotional and sleepless atmosphere like calling someone at 4 AM, K-Ci & JoJo and Jodeci influence, raw falsetto with vibrato, final chorus adds layered gospel harmonies and a soaring vocal climax, fade out with piano alone",
+      "human_edit_notes": "The piano intro is the hook — it needs to be memorable and well-performed. Keep production sparse in the first verse to emphasize vulnerability. The falsetto should feel effortless, not strained. Add phone dial tone sample at very low volume in the intro. The gospel harmonies in the final chorus should feel like a release of emotion. Fade out should be slow (10 seconds) with just piano and faint vocal echoes. This is the emotional centerpiece of the album.",
+      "tags": ["slow jam", "R&B", "90s", "piano", "vulnerable", "vocals", "ballad", "night"],
+      "target_playlists": ["Slow Jams", "Late Night R&B", "Heartbreak Hotel", "90s Ballads", "Pillow Talk"]
+    },
+    {
+      "title": "Golden",
+      "genre": "90s R&B / gospel soul",
+      "mood": "uplifting, triumphant, joyful, celebratory",
+      "tempo_bpm": 100,
+      "duration_seconds": 245,
+      "key": "A-flat major",
+      "suno_prompt": "uplifting 90s R&B with gospel soul influence, joyful female lead vocals with a powerful range, grand piano playing bright gospel chord progressions in A-flat major, full band arrangement at 100 BPM with live-sounding drums with open hi-hat and tambourine, funky bass guitar, organ pad adding warmth, choir vocals on the chorus singing in harmony, triumphant and celebratory mood, CeCe Winans and Whitney Houston crossover feel, hand claps on beats 2 and 4, bridge builds to a key change with the choir reaching a peak, ending with the choir and piano ringing out",
+      "human_edit_notes": "The gospel influence should feel authentic — use classic gospel piano voicings with grace notes and runs between chords. The choir should sound like a real ensemble, not a synth choir patch. Layer multiple takes for thickness. The tambourine should sit behind the hi-hat. The key change in the bridge (up to A major) should feel earned and euphoric. The organ should use a Leslie speaker emulation. This is the album closer — it should leave listeners feeling uplifted. Add 3 seconds of room decay after the final chord.",
+      "tags": ["R&B", "gospel", "90s", "piano", "uplifting", "vocals", "soul", "triumphant"],
+      "target_playlists": ["Feel Good R&B", "Gospel Soul", "90s Anthems", "Uplifting R&B", "Sunday Morning Soul"]
+    }
+  ],
+  "album_art_prompt": "Dramatic close-up photograph of black and white piano keys with warm golden light spilling across them from the left side, a faint reflection of city lights at night visible in the glossy piano surface, film grain texture, rich contrast, moody and elegant atmosphere evoking late 90s R&B album covers, square format 3000x3000 pixels, no text",
+  "distribution": {
+    "platform": "DistroKid",
+    "release_strategy": "Release 'Don't Let Go' as lead single 3 weeks before album. Release 'Stay Tonight' as second single 1 week before album. Full album release on a Friday for Spotify New Music Friday consideration. Pitch both singles to Spotify for Artists editorial playlist team at least 7 days before release.",
+    "pre_save_campaign": true,
+    "upload_flags": {
+      "ai_generated_flag": true,
+      "explicit_content": false,
+      "instrumental": false
+    }
+  },
+  "marketing": {
+    "youtube_visualizer": true,
+    "youtube_visualizer_notes": "Create cinematic visualizer videos with 90s-inspired aesthetics — film grain, warm amber tones, slow-motion city night shots. Each track gets its own video. Full album video with timestamps for long-form viewing.",
+    "playlist_pitch_strategy": "Target 'R&B Favorites', 'Slow Jams', 'Smooth R&B', '90s Throwback', and genre-specific playlists. Emphasize the live instrument feel and vocal performances in pitch descriptions.",
+    "social_media": {
+      "instagram_reels": "15-second clips of piano performance moments with vintage VHS filter",
+      "tiktok": "Behind-the-scenes AI music production process, vocal arrangement breakdowns",
+      "youtube_shorts": "Piano chord progression tutorials for each track"
+    }
+  },
+  "production_workflow": {
+    "step_1": "Generate 5+ variations per track in Suno using the suno_prompt",
+    "step_2": "Select best vocal performance and instrumental bed (may combine from different generations)",
+    "step_3": "Import to DAW — separate vocal stems from instrumental if possible",
+    "step_4": "Layer real Rhodes/Wurlitzer/piano recordings over AI piano",
+    "step_5": "Re-record or layer live bass where specified",
+    "step_6": "Mix vocals with proper EQ, compression, de-essing, and reverb",
+    "step_7": "Apply human_edit_notes for each track",
+    "step_8": "Mix and master full album for consistent tone and volume",
+    "step_9": "Master to -14 LUFS for streaming, export WAV 44.1kHz/16-bit",
+    "step_10": "Upload to DistroKid with correct metadata and AI disclosure"
+  }
+}

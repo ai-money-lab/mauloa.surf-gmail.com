@@ -1,0 +1,142 @@
+{
+  "album_name": "House of Keys",
+  "artist_name": "Dusk Memo",
+  "ai_disclosure": "This album was created with AI-assisted music generation tools. All tracks were reviewed, edited, mixed, and mastered by a human producer. Distributed in compliance with DistroKid's AI-generated music policies.",
+  "distribution_notes": "Distribute via DistroKid. Select 'AI-generated' flag during upload. Target: Spotify, Apple Music, YouTube Music, Beatport, Traxsource. Register with BMI/ASCAP under 'Dusk Memo'. Release 'Lift Me Up' and 'Surrender' as lead singles.",
+  "genre_primary": "house",
+  "genre_secondary": "90s house / piano house / deep house / garage",
+  "release_type": "Album",
+  "total_tracks": 8,
+  "tracks": [
+    {
+      "title": "Lift Me Up",
+      "genre": "90s piano house",
+      "mood": "euphoric, anthemic, hands-in-the-air, empowering",
+      "tempo_bpm": 122,
+      "duration_seconds": 330,
+      "key": "C major",
+      "suno_prompt": "euphoric 90s piano house anthem, powerful female diva vocal singing about being lifted higher, classic Korg M1 piano riff in C major with staccato stabs and rolling arpeggios, four-on-the-floor TR-909 kick drum at 122 BPM, crisp open hi-hats on the offbeat, driving bass line with acid undertones, building breakdown with just piano and vocal before the drop, big hands-in-the-air chorus with layered vocal harmonies, Robin S and CeCe Peniston influence, 90s club production with warm analog feel, euphoric peak-time energy, organ stab accents, claps on beats 2 and 4",
+      "human_edit_notes": "The M1 piano riff is the identity of this track — it needs to be infectious and immediately recognizable. Use the classic 'Piano 16' Korg M1 sound or a faithful recreation. The breakdown before the drop should be 16 bars minimum — build tension with filter sweeps on the piano. The vocal should sound powerful and effortless. Apply sidechain compression from kick to bass and pads. The TR-909 kick should punch through at 60-80Hz. Add a classic house cymbal crash on the first beat of the drop. Master loud but dynamic — -12 LUFS for club play.",
+      "tags": ["house", "piano house", "90s", "diva", "vocals", "club", "euphoric", "anthem"],
+      "target_playlists": ["House Classics", "Piano House", "90s Dance", "Club Anthems", "Feel Good House"]
+    },
+    {
+      "title": "Deeper",
+      "genre": "deep house",
+      "mood": "groovy, hypnotic, sensual, underground",
+      "tempo_bpm": 118,
+      "duration_seconds": 360,
+      "key": "D minor",
+      "suno_prompt": "deep house track with 90s influence, sultry female vocal singing about going deeper into love, Rhodes electric piano playing jazzy minor key chords in D minor with tremolo effect, deep four-on-the-floor kick at 118 BPM, shuffled hi-hats with swing, deep rolling bass line, subtle congas and shaker percussion, hypnotic and groovy feel, Masters at Work and Kerri Chandler influence, warm analog synth pad in the background, vocal chops and echoes used as rhythmic elements, stripped-back verse building to lush chorus, late night underground club atmosphere",
+      "human_edit_notes": "The Rhodes should have authentic tremolo and warmth — use a real Rhodes sample library. Swing the hi-hats at 58% for that deep house shuffle. The bass should be round and deep, sitting below the Rhodes without competing. The vocal chops should be rhythmically interesting — chop on eighth notes and pitch some up/down. Keep the production minimal — deep house is about space and groove. The congas should feel live and organic. Low-pass filter the mix slightly for that warm underground sound. Add subtle room reverb to place everything in the same space.",
+      "tags": ["deep house", "90s", "piano", "groovy", "vocals", "underground", "sensual", "rhodes"],
+      "target_playlists": ["Deep House", "Underground House", "90s House", "Late Night House", "Soulful House"]
+    },
+    {
+      "title": "Surrender",
+      "genre": "90s garage house",
+      "mood": "uplifting, soulful, joyful, dancefloor",
+      "tempo_bpm": 126,
+      "duration_seconds": 340,
+      "key": "G major",
+      "suno_prompt": "uplifting 90s UK garage house, soulful male and female vocal duet singing about surrendering to the music, bright piano chords in G major with classic house chord progressions, skippy 2-step garage drums at 126 BPM with syncopated snare and shuffled hi-hats, deep sub bass with pitch bends, warm organ stabs, gospel-influenced vocal harmonies on the chorus, Todd Edwards-style chopped vocal samples layered throughout, joyful and uplifting dancefloor energy, MK and Todd Terry production influence, breakdown with acapella vocals and finger clicks before the bass drops back in",
+      "human_edit_notes": "The 2-step drum pattern is essential — the snare should skip and syncopate, not just hit on 2 and 4. The bass should have weight but be clean and controlled. Piano chords should use classic house voicings — open triads with the root on top. The Todd Edwards-style vocal chops need careful editing — slice phrases into sixteenth notes and rearrange. The gospel harmonies should be thick and wide. Add a classic house stab (hoover or string stab) accent on the pre-chorus. The breakdown should build anticipation — add a snare roll before the drop. Energy should make people move.",
+      "tags": ["garage", "house", "90s", "piano", "soulful", "vocals", "uplifting", "2-step"],
+      "target_playlists": ["UK Garage", "Soulful House", "90s Dance Anthems", "House Classics", "Feel Good Dance"]
+    },
+    {
+      "title": "Feel It",
+      "genre": "90s house / disco house",
+      "mood": "funky, celebratory, dancefloor, bright",
+      "tempo_bpm": 124,
+      "duration_seconds": 320,
+      "key": "E-flat major",
+      "suno_prompt": "funky 90s disco house, energetic female vocal with attitude singing about feeling the music, bright piano riffs in E-flat major with disco-influenced staccato patterns, pumping four-on-the-floor kick at 124 BPM, funky guitar stabs, disco string section playing rising phrases, classic house claps and tambourine, deep punchy bass guitar-style bass line, Crystal Waters and Ce Ce Rogers influence, fun and celebratory vibe, call-and-response between lead vocal and backing vocals, filtered disco breakdown that builds with piano before the full drop, horn stab accents",
+      "human_edit_notes": "The disco influence should be clear but it's still house — keep the kick dominant and four-on-the-floor. The guitar stabs should be tight and funky, not noodly. Strings should play rising phrases that build energy. The filtered breakdown should use a classic resonant low-pass sweep. The horn stabs should be punchy and short — not a full horn section. The call-and-response needs to be tight and rhythmic. Add a classic disco hi-hat pattern (open on offbeats). The bass should have a slight funk bounce. Master hot for dancefloor — -11 to -12 LUFS.",
+      "tags": ["house", "disco house", "90s", "piano", "funky", "vocals", "dancefloor", "disco"],
+      "target_playlists": ["Disco House", "90s Dance", "Funky House", "Dancefloor Anthems", "Feel Good Classics"]
+    },
+    {
+      "title": "After the Rain",
+      "genre": "90s deep house / vocal house",
+      "mood": "hopeful, emotional, dawn, cathartic",
+      "tempo_bpm": 120,
+      "duration_seconds": 350,
+      "key": "A-flat major",
+      "suno_prompt": "emotional 90s deep house with uplifting vocal, soulful female voice singing about new beginnings after heartbreak, grand piano playing emotional chord progression in A-flat major with arpeggiated patterns, steady four-on-the-floor beat at 120 BPM with warm kick and tight hi-hats, deep warm bass, lush pad synths creating an atmospheric bed, gospel-style vocal runs in the bridge, the feeling of sunrise after a storm, Frankie Knuckles and David Morales influence, builds from a minimal intro to a full euphoric climax, long breakdown with just piano and voice that slowly rebuilds with percussion",
+      "human_edit_notes": "The piano arpeggios should be musical and expressive, not mechanical — add velocity variation. The long breakdown (16-24 bars) is the emotional heart of the track — piano and voice only, then slowly reintroduce elements. The pad synths should be wide and warm but never compete with the vocal. The gospel vocal runs should feel spontaneous and emotional. The climax should feel like a sunrise — add a bright synth layer that wasn't there before. The bass should be warm and round, felt in the chest. This is the emotional peak of the album.",
+      "tags": ["deep house", "vocal house", "90s", "piano", "emotional", "uplifting", "cathartic", "dawn"],
+      "target_playlists": ["Deep House", "Vocal House", "Emotional Dance", "90s House", "Sunrise Sets"]
+    },
+    {
+      "title": "Body Talk",
+      "genre": "90s house / hip house",
+      "mood": "sexy, confident, groove, late night",
+      "tempo_bpm": 116,
+      "duration_seconds": 310,
+      "key": "F minor",
+      "suno_prompt": "sexy 90s hip house groove, confident female vocal with a half-spoken half-sung delivery, dark minor key piano riff in F minor with bluesy grace notes, deep heavy kick at 116 BPM with tight snare and shuffled closed hi-hats, thick sub bass with subtle acid squelch, hip hop-influenced vocal flow in the verses with sung chorus, finger snaps, minimal but groovy production, Basement Jaxx and early Armand Van Helden influence, midnight energy, filtered synth stabs that open up in the chorus, breakdown with just bass drum and vocal before piano riff returns",
+      "human_edit_notes": "The piano riff should have a dark bluesy feel — use grace notes and slight rhythmic swing. The vocal delivery is key — it should feel effortlessly cool, not trying too hard. The acid squelch on the bass should be subtle, just adding texture. The hip hop influence in the verse vocals should feel natural, not forced. The filtered stabs should use a resonant filter sweep. Keep the mix dark and heavy in the low end. The breakdown should create tension — strip everything except kick and vocal. This track should make you nod your head.",
+      "tags": ["hip house", "house", "90s", "piano", "groovy", "vocals", "sexy", "dark"],
+      "target_playlists": ["Late Night House", "Dark House", "Hip House", "90s Underground", "Groovy House"]
+    },
+    {
+      "title": "Heaven Knows",
+      "genre": "90s piano house / gospel house",
+      "mood": "spiritual, euphoric, transcendent, peak-time",
+      "tempo_bpm": 128,
+      "duration_seconds": 345,
+      "key": "B-flat major",
+      "suno_prompt": "spiritual 90s gospel house anthem, powerful female diva vocal with gospel melisma and vocal runs, soaring Korg M1 piano playing uplifting gospel-influenced chords in B-flat major, driving four-on-the-floor beat at 128 BPM with claps and tambourine, deep driving bass line, full gospel choir entering on the final chorus, organ chords building in the background, transcendent and euphoric peak-time energy, Romanthony and Barbara Tucker influence, the track builds in layers from minimal to maximal over its duration, big hands-in-the-air moment when the choir enters, classic house strings accent the chorus",
+      "human_edit_notes": "The build from minimal to maximal is critical — start with just kick and bass, add piano, then vocal, then percussion, then organ, then strings, then choir. Each new element should feel like an event. The M1 piano should be bright and cutting through the mix. The choir entrance should be a goosebumps moment — bring it in after a 4-bar filter sweep. The organ should use a rotary speaker effect. The diva vocal needs space — don't over-compress. The tambourine should sit behind the claps. This is the peak-time anthem — master at -11 LUFS for maximum impact.",
+      "tags": ["gospel house", "piano house", "90s", "diva", "vocals", "euphoric", "spiritual", "anthem"],
+      "target_playlists": ["Gospel House", "Piano House", "Peak Time House", "90s Club Classics", "Diva House"]
+    },
+    {
+      "title": "Last Dance",
+      "genre": "90s house / balearic",
+      "mood": "bittersweet, beautiful, closing time, warm",
+      "tempo_bpm": 114,
+      "duration_seconds": 370,
+      "key": "E major",
+      "suno_prompt": "beautiful 90s balearic house closer, warm emotive male vocal singing about the last dance of the night, gentle piano melody in E major with dreamy reverb-drenched chords, relaxed four-on-the-floor groove at 114 BPM with soft kick and open hi-hats, warm bass pad, shimmering synth pads creating a sunset atmosphere, steel drum or marimba melody in the bridge, bittersweet and warm mood like the end of a perfect summer night, Jose Padilla and Cafe Del Mar influence, long outro with piano fading into ambient pad wash and distant vocal echoes, tender and nostalgic closing track",
+      "human_edit_notes": "This is the album closer — it should feel like a comedown after the energy of the previous tracks. The piano should be reverb-heavy and dreamy. The vocal should be tender, not powerful. The steel drum/marimba adds a balearic touch — keep it subtle and melodic. The synth pads should shimmer with chorus and reverb. The long outro (32+ bars) should gradually strip away elements until only the pad and distant vocal echoes remain. Apply a gentle high-pass filter that slowly rises during the outro, as if the music is dissolving into the air. End with 5 seconds of silence. Master at -14 LUFS — let it breathe.",
+      "tags": ["balearic", "house", "90s", "piano", "vocals", "bittersweet", "closing", "sunset"],
+      "target_playlists": ["Balearic House", "Sunset House", "90s Chill House", "Closing Time", "Beach House"]
+    }
+  ],
+  "album_art_prompt": "Overhead photograph of hands playing a grand piano in a dimly lit club space, warm amber and blue stage lighting creating dramatic shadows across the keys, slight motion blur on the fingers suggesting movement, vintage 90s film stock aesthetic with grain and warm color shift, the edge of a dancefloor visible in the soft background blur, square format 3000x3000 pixels, no text",
+  "distribution": {
+    "platform": "DistroKid",
+    "release_strategy": "Release 'Lift Me Up' as lead single 3 weeks before album. Release 'Surrender' as second single 1 week before album. Also submit to Beatport and Traxsource for DJ chart consideration. Full album release on Friday. Consider releasing extended club mixes as a separate EP.",
+    "pre_save_campaign": true,
+    "upload_flags": {
+      "ai_generated_flag": true,
+      "explicit_content": false,
+      "instrumental": false
+    }
+  },
+  "marketing": {
+    "youtube_visualizer": true,
+    "youtube_visualizer_notes": "Create visualizer videos with 90s club aesthetics — strobe effects, dancefloor silhouettes, VHS filter. 1-hour DJ mix video combining all tracks for the YouTube algorithm. Individual track videos with timestamps.",
+    "playlist_pitch_strategy": "Target 'House Classics', 'Piano House', 'Deep House', 'Soulful House', and 'Dance Anthems'. Pitch to Spotify, Apple Music, and Beatport editorial. Emphasize vocal performances and classic 90s house piano sound.",
+    "dj_promo": "Send extended mixes to house music blogs and DJ promo pools. Submit to Traxsource and Beatport Hype charts. Reach out to house music YouTube channels for premiere.",
+    "social_media": {
+      "instagram_reels": "Piano house riff clips with 90s club visuals, VHS aesthetic",
+      "tiktok": "90s house piano tutorial clips, before/after AI generation process",
+      "youtube_shorts": "30-second piano house drops with vintage dancefloor footage"
+    }
+  },
+  "production_workflow": {
+    "step_1": "Generate 5+ variations per track in Suno using the suno_prompt",
+    "step_2": "Select best vocal and instrumental takes — prioritize vocal power and piano authenticity",
+    "step_3": "Import to DAW and separate stems where possible",
+    "step_4": "Replace or layer piano with Korg M1 samples or real Rhodes recordings",
+    "step_5": "Program or re-record drums using TR-909 samples for kick and claps",
+    "step_6": "Mix for club sound — emphasis on low-end punch and vocal clarity",
+    "step_7": "Apply human_edit_notes for each track",
+    "step_8": "Create extended club mixes (6-8 minutes) with longer intros/outros for DJ use",
+    "step_9": "Master radio edits to -14 LUFS, club mixes to -11 to -12 LUFS",
+    "step_10": "Upload to DistroKid (all platforms) and Beatport/Traxsource separately"
+  }
+}
