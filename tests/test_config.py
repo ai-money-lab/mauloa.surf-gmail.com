@@ -44,8 +44,8 @@ class TestConfigYaml:
 
     def test_pipeline_ratio_limits(self, config):
         limits = config["system_a"]["pipeline_ratio_limits"]
-        assert limits["min_per_pipeline"] == 15
-        assert limits["max_per_pipeline"] == 60
+        assert limits["min_per_pipeline"] == 10
+        assert limits["max_per_pipeline"] == 50
 
     def test_system_d_config(self, config):
         assert config["system_d"]["results_posts_per_week"] == 4

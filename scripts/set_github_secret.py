@@ -37,10 +37,15 @@ def github_api(path: str, token: str, method: str = "GET", data: dict | None = N
         "Accept": "application/vnd.github+json",
         "X-GitHub-Api-Version": "2022-11-28",
     }
+    if data:
+        headers["Content-Type"] = "application/json"
     body = json.dumps(data).encode() if data else None
     req = urllib.request.Request(url, data=body, headers=headers, method=method)
     with urllib.request.urlopen(req) as resp:
-        return json.loads(resp.read().decode())
+        content = resp.read().decode()
+        if not content:
+            return {"status": resp.status}
+        return json.loads(content)
 
 
 def set_secret(token: str, secret_name: str, secret_value: str):
