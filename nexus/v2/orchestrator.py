@@ -29,6 +29,7 @@ from nexus.v2.content_creator import ContentCreator
 from nexus.v2.distributor import Distributor
 from nexus.v2.market_researcher import MarketResearcher
 from nexus.v2.revenue_debate import RevenueDebate
+from nexus.v2.strategy_feedback import StrategyFeedback
 
 logger = logging.getLogger("nexus.v2.orchestrator")
 
@@ -99,8 +100,10 @@ class NexusV2Orchestrator:
         self.creator = ContentCreator(self.data_dir / "content")
         self.distributor = Distributor(self.data_dir / "distribution")
         self.debate = RevenueDebate(self.data_dir / "debate")
+        self.feedback = StrategyFeedback(self.data_dir)
         self.state = NexusV2State()
         self.cycle_history: list[CycleResult] = []
+        self._load_state()
 
     def run(self, mode: str = "full", num_cycles: int = 1, focus: str = "") -> list[CycleResult]:
         """メインエントリーポイント"""
@@ -160,11 +163,15 @@ class NexusV2Orchestrator:
         result = CycleResult(cycle_number=cycle_num, mode="create")
 
         try:
-            # 市場分析結果から生成キューを作成
-            queue = self.researcher.get_creation_queue()
+            # 戦略フィードバックから最適化されたキューを取得
+            queue = self.feedback.generate_optimized_queue()
 
             if not queue:
-                # キューが空なら、デフォルトの生成プランを使用
+                # フィードバックなしなら市場分析結果を使用
+                queue = self.researcher.get_creation_queue()
+
+            if not queue:
+                # それでもなければデフォルト
                 queue = self._default_creation_queue(focus)
 
             for spec in queue[:5]:  # 1サイクル最大5アセット
@@ -290,32 +297,49 @@ class NexusV2Orchestrator:
         return result
 
     def _default_creation_queue(self, focus: str) -> list[dict[str, Any]]:
-        """デフォルトの生成キュー（市場分析なしの場合）"""
+        """デフォルトの生成キュー（市場分析なしの場合）
+
+        議論結果の優先度: YouTube > Gumroad > AI音楽 > ストック > SaaS
+        """
         defaults = [
+            # Phase 1 優先: YouTube (高CPMニッチ)
             {
-                "asset_type": "music_track",
-                "theme": "Lo-fi hip hop beats for studying and relaxation",
+                "asset_type": "video_script",
+                "theme": "不動産投資で失敗する人の共通パターン5選 — 現役20年プロの視点",
                 "priority": 10,
             },
             {
                 "asset_type": "video_script",
-                "theme": "不動産投資初心者が知るべき5つの真実",
+                "theme": "AI時代の不動産業務DX — MATTERPORT・ChatGPT活用の最前線",
+                "priority": 9,
+            },
+            # Phase 1 優先: Gumroadデジタル商品
+            {
+                "asset_type": "template",
+                "theme": "不動産投資収支シミュレーションNotionテンプレート — 初心者でも使える",
                 "priority": 9,
             },
             {
-                "asset_type": "template",
-                "theme": "不動産投資収支計算Notionテンプレート",
+                "asset_type": "prompt_pack",
+                "theme": "不動産業務効率化AIプロンプト集100選 — 物件紹介・契約・管理",
                 "priority": 8,
             },
             {
-                "asset_type": "stock_image",
-                "theme": "Modern real estate and architecture concepts",
+                "asset_type": "ebook",
+                "theme": "はじめての不動産投資判断基準ガイド — 利回りだけで判断しない方法",
                 "priority": 7,
             },
+            # Phase 2: AI音楽（自動化パイプライン、週2h制限）
             {
-                "asset_type": "prompt_pack",
-                "theme": "不動産業務効率化AIプロンプト50選",
+                "asset_type": "music_track",
+                "theme": "Lo-fi ambient study beats — Rainy Day Collection",
                 "priority": 6,
+            },
+            # Phase 2: ストック素材（音楽制作の副産物として）
+            {
+                "asset_type": "stock_image",
+                "theme": "Modern Japanese real estate and urban architecture concepts",
+                "priority": 5,
             },
         ]
 
@@ -346,6 +370,51 @@ class NexusV2Orchestrator:
         # アクティブチャネルを更新
         portfolio = self.creator.get_portfolio()
         self.state.active_channels = portfolio.get("channels_active", [])
+
+    def _load_state(self) -> None:
+        """ディスクから既存の状態を復元"""
+        state_file = self.data_dir / "nexus_v2_state.json"
+        if state_file.exists():
+            try:
+                data = json.loads(state_file.read_text(encoding="utf-8"))
+                self.state.cycles_completed = data.get("cycles_completed", 0)
+                self.state.total_assets = data.get("total_assets", 0)
+                self.state.total_distributed = data.get("total_distributed", 0)
+                self.state.total_debates = data.get("total_debates", 0)
+                self.state.estimated_monthly_revenue = data.get("estimated_monthly_revenue", 0)
+                self.state.active_channels = data.get("active_channels", [])
+                self.state.last_cycle = data.get("last_cycle", "")
+            except Exception as e:
+                logger.warning("Failed to load state: %s", e)
+
+        # ディスク上のアセットファイル数で補正
+        content_dir = self.data_dir / "content"
+        if content_dir.exists():
+            disk_assets = len(list(content_dir.glob("*.json")))
+            if disk_assets > self.state.total_assets:
+                self.state.total_assets = disk_assets
+                logger.info("State corrected: %d assets on disk", disk_assets)
+
+        # サイクル履歴も復元
+        history_file = self.data_dir / "cycle_history.json"
+        if history_file.exists():
+            try:
+                data = json.loads(history_file.read_text(encoding="utf-8"))
+                for entry in data:
+                    cr = CycleResult(
+                        cycle_number=entry.get("cycle_number", 0),
+                        mode=entry.get("mode", ""),
+                        assets_created=entry.get("assets_created", 0),
+                        assets_distributed=entry.get("assets_distributed", 0),
+                        debates_held=entry.get("debates_held", 0),
+                        estimated_monthly_revenue=entry.get("estimated_monthly_revenue", 0),
+                        actions_taken=entry.get("actions_taken", []),
+                        errors=entry.get("errors", []),
+                        timestamp=entry.get("timestamp", ""),
+                    )
+                    self.cycle_history.append(cr)
+            except Exception as e:
+                logger.warning("Failed to load history: %s", e)
 
     def _save_state(self) -> None:
         """状態をファイルに保存"""

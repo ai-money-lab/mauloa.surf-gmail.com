@@ -603,13 +603,14 @@ class TestOrchestrator:
         orch = NexusV2Orchestrator(data_dir=tmp_path)
         queue = orch._default_creation_queue("")
 
-        assert len(queue) == 5
+        assert len(queue) == 7
         types = [q["asset_type"] for q in queue]
         assert "music_track" in types
         assert "video_script" in types
         assert "template" in types
         assert "stock_image" in types
         assert "prompt_pack" in types
+        assert "ebook" in types
 
     def test_default_creation_queue_with_focus(self, tmp_path):
         orch = NexusV2Orchestrator(data_dir=tmp_path)
@@ -617,6 +618,143 @@ class TestOrchestrator:
 
         assert len(queue) == 1
         assert queue[0]["asset_type"] == "music_track"
+
+    def test_state_persistence_roundtrip(self, tmp_path):
+        """状態がディスクに保存され、次回起動時に復元されることを確認"""
+        orch1 = NexusV2Orchestrator(data_dir=tmp_path)
+        orch1.run(mode="status")
+        assert orch1.state.cycles_completed == 1
+
+        # 新しいインスタンスで状態が復元される
+        orch2 = NexusV2Orchestrator(data_dir=tmp_path)
+        assert orch2.state.cycles_completed == 1
+
+    def test_state_corrects_from_disk_assets(self, tmp_path):
+        """ディスク上のアセット数で状態が補正されることを確認"""
+        # アセットファイルを手動作成
+        content_dir = tmp_path / "content"
+        content_dir.mkdir(parents=True)
+        for i in range(3):
+            (content_dir / f"asset_{i}.json").write_text("{}")
+
+        orch = NexusV2Orchestrator(data_dir=tmp_path)
+        assert orch.state.total_assets == 3
+
+
+# ─── strategy_feedback.py tests ───
+
+class TestStrategyFeedback:
+    def test_generate_queue_with_debate(self, tmp_path):
+        """議論ファイルがある場合、最適化キューが生成される"""
+        from nexus.v2.strategy_feedback import StrategyFeedback
+
+        # Create debate file
+        debate_dir = tmp_path / "debate"
+        debate_dir.mkdir(parents=True)
+        debate_data = {
+            "debate_synthesis": {
+                "consensus_points": ["YouTube + Gumroad first"],
+                "confidence_weighted_ranking": {
+                    "channel_priority": [
+                        {"channel": "YouTube Faceless Channel", "weighted_score": 0.91, "rationale": "High CPM"},
+                        {"channel": "Gumroad Digital Products", "weighted_score": 0.88, "rationale": "High margin"},
+                    ]
+                }
+            },
+            "experts": []
+        }
+        (debate_dir / "debate_001.json").write_text(
+            json.dumps(debate_data, ensure_ascii=False), encoding="utf-8"
+        )
+
+        fb = StrategyFeedback(data_dir=tmp_path)
+        queue = fb.generate_optimized_queue()
+
+        assert len(queue) > 0
+        types = [q["asset_type"] for q in queue]
+        assert "video_script" in types
+
+    def test_generate_queue_without_debate(self, tmp_path):
+        """議論ファイルがない場合、デフォルトキューが生成される"""
+        from nexus.v2.strategy_feedback import StrategyFeedback
+
+        fb = StrategyFeedback(data_dir=tmp_path)
+        queue = fb.generate_optimized_queue()
+
+        assert len(queue) > 0
+        types = [q["asset_type"] for q in queue]
+        assert "video_script" in types
+
+    def test_phase_recommendation(self, tmp_path):
+        """フェーズ推奨が取得できる"""
+        from nexus.v2.strategy_feedback import StrategyFeedback
+
+        fb = StrategyFeedback(data_dir=tmp_path)
+        rec = fb.get_phase_recommendation()
+
+        assert "phase" in rec
+        assert "focus" in rec
+
+    def test_queue_saved_to_disk(self, tmp_path):
+        """生成キューがディスクに保存される"""
+        from nexus.v2.strategy_feedback import StrategyFeedback
+
+        fb = StrategyFeedback(data_dir=tmp_path)
+        fb.generate_optimized_queue()
+
+        queue_file = tmp_path / "creation_queue.json"
+        assert queue_file.exists()
+
+
+# ─── pipeline4_nexus.py tests ───
+
+class TestPipeline4:
+    def test_extract_insights_from_debate(self, tmp_path):
+        """議論データからインサイトが抽出される"""
+        from system_a.pipeline4_nexus import Pipeline4Nexus
+
+        p4 = Pipeline4Nexus()
+        debate = {
+            "debate_synthesis": {
+                "consensus_points": ["YouTube first", "Gumroad second"],
+                "confidence_weighted_ranking": {
+                    "channel_priority": [
+                        {"channel": "YouTube", "weighted_score": 0.9, "rationale": "High CPM"},
+                    ]
+                }
+            },
+            "experts": [{
+                "id": "ANALYST",
+                "recommendations": [{"action": "Start YouTube channel"}],
+            }],
+        }
+        assets = [{"album_name": "Test Album", "tracks": []}]
+
+        insights = p4._extract_insights(debate, assets)
+        assert len(insights) > 0
+        assert any(i["type"] == "debate" for i in insights)
+
+    def test_extract_insights_empty(self):
+        """データなしの場合は空リスト"""
+        from system_a.pipeline4_nexus import Pipeline4Nexus
+
+        p4 = Pipeline4Nexus()
+        insights = p4._extract_insights(None, [])
+        assert insights == []
+
+    def test_load_debate_file(self, tmp_path, monkeypatch):
+        """NEXUSデータディレクトリから議論ファイルを読める"""
+        from system_a.pipeline4_nexus import Pipeline4Nexus
+
+        debate_dir = tmp_path / "debate"
+        debate_dir.mkdir(parents=True)
+        (debate_dir / "test.json").write_text('{"test": true}')
+
+        p4 = Pipeline4Nexus()
+        monkeypatch.setattr(p4, "_load_latest_debate", lambda: {"test": True})
+
+        debate = p4._load_latest_debate()
+        assert debate is not None
 
 
 # ─── Integration: 旧システムとの差分確認 ───

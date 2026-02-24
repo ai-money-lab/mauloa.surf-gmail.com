@@ -17,12 +17,13 @@ system_a:
   post_times: ["07:00", "12:00", "19:00"]
   min_interval_hours: 3
   pipeline_ratio:
-    pipeline1_jp_buzz: 40
-    pipeline2_data_driven: 35
-    pipeline3_ai_original: 25
+    pipeline1_jp_buzz: 35
+    pipeline2_data_driven: 30
+    pipeline3_ai_original: 20
+    pipeline4_nexus_strategy: 15
   pipeline_ratio_limits:
-    min_per_pipeline: 15
-    max_per_pipeline: 60
+    min_per_pipeline: 10
+    max_per_pipeline: 50
     weekly_adjustment_max: 10
   pipeline1:
     api_provider: "twitterapi.io"
@@ -36,6 +37,10 @@ system_a:
   pipeline3:
     theme_overlap_check_days: 30
     max_same_sub_theme_per_month: 2
+  pipeline4:
+    source: "nexus_v2"
+    max_posts_per_run: 3
+    target_pillars: [3, 5]
 
 system_b:
   auto_delivery: true

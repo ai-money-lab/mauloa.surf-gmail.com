@@ -45,9 +45,10 @@ class PostSelector:
 
         ratio = sa.get("pipeline_ratio", {})
         self.pipeline_ratio = {
-            "P1": ratio.get("pipeline1_jp_buzz", 40) / 100,
-            "P2": ratio.get("pipeline2_data_driven", 35) / 100,
-            "P3": ratio.get("pipeline3_ai_original", 25) / 100,
+            "P1": ratio.get("pipeline1_jp_buzz", 35) / 100,
+            "P2": ratio.get("pipeline2_data_driven", 30) / 100,
+            "P3": ratio.get("pipeline3_ai_original", 20) / 100,
+            "P4": ratio.get("pipeline4_nexus_strategy", 15) / 100,
         }
 
     def load_candidates(self, date_str: str = None) -> list:
@@ -60,6 +61,7 @@ class PostSelector:
             ("pipeline1", "generated"),
             ("pipeline2", "generated"),
             ("pipeline3", "generated"),
+            ("pipeline4", "generated"),
         ]
 
         for pipeline_dir, sub in pipelines:

@@ -11,6 +11,7 @@ from core.notifier import Notifier
 from system_a.pipeline1_jp_buzz import Pipeline1JpBuzz
 from system_a.pipeline2_data_driven import Pipeline2DataDriven
 from system_a.pipeline3_ai_original import Pipeline3AIOriginal
+from system_a.pipeline4_nexus import Pipeline4Nexus
 from system_a.post_selector import PostSelector
 from system_a.auto_post import AutoPoster
 
@@ -26,13 +27,14 @@ class DailyPipeline:
         self.p1 = Pipeline1JpBuzz()
         self.p2 = Pipeline2DataDriven()
         self.p3 = Pipeline3AIOriginal()
+        self.p4 = Pipeline4Nexus()
         self.selector = PostSelector()
         self.poster = AutoPoster()
         self.notifier = Notifier()
 
     def run_generation(self) -> dict:
-        """Run all 3 pipelines and return counts."""
-        results = {"P1": 0, "P2": 0, "P3": 0}
+        """Run all 4 pipelines and return counts."""
+        results = {"P1": 0, "P2": 0, "P3": 0, "P4": 0}
 
         logger.info("[06:00] Pipeline 1: JP Buzz Structure Import")
         try:
@@ -54,6 +56,13 @@ class DailyPipeline:
             results["P3"] = len(p3_posts)
         except Exception as e:
             logger.error("Pipeline 3 failed: %s", e)
+
+        logger.info("[06:05] Pipeline 4: NEXUS V2 Strategy Posts")
+        try:
+            p4_posts = self.p4.run()
+            results["P4"] = len(p4_posts)
+        except Exception as e:
+            logger.error("Pipeline 4 failed: %s", e)
 
         return results
 
