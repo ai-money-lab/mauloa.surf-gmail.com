@@ -1,0 +1,36 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 6,
+    "persona_match": 5,
+    "pillar_alignment": 4,
+    "algorithm_optimization": 3,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 8,
+    "cta_ending": 2,
+    "originality": 5,
+    "tone_balance": 6,
+    "algorithm_hooks": 4
+  },
+  "total_score": 73,
+  "threshold": 80,
+  "result": "rejected",
+  "rejection_reasons": [
+    "合計スコアが80未満（73点）",
+    "CTAが不十分で行動喚起が弱い",
+    "アルゴリズム最適化要素が不足",
+    "pillar_alignmentが不明確",
+    "内容が短すぎて価値提供が不十分"
+  ],
+  "improvement_suggestions": [
+    "具体的な告知義務の期間や条件を明記して価値を高める",
+    "「いいね・RTで保存」などの明確なCTAを追加",
+    "ハッシュタグや絵文字を活用してアルゴリズム最適化",
+    "pillar 1に沿った具体的な保険知識を詳しく説明",
+    "実例や具体的なケースを追加して内容を充実させる"
+  ],
+  "checked_at": "2026-02-24T13:51:24.661765+09:00"
+}

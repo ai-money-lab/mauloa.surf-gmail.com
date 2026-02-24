@@ -1,0 +1,30 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 7,
+    "persona_match": 8,
+    "pillar_alignment": 8,
+    "algorithm_optimization": 6,
+    "no_external_links": 10,
+    "no_banned_content": 0,
+    "character_limit": 9,
+    "number_included": 8,
+    "cta_ending": 5,
+    "originality": 7,
+    "tone_balance": 6,
+    "algorithm_hooks": 6
+  },
+  "total_score": 80,
+  "threshold": 80,
+  "result": "auto_approved",
+  "rejection_reasons": [
+    "煽り表現「絶対」が含まれている"
+  ],
+  "improvement_suggestions": [
+    "「絶対NGの方も」を「どうしても避けたい方も」や「強く気にされる方も」に変更する",
+    "より具体的なCTAを追加（例：「不動産選びで気になることがあればお気軽にご相談ください」）",
+    "エンゲージメントを高めるハッシュタグや質問形式の追加を検討する"
+  ],
+  "checked_at": "2026-02-24T13:51:30.174525+09:00"
+}
