@@ -36,6 +36,12 @@ class SheetsClient:
                     self.credentials_path, scopes=scopes
                 )
                 self._client = gspread.authorize(creds)
+            except FileNotFoundError:
+                logger.error("Credentials file not found: %s", self.credentials_path)
+                raise
+            except ValueError as e:
+                logger.error("Invalid credentials format: %s", e)
+                raise
             except Exception as e:
                 logger.error("Failed to initialize Sheets client: %s", e)
                 raise

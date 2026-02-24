@@ -55,7 +55,16 @@ class Notifier:
             logger.error("Slack notification failed: %s", e)
             return False
 
-    def notify(self, message: str) -> None:
-        """Send notification to all configured channels."""
-        self.send_line(message)
-        self.send_slack(message)
+    def notify(self, message: str) -> dict[str, bool]:
+        """Send notification to all configured channels.
+
+        Returns:
+            dict with 'line' and 'slack' keys indicating delivery success.
+        """
+        results = {
+            "line": self.send_line(message),
+            "slack": self.send_slack(message),
+        }
+        if not any(results.values()):
+            logger.error("Failed to send notification via any channel")
+        return results

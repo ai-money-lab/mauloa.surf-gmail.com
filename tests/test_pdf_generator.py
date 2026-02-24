@@ -69,6 +69,15 @@ class TestPDFGeneratorRenderTemplate:
         with pytest.raises(FileNotFoundError):
             gen.render_template("nonexistent.md", {})
 
+    def test_render_missing_template_logs_error(self, tmp_path, caplog):
+        """テンプレートが見つからない場合、エラーログが出力される."""
+        import logging
+        gen = PDFGenerator(template_dir=str(tmp_path))
+        with caplog.at_level(logging.ERROR), pytest.raises(FileNotFoundError):
+            gen.render_template("missing.md", {})
+        assert "Template not found" in caplog.text
+        assert "missing.md" in caplog.text
+
 
 class TestPDFGeneratorMarkdownToHtml:
     """Test Markdown to HTML conversion."""

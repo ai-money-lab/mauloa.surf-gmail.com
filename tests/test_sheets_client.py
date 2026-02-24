@@ -27,6 +27,17 @@ class TestSheetsClientInit:
             assert client.order_sheet_id == "order456"
 
 
+class TestSheetsClientGetClient:
+    """Test _get_client specific error handling."""
+
+    def test_get_client_missing_credentials_raises_file_not_found(self):
+        """存在しない認証ファイルでFileNotFoundError."""
+        client = SheetsClient()
+        client.credentials_path = "/nonexistent/credentials.json"
+        with pytest.raises(FileNotFoundError):
+            client._get_client()
+
+
 class TestSheetsClientRecordPost:
     """Test post recording."""
 

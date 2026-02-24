@@ -53,7 +53,11 @@ class PDFGenerator:
     def render_template(self, template_name: str, variables: dict) -> str:
         """Render a Markdown template with Jinja2 variables."""
         template_path = self.template_dir / template_name
-        raw = template_path.read_text(encoding="utf-8")
+        try:
+            raw = template_path.read_text(encoding="utf-8")
+        except FileNotFoundError:
+            logger.error("Template not found: %s (searched in %s)", template_name, self.template_dir)
+            raise
         template = Template(raw)
         return template.render(**variables)
 

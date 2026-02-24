@@ -101,13 +101,29 @@ class TestNotifier:
         notifier = Notifier()
         notifier.line_token = "token"
         notifier.slack_webhook = "https://hooks.slack.com/test"
-        notifier.notify("test message")
+        results = notifier.notify("test message")
 
         assert mock_post.call_count == 2
+        assert results["line"] is True
+        assert results["slack"] is True
 
     def test_notify_no_channels_configured(self):
         notifier = Notifier()
         notifier.line_token = ""
         notifier.slack_webhook = ""
-        # Should not raise
-        notifier.notify("test message")
+        results = notifier.notify("test message")
+        assert results["line"] is False
+        assert results["slack"] is False
+
+    @patch("core.notifier.requests.post")
+    def test_notify_returns_partial_success(self, mock_post):
+        """片方だけ成功した場合のステータス."""
+        mock_post.return_value = MagicMock()
+        mock_post.return_value.raise_for_status = MagicMock()
+
+        notifier = Notifier()
+        notifier.line_token = "token"
+        notifier.slack_webhook = ""  # Slack未設定
+        results = notifier.notify("test")
+        assert results["line"] is True
+        assert results["slack"] is False

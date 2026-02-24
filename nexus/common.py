@@ -102,7 +102,9 @@ def call_api(
             else:
                 raise
 
-    raise last_error  # type: ignore[misc]
+    if last_error is not None:
+        raise last_error
+    raise RuntimeError("API call failed after %d attempts with unknown error" % max_retries)
 
 
 # ─── 堅牢なJSONパーサー ───

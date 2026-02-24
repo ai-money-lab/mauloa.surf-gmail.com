@@ -208,7 +208,7 @@ class BotEngine:
                 lines = text.split("\n")
                 lines = [line for line in lines[1:] if not line.strip().startswith("```")]
                 text = "\n".join(lines)
-            return json.loads(text)
+            parsed = json.loads(text)
         except json.JSONDecodeError:
             # JSONパース失敗時はテキストをそのまま返す
             logger.warning("Failed to parse bot response as JSON, using raw text")
@@ -218,6 +218,21 @@ class BotEngine:
                 "confidence": 0.5,
                 "escalate": False,
             }
+
+        # レスポンス構造バリデーション
+        if not isinstance(parsed, dict):
+            logger.warning("Claude response is not dict (got %s), wrapping", type(parsed).__name__)
+            return {
+                "reply": str(parsed),
+                "category": "general",
+                "confidence": 0.5,
+                "escalate": False,
+            }
+
+        if "reply" not in parsed:
+            logger.warning("Missing 'reply' field in Claude response: %s", list(parsed.keys()))
+
+        return parsed
 
     def _handle_escalation(
         self, session_id: str, user_message: str, reason: str, channel: str

@@ -1065,6 +1065,21 @@ class TestCallApi:
         kwargs = mock_client.messages.create.call_args.kwargs
         assert kwargs["temperature"] == 0.5
 
+    @patch("nexus.common.get_client")
+    @patch("nexus.common.time.sleep")
+    def test_call_api_exhausted_retries_raises_last_error(self, mock_sleep, mock_get_client):
+        """Exhausting all retries raises the last recorded error."""
+        from anthropic import RateLimitError
+        mock_client = MagicMock()
+        rate_err = RateLimitError.__new__(RateLimitError)
+        rate_err.status_code = 429
+        rate_err.message = "rate limited"
+        mock_client.messages.create.side_effect = rate_err
+        mock_get_client.return_value = mock_client
+
+        with pytest.raises(RateLimitError):
+            call_api(system="test", messages=[{"role": "user", "content": "hi"}], max_retries=2)
+
     def test_get_client_singleton(self):
         reset_client()
         c1 = get_client()

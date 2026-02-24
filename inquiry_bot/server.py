@@ -24,7 +24,15 @@ CONFIG_PATH = Path(__file__).parent / "config.yaml"
 
 def create_server() -> FastAPI:
     """LINE + Web統合サーバーを作成."""
-    yaml.safe_load(CONFIG_PATH.read_text(encoding="utf-8"))
+    # 設定ファイルの存在・形式を検証（BotEngine起動前に早期検出）
+    try:
+        config = yaml.safe_load(CONFIG_PATH.read_text(encoding="utf-8"))
+        if not config or not isinstance(config, dict):
+            raise ValueError("Config file is empty or not a valid YAML mapping")
+        logger.info("Server config validated: %s", CONFIG_PATH)
+    except Exception as e:
+        logger.error("Failed to validate server config %s: %s", CONFIG_PATH, e)
+        raise
 
     # 共有BotEngine（LINE/Web両方で同じインスタンスを使用）
     bot_engine = BotEngine()

@@ -519,6 +519,25 @@ class TestBotEngineHandleMessage:
     @patch("inquiry_bot.bot_engine.InquiryAnalytics")
     @patch("inquiry_bot.bot_engine.Notifier")
     @patch("inquiry_bot.bot_engine.ClaudeClient")
+    def test_handle_message_non_dict_json_response(self, mock_claude_cls, mock_notifier_cls, mock_analytics_cls):
+        """Claude returns valid JSON that is not a dict (e.g., a list)."""
+        from inquiry_bot.bot_engine import BotEngine
+        mock_claude = MagicMock()
+        mock_claude_cls.return_value = mock_claude
+        mock_notifier_cls.return_value = MagicMock()
+        mock_analytics_cls.return_value = MagicMock()
+
+        mock_claude.generate.return_value = '["item1", "item2"]'
+
+        engine = BotEngine()
+        result = engine.handle_message("質問", "session_ndict")
+        # Should wrap non-dict in a fallback response
+        assert result["reply"] != ""
+        assert result["confidence"] == 0.5
+
+    @patch("inquiry_bot.bot_engine.InquiryAnalytics")
+    @patch("inquiry_bot.bot_engine.Notifier")
+    @patch("inquiry_bot.bot_engine.ClaudeClient")
     def test_get_analytics_empty(self, mock_claude_cls, mock_notifier_cls, mock_analytics_cls):
         from inquiry_bot.bot_engine import BotEngine
         mock_claude_cls.return_value = MagicMock()
@@ -558,7 +577,7 @@ class TestBotEngineHandleMessage:
 # ═══ ConversationManager 類似判定テスト ═══
 
 class TestConversationManagerSimilarity:
-    """修正された単語ベースの類似判定をテスト."""
+    """SequenceMatcherベースの類似判定をテスト."""
 
     def test_repeated_same_message_triggers_escalation(self):
         from inquiry_bot.conversation_manager import ConversationManager
@@ -566,8 +585,8 @@ class TestConversationManagerSimilarity:
         cm.get_or_create_session("s1", "web", "user1")
         # 同じメッセージを3回追加
         for _ in range(3):
-            cm.add_message("s1", "user", "家賃 を 教えて ください")
-        should, reason = cm.check_escalation("s1", "家賃 を 教えて ください")
+            cm.add_message("s1", "user", "家賃を教えてください")
+        should, reason = cm.check_escalation("s1", "家賃を教えてください")
         assert should is True
         assert "繰り返" in reason
 
@@ -581,17 +600,38 @@ class TestConversationManagerSimilarity:
         should, reason = cm.check_escalation("s1", "別の質問です")
         assert should is False
 
-    def test_similarity_uses_words_not_characters(self):
-        """文字単位ではなく単語単位で比較されることを確認."""
+    def test_similarity_single_chars_no_escalation(self):
+        """短い異なるメッセージではエスカレーションしない."""
         from inquiry_bot.conversation_manager import ConversationManager
         cm = ConversationManager()
         cm.get_or_create_session("s1", "web", "user1")
-        # 同じ文字を含むが異なるメッセージ
         cm.add_message("s1", "user", "あ")
         cm.add_message("s1", "user", "い")
         cm.add_message("s1", "user", "う")
         should, _ = cm.check_escalation("s1", "え")
-        # 文字ベースだとエスカレーションしてしまうが、単語ベースでは発生しない
+        assert should is False
+
+    def test_similar_japanese_messages_trigger_escalation(self):
+        """日本語で類似した質問が3回続くとエスカレーション（スペースなし）."""
+        from inquiry_bot.conversation_manager import ConversationManager
+        cm = ConversationManager()
+        cm.get_or_create_session("s1", "web", "user1")
+        cm.add_message("s1", "user", "空いていますか？")
+        cm.add_message("s1", "user", "空いてますか？")
+        cm.add_message("s1", "user", "空いてますか？")
+        should, reason = cm.check_escalation("s1", "空いてますか？")
+        assert should is True
+        assert "繰り返" in reason
+
+    def test_slightly_different_japanese_no_escalation(self):
+        """意味が全く異なる日本語メッセージではエスカレーションしない."""
+        from inquiry_bot.conversation_manager import ConversationManager
+        cm = ConversationManager()
+        cm.get_or_create_session("s1", "web", "user1")
+        cm.add_message("s1", "user", "物件を見たいです")
+        cm.add_message("s1", "user", "いつ引っ越しできますか？")
+        cm.add_message("s1", "user", "何時に見学できますか？")
+        should, _ = cm.check_escalation("s1", "何時に見学できますか？")
         assert should is False
 
 

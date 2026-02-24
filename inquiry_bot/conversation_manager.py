@@ -4,6 +4,7 @@ import logging
 import time
 from dataclasses import dataclass, field
 from datetime import datetime, timezone, timedelta
+from difflib import SequenceMatcher
 
 logger = logging.getLogger(__name__)
 
@@ -122,10 +123,11 @@ class ConversationManager:
         user_msgs = [m.content for m in session.messages if m.role == "user"]
         if len(user_msgs) >= 3:
             recent = user_msgs[-3:]
-            # 単語単位で分割して共通語を比較
-            words_sets = [set(msg.split()) for msg in recent]
-            common = words_sets[0] & words_sets[1] & words_sets[2]
-            if len(words_sets[0]) > 0 and len(common) / len(words_sets[0]) > 0.5:
+            # SequenceMatcherで文の類似度を比較（日本語対応）
+            sim_01 = SequenceMatcher(None, recent[0], recent[1]).ratio()
+            sim_12 = SequenceMatcher(None, recent[1], recent[2]).ratio()
+            sim_02 = SequenceMatcher(None, recent[0], recent[2]).ratio()
+            if sim_01 > 0.6 and sim_12 > 0.6 and sim_02 > 0.6:
                 reason = "同じ質問が3回以上繰り返されました"
                 self._escalate(session, reason)
                 return True, reason
