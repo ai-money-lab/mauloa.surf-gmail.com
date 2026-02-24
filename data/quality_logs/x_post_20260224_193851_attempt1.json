@@ -1,0 +1,36 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 3,
+    "persona_match": 4,
+    "pillar_alignment": 5,
+    "algorithm_optimization": 2,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 0,
+    "cta_ending": 0,
+    "originality": 4,
+    "tone_balance": 5,
+    "algorithm_hooks": 2
+  },
+  "total_score": 55,
+  "threshold": 80,
+  "result": "rejected",
+  "rejection_reasons": [
+    "フック力が弱く、ユーザーの注意を引く要素が不足",
+    "数字やデータが含まれておらず、具体性に欠ける",
+    "CTAが全くなく、エンゲージメントを促す要素がない",
+    "アルゴリズム最適化要素が不十分",
+    "内容が薄く、価値提供が限定的"
+  ],
+  "improvement_suggestions": [
+    "具体的な数字を追加（例：「ジム開業3ヶ月目、予想外の課題が5つありました」）",
+    "明確なCTAを追加（例：「同じ経験をした方、コメントで教えてください」）",
+    "フック力を強化（例：「ジム開業で失敗しかけた話」）",
+    "具体的な困難や学びを1-2個追加して価値提供を向上",
+    "ハッシュタグや絵文字を適度に使用してアルゴリズム最適化"
+  ],
+  "checked_at": "2026-02-24T19:38:51.460942+09:00"
+}
