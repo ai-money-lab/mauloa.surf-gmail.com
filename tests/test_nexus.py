@@ -7,11 +7,11 @@ Claude API呼び出しはモックで差し替え。
 """
 
 import json
-from unittest.mock import patch
+from unittest.mock import patch, MagicMock
 
 import pytest
 
-from nexus.common import parse_json, parse_json_list
+from nexus.common import parse_json, parse_json_list, call_api, get_client, reset_client
 from nexus.alpha.engine import (
     AlphaEngine, AlphaTask, AlphaOutput, TaskType, OutputQuality,
 )
@@ -970,3 +970,395 @@ class TestNexusIntegration:
         orchestrator = NexusOrchestrator(data_dir=tmp_data_dir)
         result = orchestrator.run(mode="nonexistent")
         assert "error" in result
+
+
+# ─── call_api Retry Tests ───
+
+class TestCallApi:
+    @patch("nexus.common.get_client")
+    def test_call_api_success(self, mock_get_client):
+        mock_client = MagicMock()
+        mock_response = MagicMock()
+        mock_response.content = [MagicMock(text="hello")]
+        mock_client.messages.create.return_value = mock_response
+        mock_get_client.return_value = mock_client
+
+        result = call_api(system="test", messages=[{"role": "user", "content": "hi"}])
+        assert result == "hello"
+        mock_client.messages.create.assert_called_once()
+
+    @patch("nexus.common.get_client")
+    @patch("nexus.common.time.sleep")
+    def test_call_api_retries_on_rate_limit(self, mock_sleep, mock_get_client):
+        from anthropic import RateLimitError
+        mock_client = MagicMock()
+        mock_response = MagicMock()
+        mock_response.content = [MagicMock(text="ok")]
+
+        # First call raises RateLimitError, second succeeds
+        rate_err = RateLimitError.__new__(RateLimitError)
+        rate_err.status_code = 429
+        rate_err.message = "rate limited"
+        mock_client.messages.create.side_effect = [rate_err, mock_response]
+        mock_get_client.return_value = mock_client
+
+        result = call_api(system="test", messages=[{"role": "user", "content": "hi"}], max_retries=2)
+        assert result == "ok"
+        assert mock_client.messages.create.call_count == 2
+        mock_sleep.assert_called_once_with(1)  # 2**0 = 1
+
+    @patch("nexus.common.get_client")
+    @patch("nexus.common.time.sleep")
+    def test_call_api_retries_on_timeout(self, mock_sleep, mock_get_client):
+        from anthropic import APITimeoutError
+        mock_client = MagicMock()
+        mock_response = MagicMock()
+        mock_response.content = [MagicMock(text="recovered")]
+
+        timeout_err = APITimeoutError.__new__(APITimeoutError)
+        timeout_err.message = "timeout"
+        mock_client.messages.create.side_effect = [timeout_err, mock_response]
+        mock_get_client.return_value = mock_client
+
+        result = call_api(system="test", messages=[{"role": "user", "content": "hi"}], max_retries=2)
+        assert result == "recovered"
+
+    @patch("nexus.common.get_client")
+    @patch("nexus.common.time.sleep")
+    def test_call_api_retries_on_server_error(self, mock_sleep, mock_get_client):
+        from anthropic import APIError
+        mock_client = MagicMock()
+        mock_response = MagicMock()
+        mock_response.content = [MagicMock(text="ok")]
+
+        server_err = APIError.__new__(APIError)
+        server_err.status_code = 500
+        server_err.message = "server error"
+        mock_client.messages.create.side_effect = [server_err, mock_response]
+        mock_get_client.return_value = mock_client
+
+        result = call_api(system="test", messages=[{"role": "user", "content": "hi"}], max_retries=2)
+        assert result == "ok"
+
+    @patch("nexus.common.get_client")
+    def test_call_api_raises_non_retryable_error(self, mock_get_client):
+        from anthropic import APIError
+        mock_client = MagicMock()
+        api_err = APIError.__new__(APIError)
+        api_err.status_code = 400
+        api_err.message = "bad request"
+        mock_client.messages.create.side_effect = api_err
+        mock_get_client.return_value = mock_client
+
+        with pytest.raises(APIError):
+            call_api(system="test", messages=[{"role": "user", "content": "hi"}])
+
+    @patch("nexus.common.get_client")
+    def test_call_api_passes_temperature(self, mock_get_client):
+        mock_client = MagicMock()
+        mock_response = MagicMock()
+        mock_response.content = [MagicMock(text="ok")]
+        mock_client.messages.create.return_value = mock_response
+        mock_get_client.return_value = mock_client
+
+        call_api(system="test", messages=[{"role": "user", "content": "hi"}], temperature=0.5)
+        kwargs = mock_client.messages.create.call_args.kwargs
+        assert kwargs["temperature"] == 0.5
+
+    def test_get_client_singleton(self):
+        reset_client()
+        c1 = get_client()
+        c2 = get_client()
+        assert c1 is c2
+        reset_client()
+
+    def test_reset_client(self):
+        reset_client()
+        c1 = get_client()
+        reset_client()
+        c2 = get_client()
+        assert c1 is not c2
+        reset_client()
+
+
+# ─── Additional Factory Tests ───
+
+class TestProductGeneratorExtended:
+    @patch("nexus.factory.product_generator.call_api")
+    def test_generate_batch(self, mock_call, tmp_data_dir):
+        mock_call.side_effect = [MOCK_PRODUCT_RESPONSE, MOCK_LISTING_RESPONSE] * 2
+
+        factory = ProductGenerator(data_dir=tmp_data_dir / "factory")
+        themes = [
+            {"theme": "テーマ1", "category": "prompt_pack", "price": 3000},
+            {"theme": "テーマ2", "category": "automation_script", "price": 5000},
+        ]
+        products = factory.generate_batch(themes)
+        assert len(products) == 2
+        assert len(factory.products) == 2
+
+    def test_get_catalog(self, tmp_data_dir):
+        factory = ProductGenerator(data_dir=tmp_data_dir / "factory")
+        factory.products.append(Product(
+            name="テスト商品", category=ProductCategory.PROMPT_PACK,
+            status=ProductStatus.READY, price=3000,
+        ))
+        catalog = factory.get_catalog()
+        assert len(catalog) == 1
+        assert catalog[0]["name"] == "テスト商品"
+
+    def test_get_catalog_empty(self, tmp_data_dir):
+        factory = ProductGenerator(data_dir=tmp_data_dir / "factory")
+        assert factory.get_catalog() == []
+
+    @patch("nexus.factory.product_generator.call_api")
+    def test_get_product_found(self, mock_call, tmp_data_dir):
+        mock_call.side_effect = [MOCK_PRODUCT_RESPONSE, MOCK_LISTING_RESPONSE]
+        factory = ProductGenerator(data_dir=tmp_data_dir / "factory")
+        product = factory.generate("テスト", ProductCategory.PROMPT_PACK)
+
+        found = factory.get_product(product.product_id)
+        assert found is not None
+        assert found.product_id == product.product_id
+
+    @patch("nexus.factory.product_generator.call_api")
+    def test_update_status(self, mock_call, tmp_data_dir):
+        mock_call.side_effect = [MOCK_PRODUCT_RESPONSE, MOCK_LISTING_RESPONSE]
+        factory = ProductGenerator(data_dir=tmp_data_dir / "factory")
+        product = factory.generate("テスト", ProductCategory.PROMPT_PACK)
+
+        updated = factory.update_status(product.product_id, ProductStatus.LISTED)
+        assert updated is not None
+        assert updated.status == ProductStatus.LISTED
+
+    def test_update_status_not_found(self, tmp_data_dir):
+        factory = ProductGenerator(data_dir=tmp_data_dir / "factory")
+        assert factory.update_status("nonexistent", ProductStatus.LISTED) is None
+
+
+# ─── Additional Trial Tests ───
+
+class TestTrialRunnerExtended:
+    def _make_opp(self, title="テスト", revenue=30000):
+        return Opportunity(
+            title=title, opportunity_type=OpportunityType.DIGITAL_PRODUCT,
+            feasibility=Feasibility.IMMEDIATE, estimated_revenue=revenue, confidence=0.8,
+        )
+
+    @patch("nexus.trial.trial_runner.call_api", return_value=MOCK_TRIAL_EVAL_RESPONSE)
+    @patch("nexus.factory.product_generator.call_api")
+    def test_run_batch(self, mock_factory, mock_trial, tmp_data_dir):
+        mock_factory.side_effect = [MOCK_PRODUCT_RESPONSE, MOCK_LISTING_RESPONSE] * 2
+        factory = ProductGenerator(data_dir=tmp_data_dir / "factory")
+        runner = TrialRunner(factory=factory, data_dir=tmp_data_dir / "trial")
+
+        opps = [self._make_opp("A", 50000), self._make_opp("B", 30000)]
+        trials = runner.run_batch(opps)
+        assert len(trials) == 2
+        # Higher priority should be first (sorted by priority_score)
+        assert trials[0].opportunity.estimated_revenue >= trials[1].opportunity.estimated_revenue
+
+    @patch("nexus.trial.trial_runner.call_api", return_value=MOCK_TRIAL_EVAL_RESPONSE)
+    @patch("nexus.factory.product_generator.call_api")
+    def test_retry_trial(self, mock_factory, mock_trial, tmp_data_dir):
+        mock_factory.side_effect = [MOCK_PRODUCT_RESPONSE, MOCK_LISTING_RESPONSE] * 2
+        factory = ProductGenerator(data_dir=tmp_data_dir / "factory")
+        runner = TrialRunner(factory=factory, data_dir=tmp_data_dir / "trial")
+
+        opp = self._make_opp("リトライ")
+        trial = runner.run_trial(opp)
+        retry = runner.retry_trial(trial.trial_id, improvements=["改善A", "改善B"])
+        assert retry is not None
+        assert retry.result == TrialResult.SUCCESS
+
+    def test_retry_trial_not_found(self, tmp_data_dir):
+        runner = TrialRunner(data_dir=tmp_data_dir / "trial")
+        assert runner.retry_trial("nonexistent") is None
+
+    @patch("nexus.trial.trial_runner.call_api", return_value=MOCK_TRIAL_EVAL_RESPONSE)
+    @patch("nexus.factory.product_generator.call_api")
+    def test_get_successes(self, mock_factory, mock_trial, tmp_data_dir):
+        mock_factory.side_effect = [MOCK_PRODUCT_RESPONSE, MOCK_LISTING_RESPONSE]
+        factory = ProductGenerator(data_dir=tmp_data_dir / "factory")
+        runner = TrialRunner(factory=factory, data_dir=tmp_data_dir / "trial")
+
+        runner.run_trial(self._make_opp())
+        assert len(runner.get_successes()) == 1
+
+    @patch("nexus.trial.trial_runner.call_api", return_value=json.dumps({
+        "total_score": 20, "verdict": "failure", "weaknesses": ["W"], "improvements": ["I"],
+    }))
+    @patch("nexus.factory.product_generator.call_api")
+    def test_get_failures_needing_debate(self, mock_factory, mock_trial, tmp_data_dir):
+        mock_factory.side_effect = [MOCK_PRODUCT_RESPONSE, MOCK_LISTING_RESPONSE]
+        factory = ProductGenerator(data_dir=tmp_data_dir / "factory")
+        runner = TrialRunner(factory=factory, data_dir=tmp_data_dir / "trial")
+
+        runner.run_trial(self._make_opp())
+        failures = runner.get_failures_needing_debate()
+        assert len(failures) == 1
+
+    @patch("nexus.trial.trial_runner.call_api", return_value=json.dumps({
+        "total_score": 28, "verdict": "partial", "strengths": [], "weaknesses": [], "improvements": ["X"],
+    }))
+    @patch("nexus.factory.product_generator.call_api")
+    def test_run_trial_partial(self, mock_factory, mock_trial, tmp_data_dir):
+        mock_factory.side_effect = [MOCK_PRODUCT_RESPONSE, MOCK_LISTING_RESPONSE]
+        factory = ProductGenerator(data_dir=tmp_data_dir / "factory")
+        runner = TrialRunner(factory=factory, data_dir=tmp_data_dir / "trial")
+
+        trial = runner.run_trial(self._make_opp())
+        assert trial.result == TrialResult.PARTIAL
+        assert trial.debate_requested is True
+
+    @patch("nexus.trial.trial_runner.call_api", return_value=json.dumps({
+        "total_score": 22, "verdict": "needs_debate", "weaknesses": ["W"], "improvements": [],
+    }))
+    @patch("nexus.factory.product_generator.call_api")
+    def test_run_trial_needs_debate(self, mock_factory, mock_trial, tmp_data_dir):
+        mock_factory.side_effect = [MOCK_PRODUCT_RESPONSE, MOCK_LISTING_RESPONSE]
+        factory = ProductGenerator(data_dir=tmp_data_dir / "factory")
+        runner = TrialRunner(factory=factory, data_dir=tmp_data_dir / "trial")
+
+        trial = runner.run_trial(self._make_opp())
+        assert trial.result == TrialResult.NEEDS_DEBATE
+        assert trial.debate_requested is True
+
+    @patch("nexus.trial.trial_runner.call_api", return_value=MOCK_TRIAL_EVAL_RESPONSE)
+    @patch("nexus.factory.product_generator.call_api")
+    def test_get_success_rate(self, mock_factory, mock_trial, tmp_data_dir):
+        mock_factory.side_effect = [MOCK_PRODUCT_RESPONSE, MOCK_LISTING_RESPONSE]
+        factory = ProductGenerator(data_dir=tmp_data_dir / "factory")
+        runner = TrialRunner(factory=factory, data_dir=tmp_data_dir / "trial")
+
+        runner.run_trial(self._make_opp())
+        assert runner.get_success_rate() == 1.0
+
+
+# ─── Additional Debate Tests ───
+
+class TestDebateEngineExtended:
+    def test_get_improvement_plan(self, tmp_data_dir):
+        engine = DebateEngine(data_dir=tmp_data_dir / "debate")
+        result = DebateResult(
+            trial_id="test",
+            improvements=["改善A", "改善B", "改善C"],
+            should_retry=True,
+        )
+        plan = engine.get_improvement_plan(result)
+        assert plan == ["改善A", "改善B", "改善C"]
+
+
+# ─── Additional Evolution Tests ───
+
+class TestEvolverExtended:
+    def test_get_top_patterns(self, tmp_data_dir):
+        evolver = Evolver(data_dir=tmp_data_dir / "evolution")
+        for i in range(5):
+            evolver.patterns.append(SuccessPattern(
+                pattern_id=f"p{i}", title=f"Pattern {i}", category="digital_product",
+                description="test", revenue=10000, success_factors=[],
+                total_revenue=(i + 1) * 10000,
+            ))
+
+        top = evolver.get_top_patterns(limit=3)
+        assert len(top) == 3
+        assert top[0].total_revenue >= top[1].total_revenue >= top[2].total_revenue
+
+    def test_get_top_patterns_empty(self, tmp_data_dir):
+        evolver = Evolver(data_dir=tmp_data_dir / "evolution")
+        assert evolver.get_top_patterns() == []
+
+
+# ─── Additional Monetize Tests ───
+
+class TestMonetizePipelineExtended:
+    @patch("nexus.monetize.pipeline.call_api", return_value="提案書の内容です")
+    def test_generate_proposal(self, mock_call, tmp_data_dir):
+        pipeline = MonetizePipeline(data_dir=tmp_data_dir / "monetize")
+        deal = Deal(
+            title="テスト案件", channel=Channel.FREELANCE,
+            status=DealStatus.ACCEPTED, estimated_revenue=50000,
+            description="テスト内容", deliverables=["成果物A"],
+        )
+        proposal = pipeline.generate_proposal(deal)
+        assert len(proposal) > 0
+        mock_call.assert_called_once()
+
+
+# ─── Orchestrator Mode Tests ───
+
+class TestNexusOrchestratorModes:
+    @patch("nexus.agents.swarm.call_api", return_value=MOCK_AGENT_RESPONSE)
+    @patch("nexus.monetize.pipeline.call_api", return_value=MOCK_MONETIZE_RESPONSE)
+    @patch("nexus.omega.engine.call_api", return_value=MOCK_OMEGA_RESPONSE)
+    @patch("nexus.alpha.engine.call_api", return_value=MOCK_ALPHA_RESPONSE)
+    def test_orchestrator_continuous(self, mock_a, mock_o, mock_m, mock_s, tmp_data_dir):
+        orchestrator = NexusOrchestrator(data_dir=tmp_data_dir)
+        result = orchestrator.run(mode="continuous", num_cycles=2)
+        assert result["mode"] == "continuous"
+        assert len(result["cycles"]) == 2
+        assert "performance" in result
+
+    @patch("nexus.agents.swarm.call_api", return_value=MOCK_AGENT_RESPONSE)
+    def test_orchestrator_swarm(self, mock_call, tmp_data_dir):
+        orchestrator = NexusOrchestrator(data_dir=tmp_data_dir)
+        result = orchestrator.run(mode="swarm")
+        assert result["mode"] == "swarm"
+        assert "agent_results" in result
+        assert "synthesis" in result
+
+    @patch("nexus.agents.swarm.call_api", return_value=MOCK_AGENT_RESPONSE)
+    @patch("nexus.monetize.pipeline.call_api", return_value=MOCK_MONETIZE_RESPONSE)
+    @patch("nexus.omega.engine.call_api", return_value=MOCK_OMEGA_RESPONSE)
+    @patch("nexus.alpha.engine.call_api", return_value=MOCK_ALPHA_RESPONSE)
+    def test_orchestrator_full(self, mock_a, mock_o, mock_m, mock_s, tmp_data_dir):
+        orchestrator = NexusOrchestrator(data_dir=tmp_data_dir)
+        result = orchestrator.run(mode="full", num_cycles=1)
+        assert result["mode"] == "full"
+        assert "swarm" in result
+        assert "revenue_report" in result
+
+    @patch("nexus.crawler.opportunity_crawler.call_api", return_value=MOCK_CRAWL_RESPONSE)
+    def test_orchestrator_crawl(self, mock_call, tmp_data_dir):
+        orchestrator = NexusOrchestrator(data_dir=tmp_data_dir)
+        result = orchestrator.run(mode="crawl")
+        assert result["mode"] == "crawl"
+        assert result["opportunities_found"] > 0
+        assert "top_opportunities" in result
+
+    @patch("nexus.evolution.evolver.call_api", return_value=MOCK_EVOLVE_RESPONSE)
+    def test_orchestrator_evolve(self, mock_call, tmp_data_dir):
+        orchestrator = NexusOrchestrator(data_dir=tmp_data_dir)
+        result = orchestrator.run(mode="evolve")
+        assert result["mode"] == "evolve"
+        assert "generation" in result
+        assert "stats" in result
+
+    @patch("nexus.trial.trial_runner.call_api", return_value=MOCK_TRIAL_EVAL_RESPONSE)
+    @patch("nexus.factory.product_generator.call_api")
+    @patch("nexus.crawler.opportunity_crawler.call_api", return_value=MOCK_CRAWL_RESPONSE)
+    def test_orchestrator_trial(self, mock_crawl, mock_factory, mock_trial, tmp_data_dir):
+        mock_factory.side_effect = [MOCK_PRODUCT_RESPONSE, MOCK_LISTING_RESPONSE] * 3
+        orchestrator = NexusOrchestrator(data_dir=tmp_data_dir)
+        result = orchestrator.run(mode="trial")
+        assert result["mode"] == "trial"
+        assert "trials" in result
+        assert "stats" in result
+
+    @patch("nexus.evolution.evolver.call_api", return_value=MOCK_EVOLVE_RESPONSE)
+    @patch("nexus.monetize.pipeline.call_api", return_value=MOCK_MONETIZE_RESPONSE)
+    @patch("nexus.debate.debate_engine.call_api")
+    @patch("nexus.trial.trial_runner.call_api", return_value=MOCK_TRIAL_EVAL_RESPONSE)
+    @patch("nexus.factory.product_generator.call_api")
+    @patch("nexus.crawler.opportunity_crawler.call_api", return_value=MOCK_CRAWL_RESPONSE)
+    def test_orchestrator_autonomous(self, mock_crawl, mock_factory, mock_trial,
+                                      mock_debate, mock_monetize, mock_evolve, tmp_data_dir):
+        mock_factory.side_effect = [MOCK_PRODUCT_RESPONSE, MOCK_LISTING_RESPONSE] * 10
+        mock_debate.side_effect = [MOCK_DEBATE_ALPHA, MOCK_DEBATE_OMEGA] * 10 + [MOCK_DEBATE_SYNTHESIS] * 5
+        orchestrator = NexusOrchestrator(data_dir=tmp_data_dir)
+        result = orchestrator.run(mode="autonomous", num_cycles=1)
+        assert result["mode"] == "autonomous"
+        assert "loops" in result
+        assert len(result["loops"]) == 1
+        assert "state" in result

@@ -1,6 +1,7 @@
 """Tests for System E: Meta-Intelligence Engine."""
 
 import json
+import pytest
 from unittest.mock import MagicMock, patch
 
 
@@ -231,3 +232,278 @@ class TestOrchestrator:
         assert orch.quick is not None
         assert orch.evolution is not None
         assert orch.meta is not None
+
+    @patch("system_e.orchestrator.ClaudeClient")
+    def test_run_debate(self, mock_client_cls):
+        mock_client = MagicMock()
+        mock_client.generate.return_value = json.dumps({
+            "analysis": "debate point",
+            "confidence": 0.8,
+        })
+        mock_client_cls.return_value = mock_client
+
+        orch = Orchestrator(claude_client=mock_client)
+        result = orch.run_debate("テスト議題")
+        assert "debate_id" in result
+        assert "rounds" in result
+
+    @patch("system_e.orchestrator.ClaudeClient")
+    def test_run_quick_consensus(self, mock_client_cls):
+        mock_client = MagicMock()
+        mock_client.generate.return_value = json.dumps({
+            "decision": "proceed",
+            "confidence": 0.9,
+        })
+        mock_client_cls.return_value = mock_client
+
+        orch = Orchestrator(claude_client=mock_client)
+        result = orch.run_quick_consensus("テストタスク")
+        assert "proposal" in result
+        assert "critique" in result
+        assert "synthesis" in result
+
+    @patch("system_e.orchestrator.ClaudeClient")
+    def test_run_evolution(self, mock_client_cls):
+        mock_client = MagicMock()
+        mock_client.generate.return_value = json.dumps({
+            "changes": ["変更A"],
+            "posting_strategy": {},
+            "content_strategy": {},
+            "rationale": "理由",
+            "expected_improvement": "効果",
+        })
+        mock_client_cls.return_value = mock_client
+
+        orch = Orchestrator(claude_client=mock_client)
+        result = orch.run_evolution(metrics={"engagement_rate": 0.05})
+        assert "version" in result
+        assert "posting_strategy" in result
+
+    @patch("system_e.orchestrator.ClaudeClient")
+    def test_run_diagnosis(self, mock_client_cls):
+        mock_client = MagicMock()
+        mock_client.generate.return_value = json.dumps({
+            "analysis": "system is healthy",
+            "confidence": 0.85,
+        })
+        mock_client_cls.return_value = mock_client
+
+        orch = Orchestrator(claude_client=mock_client)
+        result = orch.run_diagnosis()
+        assert "health" in result
+        assert "strategy_analysis" in result
+
+    @patch("system_e.orchestrator.ClaudeClient")
+    def test_run_interaction_optimization(self, mock_client_cls):
+        mock_client = MagicMock()
+        mock_client.generate.return_value = json.dumps({
+            "recommendations": ["最適化A"],
+            "confidence": 0.7,
+        })
+        mock_client_cls.return_value = mock_client
+
+        orch = Orchestrator(claude_client=mock_client)
+        result = orch.run_interaction_optimization("テストアーキテクチャ")
+        assert isinstance(result, dict)
+
+    @patch("system_e.orchestrator.ClaudeClient")
+    def test_run_full_cycle(self, mock_client_cls):
+        mock_client = MagicMock()
+        mock_client.generate.return_value = json.dumps({
+            "analysis": "ok",
+            "changes": ["変更"],
+            "posting_strategy": {},
+            "content_strategy": {},
+            "confidence": 0.8,
+            "summary": "正常",
+            "system_scores": {"E": 85},
+            "highlights": ["良い"],
+            "concerns": [],
+            "priorities": ["最適化"],
+            "evolution_recommendations": ["進化"],
+        })
+        mock_client_cls.return_value = mock_client
+
+        orch = Orchestrator(claude_client=mock_client)
+        result = orch.run_full_cycle()
+        assert "diagnosis" in result
+        assert "debate" in result
+        assert "evolution" in result
+        assert "report" in result
+
+
+# ─── Additional Self-Improve Tests ──────────────────────
+
+class TestEvolutionEngineExtended:
+    @patch("system_e.self_improve.ClaudeClient")
+    def test_analyze_performance(self, mock_client_cls):
+        mock_client = MagicMock()
+        mock_client.generate.return_value = json.dumps({
+            "findings": ["エンゲージメント率が低い"],
+            "recommendations": ["投稿時間の最適化"],
+            "confidence": 0.75,
+        })
+        mock_client_cls.return_value = mock_client
+
+        engine = EvolutionEngine(claude_client=mock_client)
+        result = engine.analyze_performance({"engagement_rate": 0.02})
+        assert isinstance(result, dict)
+        mock_client.generate.assert_called_once()
+
+    @patch("system_e.self_improve.ClaudeClient")
+    def test_generate_hypotheses(self, mock_client_cls):
+        mock_client = MagicMock()
+        mock_client.generate.return_value = json.dumps({
+            "hypotheses": ["仮説A", "仮説B"],
+            "confidence": 0.6,
+        })
+        mock_client_cls.return_value = mock_client
+
+        engine = EvolutionEngine(claude_client=mock_client)
+        result = engine.generate_hypotheses({"findings": ["低エンゲージメント"]})
+        assert isinstance(result, dict)
+
+    @patch("system_e.self_improve.ClaudeClient")
+    def test_validate_hypotheses(self, mock_client_cls):
+        mock_client = MagicMock()
+        mock_client.generate.return_value = json.dumps({
+            "validated": ["仮説A"],
+            "rejected": ["仮説B"],
+            "confidence": 0.8,
+        })
+        mock_client_cls.return_value = mock_client
+
+        engine = EvolutionEngine(claude_client=mock_client)
+        result = engine.validate_hypotheses(
+            hypotheses={"hypotheses": ["仮説A", "仮説B"]},
+            analysis={"findings": ["テスト"]},
+        )
+        assert isinstance(result, dict)
+
+    @patch("system_e.self_improve.STRATEGY_FILE")
+    @patch("system_e.self_improve.ClaudeClient")
+    def test_load_current_strategy_default(self, mock_client_cls, mock_strategy_file):
+        mock_client = MagicMock()
+        mock_client_cls.return_value = mock_client
+        mock_strategy_file.exists.return_value = False
+
+        engine = EvolutionEngine(claude_client=mock_client)
+        strategy = engine.load_current_strategy()
+        assert strategy["version"] == 1
+        assert "posting_strategy" in strategy
+
+
+# ─── Additional Meta-Optimizer Tests ────────────────────
+
+class TestMetaOptimizerExtended:
+    @patch("system_e.meta_optimizer.ClaudeClient")
+    def test_optimize_interactions(self, mock_client_cls):
+        mock_client = MagicMock()
+        mock_client.generate.return_value = json.dumps({
+            "recommendations": ["接続追加"],
+            "bottlenecks": ["データフロー"],
+            "confidence": 0.75,
+        })
+        mock_client_cls.return_value = mock_client
+
+        optimizer = MetaOptimizer(claude_client=mock_client)
+        result = optimizer.optimize_interactions("テストアーキテクチャ")
+        assert isinstance(result, dict)
+
+    @patch("system_e.meta_optimizer.ClaudeClient")
+    def test_generate_report(self, mock_client_cls):
+        mock_client = MagicMock()
+        mock_client.generate.return_value = json.dumps({
+            "summary": "システム正常",
+            "system_scores": {"E": 85},
+            "highlights": ["良いパフォーマンス"],
+            "concerns": [],
+            "priorities": ["最適化継続"],
+            "evolution_recommendations": ["進化A"],
+        })
+        mock_client_cls.return_value = mock_client
+
+        optimizer = MetaOptimizer(claude_client=mock_client)
+        result = optimizer.generate_report()
+        assert "summary" in result
+        assert "system_scores" in result
+
+    @patch("system_e.meta_optimizer.ClaudeClient")
+    def test_generate_report_non_json_response(self, mock_client_cls):
+        mock_client = MagicMock()
+        mock_client.generate.return_value = "Not valid JSON response"
+        mock_client_cls.return_value = mock_client
+
+        optimizer = MetaOptimizer(claude_client=mock_client)
+        result = optimizer.generate_report()
+        assert "raw_response" in result
+
+    @patch("system_e.meta_optimizer.ClaudeClient")
+    def test_diagnose_with_external_health(self, mock_client_cls):
+        mock_client = MagicMock()
+        mock_client.generate.return_value = json.dumps({
+            "analysis": "external data analyzed",
+            "confidence": 0.9,
+        })
+        mock_client_cls.return_value = mock_client
+
+        optimizer = MetaOptimizer(claude_client=mock_client)
+        external_health = {
+            "systems": {
+                "A": {"status": "active"},
+                "B": {"status": "degraded"},
+            },
+        }
+        result = optimizer.diagnose(system_health=external_health)
+        assert result["health"] == external_health
+
+
+# ─── ClaudeClient Tests ─────────────────────────────────
+
+class TestClaudeClient:
+    @patch("system_e.client.Anthropic")
+    def test_generate_success(self, mock_anthropic_cls):
+        mock_client = MagicMock()
+        mock_response = MagicMock()
+        mock_response.content = [MagicMock(text="response text")]
+        mock_client.messages.create.return_value = mock_response
+        mock_anthropic_cls.return_value = mock_client
+
+        from system_e.client import ClaudeClient
+        client = ClaudeClient()
+        result = client.generate("test prompt", system="test system")
+        assert result == "response text"
+
+    @patch("system_e.client.Anthropic")
+    def test_generate_json_success(self, mock_anthropic_cls):
+        mock_client = MagicMock()
+        mock_response = MagicMock()
+        mock_response.content = [MagicMock(text='{"key": "value"}')]
+        mock_client.messages.create.return_value = mock_response
+        mock_anthropic_cls.return_value = mock_client
+
+        from system_e.client import ClaudeClient
+        client = ClaudeClient()
+        result = client.generate_json("test prompt")
+        assert result == {"key": "value"}
+
+    @patch("system_e.client.Anthropic")
+    def test_generate_json_code_block(self, mock_anthropic_cls):
+        mock_client = MagicMock()
+        mock_response = MagicMock()
+        mock_response.content = [MagicMock(text='```json\n{"key": "value"}\n```')]
+        mock_client.messages.create.return_value = mock_response
+        mock_anthropic_cls.return_value = mock_client
+
+        from system_e.client import ClaudeClient
+        client = ClaudeClient()
+        result = client.generate_json("test prompt")
+        assert result == {"key": "value"}
+
+    def test_extract_json_function(self):
+        from system_e.client import _extract_json
+        assert _extract_json('{"a": 1}') == {"a": 1}
+        assert _extract_json('```json\n{"a": 1}\n```') == {"a": 1}
+
+        with pytest.raises(json.JSONDecodeError):
+            _extract_json("not json")
