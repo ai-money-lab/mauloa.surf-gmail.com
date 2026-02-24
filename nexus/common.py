@@ -75,6 +75,8 @@ def call_api(
     if temperature is not None:
         kwargs["temperature"] = temperature
 
+    if max_retries < 1:
+        max_retries = 1
     last_error: Exception | None = None
 
     for attempt in range(max_retries):

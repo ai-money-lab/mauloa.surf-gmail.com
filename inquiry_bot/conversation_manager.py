@@ -122,14 +122,13 @@ class ConversationManager:
         user_msgs = [m.content for m in session.messages if m.role == "user"]
         if len(user_msgs) >= 3:
             recent = user_msgs[-3:]
-            # 簡易的な類似判定（同じキーワードが繰り返されている）
-            words_sets = [set(msg) for msg in recent]
-            if len(words_sets) >= 3:
-                common = words_sets[0] & words_sets[1] & words_sets[2]
-                if len(common) > len(recent[0]) * 0.5:
-                    reason = "同じ質問が3回以上繰り返されました"
-                    self._escalate(session, reason)
-                    return True, reason
+            # 単語単位で分割して共通語を比較
+            words_sets = [set(msg.split()) for msg in recent]
+            common = words_sets[0] & words_sets[1] & words_sets[2]
+            if len(words_sets[0]) > 0 and len(common) / len(words_sets[0]) > 0.5:
+                reason = "同じ質問が3回以上繰り返されました"
+                self._escalate(session, reason)
+                return True, reason
 
         return False, ""
 

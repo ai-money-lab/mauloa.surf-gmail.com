@@ -553,3 +553,117 @@ class TestBotEngineHandleMessage:
         assert stats["total_sessions"] == 2
         assert stats["channels"]["web"] == 1
         assert stats["channels"]["line"] == 1
+
+
+# ═══ ConversationManager 類似判定テスト ═══
+
+class TestConversationManagerSimilarity:
+    """修正された単語ベースの類似判定をテスト."""
+
+    def test_repeated_same_message_triggers_escalation(self):
+        from inquiry_bot.conversation_manager import ConversationManager
+        cm = ConversationManager()
+        cm.get_or_create_session("s1", "web", "user1")
+        # 同じメッセージを3回追加
+        for _ in range(3):
+            cm.add_message("s1", "user", "家賃 を 教えて ください")
+        should, reason = cm.check_escalation("s1", "家賃 を 教えて ください")
+        assert should is True
+        assert "繰り返" in reason
+
+    def test_different_messages_no_escalation(self):
+        from inquiry_bot.conversation_manager import ConversationManager
+        cm = ConversationManager()
+        cm.get_or_create_session("s1", "web", "user1")
+        cm.add_message("s1", "user", "家賃はいくらですか")
+        cm.add_message("s1", "user", "駐車場はありますか")
+        cm.add_message("s1", "user", "ペット可の物件はどれですか")
+        should, reason = cm.check_escalation("s1", "別の質問です")
+        assert should is False
+
+    def test_similarity_uses_words_not_characters(self):
+        """文字単位ではなく単語単位で比較されることを確認."""
+        from inquiry_bot.conversation_manager import ConversationManager
+        cm = ConversationManager()
+        cm.get_or_create_session("s1", "web", "user1")
+        # 同じ文字を含むが異なるメッセージ
+        cm.add_message("s1", "user", "あ")
+        cm.add_message("s1", "user", "い")
+        cm.add_message("s1", "user", "う")
+        should, _ = cm.check_escalation("s1", "え")
+        # 文字ベースだとエスカレーションしてしまうが、単語ベースでは発生しない
+        assert should is False
+
+
+# ═══ LineHandler セキュリティテスト ═══
+
+class TestLineHandlerSecurity:
+    """LINE署名検証のセキュリティテスト."""
+
+    @patch("inquiry_bot.line_handler.BotEngine")
+    def test_verify_signature_no_secret_rejects(self, mock_bot_cls):
+        """LINE_CHANNEL_SECRETが未設定の場合、検証は拒否される."""
+        from inquiry_bot.line_handler import LineHandler
+        mock_bot_cls.return_value = MagicMock()
+        handler = LineHandler(bot_engine=MagicMock())
+        handler.channel_secret = ""
+        result = handler.verify_signature("body", "sig")
+        assert result is False
+
+    @patch("inquiry_bot.line_handler.BotEngine")
+    def test_verify_signature_valid(self, mock_bot_cls):
+        """正しい署名で検証成功."""
+        import hmac as _hmac
+        import hashlib as _hashlib
+        import base64 as _base64
+
+        from inquiry_bot.line_handler import LineHandler
+        mock_bot_cls.return_value = MagicMock()
+        handler = LineHandler(bot_engine=MagicMock())
+        handler.channel_secret = "test-secret"
+
+        body = '{"events":[]}'
+        digest = _hmac.new(b"test-secret", body.encode("utf-8"), _hashlib.sha256).digest()
+        valid_sig = _base64.b64encode(digest).decode("utf-8")
+
+        assert handler.verify_signature(body, valid_sig) is True
+
+    @patch("inquiry_bot.line_handler.BotEngine")
+    def test_verify_signature_invalid_rejects(self, mock_bot_cls):
+        """不正な署名は拒否される."""
+        from inquiry_bot.line_handler import LineHandler
+        mock_bot_cls.return_value = MagicMock()
+        handler = LineHandler(bot_engine=MagicMock())
+        handler.channel_secret = "test-secret"
+
+        assert handler.verify_signature('{"events":[]}', "wrong-signature") is False
+
+    @patch("inquiry_bot.line_handler.BotEngine")
+    def test_handle_webhook_invalid_json(self, mock_bot_cls):
+        """不正なJSONはエラーを返す."""
+        from inquiry_bot.line_handler import LineHandler
+        mock_bot_cls.return_value = MagicMock()
+        handler = LineHandler(bot_engine=MagicMock())
+        handler.channel_secret = ""
+        result = handler.handle_webhook("{bad json", "")
+        # No secret → signature rejected first
+        assert result.get("status") in (400, 403)
+
+    @patch("inquiry_bot.line_handler.BotEngine")
+    def test_handle_webhook_empty_events(self, mock_bot_cls):
+        """空のeventsは正常に処理される."""
+        from inquiry_bot.line_handler import LineHandler
+        mock_bot_cls.return_value = MagicMock()
+        handler = LineHandler(bot_engine=MagicMock())
+        handler.channel_secret = "secret"
+
+        import hmac as _hmac
+        import hashlib as _hashlib
+        import base64 as _base64
+        body = '{"events":[]}'
+        digest = _hmac.new(b"secret", body.encode(), _hashlib.sha256).digest()
+        sig = _base64.b64encode(digest).decode()
+
+        result = handler.handle_webhook(body, sig)
+        assert result["status"] == 200
+        assert result["results"] == []

@@ -287,7 +287,10 @@ class Evolver:
                 ))
         except json.JSONDecodeError:
             logger.error("evolution_state.json is corrupted — starting fresh. File: %s", state_file)
-            backup = state_file.with_suffix(".json.bak")
+            # Use timestamp to avoid overwriting previous backups
+            from datetime import datetime as _dt
+            ts = _dt.now().strftime("%Y%m%d_%H%M%S")
+            backup = state_file.with_suffix(f".{ts}.bak")
             state_file.rename(backup)
             logger.info("Corrupted file backed up to %s", backup)
         except KeyError as e:

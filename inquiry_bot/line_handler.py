@@ -35,8 +35,8 @@ class LineHandler:
     def verify_signature(self, body: str, signature: str) -> bool:
         """Webhookリクエストの署名を検証."""
         if not self.channel_secret:
-            logger.warning("LINE_CHANNEL_SECRET not set, skipping verification")
-            return True
+            logger.error("LINE_CHANNEL_SECRET not set — rejecting webhook for security")
+            return False
 
         hash_digest = hmac.new(
             self.channel_secret.encode("utf-8"),

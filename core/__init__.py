@@ -1,1 +1,1 @@
-__all__ = ["ClaudeClient", "Notifier", "QualityChecker"]
+__all__ = ["ClaudeClient", "Notifier", "PDFGenerator", "QualityChecker", "SheetsClient"]

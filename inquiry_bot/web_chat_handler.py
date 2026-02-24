@@ -89,7 +89,8 @@ def _save_properties_yaml(property_data: dict) -> None:
     """物件データをYAMLファイルに保存."""
     try:
         full = yaml.safe_load(PROPERTIES_PATH.read_text(encoding="utf-8")) or {}
-    except Exception:
+    except (FileNotFoundError, yaml.YAMLError) as e:
+        logger.warning("Could not load existing properties YAML: %s", e)
         full = {}
     full["properties"] = property_data
     PROPERTIES_PATH.write_text(

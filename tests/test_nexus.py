@@ -1270,7 +1270,7 @@ class TestEvolverExtended:
         assert evolver.get_top_patterns() == []
 
     def test_load_state_corrupted_json_backs_up(self, tmp_data_dir):
-        """Corrupted JSON should be backed up and evolver starts fresh."""
+        """Corrupted JSON should be backed up with timestamp and evolver starts fresh."""
         evo_dir = tmp_data_dir / "evolution"
         evo_dir.mkdir(parents=True, exist_ok=True)
         state_file = evo_dir / "evolution_state.json"
@@ -1280,9 +1280,9 @@ class TestEvolverExtended:
         # Should start fresh
         assert len(evolver.patterns) == 0
         assert evolver.current_gen == 0
-        # Corrupted file should be backed up
-        backup = state_file.with_suffix(".json.bak")
-        assert backup.exists()
+        # Corrupted file should be backed up with timestamp
+        bak_files = list(evo_dir.glob("evolution_state.*.bak"))
+        assert len(bak_files) == 1
         assert not state_file.exists()
 
     def test_load_state_missing_required_field(self, tmp_data_dir):
