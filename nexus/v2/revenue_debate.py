@@ -230,6 +230,9 @@ class RevenueDebate:
         analyst = self._get_opinion("ANALYST", topic, context)
         critic = self._get_opinion("CRITIC", topic, context)
 
+        analyst_recs = analyst.recommendations if isinstance(analyst.recommendations, list) else [analyst.recommendations]
+        critic_recs = critic.recommendations if isinstance(critic.recommendations, list) else [critic.recommendations]
+
         return {
             "analyst_score": analyst.confidence,
             "critic_score": critic.confidence,
@@ -237,7 +240,7 @@ class RevenueDebate:
             "should_create": (analyst.confidence + critic.confidence) / 2 > 0.5,
             "analyst_concerns": analyst.concerns,
             "critic_concerns": critic.concerns,
-            "recommendations": analyst.recommendations + critic.recommendations,
+            "recommendations": analyst_recs + critic_recs,
         }
 
     def _gather_opinions(self, topic: str, context: str) -> list[ExpertOpinion]:
@@ -260,13 +263,20 @@ class RevenueDebate:
             )
             parsed = parse_json(raw, default={"position": raw})
 
+            def _ensure_list(val):
+                if isinstance(val, list):
+                    return val
+                if isinstance(val, str):
+                    return [val] if val else []
+                return []
+
             opinion = ExpertOpinion(
                 expert=expert_name,
-                position=parsed.get("position", ""),
-                evidence=parsed.get("evidence", []),
-                recommendations=parsed.get("recommendations", []),
-                concerns=parsed.get("concerns", []),
-                confidence=parsed.get("confidence", 0.5),
+                position=str(parsed.get("position", "")),
+                evidence=_ensure_list(parsed.get("evidence", [])),
+                recommendations=_ensure_list(parsed.get("recommendations", [])),
+                concerns=_ensure_list(parsed.get("concerns", [])),
+                confidence=float(parsed.get("confidence", 0.5)),
             )
             opinions.append(opinion)
 
@@ -288,13 +298,20 @@ class RevenueDebate:
         )
         parsed = parse_json(raw, default={"position": raw})
 
+        def _ensure_list(val: Any) -> list:
+            if isinstance(val, list):
+                return val
+            if isinstance(val, str):
+                return [val] if val else []
+            return []
+
         return ExpertOpinion(
             expert=expert_name,
-            position=parsed.get("position", ""),
-            evidence=parsed.get("evidence", []),
-            recommendations=parsed.get("recommendations", []),
-            concerns=parsed.get("concerns", []),
-            confidence=parsed.get("confidence", 0.5),
+            position=str(parsed.get("position", "")),
+            evidence=_ensure_list(parsed.get("evidence", [])),
+            recommendations=_ensure_list(parsed.get("recommendations", [])),
+            concerns=_ensure_list(parsed.get("concerns", [])),
+            confidence=float(parsed.get("confidence", 0.5)),
         )
 
     def _synthesize(self, topic: str, opinions: list[ExpertOpinion]) -> DebateResult:
