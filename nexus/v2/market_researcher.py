@@ -23,7 +23,7 @@ from pathlib import Path
 from typing import Any
 
 from nexus.common import call_api, parse_json
-from nexus.v2.channels import RevenueChannel, AssetType, CHANNEL_CONFIGS
+from nexus.v2.channels import RevenueChannel, CHANNEL_CONFIGS
 
 logger = logging.getLogger("nexus.v2.market_researcher")
 

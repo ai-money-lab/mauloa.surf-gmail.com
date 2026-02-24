@@ -146,7 +146,7 @@ class TestAnalytics:
                                "category": "general", "escalated": False})
         logs = analytics.load_logs(days=1)
         assert len(logs) > 0
-        assert any(l.get("session_id") == "load_test" for l in logs)
+        assert any(entry.get("session_id") == "load_test" for entry in logs)
 
     def test_generate_daily_report_with_data(self):
         """データありで日次レポートの内容を検証."""

@@ -7,7 +7,6 @@ NEXUSの CRAWL → TRY → DEBATE → EVOLVE フローを実演する。
 """
 
 import json
-import sys
 from pathlib import Path
 from unittest.mock import patch
 from tempfile import mkdtemp
@@ -271,7 +270,7 @@ def run():
                 print(f"    再挑戦: {'はい' if debate_result.should_retry else 'いいえ'}")
                 print(f"    確度: {debate_result.confidence:.0%}")
                 if debate_result.improvements:
-                    print(f"    改善策:")
+                    print("    改善策:")
                     for imp in debate_result.improvements[:3]:
                         print(f"      → {imp}")
 
@@ -289,7 +288,7 @@ def run():
 
         new_opps = evolve_result.get("new_opportunities", [])
         if new_opps:
-            print(f"  新規複製機会:")
+            print("  新規複製機会:")
             for no in new_opps[:3]:
                 print(f"    → {no.get('title', '?')} (¥{no.get('estimated_revenue', 0):,})")
 

@@ -43,7 +43,7 @@ if _env_file.exists():
                 if key.strip() and val:
                     os.environ.setdefault(key.strip(), val)
 
-from nexus.v2.orchestrator import NexusV2Orchestrator
+from nexus.v2.orchestrator import NexusV2Orchestrator  # noqa: E402
 
 logger = logging.getLogger("nexus.v2.run")
 

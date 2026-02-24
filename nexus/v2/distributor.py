@@ -22,10 +22,8 @@ from pathlib import Path
 from typing import Any
 
 from nexus.v2.channels import (
-    AssetType,
     DigitalAsset,
     Platform,
-    RevenueChannel,
 )
 
 logger = logging.getLogger("nexus.v2.distributor")

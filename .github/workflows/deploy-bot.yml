@@ -40,7 +40,7 @@ jobs:
       - name: Lint check
         run: |
           pip install ruff
-          ruff check inquiry_bot/ core/ --select E,W,F --ignore E501
+          ruff check inquiry_bot/ core/ system_a/ system_b/ system_c/ system_d/ system_e/ nexus/ scripts/ tests/ --select E,W,F --ignore E501
 
   deploy-render:
     needs: test

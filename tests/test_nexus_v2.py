@@ -13,17 +13,14 @@ Claude API呼び出しはモックで差し替え。
 """
 
 import json
-from pathlib import Path
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 
-import pytest
 
 from nexus.v2.channels import (
     RevenueChannel,
     RevenueModel,
     Platform,
     AssetType,
-    ChannelConfig,
     DigitalAsset,
     CHANNEL_CONFIGS,
 )
@@ -35,23 +32,16 @@ from nexus.v2.content_creator import (
 )
 from nexus.v2.distributor import (
     Distributor,
-    DistributionTask,
     PLATFORM_SPECS,
 )
 from nexus.v2.market_researcher import (
     MarketResearcher,
-    MarketInsight,
-    ResearchReport,
 )
 from nexus.v2.revenue_debate import (
     RevenueDebate,
-    DebateResult,
-    ExpertOpinion,
 )
 from nexus.v2.orchestrator import (
     NexusV2Orchestrator,
-    CycleResult,
-    NexusV2State,
 )
 
 
@@ -360,7 +350,7 @@ class TestContentCreator:
         mock_api.return_value = MOCK_MUSIC_RESPONSE
         creator = ContentCreator(data_dir=tmp_path)
 
-        asset = creator.create(AssetType.MUSIC_TRACK, "Test")
+        creator.create(AssetType.MUSIC_TRACK, "Test")
         saved_files = list(tmp_path.glob("*.json"))
         assert len(saved_files) == 1
 

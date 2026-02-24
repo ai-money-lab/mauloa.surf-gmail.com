@@ -135,7 +135,7 @@ def run_autonomous_demo():
         print(f"  [EVOLVE] 世代: {gen.get('gen_number', '?')}, パターン: {gen.get('patterns_count', 0)}")
 
     print(f"\n{'─' * 40}")
-    print(f"  最終状態:")
+    print("  最終状態:")
     print(f"    サイクル完了: {state.get('cycles_completed', 0)}")
     print(f"    Trial実行: {state.get('trials_run', 0)}")
     print(f"    Trial成功: {state.get('trials_succeeded', 0)}")
@@ -148,7 +148,6 @@ def run_autonomous_demo():
 def run_stats_demo():
     """現在の統計を表示."""
     from nexus.evolution.evolver import Evolver
-    from nexus.trial.trial_runner import TrialRunner
 
     print("\n" + "=" * 60)
     print("  NEXUS DEMO — STATS (現在の統計)")
@@ -158,13 +157,13 @@ def run_stats_demo():
     evolver = Evolver(data_dir=data_dir / "evolution")
     stats = evolver.get_evolution_stats()
 
-    print(f"\n  進化統計:")
+    print("\n  進化統計:")
     print(f"    現在の世代: {stats['current_generation']}")
     print(f"    発見パターン: {stats['total_patterns']}")
     print(f"    複製数: {stats['total_replications']}")
 
     if evolver.patterns:
-        print(f"\n  成功パターン:")
+        print("\n  成功パターン:")
         for p in evolver.get_top_patterns(limit=5):
             print(f"    ■ {p.title} — {p.revenue:,}円 (複製:{p.replication_count})")
 
@@ -185,7 +184,7 @@ def main():
         sys.exit(1)
 
     try:
-        result = modes[mode]()
+        modes[mode]()
         print("\n  NEXUS demo completed successfully.\n")
     except Exception as e:
         logger.error("Demo failed: %s", e, exc_info=True)

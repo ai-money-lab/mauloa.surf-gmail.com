@@ -145,7 +145,7 @@ test:
 
 lint:
 	@pip install ruff -q 2>/dev/null
-	ruff check inquiry_bot/ core/ system_a/ system_b/ system_c/ system_d/ system_e/ --select E,W,F --ignore E501
+	ruff check inquiry_bot/ core/ system_a/ system_b/ system_c/ system_d/ system_e/ nexus/ scripts/ tests/ --select E,W,F --ignore E501
 
 # ─── System A-D ───
 system-a:

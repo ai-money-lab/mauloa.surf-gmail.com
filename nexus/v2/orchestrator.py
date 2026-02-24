@@ -24,7 +24,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
-from nexus.v2.channels import RevenueChannel, AssetType, CHANNEL_CONFIGS
+from nexus.v2.channels import RevenueChannel, AssetType
 from nexus.v2.content_creator import ContentCreator
 from nexus.v2.distributor import Distributor
 from nexus.v2.market_researcher import MarketResearcher

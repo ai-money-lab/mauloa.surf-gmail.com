@@ -96,7 +96,7 @@ def main():
     print("\n[3/3] GitHub Secretsに登録中...")
     set_secret(token, "ANTHROPIC_API_KEY", api_key)
 
-    print(f"\n完了! 全ワークフローで ANTHROPIC_API_KEY が利用可能です")
+    print("\n完了! 全ワークフローで ANTHROPIC_API_KEY が利用可能です")
 
 
 if __name__ == "__main__":

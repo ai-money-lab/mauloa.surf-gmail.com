@@ -3,7 +3,7 @@
 config/credentials.json
 config/google_credentials.json
 
-# Data
+# Data (CI writes to data/system_a/ and nexus/data/ via git add -f)
 data/
 reports/
 

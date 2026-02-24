@@ -3,7 +3,6 @@
 カバレッジ目標: 0% → 70%+
 """
 
-import json
 from unittest.mock import patch, MagicMock
 
 import pytest
@@ -13,7 +12,6 @@ from inquiry_bot.web_chat_handler import (
     _build_property_card,
     _get_available_property_cards,
     _clean_reply_for_cards,
-    PropertyCard,
     create_app,
 )
 
