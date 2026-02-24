@@ -174,6 +174,24 @@ class NexusV2Orchestrator:
                 # それでもなければデフォルト
                 queue = self._default_creation_queue(focus)
 
+            # focusが指定されていればチャネルでフィルタ
+            if focus and queue:
+                channel_to_type = {
+                    "streaming": "music_track",
+                    "video": "video_script",
+                    "digital_product": {"template", "prompt_pack", "ebook"},
+                    "stock_content": "stock_image",
+                    "micro_saas": "api_service",
+                }
+                target = channel_to_type.get(focus, "")
+                if target:
+                    if isinstance(target, set):
+                        queue = [q for q in queue if q.get("asset_type") in target]
+                    else:
+                        queue = [q for q in queue if q.get("asset_type") == target]
+                if not queue:
+                    queue = self._default_creation_queue(focus)
+
             for spec in queue[:5]:  # 1サイクル最大5アセット
                 try:
                     asset_type = AssetType(spec["asset_type"])
