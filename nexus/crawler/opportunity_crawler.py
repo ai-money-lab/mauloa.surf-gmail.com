@@ -257,7 +257,7 @@ class OpportunityCrawler:
             try:
                 history = json.loads(results_file.read_text(encoding="utf-8"))
             except json.JSONDecodeError:
-                pass
+                logger.error("trial_results.json is corrupted — starting fresh. File: %s", results_file)
         history.append(result)
         results_file.write_text(json.dumps(history, ensure_ascii=False, indent=2), encoding="utf-8")
 
