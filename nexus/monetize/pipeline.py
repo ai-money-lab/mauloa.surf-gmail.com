@@ -20,8 +20,7 @@ from datetime import datetime, timezone
 from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
-from anthropic import Anthropic
-
+from nexus.common import call_api, parse_json
 from nexus.alpha.engine import AlphaOutput, AlphaTask, TaskType
 
 logger = logging.getLogger("nexus.monetize")
@@ -120,7 +119,6 @@ class MonetizePipeline:
 - "revenue_timeline": 収益化までのタイムライン"""
 
     def __init__(self, data_dir: Path | None = None):
-        self.client = Anthropic()
         self.data_dir = data_dir or Path("nexus/data/monetize")
         self.data_dir.mkdir(parents=True, exist_ok=True)
         self.deals: list[Deal] = []
@@ -134,14 +132,13 @@ class MonetizePipeline:
             for o in alpha_outputs
         )
 
-        response = self.client.messages.create(
-            model="claude-sonnet-4-20250514",
-            max_tokens=4096,
+        raw_text = call_api(
             system=self.PROPOSAL_PROMPT,
             messages=[{"role": "user", "content": f"AI成果物:\n{outputs_text}"}],
+            max_tokens=4096,
         )
 
-        deals = self._parse_deals(response.content[0].text, alpha_outputs)
+        deals = self._parse_deals(raw_text, alpha_outputs)
         self.deals.extend(deals)
         self._save_deals()
         return deals
@@ -159,9 +156,7 @@ class MonetizePipeline:
 
     def generate_proposal(self, deal: Deal) -> str:
         """案件の提案書を生成"""
-        response = self.client.messages.create(
-            model="claude-sonnet-4-20250514",
-            max_tokens=4096,
+        raw_text = call_api(
             system="あなたはプロのビジネスライターです。説得力のある提案書を書いてください。",
             messages=[{
                 "role": "user",
@@ -174,8 +169,9 @@ class MonetizePipeline:
                     f"想定金額: {deal.estimated_revenue}円"
                 ),
             }],
+            max_tokens=4096,
         )
-        return response.content[0].text
+        return raw_text
 
     def generate_alpha_tasks_for_deal(self, deal: Deal) -> list[AlphaTask]:
         """Deal実行に必要なALPHAタスクを生成"""
@@ -223,15 +219,7 @@ class MonetizePipeline:
 
     def _parse_deals(self, raw_text: str, alpha_outputs: list[AlphaOutput]) -> list[Deal]:
         """Claude応答をDealリストにパース"""
-        try:
-            json_start = raw_text.find("{")
-            json_end = raw_text.rfind("}") + 1
-            if json_start >= 0 and json_end > json_start:
-                parsed = json.loads(raw_text[json_start:json_end])
-            else:
-                parsed = {}
-        except json.JSONDecodeError:
-            parsed = {}
+        parsed = parse_json(raw_text)
 
         deals = []
         output_ids = [o.output_id for o in alpha_outputs]

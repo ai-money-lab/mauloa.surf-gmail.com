@@ -3,7 +3,6 @@
 import json
 from unittest.mock import MagicMock, patch
 
-import pytest
 
 from system_e.agents import (
     STRATEGIST,
@@ -13,7 +12,6 @@ from system_e.agents import (
     ALL_AGENTS,
     AGENT_MAP,
     AgentRunner,
-    AgentPersona,
 )
 from system_e.debate import DebateProtocol, QuickConsensus
 from system_e.self_improve import EvolutionEngine

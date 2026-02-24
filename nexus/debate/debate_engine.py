@@ -17,14 +17,15 @@ from __future__ import annotations
 
 import json
 import hashlib
+import logging
 from datetime import datetime, timezone
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any
 
-from anthropic import Anthropic
-
+from nexus.common import call_api, parse_json
 from nexus.trial.trial_runner import Trial
+
+logger = logging.getLogger("nexus.debate")
 
 
 @dataclass
@@ -135,19 +136,21 @@ class DebateEngine:
     MAX_ROUNDS = 3
 
     def __init__(self, data_dir: Path | None = None):
-        self.client = Anthropic()
         self.data_dir = data_dir or Path("nexus/data/debate")
         self.data_dir.mkdir(parents=True, exist_ok=True)
         self.debate_history: list[DebateResult] = []
 
     def debate(self, trial: Trial) -> DebateResult:
         """失敗したTrialについて議論する"""
+        logger.info("Starting debate for trial %s", trial.trial_id)
         context = self._build_context(trial)
         rounds: list[DebateRound] = []
         alpha_history = ""
         omega_history = ""
 
         for round_num in range(1, self.MAX_ROUNDS + 1):
+            logger.info("Debate round %d/%d", round_num, self.MAX_ROUNDS)
+
             # ALPHA の主張
             alpha_input = self._build_round_input(
                 round_num, context, alpha_history, omega_history, is_alpha=True
@@ -175,7 +178,16 @@ class DebateEngine:
             alpha_history += f"\nRound {round_num} ALPHA: {alpha_response.get('argument', '')[:200]}"
             omega_history += f"\nRound {round_num} OMEGA: {omega_response.get('argument', '')[:200]}"
 
+            # Adaptive termination: if round 2 shows high agreement, skip round 3
+            if round_num == 2 and len(rounds) >= 2:
+                concessions = alpha_response.get("concessions", [])
+                constructive = omega_response.get("constructive_suggestions", [])
+                if len(concessions) >= 2 and len(constructive) >= 2:
+                    logger.info("High agreement detected after round 2 — skipping round 3")
+                    break
+
         # 統合・合意形成
+        logger.info("Synthesizing debate results from %d rounds", len(rounds))
         synthesis = self._synthesize(rounds, context)
 
         result = DebateResult(
@@ -236,7 +248,6 @@ class DebateEngine:
         is_alpha: bool,
     ) -> str:
         """ラウンド入力を構築"""
-        role_name = "ALPHA" if is_alpha else "OMEGA"
         other_name = "OMEGA" if is_alpha else "ALPHA"
 
         content = f"ラウンド {round_num}/{self.MAX_ROUNDS}\n\n{context}"
@@ -253,22 +264,13 @@ class DebateEngine:
 
     def _call_ai(self, system_prompt: str, user_content: str) -> dict:
         """Claude APIを呼び出す"""
-        response = self.client.messages.create(
-            model="claude-sonnet-4-20250514",
-            max_tokens=2048,
+        logger.debug("Calling API with system prompt: %s...", system_prompt[:60])
+        raw = call_api(
             system=system_prompt,
             messages=[{"role": "user", "content": user_content}],
+            max_tokens=2048,
         )
-
-        raw = response.content[0].text
-        try:
-            json_start = raw.find("{")
-            json_end = raw.rfind("}") + 1
-            if json_start >= 0 and json_end > json_start:
-                return json.loads(raw[json_start:json_end])
-        except json.JSONDecodeError:
-            pass
-        return {"argument": raw}
+        return parse_json(raw, default={"argument": raw})
 
     def _synthesize(self, rounds: list[DebateRound], context: str) -> dict:
         """議論を統合して合意を形成する"""
@@ -281,25 +283,16 @@ class DebateEngine:
             for r in rounds
         )
 
-        response = self.client.messages.create(
-            model="claude-sonnet-4-20250514",
-            max_tokens=2048,
+        logger.debug("Synthesizing %d rounds of debate", len(rounds))
+        raw = call_api(
             system=SYNTHESIS_PROMPT,
             messages=[{
                 "role": "user",
                 "content": f"元のコンテキスト:\n{context}\n\n議論履歴:\n{rounds_text}",
             }],
+            max_tokens=2048,
         )
-
-        raw = response.content[0].text
-        try:
-            json_start = raw.find("{")
-            json_end = raw.rfind("}") + 1
-            if json_start >= 0 and json_end > json_start:
-                return json.loads(raw[json_start:json_end])
-        except json.JSONDecodeError:
-            pass
-        return {"consensus": raw, "should_retry": True, "improvements": [], "confidence": 0.5}
+        return parse_json(raw, default={"consensus": raw, "should_retry": True, "improvements": [], "confidence": 0.5})
 
     def _save_debate(self, result: DebateResult) -> None:
         """議論結果を保存"""

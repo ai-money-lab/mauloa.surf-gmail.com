@@ -1,9 +1,7 @@
 """Tests for core/claude_client.py."""
 
-import json
 from unittest.mock import patch, MagicMock
 
-import pytest
 
 from core.claude_client import ClaudeClient
 

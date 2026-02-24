@@ -22,6 +22,7 @@ from __future__ import annotations
 import json
 import logging
 import argparse
+import signal
 from datetime import datetime, timezone
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -120,6 +121,16 @@ class NexusOrchestrator:
         self.state = NexusState()
         self._load_state()
 
+        signal.signal(signal.SIGINT, self._handle_shutdown)
+        signal.signal(signal.SIGTERM, self._handle_shutdown)
+
+    def _handle_shutdown(self, signum, frame):
+        """シグナルを受けて安全にシャットダウン"""
+        logger.warning("Shutdown signal received (%s). Saving state...", signum)
+        self._save_state()
+        logger.info("State saved. Exiting.")
+        raise SystemExit(0)
+
     def run(self, mode: str = "full", market_context: str = "", num_cycles: int = 3) -> dict[str, Any]:
         """メイン実行エントリーポイント"""
         logger.info(f"{'='*60}")
@@ -163,7 +174,7 @@ class NexusOrchestrator:
             # Step 1: CRAWL — 稼ぎ方を探索
             logger.info("Step 1: CRAWL — 稼ぎ方を探索")
             opportunities = self.crawler.crawl(market_context=market_context)
-            evaluated = self.crawler.evaluate(opportunities)
+            self.crawler.evaluate(opportunities)
             top_opps = self.crawler.get_top_opportunities(limit=3)
 
             loop_result["crawl"] = {
@@ -269,6 +280,10 @@ class NexusOrchestrator:
             self.state.autonomous_loops += 1
             self.state.update()
             all_results["loops"].append(loop_result)
+
+            # Memory management: keep only last 20 loop results in memory
+            if len(all_results["loops"]) > 20:
+                all_results["loops"] = all_results["loops"][-20:]
 
         all_results["state"] = self.state.to_dict()
         all_results["trial_stats"] = self.trial.get_stats()
@@ -512,8 +527,8 @@ class NexusOrchestrator:
             self.state.patterns_discovered = data.get("patterns_discovered", 0)
             self.state.generation = data.get("generation", 0)
             self.state.started_at = data.get("started_at", self.state.started_at)
-        except (json.JSONDecodeError, KeyError):
-            logger.warning("Failed to load state, starting fresh")
+        except (json.JSONDecodeError, KeyError, TypeError) as e:
+            logger.error("Failed to load state from %s: %s. Starting fresh.", state_file, e)
 
     def _save_full_report(self, report: dict[str, Any]) -> None:
         """フルレポートを保存"""

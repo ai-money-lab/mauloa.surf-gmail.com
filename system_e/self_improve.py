@@ -13,7 +13,7 @@ from typing import Optional
 from system_e.client import ClaudeClient
 from system_e.agents import AgentRunner, OPTIMIZER, INNOVATOR, CRITIC
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("system_e.self_improve")
 
 JST = timezone(timedelta(hours=9))
 EVOLUTION_DIR = Path(__file__).parent / "data" / "evolution"
@@ -105,21 +105,26 @@ class EvolutionEngine:
         timestamp = datetime.now(JST).strftime("%Y%m%d_%H%M%S")
         logger.info("=== Evolution Cycle Start [%s] ===", timestamp)
 
-        # Step 1: Analyze
-        logger.info("Step 1: Performance analysis")
-        analysis = self.analyze_performance(metrics)
+        try:
+            # Step 1: Analyze
+            logger.info("Step 1: Performance analysis")
+            analysis = self.analyze_performance(metrics)
 
-        # Step 2: Hypothesize
-        logger.info("Step 2: Hypothesis generation")
-        hypotheses = self.generate_hypotheses(analysis)
+            # Step 2: Hypothesize
+            logger.info("Step 2: Hypothesis generation")
+            hypotheses = self.generate_hypotheses(analysis)
 
-        # Step 3: Validate
-        logger.info("Step 3: Hypothesis validation")
-        validation = self.validate_hypotheses(hypotheses, analysis)
+            # Step 3: Validate
+            logger.info("Step 3: Hypothesis validation")
+            validation = self.validate_hypotheses(hypotheses, analysis)
 
-        # Step 4: Synthesize new strategy
-        logger.info("Step 4: Strategy evolution")
-        new_strategy = self._synthesize_evolution(analysis, hypotheses, validation)
+            # Step 4: Synthesize new strategy
+            logger.info("Step 4: Strategy evolution")
+            new_strategy = self._synthesize_evolution(analysis, hypotheses, validation)
+        except Exception as e:
+            logger.error("Evolution cycle failed due to API error: %s", e)
+            logger.info("Returning current strategy unchanged.")
+            return self.load_current_strategy()
 
         # Save evolution record
         evolution_record = {

@@ -1,10 +1,7 @@
 """問い合わせBot — 自動テスト."""
 
-import json
 from pathlib import Path
-from unittest.mock import MagicMock, patch
 
-import pytest
 import yaml
 
 

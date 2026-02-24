@@ -14,13 +14,16 @@ from __future__ import annotations
 
 import json
 import hashlib
+import logging
 from datetime import datetime, timezone
 from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
 from typing import Any
 
-from anthropic import Anthropic
+from nexus.common import call_api, parse_json
+
+logger = logging.getLogger("nexus.crawler")
 
 
 class OpportunityType(str, Enum):
@@ -170,7 +173,6 @@ class OpportunityCrawler:
     """
 
     def __init__(self, data_dir: Path | None = None):
-        self.client = Anthropic()
         self.data_dir = data_dir or Path("nexus/data/crawler")
         self.data_dir.mkdir(parents=True, exist_ok=True)
         self.opportunities: list[Opportunity] = []
@@ -189,17 +191,25 @@ class OpportunityCrawler:
         if history_context:
             user_content += f"\n\n過去の試行結果:\n{history_context}"
 
-        response = self.client.messages.create(
-            model="claude-sonnet-4-20250514",
-            max_tokens=8192,
+        logger.info("Crawling market opportunities (focus=%s)", focus or "general")
+        raw_text = call_api(
             system=CRAWL_PROMPT,
             messages=[{"role": "user", "content": user_content}],
+            max_tokens=8192,
         )
 
-        opportunities = self._parse_opportunities(response.content[0].text)
-        self.opportunities.extend(opportunities)
-        self._save_crawl_result(opportunities)
-        return opportunities
+        opportunities = self._parse_opportunities(raw_text)
+
+        # Duplicate detection: skip opportunities whose title already exists
+        existing_titles = {o.title for o in self.opportunities}
+        new_opportunities = [o for o in opportunities if o.title not in existing_titles]
+        if len(new_opportunities) < len(opportunities):
+            logger.info("Filtered %d duplicate opportunities", len(opportunities) - len(new_opportunities))
+
+        self.opportunities.extend(new_opportunities)
+        self._save_crawl_result(new_opportunities)
+        logger.info("Discovered %d new opportunities", len(new_opportunities))
+        return new_opportunities
 
     def evaluate(self, opportunities: list[Opportunity] | None = None) -> list[dict]:
         """ALPHA-OMEGAの議論で機会を評価する"""
@@ -213,17 +223,17 @@ class OpportunityCrawler:
             indent=2,
         )
 
-        response = self.client.messages.create(
-            model="claude-sonnet-4-20250514",
-            max_tokens=4096,
+        logger.info("Evaluating %d opportunities via ALPHA-OMEGA debate", len(targets))
+        raw_text = call_api(
             system=EVALUATE_PROMPT,
             messages=[{
                 "role": "user",
                 "content": f"以下の収益機会を評価してください:\n\n{opps_text}",
             }],
+            max_tokens=4096,
         )
 
-        return self._parse_evaluation(response.content[0].text)
+        return self._parse_evaluation(raw_text)
 
     def get_top_opportunities(self, limit: int = 5) -> list[Opportunity]:
         """優先度スコア上位の機会を取得"""
@@ -278,15 +288,7 @@ class OpportunityCrawler:
 
     def _parse_opportunities(self, raw_text: str) -> list[Opportunity]:
         """Claude応答をOpportunityリストにパース"""
-        try:
-            json_start = raw_text.find("{")
-            json_end = raw_text.rfind("}") + 1
-            if json_start >= 0 and json_end > json_start:
-                parsed = json.loads(raw_text[json_start:json_end])
-            else:
-                parsed = {}
-        except json.JSONDecodeError:
-            parsed = {}
+        parsed = parse_json(raw_text)
 
         opps = []
         for item in parsed.get("opportunities", []):
@@ -318,16 +320,7 @@ class OpportunityCrawler:
 
     def _parse_evaluation(self, raw_text: str) -> list[dict]:
         """評価結果をパース"""
-        try:
-            json_start = raw_text.find("{")
-            json_end = raw_text.rfind("}") + 1
-            if json_start >= 0 and json_end > json_start:
-                parsed = json.loads(raw_text[json_start:json_end])
-            else:
-                parsed = {}
-        except json.JSONDecodeError:
-            parsed = {}
-
+        parsed = parse_json(raw_text)
         return parsed.get("evaluated", [])
 
     def _save_crawl_result(self, opportunities: list[Opportunity]) -> None:

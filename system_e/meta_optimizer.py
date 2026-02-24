@@ -47,6 +47,7 @@ class MetaOptimizer:
         health = system_health or self._self_diagnosis()
 
         # Have Strategist analyze the overall system
+        logger.info("Running strategic analysis via Strategist agent")
         strategy_analysis = self.strategist.think(
             task=(
                 "以下のシステム健全性データを分析し、全体戦略の観点から\n"
@@ -57,6 +58,7 @@ class MetaOptimizer:
         )
 
         # Have Optimizer suggest specific improvements
+        logger.info("Generating optimization plan via Optimizer agent")
         optimization_plan = self.optimizer.think(
             task=(
                 "以下のシステム健全性データと戦略分析を踏まえ、\n"
@@ -94,6 +96,7 @@ class MetaOptimizer:
         Returns:
             Interaction optimization recommendations.
         """
+        logger.info("=== Meta-Optimization: Interaction Optimization ===")
         default_description = (
             "複数のサブシステムで構成されたAI自動化プラットフォーム。\n"
             "各システムの詳細が不明な場合、一般的なマルチエージェントシステムの\n"
@@ -111,7 +114,9 @@ class MetaOptimizer:
 3. 新たに追加すべき連携パスは何か？
 4. メタ知能レイヤーとして他システムをどう強化できるか？"""
 
-        return self.strategist.think(task)
+        result = self.strategist.think(task)
+        logger.info("Interaction optimization complete")
+        return result
 
     def generate_report(self, health_data: Optional[dict] = None) -> dict:
         """Generate a meta-optimization report.

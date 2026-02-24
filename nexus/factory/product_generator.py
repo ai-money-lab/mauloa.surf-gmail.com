@@ -13,13 +13,16 @@ from __future__ import annotations
 
 import json
 import hashlib
+import logging
 from datetime import datetime, timezone
 from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
 from typing import Any
 
-from anthropic import Anthropic
+from nexus.common import call_api, parse_json
+
+logger = logging.getLogger("nexus.factory")
 
 
 class ProductCategory(str, Enum):
@@ -172,7 +175,6 @@ class ProductGenerator:
     """
 
     def __init__(self, data_dir: Path | None = None):
-        self.client = Anthropic()
         self.data_dir = data_dir or Path("nexus/data/factory")
         self.data_dir.mkdir(parents=True, exist_ok=True)
         self.products: list[Product] = []
@@ -187,14 +189,14 @@ class ProductGenerator:
             instruction += f"\n目標価格帯: {target_price}円"
         instruction += "\n\n上記テーマで、即座に販売可能な品質の商品を生成してください。"
 
-        response = self.client.messages.create(
-            model="claude-sonnet-4-20250514",
-            max_tokens=8192,
+        logger.info("Generating product (theme=%s, category=%s)", theme, category.value)
+        raw_text = call_api(
             system=system_prompt,
             messages=[{"role": "user", "content": instruction}],
+            max_tokens=8192,
         )
 
-        product = self._parse_product(response.content[0].text, category)
+        product = self._parse_product(raw_text, category)
 
         # 出品コピーも生成
         listing = self._generate_listing(product)
@@ -237,9 +239,8 @@ class ProductGenerator:
 
     def _generate_listing(self, product: Product) -> dict[str, str]:
         """出品用コピーを生成"""
-        response = self.client.messages.create(
-            model="claude-sonnet-4-20250514",
-            max_tokens=2048,
+        logger.info("Generating listing copy for product: %s", product.name)
+        raw_text = call_api(
             system=LISTING_PROMPT,
             messages=[{
                 "role": "user",
@@ -251,29 +252,14 @@ class ProductGenerator:
                     f"内容（一部）: {product.content[:500]}"
                 ),
             }],
+            max_tokens=2048,
         )
 
-        try:
-            raw = response.content[0].text
-            json_start = raw.find("{")
-            json_end = raw.rfind("}") + 1
-            if json_start >= 0 and json_end > json_start:
-                return json.loads(raw[json_start:json_end])
-        except (json.JSONDecodeError, IndexError):
-            pass
-        return {}
+        return parse_json(raw_text)
 
     def _parse_product(self, raw_text: str, category: ProductCategory) -> Product:
         """Claude応答をProductにパース"""
-        try:
-            json_start = raw_text.find("{")
-            json_end = raw_text.rfind("}") + 1
-            if json_start >= 0 and json_end > json_start:
-                parsed = json.loads(raw_text[json_start:json_end])
-            else:
-                parsed = {}
-        except json.JSONDecodeError:
-            parsed = {}
+        parsed = parse_json(raw_text)
 
         name = parsed.get("product_name", f"AI商品_{category.value}")
         description = parsed.get("description", "")

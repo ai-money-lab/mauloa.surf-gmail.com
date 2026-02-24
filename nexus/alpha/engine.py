@@ -14,13 +14,16 @@ from __future__ import annotations
 
 import json
 import hashlib
+import logging
 from datetime import datetime, timezone
 from dataclasses import dataclass, field, asdict
 from enum import Enum
 from pathlib import Path
 from typing import Any
 
-from anthropic import Anthropic
+from nexus.common import call_api, parse_json
+
+logger = logging.getLogger("nexus.alpha")
 
 
 class TaskType(str, Enum):
@@ -100,7 +103,6 @@ class AlphaEngine:
 - "improvement_notes": 改善の余地"""
 
     def __init__(self, data_dir: Path | None = None):
-        self.client = Anthropic()
         self.data_dir = data_dir or Path("nexus/data/alpha")
         self.data_dir.mkdir(parents=True, exist_ok=True)
         self.history: list[AlphaOutput] = []
@@ -109,16 +111,16 @@ class AlphaEngine:
         """タスクを実行し、成果物を生成する"""
         messages = self._build_messages(task)
         best_output = None
+        logger.info("Executing task type=%s, max_iterations=%d", task.task_type.value, task.max_iterations)
 
         for iteration in range(task.max_iterations):
-            response = self.client.messages.create(
-                model="claude-sonnet-4-20250514",
-                max_tokens=4096,
+            logger.info("Iteration %d/%d for task type=%s", iteration + 1, task.max_iterations, task.task_type.value)
+            raw_text = call_api(
                 system=self.SYSTEM_PROMPT,
                 messages=messages,
+                max_tokens=4096,
             )
 
-            raw_text = response.content[0].text
             parsed = self._parse_response(raw_text, task)
 
             if best_output is None or parsed.revenue_potential > best_output.revenue_potential:
@@ -182,16 +184,7 @@ class AlphaEngine:
 
     def _parse_response(self, raw_text: str, task: AlphaTask) -> AlphaOutput:
         """Claude応答をAlphaOutputにパース"""
-        try:
-            # JSON部分を抽出
-            json_start = raw_text.find("{")
-            json_end = raw_text.rfind("}") + 1
-            if json_start >= 0 and json_end > json_start:
-                parsed = json.loads(raw_text[json_start:json_end])
-            else:
-                parsed = {}
-        except json.JSONDecodeError:
-            parsed = {}
+        parsed = parse_json(raw_text)
 
         content = parsed.get("content", raw_text)
         quality_score = parsed.get("quality_score", 5)

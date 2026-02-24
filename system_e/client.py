@@ -7,9 +7,10 @@ System E 専用の Anthropic Claude API クライアント。
 import json
 import os
 import logging
+import time
 from typing import Optional
 
-from anthropic import Anthropic
+from anthropic import Anthropic, APIError, RateLimitError, APITimeoutError
 
 logger = logging.getLogger(__name__)
 
@@ -39,12 +40,28 @@ class ClaudeClient:
         if system:
             kwargs["system"] = system
 
-        try:
-            response = self.client.messages.create(**kwargs)
-            return response.content[0].text
-        except Exception as e:
-            logger.error("Claude API call failed: %s", e)
-            raise
+        max_retries = 3
+        for attempt in range(max_retries):
+            try:
+                response = self.client.messages.create(**kwargs)
+                return response.content[0].text
+            except (RateLimitError, APITimeoutError) as e:
+                if attempt < max_retries - 1:
+                    wait = 2 ** attempt
+                    logger.warning(
+                        "Claude API %s (attempt %d/%d), retrying in %ds: %s",
+                        type(e).__name__, attempt + 1, max_retries, wait, e,
+                    )
+                    time.sleep(wait)
+                else:
+                    logger.error("Claude API %s after %d attempts: %s", type(e).__name__, max_retries, e)
+                    raise
+            except APIError as e:
+                logger.error("Claude API call failed: %s", e)
+                raise
+            except Exception as e:
+                logger.error("Claude API call failed: %s", e)
+                raise
 
     def generate_json(
         self,

@@ -165,10 +165,17 @@ class AgentRunner:
 
         try:
             text = raw.strip()
-            if text.startswith("```"):
-                lines = text.split("\n")
-                lines = [ln for ln in lines[1:] if not ln.strip().startswith("```")]
-                text = "\n".join(lines)
+            # Handle ```json or ``` code blocks
+            if "```" in text:
+                import re
+                match = re.search(r"```(?:json)?\s*\n(.*?)```", text, re.DOTALL)
+                if match:
+                    text = match.group(1).strip()
+                else:
+                    # Fallback: strip leading/trailing ``` lines
+                    lines = text.split("\n")
+                    lines = [ln for ln in lines if not ln.strip().startswith("```")]
+                    text = "\n".join(lines).strip()
             result = json.loads(text)
         except json.JSONDecodeError:
             logger.warning("[%s] Non-JSON response, wrapping as raw.", self.persona.name)

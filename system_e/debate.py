@@ -21,7 +21,7 @@ from system_e.agents import (
     CRITIC,
 )
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("system_e.debate")
 
 JST = timezone(timedelta(hours=9))
 DEBATE_LOG_DIR = Path(__file__).parent / "data" / "debates"
@@ -81,6 +81,7 @@ class DebateProtocol:
             logger.info("Round 3 complete: convergence reached")
 
         # ── 最終統合 ──
+        logger.info("Synthesizing final consensus for debate [%s]", debate_id)
         synthesis = self._synthesize(topic, record["rounds"])
         record["synthesis"] = synthesis
         record["completed_at"] = datetime.now(JST).isoformat()

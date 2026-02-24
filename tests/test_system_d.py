@@ -1,8 +1,7 @@
 """Tests for system_d modules."""
 
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 
-import pytest
 
 
 class TestResultsContentGenerator:

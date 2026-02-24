@@ -21,9 +21,10 @@ from datetime import datetime, timezone
 from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
+from threading import Lock
 from typing import Any
 
-from anthropic import Anthropic
+from nexus.common import call_api, parse_json
 
 logger = logging.getLogger("nexus.agents")
 
@@ -138,11 +139,11 @@ class AgentSwarm:
     """
 
     def __init__(self, max_workers: int = 5, data_dir: Path | None = None):
-        self.client = Anthropic()
         self.max_workers = max_workers
         self.data_dir = data_dir or Path("nexus/data/agents")
         self.data_dir.mkdir(parents=True, exist_ok=True)
         self.results_history: list[list[AgentResult]] = []
+        self._lock = Lock()
 
     def dispatch(self, tasks: list[AgentTask]) -> list[AgentResult]:
         """複数エージェントを並列実行"""
@@ -170,7 +171,8 @@ class AgentSwarm:
                         success=False,
                     ))
 
-        self.results_history.append(results)
+        with self._lock:
+            self.results_history.append(results)
         self._save_results(results)
         return results
 
@@ -240,9 +242,7 @@ class AgentSwarm:
             for r in successful
         )
 
-        response = self.client.messages.create(
-            model="claude-sonnet-4-20250514",
-            max_tokens=4096,
+        raw = call_api(
             system=(
                 "あなたは複数のAIエージェントの結果を統合する統合エンジンです。\n"
                 "各エージェントの発見を組み合わせ、最も効果的なアクションプランを作成してください。\n\n"
@@ -256,18 +256,10 @@ class AgentSwarm:
                 "role": "user",
                 "content": f"以下の全エージェント結果を統合してください:\n\n{synthesis_input}",
             }],
+            max_tokens=4096,
         )
 
-        raw = response.content[0].text
-        try:
-            json_start = raw.find("{")
-            json_end = raw.rfind("}") + 1
-            if json_start >= 0 and json_end > json_start:
-                return json.loads(raw[json_start:json_end])
-        except json.JSONDecodeError:
-            pass
-
-        return {"raw_synthesis": raw}
+        return parse_json(raw, default={"raw_synthesis": raw})
 
     def _execute_agent(self, task: AgentTask) -> AgentResult:
         """単一エージェントを実行"""
@@ -279,26 +271,15 @@ class AgentSwarm:
         if task.context:
             user_content += f"\n\nコンテキスト:\n{json.dumps(task.context, ensure_ascii=False, indent=2)}"
 
-        response = self.client.messages.create(
-            model="claude-sonnet-4-20250514",
-            max_tokens=4096,
+        raw_text = call_api(
             system=system_prompt,
             messages=[{"role": "user", "content": user_content}],
+            max_tokens=4096,
         )
-
-        raw_text = response.content[0].text
         elapsed = time.time() - start_time
 
         # JSONパース
-        try:
-            json_start = raw_text.find("{")
-            json_end = raw_text.rfind("}") + 1
-            if json_start >= 0 and json_end > json_start:
-                output = json.loads(raw_text[json_start:json_end])
-            else:
-                output = {"raw": raw_text}
-        except json.JSONDecodeError:
-            output = {"raw": raw_text}
+        output = parse_json(raw_text, default={"raw": raw_text})
 
         return AgentResult(
             role=task.role,

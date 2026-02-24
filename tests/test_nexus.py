@@ -2,16 +2,16 @@
 NEXUS System — テスト
 
 全コンポーネントのテスト: ALPHA, OMEGA, BRIDGE, AGENTS, MONETIZE,
-CRAWLER, FACTORY, TRIAL, DEBATE, EVOLUTION, ORCHESTRATOR
+CRAWLER, FACTORY, TRIAL, DEBATE, EVOLUTION, ORCHESTRATOR, COMMON
 Claude API呼び出しはモックで差し替え。
 """
 
 import json
-from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pytest
 
+from nexus.common import parse_json, parse_json_list
 from nexus.alpha.engine import (
     AlphaEngine, AlphaTask, AlphaOutput, TaskType, OutputQuality,
 )
@@ -21,7 +21,7 @@ from nexus.omega.engine import (
 from nexus.bridge.protocol import Bridge, CycleResult, CyclePhase
 from nexus.agents.swarm import AgentSwarm, AgentTask, AgentRole, AgentResult
 from nexus.monetize.pipeline import (
-    MonetizePipeline, Deal, Channel, DealStatus, RevenueReport,
+    MonetizePipeline, Deal, Channel, DealStatus,
 )
 from nexus.crawler.opportunity_crawler import (
     OpportunityCrawler, Opportunity, OpportunityType, Feasibility,
@@ -216,18 +216,50 @@ MOCK_EVOLVE_RESPONSE = json.dumps({
 })
 
 
-def _mock_anthropic_response(text: str) -> MagicMock:
-    """Anthropicレスポンスのモック生成"""
-    mock_response = MagicMock()
-    mock_content = MagicMock()
-    mock_content.text = text
-    mock_response.content = [mock_content]
-    return mock_response
-
-
 @pytest.fixture
 def tmp_data_dir(tmp_path):
     return tmp_path / "nexus_test"
+
+
+# ─── Common (parse_json) Tests ───
+
+class TestParseJson:
+    def test_parse_full_json(self):
+        text = '{"key": "value", "num": 42}'
+        assert parse_json(text) == {"key": "value", "num": 42}
+
+    def test_parse_json_with_surrounding_text(self):
+        text = 'Here is the result: {"key": "value"} done.'
+        assert parse_json(text) == {"key": "value"}
+
+    def test_parse_json_code_block(self):
+        text = '```json\n{"key": "value"}\n```'
+        assert parse_json(text) == {"key": "value"}
+
+    def test_parse_json_nested(self):
+        text = 'prefix {"outer": {"inner": 1}} suffix'
+        result = parse_json(text)
+        assert result["outer"]["inner"] == 1
+
+    def test_parse_json_default(self):
+        assert parse_json("not json at all") == {}
+        assert parse_json("", {"fallback": True}) == {"fallback": True}
+
+    def test_parse_json_with_escaped_braces_in_string(self):
+        text = '{"code": "function() { return {}; }", "ok": true}'
+        result = parse_json(text)
+        assert result["ok"] is True
+
+    def test_parse_json_list_basic(self):
+        text = '{"items": [1, 2, 3]}'
+        assert parse_json_list(text, "items") == [1, 2, 3]
+
+    def test_parse_json_list_missing_key(self):
+        text = '{"other": [1]}'
+        assert parse_json_list(text, "items") == []
+
+    def test_parse_json_list_default(self):
+        assert parse_json_list("bad", "items", ["x"]) == ["x"]
 
 
 # ─── AlphaOutput Tests ───
@@ -255,16 +287,19 @@ class TestAlphaOutput:
         assert d["quality"] == "final"
         assert d["revenue_potential"] == 5000.0
 
+    def test_output_id_deterministic(self):
+        """Same inputs at same time produce same ID"""
+        ts = "2025-01-01T00:00:00"
+        a = AlphaOutput(task_type=TaskType.CODE, content="test", quality=OutputQuality.DRAFT, timestamp=ts, output_id="")
+        b = AlphaOutput(task_type=TaskType.CODE, content="test", quality=OutputQuality.DRAFT, timestamp=ts, output_id="")
+        assert a.output_id == b.output_id
+
 
 # ─── AlphaEngine Tests ───
 
 class TestAlphaEngine:
-    @patch("nexus.alpha.engine.Anthropic")
-    def test_execute(self, mock_anthropic_cls, tmp_data_dir):
-        mock_client = MagicMock()
-        mock_client.messages.create.return_value = _mock_anthropic_response(MOCK_ALPHA_RESPONSE)
-        mock_anthropic_cls.return_value = mock_client
-
+    @patch("nexus.alpha.engine.call_api", return_value=MOCK_ALPHA_RESPONSE)
+    def test_execute(self, mock_call, tmp_data_dir):
         engine = AlphaEngine(data_dir=tmp_data_dir / "alpha")
         task = AlphaTask(
             task_type=TaskType.CONTENT,
@@ -276,13 +311,10 @@ class TestAlphaEngine:
         assert output.quality == OutputQuality.PREMIUM  # score=8
         assert output.revenue_potential > 0
         assert len(engine.history) == 1
+        mock_call.assert_called()
 
-    @patch("nexus.alpha.engine.Anthropic")
-    def test_execute_batch(self, mock_anthropic_cls, tmp_data_dir):
-        mock_client = MagicMock()
-        mock_client.messages.create.return_value = _mock_anthropic_response(MOCK_ALPHA_RESPONSE)
-        mock_anthropic_cls.return_value = mock_client
-
+    @patch("nexus.alpha.engine.call_api", return_value=MOCK_ALPHA_RESPONSE)
+    def test_execute_batch(self, mock_call, tmp_data_dir):
         engine = AlphaEngine(data_dir=tmp_data_dir / "alpha")
         tasks = [
             AlphaTask(task_type=TaskType.CONTENT, instruction="Task 1", priority=5),
@@ -292,12 +324,8 @@ class TestAlphaEngine:
         outputs = engine.execute_batch(tasks)
         assert len(outputs) == 2
 
-    @patch("nexus.alpha.engine.Anthropic")
-    def test_receive_feedback(self, mock_anthropic_cls, tmp_data_dir):
-        mock_client = MagicMock()
-        mock_client.messages.create.return_value = _mock_anthropic_response(MOCK_ALPHA_RESPONSE)
-        mock_anthropic_cls.return_value = mock_client
-
+    @patch("nexus.alpha.engine.call_api", return_value=MOCK_ALPHA_RESPONSE)
+    def test_receive_feedback(self, mock_call, tmp_data_dir):
         engine = AlphaEngine(data_dir=tmp_data_dir / "alpha")
         task = AlphaTask(task_type=TaskType.CONTENT, instruction="Test")
         output = engine.execute(task)
@@ -308,16 +336,42 @@ class TestAlphaEngine:
         )
         assert improved is not None
 
+    @patch("nexus.alpha.engine.call_api")
+    def test_execute_iterates_until_quality(self, mock_call, tmp_data_dir):
+        """Low quality score triggers iteration, high score stops"""
+        low_response = json.dumps({"content": "draft", "quality_score": 4})
+        high_response = json.dumps({"content": "final", "quality_score": 9})
+        mock_call.side_effect = [low_response, high_response]
+
+        engine = AlphaEngine(data_dir=tmp_data_dir / "alpha")
+        task = AlphaTask(task_type=TaskType.CONTENT, instruction="Test", max_iterations=3)
+        output = engine.execute(task)
+        assert output.quality == OutputQuality.PREMIUM
+        assert mock_call.call_count == 2
+
+    def test_find_output_not_found(self, tmp_data_dir):
+        engine = AlphaEngine(data_dir=tmp_data_dir / "alpha")
+        assert engine._find_output("nonexistent") is None
+
+    @patch("nexus.alpha.engine.call_api", return_value=MOCK_ALPHA_RESPONSE)
+    def test_find_output_from_file(self, mock_call, tmp_data_dir):
+        engine = AlphaEngine(data_dir=tmp_data_dir / "alpha")
+        task = AlphaTask(task_type=TaskType.CONTENT, instruction="Test")
+        output = engine.execute(task)
+        output_id = output.output_id
+
+        # Clear in-memory, find from file
+        engine.history.clear()
+        found = engine._find_output(output_id)
+        assert found is not None
+        assert found.output_id == output_id
+
 
 # ─── OmegaEngine Tests ───
 
 class TestOmegaEngine:
-    @patch("nexus.omega.engine.Anthropic")
-    def test_analyze(self, mock_anthropic_cls, tmp_data_dir):
-        mock_client = MagicMock()
-        mock_client.messages.create.return_value = _mock_anthropic_response(MOCK_OMEGA_RESPONSE)
-        mock_anthropic_cls.return_value = mock_client
-
+    @patch("nexus.omega.engine.call_api", return_value=MOCK_OMEGA_RESPONSE)
+    def test_analyze(self, mock_call, tmp_data_dir):
         engine = OmegaEngine(data_dir=tmp_data_dir / "omega")
         alpha_output = AlphaOutput(
             task_type=TaskType.CONTENT,
@@ -329,23 +383,16 @@ class TestOmegaEngine:
         assert analysis.score == 7.5
         assert len(analysis.findings) == 2
         assert len(analysis.improvements) == 2
+        mock_call.assert_called_once()
 
-    @patch("nexus.omega.engine.Anthropic")
-    def test_scan_opportunities(self, mock_anthropic_cls, tmp_data_dir):
-        mock_client = MagicMock()
-        mock_client.messages.create.return_value = _mock_anthropic_response(MOCK_OMEGA_RESPONSE)
-        mock_anthropic_cls.return_value = mock_client
-
+    @patch("nexus.omega.engine.call_api", return_value=MOCK_OMEGA_RESPONSE)
+    def test_scan_opportunities(self, mock_call, tmp_data_dir):
         engine = OmegaEngine(data_dir=tmp_data_dir / "omega")
         signals = engine.scan_opportunities("AI市場")
         assert len(signals) == 1
         assert signals[0].title == "AI自動化ツール販売"
 
-    @patch("nexus.omega.engine.Anthropic")
-    def test_generate_alpha_tasks(self, mock_anthropic_cls, tmp_data_dir):
-        mock_client = MagicMock()
-        mock_anthropic_cls.return_value = mock_client
-
+    def test_generate_alpha_tasks(self, tmp_data_dir):
         engine = OmegaEngine(data_dir=tmp_data_dir / "omega")
         opp = OpportunitySignal(
             title="AIツール販売",
@@ -358,21 +405,27 @@ class TestOmegaEngine:
         assert len(tasks) == 1
         assert tasks[0].source == "omega"
 
+    def test_get_feedback(self, tmp_data_dir):
+        engine = OmegaEngine(data_dir=tmp_data_dir / "omega")
+        analysis = OmegaAnalysis(
+            analysis_type=AnalysisType.QUALITY_REVIEW,
+            target_id="test",
+            score=7.0,
+            findings=["finding1"],
+            improvements=["improve1"],
+            revenue_multiplier=1.5,
+        )
+        feedback = engine.get_feedback(analysis)
+        assert feedback["score"] == 7.0
+        assert feedback["revenue_multiplier"] == 1.5
+
 
 # ─── Bridge Tests ───
 
 class TestBridge:
-    @patch("nexus.omega.engine.Anthropic")
-    @patch("nexus.alpha.engine.Anthropic")
-    def test_run_cycle(self, mock_alpha_cls, mock_omega_cls, tmp_data_dir):
-        mock_alpha_client = MagicMock()
-        mock_alpha_client.messages.create.return_value = _mock_anthropic_response(MOCK_ALPHA_RESPONSE)
-        mock_alpha_cls.return_value = mock_alpha_client
-
-        mock_omega_client = MagicMock()
-        mock_omega_client.messages.create.return_value = _mock_anthropic_response(MOCK_OMEGA_RESPONSE)
-        mock_omega_cls.return_value = mock_omega_client
-
+    @patch("nexus.omega.engine.call_api", return_value=MOCK_OMEGA_RESPONSE)
+    @patch("nexus.alpha.engine.call_api", return_value=MOCK_ALPHA_RESPONSE)
+    def test_run_cycle(self, mock_alpha, mock_omega, tmp_data_dir):
         bridge = Bridge(data_dir=tmp_data_dir / "bridge")
         result = bridge.run_cycle()
 
@@ -381,16 +434,35 @@ class TestBridge:
         assert len(result.outputs) > 0
         assert CyclePhase.ALPHA_CREATE.value in result.phases_completed
 
+    @patch("nexus.omega.engine.call_api", return_value=MOCK_OMEGA_RESPONSE)
+    @patch("nexus.alpha.engine.call_api", return_value=MOCK_ALPHA_RESPONSE)
+    def test_run_continuous(self, mock_alpha, mock_omega, tmp_data_dir):
+        bridge = Bridge(data_dir=tmp_data_dir / "bridge")
+        results = bridge.run_continuous(num_cycles=2)
+        assert len(results) == 2
+        assert results[0].cycle_number == 1
+        assert results[1].cycle_number == 2
+
+    @patch("nexus.omega.engine.call_api", return_value=MOCK_OMEGA_RESPONSE)
+    @patch("nexus.alpha.engine.call_api", return_value=MOCK_ALPHA_RESPONSE)
+    def test_performance_summary(self, mock_alpha, mock_omega, tmp_data_dir):
+        bridge = Bridge(data_dir=tmp_data_dir / "bridge")
+        bridge.run_cycle()
+        summary = bridge.get_performance_summary()
+        assert summary["cycles_completed"] == 1
+        assert summary["total_outputs"] > 0
+
+    def test_performance_summary_empty(self, tmp_data_dir):
+        bridge = Bridge(data_dir=tmp_data_dir / "bridge")
+        summary = bridge.get_performance_summary()
+        assert summary["cycles"] == 0
+
 
 # ─── AgentSwarm Tests ───
 
 class TestAgentSwarm:
-    @patch("nexus.agents.swarm.Anthropic")
-    def test_dispatch(self, mock_anthropic_cls, tmp_data_dir):
-        mock_client = MagicMock()
-        mock_client.messages.create.return_value = _mock_anthropic_response(MOCK_AGENT_RESPONSE)
-        mock_anthropic_cls.return_value = mock_client
-
+    @patch("nexus.agents.swarm.call_api", return_value=MOCK_AGENT_RESPONSE)
+    def test_dispatch(self, mock_call, tmp_data_dir):
         swarm = AgentSwarm(max_workers=2, data_dir=tmp_data_dir / "agents")
         tasks = [
             AgentTask(role=AgentRole.HUNTER, instruction="テスト"),
@@ -401,22 +473,14 @@ class TestAgentSwarm:
         assert len(results) == 2
         assert all(r.success for r in results)
 
-    @patch("nexus.agents.swarm.Anthropic")
-    def test_full_sweep(self, mock_anthropic_cls, tmp_data_dir):
-        mock_client = MagicMock()
-        mock_client.messages.create.return_value = _mock_anthropic_response(MOCK_AGENT_RESPONSE)
-        mock_anthropic_cls.return_value = mock_client
-
+    @patch("nexus.agents.swarm.call_api", return_value=MOCK_AGENT_RESPONSE)
+    def test_full_sweep(self, mock_call, tmp_data_dir):
         swarm = AgentSwarm(max_workers=3, data_dir=tmp_data_dir / "agents")
         results = swarm.full_sweep()
         assert len(results) == 5
 
-    @patch("nexus.agents.swarm.Anthropic")
-    def test_synthesize(self, mock_anthropic_cls, tmp_data_dir):
-        mock_client = MagicMock()
-        mock_client.messages.create.return_value = _mock_anthropic_response(MOCK_SYNTHESIS_RESPONSE)
-        mock_anthropic_cls.return_value = mock_client
-
+    @patch("nexus.agents.swarm.call_api", return_value=MOCK_SYNTHESIS_RESPONSE)
+    def test_synthesize(self, mock_call, tmp_data_dir):
         swarm = AgentSwarm(data_dir=tmp_data_dir / "agents")
         results = [
             AgentResult(role=AgentRole.HUNTER, output={"test": True}, raw_text="", success=True),
@@ -425,6 +489,17 @@ class TestAgentSwarm:
 
         synthesis = swarm.synthesize(results)
         assert "priority_actions" in synthesis
+
+    def test_synthesize_empty(self, tmp_data_dir):
+        swarm = AgentSwarm(data_dir=tmp_data_dir / "agents")
+        result = swarm.synthesize([])
+        assert "error" in result
+
+    @patch("nexus.agents.swarm.call_api", return_value=MOCK_AGENT_RESPONSE)
+    def test_targeted_sweep(self, mock_call, tmp_data_dir):
+        swarm = AgentSwarm(max_workers=2, data_dir=tmp_data_dir / "agents")
+        results = swarm.targeted_sweep("AI自動化", roles=[AgentRole.BUILDER, AgentRole.ANALYST])
+        assert len(results) == 2
 
 
 # ─── MonetizePipeline Tests ───
@@ -451,12 +526,8 @@ class TestMonetizePipeline:
         assert d["channel"] == "digital_product"
         assert d["status"] == "proposed"
 
-    @patch("nexus.monetize.pipeline.Anthropic")
-    def test_convert_to_deals(self, mock_anthropic_cls, tmp_data_dir):
-        mock_client = MagicMock()
-        mock_client.messages.create.return_value = _mock_anthropic_response(MOCK_MONETIZE_RESPONSE)
-        mock_anthropic_cls.return_value = mock_client
-
+    @patch("nexus.monetize.pipeline.call_api", return_value=MOCK_MONETIZE_RESPONSE)
+    def test_convert_to_deals(self, mock_call, tmp_data_dir):
         pipeline = MonetizePipeline(data_dir=tmp_data_dir / "monetize")
         outputs = [
             AlphaOutput(
@@ -495,6 +566,20 @@ class TestMonetizePipeline:
         assert updated.status == DealStatus.PAID
         assert updated.actual_revenue == 10000
 
+    def test_update_deal_not_found(self, tmp_data_dir):
+        pipeline = MonetizePipeline(data_dir=tmp_data_dir / "monetize")
+        assert pipeline.update_deal_status("nonexistent", DealStatus.PAID) is None
+
+    def test_generate_alpha_tasks_for_deal(self, tmp_data_dir):
+        pipeline = MonetizePipeline(data_dir=tmp_data_dir / "monetize")
+        deal = Deal(
+            title="Test Deal", channel=Channel.FREELANCE,
+            status=DealStatus.ACCEPTED, estimated_revenue=50000,
+            deliverables=["成果物A", "成果物B"],
+        )
+        tasks = pipeline.generate_alpha_tasks_for_deal(deal)
+        assert len(tasks) == 2
+
 
 # ─── Crawler Tests ───
 
@@ -522,23 +607,26 @@ class TestOpportunityCrawler:
         assert d["opportunity_type"] == "api_service"
         assert d["feasibility"] == "short_term"
 
-    @patch("nexus.crawler.opportunity_crawler.Anthropic")
-    def test_crawl(self, mock_anthropic_cls, tmp_data_dir):
-        mock_client = MagicMock()
-        mock_client.messages.create.return_value = _mock_anthropic_response(MOCK_CRAWL_RESPONSE)
-        mock_anthropic_cls.return_value = mock_client
+    def test_priority_score_calculation(self):
+        immediate = Opportunity(
+            title="A", opportunity_type=OpportunityType.DIGITAL_PRODUCT,
+            feasibility=Feasibility.IMMEDIATE, estimated_revenue=10000, confidence=1.0,
+        )
+        long_term = Opportunity(
+            title="B", opportunity_type=OpportunityType.DIGITAL_PRODUCT,
+            feasibility=Feasibility.LONG_TERM, estimated_revenue=10000, confidence=1.0,
+        )
+        assert immediate.priority_score > long_term.priority_score
 
+    @patch("nexus.crawler.opportunity_crawler.call_api", return_value=MOCK_CRAWL_RESPONSE)
+    def test_crawl(self, mock_call, tmp_data_dir):
         crawler = OpportunityCrawler(data_dir=tmp_data_dir / "crawler")
         opps = crawler.crawl()
         assert len(opps) == 2
         assert opps[0].title == "プロンプトテンプレート販売"
 
-    @patch("nexus.crawler.opportunity_crawler.Anthropic")
-    def test_evaluate(self, mock_anthropic_cls, tmp_data_dir):
-        mock_client = MagicMock()
-        mock_client.messages.create.return_value = _mock_anthropic_response(MOCK_EVALUATE_RESPONSE)
-        mock_anthropic_cls.return_value = mock_client
-
+    @patch("nexus.crawler.opportunity_crawler.call_api", return_value=MOCK_EVALUATE_RESPONSE)
+    def test_evaluate(self, mock_call, tmp_data_dir):
         crawler = OpportunityCrawler(data_dir=tmp_data_dir / "crawler")
         opp = Opportunity(
             title="テスト", opportunity_type=OpportunityType.DIGITAL_PRODUCT,
@@ -552,6 +640,17 @@ class TestOpportunityCrawler:
         crawler = OpportunityCrawler(data_dir=tmp_data_dir / "crawler")
         crawler.record_trial_result("test_id", success=True, actual_revenue=50000, notes="成功")
         assert len(crawler.crawl_history) == 1
+
+    def test_get_top_opportunities(self, tmp_data_dir):
+        crawler = OpportunityCrawler(data_dir=tmp_data_dir / "crawler")
+        for i in range(5):
+            crawler.opportunities.append(Opportunity(
+                title=f"Opp {i}", opportunity_type=OpportunityType.DIGITAL_PRODUCT,
+                feasibility=Feasibility.IMMEDIATE, estimated_revenue=(i + 1) * 10000, confidence=0.8,
+            ))
+        top = crawler.get_top_opportunities(limit=3)
+        assert len(top) == 3
+        assert top[0].estimated_revenue >= top[1].estimated_revenue
 
 
 # ─── Factory Tests ───
@@ -578,20 +677,19 @@ class TestProductGenerator:
         assert d["category"] == "prompt_pack"
         assert d["price"] == 5000
 
-    @patch("nexus.factory.product_generator.Anthropic")
-    def test_generate(self, mock_anthropic_cls, tmp_data_dir):
-        mock_client = MagicMock()
-        mock_client.messages.create.side_effect = [
-            _mock_anthropic_response(MOCK_PRODUCT_RESPONSE),
-            _mock_anthropic_response(MOCK_LISTING_RESPONSE),
-        ]
-        mock_anthropic_cls.return_value = mock_client
+    @patch("nexus.factory.product_generator.call_api")
+    def test_generate(self, mock_call, tmp_data_dir):
+        mock_call.side_effect = [MOCK_PRODUCT_RESPONSE, MOCK_LISTING_RESPONSE]
 
         factory = ProductGenerator(data_dir=tmp_data_dir / "factory")
         product = factory.generate("業務効率化", ProductCategory.PROMPT_PACK)
         assert product is not None
         assert product.status == ProductStatus.READY
         assert len(factory.products) == 1
+
+    def test_get_product_not_found(self, tmp_data_dir):
+        factory = ProductGenerator(data_dir=tmp_data_dir / "factory")
+        assert factory.get_product("nonexistent") is None
 
 
 # ─── Trial Tests ───
@@ -605,21 +703,10 @@ class TestTrialRunner:
         trial = Trial(opportunity=opp, mode=TrialMode.DRY_RUN, result=TrialResult.PENDING)
         assert trial.trial_id != ""
 
-    @patch("nexus.factory.product_generator.Anthropic")
-    @patch("nexus.trial.trial_runner.Anthropic")
-    def test_run_trial_success(self, mock_trial_cls, mock_factory_cls, tmp_data_dir):
-        # Factory mock
-        mock_factory_client = MagicMock()
-        mock_factory_client.messages.create.side_effect = [
-            _mock_anthropic_response(MOCK_PRODUCT_RESPONSE),
-            _mock_anthropic_response(MOCK_LISTING_RESPONSE),
-        ]
-        mock_factory_cls.return_value = mock_factory_client
-
-        # Trial evaluation mock
-        mock_trial_client = MagicMock()
-        mock_trial_client.messages.create.return_value = _mock_anthropic_response(MOCK_TRIAL_EVAL_RESPONSE)
-        mock_trial_cls.return_value = mock_trial_client
+    @patch("nexus.trial.trial_runner.call_api", return_value=MOCK_TRIAL_EVAL_RESPONSE)
+    @patch("nexus.factory.product_generator.call_api")
+    def test_run_trial_success(self, mock_factory, mock_trial, tmp_data_dir):
+        mock_factory.side_effect = [MOCK_PRODUCT_RESPONSE, MOCK_LISTING_RESPONSE]
 
         factory = ProductGenerator(data_dir=tmp_data_dir / "factory")
         runner = TrialRunner(factory=factory, data_dir=tmp_data_dir / "trial")
@@ -633,6 +720,25 @@ class TestTrialRunner:
         assert trial.result == TrialResult.SUCCESS
         assert trial.product is not None
 
+    @patch("nexus.trial.trial_runner.call_api", return_value=json.dumps({
+        "total_score": 20, "verdict": "failure", "weaknesses": ["品質低い"], "improvements": ["改善必要"],
+    }))
+    @patch("nexus.factory.product_generator.call_api")
+    def test_run_trial_failure(self, mock_factory, mock_trial, tmp_data_dir):
+        mock_factory.side_effect = [MOCK_PRODUCT_RESPONSE, MOCK_LISTING_RESPONSE]
+
+        factory = ProductGenerator(data_dir=tmp_data_dir / "factory")
+        runner = TrialRunner(factory=factory, data_dir=tmp_data_dir / "trial")
+
+        opp = Opportunity(
+            title="失敗テスト", opportunity_type=OpportunityType.DIGITAL_PRODUCT,
+            feasibility=Feasibility.IMMEDIATE, estimated_revenue=30000, confidence=0.8,
+        )
+
+        trial = runner.run_trial(opp)
+        assert trial.result == TrialResult.FAILURE
+        assert trial.debate_requested is True
+
     def test_get_stats(self, tmp_data_dir):
         runner = TrialRunner(data_dir=tmp_data_dir / "trial")
         stats = runner.get_stats()
@@ -643,23 +749,18 @@ class TestTrialRunner:
 # ─── Debate Tests ───
 
 class TestDebateEngine:
-    @patch("nexus.debate.debate_engine.Anthropic")
-    def test_debate(self, mock_anthropic_cls, tmp_data_dir):
-        mock_client = MagicMock()
-        mock_client.messages.create.side_effect = [
+    @patch("nexus.debate.debate_engine.call_api")
+    def test_debate(self, mock_call, tmp_data_dir):
+        mock_call.side_effect = [
             # Round 1
-            _mock_anthropic_response(MOCK_DEBATE_ALPHA),
-            _mock_anthropic_response(MOCK_DEBATE_OMEGA),
+            MOCK_DEBATE_ALPHA, MOCK_DEBATE_OMEGA,
             # Round 2
-            _mock_anthropic_response(MOCK_DEBATE_ALPHA),
-            _mock_anthropic_response(MOCK_DEBATE_OMEGA),
+            MOCK_DEBATE_ALPHA, MOCK_DEBATE_OMEGA,
             # Round 3
-            _mock_anthropic_response(MOCK_DEBATE_ALPHA),
-            _mock_anthropic_response(MOCK_DEBATE_OMEGA),
+            MOCK_DEBATE_ALPHA, MOCK_DEBATE_OMEGA,
             # Synthesis
-            _mock_anthropic_response(MOCK_DEBATE_SYNTHESIS),
+            MOCK_DEBATE_SYNTHESIS,
         ]
-        mock_anthropic_cls.return_value = mock_client
 
         engine = DebateEngine(data_dir=tmp_data_dir / "debate")
 
@@ -675,9 +776,40 @@ class TestDebateEngine:
 
         result = engine.debate(trial)
         assert isinstance(result, DebateResult)
-        assert len(result.rounds) == 3
+        assert len(result.rounds) >= 2
         assert result.should_retry is True
         assert result.confidence == 0.75
+
+    @patch("nexus.debate.debate_engine.call_api")
+    def test_debate_adaptive_termination(self, mock_call, tmp_data_dir):
+        """High agreement after round 2 should skip round 3"""
+        alpha_high_agree = json.dumps({
+            "argument": "同意する",
+            "proposed_improvements": ["A"],
+            "counter_to_omega": "",
+            "concessions": ["ポイント1", "ポイント2", "ポイント3"],
+        })
+        omega_high_agree = json.dumps({
+            "argument": "概ね合意",
+            "critical_issues": [],
+            "counter_to_alpha": "",
+            "constructive_suggestions": ["提案1", "提案2", "提案3"],
+        })
+        mock_call.side_effect = [
+            MOCK_DEBATE_ALPHA, MOCK_DEBATE_OMEGA,   # Round 1
+            alpha_high_agree, omega_high_agree,       # Round 2 (high agreement)
+            MOCK_DEBATE_SYNTHESIS,                     # Synthesis
+        ]
+
+        engine = DebateEngine(data_dir=tmp_data_dir / "debate")
+        opp = Opportunity(
+            title="テスト", opportunity_type=OpportunityType.DIGITAL_PRODUCT,
+            feasibility=Feasibility.IMMEDIATE, estimated_revenue=30000, confidence=0.8,
+        )
+        trial = Trial(opportunity=opp, mode=TrialMode.DRY_RUN, result=TrialResult.FAILURE)
+
+        result = engine.debate(trial)
+        assert len(result.rounds) == 2
 
 
 # ─── Evolution Tests ───
@@ -724,12 +856,25 @@ class TestEvolver:
         pattern = evolver.extract_pattern(trial)
         assert pattern is None
 
-    @patch("nexus.evolution.evolver.Anthropic")
-    def test_evolve(self, mock_anthropic_cls, tmp_data_dir):
-        mock_client = MagicMock()
-        mock_client.messages.create.return_value = _mock_anthropic_response(MOCK_EVOLVE_RESPONSE)
-        mock_anthropic_cls.return_value = mock_client
+    def test_extract_pattern_duplicate_detection(self, tmp_data_dir):
+        """Duplicate patterns with same title should return existing"""
+        evolver = Evolver(data_dir=tmp_data_dir / "evolution")
+        opp = Opportunity(
+            title="同じタイトル", opportunity_type=OpportunityType.DIGITAL_PRODUCT,
+            feasibility=Feasibility.IMMEDIATE, estimated_revenue=30000, confidence=0.8,
+        )
+        trial1 = Trial(opportunity=opp, mode=TrialMode.DRY_RUN, result=TrialResult.SUCCESS,
+                        evaluation={"total_score": 40}, lessons=["A"])
+        trial2 = Trial(opportunity=opp, mode=TrialMode.DRY_RUN, result=TrialResult.SUCCESS,
+                        evaluation={"total_score": 45}, lessons=["B"])
 
+        p1 = evolver.extract_pattern(trial1)
+        p2 = evolver.extract_pattern(trial2)
+        assert p1.pattern_id == p2.pattern_id
+        assert len(evolver.patterns) == 1
+
+    @patch("nexus.evolution.evolver.call_api", return_value=MOCK_EVOLVE_RESPONSE)
+    def test_evolve(self, mock_call, tmp_data_dir):
         evolver = Evolver(data_dir=tmp_data_dir / "evolution")
         evolver.patterns.append(SuccessPattern(
             pattern_id="p1", title="プロンプト販売", category="digital_product",
@@ -741,12 +886,14 @@ class TestEvolver:
         assert gen.gen_number == 1
         assert len(gen.patterns) == 1
 
-    @patch("nexus.evolution.evolver.Anthropic")
-    def test_replicate(self, mock_anthropic_cls, tmp_data_dir):
-        mock_client = MagicMock()
-        mock_client.messages.create.return_value = _mock_anthropic_response(MOCK_EVOLVE_RESPONSE)
-        mock_anthropic_cls.return_value = mock_client
+    def test_evolve_no_patterns(self, tmp_data_dir):
+        evolver = Evolver(data_dir=tmp_data_dir / "evolution")
+        gen = evolver.evolve()
+        assert gen.gen_number == 1
+        assert len(gen.patterns) == 0
 
+    @patch("nexus.evolution.evolver.call_api", return_value=MOCK_EVOLVE_RESPONSE)
+    def test_replicate(self, mock_call, tmp_data_dir):
         evolver = Evolver(data_dir=tmp_data_dir / "evolution")
         pattern = SuccessPattern(
             pattern_id="p1", title="プロンプト販売", category="digital_product",
@@ -756,13 +903,28 @@ class TestEvolver:
 
         new_opps = evolver.replicate(pattern)
         assert len(new_opps) == 2
-        assert pattern.replication_count == 2  # 0 (initial) + 2 (replicated)
+        assert pattern.replication_count == 2
 
     def test_get_evolution_stats(self, tmp_data_dir):
         evolver = Evolver(data_dir=tmp_data_dir / "evolution")
         stats = evolver.get_evolution_stats()
         assert stats["current_generation"] == 0
         assert stats["total_patterns"] == 0
+
+    def test_persistence(self, tmp_data_dir):
+        """State persists across instances"""
+        evolver1 = Evolver(data_dir=tmp_data_dir / "evolution")
+        opp = Opportunity(
+            title="永続テスト", opportunity_type=OpportunityType.DIGITAL_PRODUCT,
+            feasibility=Feasibility.IMMEDIATE, estimated_revenue=30000, confidence=0.8,
+        )
+        trial = Trial(opportunity=opp, mode=TrialMode.DRY_RUN, result=TrialResult.SUCCESS,
+                       evaluation={"total_score": 40}, lessons=["test"])
+        evolver1.extract_pattern(trial)
+
+        evolver2 = Evolver(data_dir=tmp_data_dir / "evolution")
+        assert len(evolver2.patterns) == 1
+        assert evolver2.patterns[0].title == "永続テスト"
 
 
 # ─── NexusState Tests ───
@@ -794,17 +956,17 @@ class TestNexusState:
 # ─── Integration (all mocked) ───
 
 class TestNexusIntegration:
-    @patch("nexus.agents.swarm.Anthropic")
-    @patch("nexus.monetize.pipeline.Anthropic")
-    @patch("nexus.omega.engine.Anthropic")
-    @patch("nexus.alpha.engine.Anthropic")
+    @patch("nexus.agents.swarm.call_api", return_value=MOCK_AGENT_RESPONSE)
+    @patch("nexus.monetize.pipeline.call_api", return_value=MOCK_MONETIZE_RESPONSE)
+    @patch("nexus.omega.engine.call_api", return_value=MOCK_OMEGA_RESPONSE)
+    @patch("nexus.alpha.engine.call_api", return_value=MOCK_ALPHA_RESPONSE)
     def test_orchestrator_single(self, mock_a, mock_o, mock_m, mock_s, tmp_data_dir):
-        for mock_cls in [mock_a, mock_o, mock_m, mock_s]:
-            client = MagicMock()
-            client.messages.create.return_value = _mock_anthropic_response(MOCK_ALPHA_RESPONSE)
-            mock_cls.return_value = client
-
         orchestrator = NexusOrchestrator(data_dir=tmp_data_dir)
         result = orchestrator.run(mode="single")
         assert result["mode"] == "single"
         assert "state" in result
+
+    def test_orchestrator_unknown_mode(self, tmp_data_dir):
+        orchestrator = NexusOrchestrator(data_dir=tmp_data_dir)
+        result = orchestrator.run(mode="nonexistent")
+        assert "error" in result

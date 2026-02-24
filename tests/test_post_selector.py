@@ -1,10 +1,7 @@
 """Tests for system_a/post_selector.py."""
 
-import json
-from pathlib import Path
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 
-import pytest
 
 from system_a.post_selector import PostSelector, TARGET_PILLAR_RATIO
 

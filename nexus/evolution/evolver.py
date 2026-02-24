@@ -15,15 +15,17 @@ from __future__ import annotations
 
 import json
 import hashlib
+import logging
 from datetime import datetime, timezone
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
-from anthropic import Anthropic
-
+from nexus.common import call_api, parse_json
 from nexus.trial.trial_runner import Trial, TrialResult
 from nexus.crawler.opportunity_crawler import Opportunity, OpportunityType, Feasibility
+
+logger = logging.getLogger("nexus.evolution")
 
 
 @dataclass
@@ -105,7 +107,6 @@ class Evolver:
     """
 
     def __init__(self, data_dir: Path | None = None):
-        self.client = Anthropic()
         self.data_dir = data_dir or Path("nexus/data/evolution")
         self.data_dir.mkdir(parents=True, exist_ok=True)
         self.patterns: list[SuccessPattern] = []
@@ -121,6 +122,13 @@ class Evolver:
         raw = f"{trial.opportunity.title}{trial.trial_id}"
         pattern_id = hashlib.sha256(raw.encode()).hexdigest()[:16]
 
+        # Duplicate pattern detection: skip if pattern with same title already exists
+        for existing in self.patterns:
+            if existing.title == trial.opportunity.title:
+                logger.info("Pattern with title '%s' already exists (id=%s), skipping extraction",
+                            existing.title, existing.pattern_id)
+                return existing
+
         pattern = SuccessPattern(
             pattern_id=pattern_id,
             title=trial.opportunity.title,
@@ -133,6 +141,7 @@ class Evolver:
             avg_score=trial.evaluation.get("total_score", 0),
         )
 
+        logger.info("Extracted new pattern '%s' (id=%s)", pattern.title, pattern.pattern_id)
         self.patterns.append(pattern)
         self._save_state()
         return pattern
@@ -140,8 +149,10 @@ class Evolver:
     def evolve(self) -> Generation:
         """現在のパターンから次世代を生成する"""
         self.current_gen += 1
+        logger.info("Evolving to generation %d with %d patterns", self.current_gen, len(self.patterns))
 
         if not self.patterns:
+            logger.warning("No patterns available for evolution")
             return Generation(gen_number=self.current_gen, patterns=[])
 
         # 成功パターンをAIに分析させる
@@ -151,17 +162,16 @@ class Evolver:
             indent=2,
         )
 
-        response = self.client.messages.create(
-            model="claude-sonnet-4-20250514",
-            max_tokens=4096,
+        raw_text = call_api(
             system=EVOLVE_PROMPT,
             messages=[{
                 "role": "user",
                 "content": f"以下の成功パターンを分析し、進化戦略を設計してください:\n\n{patterns_text}",
             }],
+            max_tokens=4096,
         )
 
-        evolution_result = self._parse_evolution(response.content[0].text)
+        evolution_result = self._parse_evolution(raw_text)
 
         # 世代を記録
         gen = Generation(
@@ -177,9 +187,8 @@ class Evolver:
 
     def replicate(self, pattern: SuccessPattern) -> list[Opportunity]:
         """成功パターンを横展開して新しい機会を生成する"""
-        response = self.client.messages.create(
-            model="claude-sonnet-4-20250514",
-            max_tokens=4096,
+        logger.info("Replicating pattern '%s' (id=%s)", pattern.title, pattern.pattern_id)
+        raw_text = call_api(
             system=EVOLVE_PROMPT,
             messages=[{
                 "role": "user",
@@ -192,9 +201,10 @@ class Evolver:
                     f"5つの横展開案を出してください。"
                 ),
             }],
+            max_tokens=4096,
         )
 
-        result = self._parse_evolution(response.content[0].text)
+        result = self._parse_evolution(raw_text)
         new_opps = []
 
         for idea in result.get("replication_ideas", []):
@@ -243,14 +253,7 @@ class Evolver:
 
     def _parse_evolution(self, raw_text: str) -> dict:
         """進化結果をパース"""
-        try:
-            json_start = raw_text.find("{")
-            json_end = raw_text.rfind("}") + 1
-            if json_start >= 0 and json_end > json_start:
-                return json.loads(raw_text[json_start:json_end])
-        except json.JSONDecodeError:
-            pass
-        return {}
+        return parse_json(raw_text)
 
     def _save_state(self) -> None:
         """状態を保存"""

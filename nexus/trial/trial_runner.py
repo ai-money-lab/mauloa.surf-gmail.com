@@ -18,18 +18,20 @@ from __future__ import annotations
 
 import json
 import hashlib
+import logging
 from datetime import datetime, timezone
 from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
 from typing import Any
 
-from anthropic import Anthropic
-
+from nexus.common import call_api, parse_json
 from nexus.crawler.opportunity_crawler import Opportunity
 from nexus.factory.product_generator import (
     ProductGenerator, Product, ProductCategory, ProductStatus,
 )
+
+logger = logging.getLogger("nexus.trial")
 
 
 class TrialMode(str, Enum):
@@ -130,7 +132,6 @@ class TrialRunner:
     SUCCESS_THRESHOLD = 35  # 50点満点中35点以上で成功
 
     def __init__(self, factory: ProductGenerator | None = None, data_dir: Path | None = None):
-        self.client = Anthropic()
         self.factory = factory or ProductGenerator()
         self.data_dir = data_dir or Path("nexus/data/trial")
         self.data_dir.mkdir(parents=True, exist_ok=True)
@@ -138,6 +139,7 @@ class TrialRunner:
 
     def run_trial(self, opportunity: Opportunity, mode: TrialMode = TrialMode.DRY_RUN) -> Trial:
         """1つの機会をTRYする"""
+        logger.info("Starting trial for '%s' (mode=%s)", opportunity.title, mode.value)
         trial = Trial(
             opportunity=opportunity,
             mode=mode,
@@ -181,6 +183,7 @@ class TrialRunner:
         trial.completed_at = datetime.now(timezone.utc).isoformat()
         self.trials.append(trial)
         self._save_trial(trial)
+        logger.info("Trial completed: %s (score=%s, verdict=%s)", trial.result.value, total_score, verdict)
         return trial
 
     def run_batch(self, opportunities: list[Opportunity], mode: TrialMode = TrialMode.DRY_RUN) -> list[Trial]:
@@ -253,9 +256,8 @@ class TrialRunner:
 
     def _evaluate(self, opportunity: Opportunity, product: Product) -> dict:
         """商品を評価する"""
-        response = self.client.messages.create(
-            model="claude-sonnet-4-20250514",
-            max_tokens=4096,
+        logger.info("Evaluating product '%s' for opportunity '%s'", product.name, opportunity.title)
+        raw = call_api(
             system=EVALUATION_PROMPT,
             messages=[{
                 "role": "user",
@@ -274,17 +276,10 @@ class TrialRunner:
                     f"内容（一部）:\n{product.content[:1000]}"
                 ),
             }],
+            max_tokens=4096,
         )
 
-        try:
-            raw = response.content[0].text
-            json_start = raw.find("{")
-            json_end = raw.rfind("}") + 1
-            if json_start >= 0 and json_end > json_start:
-                return json.loads(raw[json_start:json_end])
-        except (json.JSONDecodeError, IndexError):
-            pass
-        return {"total_score": 0, "verdict": "failure"}
+        return parse_json(raw, default={"total_score": 0, "verdict": "failure"})
 
     def _opp_to_category(self, opp: Opportunity) -> ProductCategory:
         """機会から商品カテゴリを推定"""

@@ -2,7 +2,7 @@
 
 import json
 from pathlib import Path
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 
 import pytest
 import yaml
@@ -39,7 +39,6 @@ class TestProductsConfig:
                 assert p["recurring"] is True
 
     def test_all_templates_referenced(self, products):
-        templates_dir = Path(__file__).parent.parent / "templates"
         for product in products["products"]:
             template = product["template"]
             # Template file should exist (or will be created by background agent)

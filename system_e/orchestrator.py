@@ -147,30 +147,48 @@ class Orchestrator:
         cycle_result = {}
 
         # Step 1: Diagnosis
-        logger.info("[1/4] System Diagnosis")
-        cycle_result["diagnosis"] = self.run_diagnosis(system_health)
+        try:
+            logger.info("[1/4] System Diagnosis")
+            cycle_result["diagnosis"] = self.run_diagnosis(system_health)
+        except Exception as e:
+            logger.error("[1/4] Diagnosis failed: %s", e)
+            cycle_result["diagnosis"] = {"error": str(e)}
 
         # Step 2: Debate on improvements
-        logger.info("[2/4] Multi-Agent Debate")
-        diagnosis_summary = json.dumps(
-            cycle_result["diagnosis"].get("strategy_analysis", {}),
-            ensure_ascii=False,
-        )
-        cycle_result["debate"] = self.run_debate(
-            topic="システム全体のパフォーマンス改善戦略",
-            context=f"直近のシステム診断結果:\n{diagnosis_summary}",
-        )
+        try:
+            logger.info("[2/4] Multi-Agent Debate")
+            diagnosis_summary = json.dumps(
+                cycle_result.get("diagnosis", {}).get("strategy_analysis", {}),
+                ensure_ascii=False,
+            )
+            cycle_result["debate"] = self.run_debate(
+                topic="システム全体のパフォーマンス改善戦略",
+                context=f"直近のシステム診断結果:\n{diagnosis_summary}",
+            )
+        except Exception as e:
+            logger.error("[2/4] Debate failed: %s", e)
+            cycle_result["debate"] = {"error": str(e)}
 
         # Step 3: Evolution
-        logger.info("[3/4] Strategy Evolution")
-        evo_metrics = metrics or self._extract_metrics_from_diagnosis(cycle_result["diagnosis"])
-        cycle_result["evolution"] = self.run_evolution(evo_metrics)
+        try:
+            logger.info("[3/4] Strategy Evolution")
+            evo_metrics = metrics or self._extract_metrics_from_diagnosis(
+                cycle_result.get("diagnosis", {})
+            )
+            cycle_result["evolution"] = self.run_evolution(evo_metrics)
+        except Exception as e:
+            logger.error("[3/4] Evolution failed: %s", e)
+            cycle_result["evolution"] = {"error": str(e)}
 
         # Step 4: Report
-        logger.info("[4/4] Report Generation")
-        cycle_result["report"] = self.meta.generate_report(
-            cycle_result["diagnosis"].get("health")
-        )
+        try:
+            logger.info("[4/4] Report Generation")
+            cycle_result["report"] = self.meta.generate_report(
+                cycle_result.get("diagnosis", {}).get("health")
+            )
+        except Exception as e:
+            logger.error("[4/4] Report generation failed: %s", e)
+            cycle_result["report"] = {"error": str(e)}
 
         self._notify(
             "System E フルサイクル完了\n"
@@ -228,32 +246,37 @@ def main():
 
     orchestrator = Orchestrator()
 
-    if args.mode == "debate":
-        topic = args.topic or "次の成長戦略を議論する"
-        result = orchestrator.run_debate(topic)
-        print(json.dumps(result.get("synthesis", {}), ensure_ascii=False, indent=2))
+    try:
+        if args.mode == "debate":
+            topic = args.topic or "次の成長戦略を議論する"
+            result = orchestrator.run_debate(topic)
+            print(json.dumps(result.get("synthesis", {}), ensure_ascii=False, indent=2))
 
-    elif args.mode == "quick":
-        topic = args.topic or "今週最も優先すべきタスク"
-        result = orchestrator.run_quick_consensus(topic)
-        print(json.dumps(result.get("synthesis", {}), ensure_ascii=False, indent=2))
+        elif args.mode == "quick":
+            topic = args.topic or "今週最も優先すべきタスク"
+            result = orchestrator.run_quick_consensus(topic)
+            print(json.dumps(result.get("synthesis", {}), ensure_ascii=False, indent=2))
 
-    elif args.mode == "evolve":
-        result = orchestrator.run_evolution()
-        print(f"Strategy evolved to v{result.get('version', '?')}")
+        elif args.mode == "evolve":
+            result = orchestrator.run_evolution()
+            print(f"Strategy evolved to v{result.get('version', '?')}")
 
-    elif args.mode == "diagnose":
-        result = orchestrator.run_diagnosis()
-        print(json.dumps(result.get("optimization_plan", {}), ensure_ascii=False, indent=2))
+        elif args.mode == "diagnose":
+            result = orchestrator.run_diagnosis()
+            print(json.dumps(result.get("optimization_plan", {}), ensure_ascii=False, indent=2))
 
-    elif args.mode == "optimize":
-        result = orchestrator.run_interaction_optimization()
-        print(json.dumps(result, ensure_ascii=False, indent=2))
+        elif args.mode == "optimize":
+            result = orchestrator.run_interaction_optimization()
+            print(json.dumps(result, ensure_ascii=False, indent=2))
 
-    elif args.mode == "full-cycle":
-        result = orchestrator.run_full_cycle()
-        report = result.get("report", {})
-        print(json.dumps(report, ensure_ascii=False, indent=2))
+        elif args.mode == "full-cycle":
+            result = orchestrator.run_full_cycle()
+            report = result.get("report", {})
+            print(json.dumps(report, ensure_ascii=False, indent=2))
+
+    except Exception as e:
+        logger.error("Orchestrator mode '%s' failed: %s", args.mode, e)
+        print(f"Error running mode '{args.mode}': {e}")
 
 
 if __name__ == "__main__":
