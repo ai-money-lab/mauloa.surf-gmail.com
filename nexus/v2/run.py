@@ -22,9 +22,26 @@ from __future__ import annotations
 
 import json
 import logging
+import os
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
+
+# .envファイルから環境変数を読み込む（dotenvがあれば）
+_env_file = Path(__file__).resolve().parent.parent.parent / "config" / ".env"
+if _env_file.exists():
+    try:
+        from dotenv import load_dotenv
+        load_dotenv(_env_file)
+    except ImportError:
+        # dotenvなしでも手動で読み込む
+        for line in _env_file.read_text().splitlines():
+            line = line.strip()
+            if line and not line.startswith("#") and "=" in line:
+                key, _, val = line.partition("=")
+                val = val.strip().strip('"').strip("'")
+                if key.strip() and val:
+                    os.environ.setdefault(key.strip(), val)
 
 from nexus.v2.orchestrator import NexusV2Orchestrator
 
