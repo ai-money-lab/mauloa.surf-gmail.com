@@ -48,7 +48,7 @@ class TestQualityCheckerCheck:
         mock_claude.generate_json.return_value = {
             "scores": {"hook_power": 9, "persona_match": 9},
             "total_score": 90,
-            "threshold": 84,
+            "threshold": 80,
             "result": "auto_approved",
             "rejection_reasons": [],
             "improvement_suggestions": [],
@@ -58,7 +58,7 @@ class TestQualityCheckerCheck:
         result = checker.check(profile="x_post", content="テスト投稿")
 
         assert result["result"] == "auto_approved"
-        assert result["total_score"] >= 84
+        assert result["total_score"] >= 80
 
     @patch("core.quality_checker.ClaudeClient")
     @patch("core.quality_checker.Notifier")
@@ -70,7 +70,7 @@ class TestQualityCheckerCheck:
         mock_claude.generate_json.return_value = {
             "scores": {"hook_power": 3, "persona_match": 4},
             "total_score": 50,
-            "threshold": 84,
+            "threshold": 80,
             "result": "rejected",
             "rejection_reasons": ["低品質"],
             "improvement_suggestions": ["改善してください"],
@@ -80,7 +80,7 @@ class TestQualityCheckerCheck:
         result = checker.check(profile="x_post", content="低品質テスト")
 
         assert result["result"] == "rejected"
-        assert result["total_score"] < 84
+        assert result["total_score"] < 80
 
     @patch("core.quality_checker.ClaudeClient")
     @patch("core.quality_checker.Notifier")
@@ -117,7 +117,7 @@ class TestQualityCheckerCheckWithRetry:
         mock_claude.generate_json.return_value = {
             "scores": {},
             "total_score": 90,
-            "threshold": 84,
+            "threshold": 80,
             "result": "auto_approved",
             "rejection_reasons": [],
             "improvement_suggestions": [],

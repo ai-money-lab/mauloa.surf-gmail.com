@@ -147,7 +147,7 @@ class AgentSwarm:
 
     def dispatch(self, tasks: list[AgentTask]) -> list[AgentResult]:
         """複数エージェントを並列実行"""
-        logger.info(f"Dispatching {len(tasks)} agents in parallel")
+        logger.info("Dispatching %d agents in parallel", len(tasks))
         results = []
 
         with ThreadPoolExecutor(max_workers=self.max_workers) as executor:
@@ -161,9 +161,9 @@ class AgentSwarm:
                 try:
                     result = future.result()
                     results.append(result)
-                    logger.info(f"Agent {task.role.value} completed (success: {result.success})")
+                    logger.info("Agent %s completed (success: %s)", task.role.value, result.success)
                 except Exception as e:
-                    logger.error(f"Agent {task.role.value} failed: {e}")
+                    logger.error("Agent %s failed: %s", task.role.value, e)
                     results.append(AgentResult(
                         role=task.role,
                         output={"error": str(e)},

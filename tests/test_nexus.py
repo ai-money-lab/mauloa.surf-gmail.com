@@ -1269,6 +1269,37 @@ class TestEvolverExtended:
         evolver = Evolver(data_dir=tmp_data_dir / "evolution")
         assert evolver.get_top_patterns() == []
 
+    def test_load_state_corrupted_json_backs_up(self, tmp_data_dir):
+        """Corrupted JSON should be backed up and evolver starts fresh."""
+        evo_dir = tmp_data_dir / "evolution"
+        evo_dir.mkdir(parents=True, exist_ok=True)
+        state_file = evo_dir / "evolution_state.json"
+        state_file.write_text("{broken json!!!", encoding="utf-8")
+
+        evolver = Evolver(data_dir=evo_dir)
+        # Should start fresh
+        assert len(evolver.patterns) == 0
+        assert evolver.current_gen == 0
+        # Corrupted file should be backed up
+        backup = state_file.with_suffix(".json.bak")
+        assert backup.exists()
+        assert not state_file.exists()
+
+    def test_load_state_missing_required_field(self, tmp_data_dir):
+        """Missing required field in pattern should log error and start fresh."""
+        evo_dir = tmp_data_dir / "evolution"
+        evo_dir.mkdir(parents=True, exist_ok=True)
+        state_file = evo_dir / "evolution_state.json"
+        # patterns missing required "pattern_id" field
+        state_file.write_text(json.dumps({
+            "current_gen": 5,
+            "patterns": [{"title": "no id", "category": "test"}],
+        }), encoding="utf-8")
+
+        evolver = Evolver(data_dir=evo_dir)
+        # KeyError should be caught — patterns lost but gen may be loaded partially
+        assert len(evolver.patterns) == 0
+
 
 # ─── Additional Monetize Tests ───
 

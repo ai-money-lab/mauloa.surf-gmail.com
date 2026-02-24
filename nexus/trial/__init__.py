@@ -3,3 +3,5 @@ TRIAL — 実際に稼げるかTRYする実行エンジン
 
 発見した機会を実際に試行し、結果を記録する。
 """
+
+__all__ = ["TrialRunner", "Trial", "TrialMode", "TrialResult"]

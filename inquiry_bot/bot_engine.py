@@ -54,10 +54,13 @@ class BotEngine:
 
     def _load_config(self, path: Path) -> dict:
         try:
-            return yaml.safe_load(path.read_text(encoding="utf-8"))
+            data = yaml.safe_load(path.read_text(encoding="utf-8"))
+            if not data:
+                raise ValueError(f"Config file is empty or invalid: {path}")
+            return data
         except Exception as e:
             logger.error("Config load failed: %s", e)
-            return {}
+            raise
 
     def _build_system_prompt(self) -> str:
         """システムプロンプトを構築."""

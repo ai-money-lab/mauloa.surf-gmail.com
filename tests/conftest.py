@@ -58,7 +58,7 @@ def sample_quality_result():
             "algorithm_hooks": 7,
         },
         "total_score": 101,
-        "threshold": 84,
+        "threshold": 80,
         "result": "auto_approved",
         "rejection_reasons": [],
         "improvement_suggestions": [],

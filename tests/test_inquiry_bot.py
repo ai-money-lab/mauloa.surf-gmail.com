@@ -1,7 +1,11 @@
 """問い合わせBot — 自動テスト."""
 
+import json
+import time
 from pathlib import Path
+from unittest.mock import patch, MagicMock
 
+import pytest
 import yaml
 
 
@@ -134,6 +138,34 @@ class TestAnalytics:
         assert len(log_files) > 0
 
 
+# ═══ BotEngine config failureのテスト ═══
+
+class TestBotEngineConfigFailure:
+    """_load_config が空/不正ファイルで例外を発生させることを検証."""
+
+    def test_load_config_empty_file_raises(self, tmp_path):
+        """空のYAMLファイルで ValueError が発生する."""
+        from inquiry_bot.bot_engine import BotEngine
+        config_file = tmp_path / "config.yaml"
+        config_file.write_text("", encoding="utf-8")
+        with pytest.raises(Exception):
+            BotEngine(config_path=config_file)
+
+    def test_load_config_invalid_yaml_raises(self, tmp_path):
+        """不正なYAMLで例外が発生する."""
+        from inquiry_bot.bot_engine import BotEngine
+        config_file = tmp_path / "config.yaml"
+        config_file.write_text(": : : invalid yaml {{{", encoding="utf-8")
+        with pytest.raises(Exception):
+            BotEngine(config_path=config_file)
+
+    def test_load_config_missing_file_raises(self, tmp_path):
+        """存在しないファイルで例外が発生する."""
+        from inquiry_bot.bot_engine import BotEngine
+        with pytest.raises(Exception):
+            BotEngine(config_path=tmp_path / "nonexistent.yaml")
+
+
 # ═══ Schedulerのテスト ═══
 
 class TestScheduler:
@@ -177,3 +209,347 @@ class TestWebWidget:
         assert "ライト" in content
         assert "スタンダード" in content
         assert "プレミアム" in content
+
+
+# ═══ KnowledgeBase ユニットテスト ═══
+
+class TestKnowledgeBase:
+    """KnowledgeBase の全パブリックメソッドをテスト."""
+
+    def test_search_faq_exact_match(self):
+        from inquiry_bot.knowledge_base import KnowledgeBase
+        kb = KnowledgeBase()
+        results = kb.search_faq("初期費用")
+        assert len(results) > 0
+        assert results[0]["score"] >= 10  # 完全一致
+
+    def test_search_faq_no_match(self):
+        from inquiry_bot.knowledge_base import KnowledgeBase
+        kb = KnowledgeBase()
+        results = kb.search_faq("zzzzz_no_match_zzzzz")
+        assert results == []
+
+    def test_get_faq_context_all(self):
+        from inquiry_bot.knowledge_base import KnowledgeBase
+        kb = KnowledgeBase()
+        ctx = kb.get_faq_context()
+        assert len(ctx) > 0
+        assert "###" in ctx  # ヘッダーが含まれる
+
+    def test_get_faq_context_by_category(self):
+        from inquiry_bot.knowledge_base import KnowledgeBase
+        kb = KnowledgeBase()
+        # 存在しないカテゴリでは空
+        ctx = kb.get_faq_context(category="nonexistent_category")
+        assert ctx == ""
+
+    def test_get_property_info_found(self):
+        from inquiry_bot.knowledge_base import KnowledgeBase
+        kb = KnowledgeBase(property_data={"P001": {"name": "テスト物件", "rent": 80000}})
+        info = kb.get_property_info("P001")
+        assert info["name"] == "テスト物件"
+
+    def test_get_property_info_not_found(self):
+        from inquiry_bot.knowledge_base import KnowledgeBase
+        kb = KnowledgeBase(property_data={})
+        assert kb.get_property_info("XXXX") == {}
+
+    def test_get_all_properties_summary_empty(self):
+        from inquiry_bot.knowledge_base import KnowledgeBase
+        kb = KnowledgeBase(property_data={})
+        summary = kb.get_all_properties_summary()
+        assert "未登録" in summary
+
+    def test_get_all_properties_summary_with_data(self):
+        from inquiry_bot.knowledge_base import KnowledgeBase
+        kb = KnowledgeBase(property_data={
+            "P001": {"name": "サンプルマンション", "rent": 85000, "vacancy_status": "空室あり"},
+        })
+        summary = kb.get_all_properties_summary()
+        assert "サンプルマンション" in summary
+        assert "85000" in summary
+
+    def test_fill_template(self):
+        from inquiry_bot.knowledge_base import KnowledgeBase
+        kb = KnowledgeBase()
+        kb.company = {"name": "テスト不動産"}
+        result = kb.fill_template("会社名: {company_name}", {})
+        assert result == "会社名: テスト不動産"
+
+    def test_fill_template_with_data(self):
+        from inquiry_bot.knowledge_base import KnowledgeBase
+        kb = KnowledgeBase()
+        kb.company = {}
+        result = kb.fill_template("物件名: {property_name}", {"property_name": "ABCマンション"})
+        assert result == "物件名: ABCマンション"
+
+    def test_update_property_data(self):
+        from inquiry_bot.knowledge_base import KnowledgeBase
+        kb = KnowledgeBase(property_data={})
+        kb.update_property_data("P999", {"name": "新物件", "rent": 70000})
+        assert kb.property_data["P999"]["name"] == "新物件"
+
+    def test_load_properties_from_yaml(self, tmp_path):
+        from inquiry_bot.knowledge_base import KnowledgeBase
+        yaml_file = tmp_path / "props.yaml"
+        yaml_file.write_text(yaml.dump({
+            "properties": {"P001": {"name": "YAML物件", "rent": 90000}},
+        }), encoding="utf-8")
+        kb = KnowledgeBase(property_data={})
+        kb.load_properties_from_yaml(yaml_file)
+        assert kb.property_data["P001"]["name"] == "YAML物件"
+
+    def test_load_faq_missing_file(self, tmp_path):
+        from inquiry_bot.knowledge_base import KnowledgeBase
+        kb = KnowledgeBase(faq_path=tmp_path / "nonexistent.yaml")
+        assert kb.faqs == []
+        assert kb.company == {}
+
+
+# ═══ ConversationManager ユニットテスト ═══
+
+class TestConversationManager:
+    """ConversationManager の全パブリックメソッドをテスト."""
+
+    def test_create_session(self):
+        from inquiry_bot.conversation_manager import ConversationManager
+        cm = ConversationManager()
+        session = cm.get_or_create_session("s1", "web", "user1")
+        assert session.session_id == "s1"
+        assert session.channel == "web"
+        assert session.user_id == "user1"
+
+    def test_get_existing_session(self):
+        from inquiry_bot.conversation_manager import ConversationManager
+        cm = ConversationManager()
+        s1 = cm.get_or_create_session("s1", "web", "user1")
+        s2 = cm.get_or_create_session("s1", "web", "user1")
+        assert s1 is s2
+
+    def test_session_timeout_creates_new(self):
+        from inquiry_bot.conversation_manager import ConversationManager
+        cm = ConversationManager()
+        s1 = cm.get_or_create_session("s1", "web", "user1")
+        # Fake timeout
+        s1.last_activity = time.time() - 7200
+        s2 = cm.get_or_create_session("s1", "web", "user1")
+        assert s2 is not s1
+
+    def test_add_message(self):
+        from inquiry_bot.conversation_manager import ConversationManager
+        cm = ConversationManager()
+        cm.get_or_create_session("s1", "web", "user1")
+        cm.add_message("s1", "user", "こんにちは")
+        assert len(cm.sessions["s1"].messages) == 1
+        assert cm.sessions["s1"].messages[0].content == "こんにちは"
+
+    def test_add_message_nonexistent_session(self):
+        from inquiry_bot.conversation_manager import ConversationManager
+        cm = ConversationManager()
+        cm.add_message("nonexistent", "user", "test")  # should not raise
+
+    def test_add_message_respects_history_limit(self):
+        from inquiry_bot.conversation_manager import ConversationManager
+        cm = ConversationManager(history_limit=3)
+        cm.get_or_create_session("s1", "web", "user1")
+        for i in range(10):
+            cm.add_message("s1", "user", f"msg{i}")
+        # history_limit * 2 = 6, so only 6 messages should remain
+        assert len(cm.sessions["s1"].messages) == 6
+
+    def test_get_conversation_history(self):
+        from inquiry_bot.conversation_manager import ConversationManager
+        cm = ConversationManager()
+        cm.get_or_create_session("s1", "web", "user1")
+        cm.add_message("s1", "user", "質問")
+        cm.add_message("s1", "assistant", "回答")
+        history = cm.get_conversation_history("s1")
+        assert len(history) == 2
+        assert history[0] == {"role": "user", "content": "質問"}
+        assert history[1] == {"role": "assistant", "content": "回答"}
+
+    def test_get_conversation_history_nonexistent(self):
+        from inquiry_bot.conversation_manager import ConversationManager
+        cm = ConversationManager()
+        assert cm.get_conversation_history("nonexistent") == []
+
+    def test_check_escalation_keyword(self):
+        from inquiry_bot.conversation_manager import ConversationManager
+        cm = ConversationManager()
+        cm.get_or_create_session("s1", "web", "user1")
+        should, reason = cm.check_escalation("s1", "弁護士に相談します")
+        assert should is True
+        assert "弁護士" in reason
+
+    def test_check_escalation_no_trigger(self):
+        from inquiry_bot.conversation_manager import ConversationManager
+        cm = ConversationManager()
+        cm.get_or_create_session("s1", "web", "user1")
+        should, reason = cm.check_escalation("s1", "家賃を教えてください")
+        assert should is False
+        assert reason == ""
+
+    def test_check_escalation_already_escalated(self):
+        from inquiry_bot.conversation_manager import ConversationManager
+        cm = ConversationManager()
+        session = cm.get_or_create_session("s1", "web", "user1")
+        session.escalated = True
+        session.escalation_reason = "テスト"
+        should, reason = cm.check_escalation("s1", "普通のメッセージ")
+        assert should is True
+        assert reason == "テスト"
+
+    def test_check_escalation_nonexistent_session(self):
+        from inquiry_bot.conversation_manager import ConversationManager
+        cm = ConversationManager()
+        should, reason = cm.check_escalation("nonexistent", "test")
+        assert should is False
+
+    def test_get_session_stats(self):
+        from inquiry_bot.conversation_manager import ConversationManager
+        cm = ConversationManager()
+        cm.get_or_create_session("s1", "web", "user1")
+        cm.add_message("s1", "user", "hello")
+        cm.add_message("s1", "assistant", "hi")
+        stats = cm.get_session_stats("s1")
+        assert stats["session_id"] == "s1"
+        assert stats["message_count"] == 2
+        assert stats["user_messages"] == 1
+        assert stats["escalated"] is False
+
+    def test_get_session_stats_nonexistent(self):
+        from inquiry_bot.conversation_manager import ConversationManager
+        cm = ConversationManager()
+        assert cm.get_session_stats("nonexistent") == {}
+
+    def test_cleanup_expired_sessions(self):
+        from inquiry_bot.conversation_manager import ConversationManager
+        cm = ConversationManager()
+        s1 = cm.get_or_create_session("s1", "web", "user1")
+        cm.get_or_create_session("s2", "line", "user2")
+        s1.last_activity = time.time() - 7200  # expired
+        cleaned = cm.cleanup_expired_sessions()
+        assert cleaned == 1
+        assert "s1" not in cm.sessions
+        assert "s2" in cm.sessions
+
+    def test_session_message_count(self):
+        from inquiry_bot.conversation_manager import Session
+        session = Session(session_id="s1", channel="web", user_id="u1")
+        assert session.message_count == 0
+        assert session.user_message_count == 0
+
+
+# ═══ BotEngine ユニットテスト（モック） ═══
+
+class TestBotEngineHandleMessage:
+    """BotEngine.handle_message の全分岐をテスト."""
+
+    @patch("inquiry_bot.bot_engine.InquiryAnalytics")
+    @patch("inquiry_bot.bot_engine.Notifier")
+    @patch("inquiry_bot.bot_engine.ClaudeClient")
+    def test_handle_message_normal(self, mock_claude_cls, mock_notifier_cls, mock_analytics_cls):
+        from inquiry_bot.bot_engine import BotEngine
+        mock_claude = MagicMock()
+        mock_claude_cls.return_value = mock_claude
+        mock_notifier_cls.return_value = MagicMock()
+        mock_analytics_cls.return_value = MagicMock()
+
+        mock_claude.generate.return_value = json.dumps({
+            "reply": "テスト回答です",
+            "category": "general",
+            "confidence": 0.9,
+            "escalate": False,
+        })
+
+        engine = BotEngine()
+        result = engine.handle_message("こんにちは", "session1")
+        assert result["reply"] == "テスト回答です"
+        assert result["category"] == "general"
+        assert result["escalated"] is False
+
+    @patch("inquiry_bot.bot_engine.InquiryAnalytics")
+    @patch("inquiry_bot.bot_engine.Notifier")
+    @patch("inquiry_bot.bot_engine.ClaudeClient")
+    def test_handle_message_escalation_keyword(self, mock_claude_cls, mock_notifier_cls, mock_analytics_cls):
+        from inquiry_bot.bot_engine import BotEngine
+        mock_claude_cls.return_value = MagicMock()
+        mock_notifier_cls.return_value = MagicMock()
+        mock_analytics_cls.return_value = MagicMock()
+
+        engine = BotEngine()
+        result = engine.handle_message("弁護士に相談する", "session2")
+        assert result["escalated"] is True
+        assert "弁護士" in result["escalation_reason"]
+
+    @patch("inquiry_bot.bot_engine.InquiryAnalytics")
+    @patch("inquiry_bot.bot_engine.Notifier")
+    @patch("inquiry_bot.bot_engine.ClaudeClient")
+    def test_handle_message_api_error_fallback(self, mock_claude_cls, mock_notifier_cls, mock_analytics_cls):
+        from inquiry_bot.bot_engine import BotEngine
+        mock_claude = MagicMock()
+        mock_claude_cls.return_value = mock_claude
+        mock_notifier_cls.return_value = MagicMock()
+        mock_analytics_cls.return_value = MagicMock()
+
+        mock_claude.generate.side_effect = RuntimeError("API down")
+
+        engine = BotEngine()
+        result = engine.handle_message("質問です", "session3")
+        assert result["escalated"] is True
+        assert result["category"] == "error"
+
+    @patch("inquiry_bot.bot_engine.InquiryAnalytics")
+    @patch("inquiry_bot.bot_engine.Notifier")
+    @patch("inquiry_bot.bot_engine.ClaudeClient")
+    def test_handle_message_non_json_response(self, mock_claude_cls, mock_notifier_cls, mock_analytics_cls):
+        from inquiry_bot.bot_engine import BotEngine
+        mock_claude = MagicMock()
+        mock_claude_cls.return_value = mock_claude
+        mock_notifier_cls.return_value = MagicMock()
+        mock_analytics_cls.return_value = MagicMock()
+
+        mock_claude.generate.return_value = "普通のテキスト回答です"
+
+        engine = BotEngine()
+        result = engine.handle_message("何かの質問", "session4")
+        assert result["reply"] == "普通のテキスト回答です"
+        assert result["confidence"] == 0.5  # fallback confidence
+
+    @patch("inquiry_bot.bot_engine.InquiryAnalytics")
+    @patch("inquiry_bot.bot_engine.Notifier")
+    @patch("inquiry_bot.bot_engine.ClaudeClient")
+    def test_get_analytics_empty(self, mock_claude_cls, mock_notifier_cls, mock_analytics_cls):
+        from inquiry_bot.bot_engine import BotEngine
+        mock_claude_cls.return_value = MagicMock()
+        mock_notifier_cls.return_value = MagicMock()
+        mock_analytics_cls.return_value = MagicMock()
+
+        engine = BotEngine()
+        stats = engine.get_analytics()
+        assert stats["total_sessions"] == 0
+        assert stats["active_sessions"] == 0
+        assert stats["escalated_sessions"] == 0
+
+    @patch("inquiry_bot.bot_engine.InquiryAnalytics")
+    @patch("inquiry_bot.bot_engine.Notifier")
+    @patch("inquiry_bot.bot_engine.ClaudeClient")
+    def test_get_analytics_with_sessions(self, mock_claude_cls, mock_notifier_cls, mock_analytics_cls):
+        from inquiry_bot.bot_engine import BotEngine
+        mock_claude = MagicMock()
+        mock_claude_cls.return_value = mock_claude
+        mock_notifier_cls.return_value = MagicMock()
+        mock_analytics_cls.return_value = MagicMock()
+
+        mock_claude.generate.return_value = json.dumps({
+            "reply": "ok", "category": "rent", "confidence": 0.9, "escalate": False,
+        })
+
+        engine = BotEngine()
+        engine.handle_message("test", "s1", channel="web")
+        engine.handle_message("test", "s2", channel="line")
+
+        stats = engine.get_analytics()
+        assert stats["total_sessions"] == 2
+        assert stats["channels"]["web"] == 1
+        assert stats["channels"]["line"] == 1

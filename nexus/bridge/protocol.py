@@ -89,24 +89,24 @@ class Bridge:
         """1サイクルを実行する"""
         self.cycle_count += 1
         result = CycleResult(cycle_number=self.cycle_count)
-        logger.info(f"=== NEXUS Cycle {self.cycle_count} START ===")
+        logger.info("=== NEXUS Cycle %d START ===", self.cycle_count)
 
         # Phase 1: ALPHA生成
         tasks = initial_tasks or self._generate_seed_tasks()
-        logger.info(f"Phase 1: ALPHA generating {len(tasks)} outputs")
+        logger.info("Phase 1: ALPHA generating %d outputs", len(tasks))
         outputs = self.alpha.execute_batch(tasks)
         result.outputs.extend(outputs)
         result.phases_completed.append(CyclePhase.ALPHA_CREATE.value)
 
         # Phase 2: OMEGA分析
-        logger.info(f"Phase 2: OMEGA analyzing {len(outputs)} outputs")
+        logger.info("Phase 2: OMEGA analyzing %d outputs", len(outputs))
         for output in outputs:
             analysis = self.omega.analyze(output, AnalysisType.QUALITY_REVIEW)
             result.analyses.append(analysis)
 
             # Phase 3: スコアが低い場合はフィードバック→改善
             if analysis.score < 7:
-                logger.info(f"Phase 3: Feedback loop for {output.output_id} (score: {analysis.score})")
+                logger.info("Phase 3: Feedback loop for %s (score: %s)", output.output_id, analysis.score)
                 feedback = self.omega.get_feedback(analysis)
                 improved = self.alpha.receive_feedback(output.output_id, feedback)
                 if improved:
@@ -128,7 +128,7 @@ class Bridge:
             result.new_tasks_generated = len(new_tasks)
 
             if new_tasks:
-                logger.info(f"Phase 5: ALPHA executing {len(new_tasks)} new tasks from OMEGA")
+                logger.info("Phase 5: ALPHA executing %d new tasks from OMEGA", len(new_tasks))
                 top_tasks = new_tasks[:3]  # 上位3つに絞る
                 new_outputs = self.alpha.execute_batch(top_tasks)
                 result.outputs.extend(new_outputs)

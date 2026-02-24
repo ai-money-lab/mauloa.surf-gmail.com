@@ -285,8 +285,13 @@ class Evolver:
                     avg_score=p.get("avg_score", 0),
                     created_at=p.get("created_at", ""),
                 ))
-        except (json.JSONDecodeError, KeyError):
-            pass
+        except json.JSONDecodeError:
+            logger.error("evolution_state.json is corrupted — starting fresh. File: %s", state_file)
+            backup = state_file.with_suffix(".json.bak")
+            state_file.rename(backup)
+            logger.info("Corrupted file backed up to %s", backup)
+        except KeyError as e:
+            logger.error("evolution_state.json missing required field %s — starting fresh", e)
 
     def _save_generation(self, gen: Generation) -> None:
         """世代を保存"""

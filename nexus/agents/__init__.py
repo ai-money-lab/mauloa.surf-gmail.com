@@ -1,1 +1,3 @@
 """AGENTS — 並列分担型AIエージェント群。タスクを分割し同時稼働する。"""
+
+__all__ = ["AgentSwarm", "AgentTask", "AgentResult", "AgentRole"]

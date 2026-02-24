@@ -9,3 +9,4 @@ System A-Eとは完全に独立。ゼロから設計された新世代システ�
 
 __version__ = "1.0.0"
 __codename__ = "NEXUS"
+__all__ = ["__version__", "__codename__"]

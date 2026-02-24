@@ -133,9 +133,9 @@ class NexusOrchestrator:
 
     def run(self, mode: str = "full", market_context: str = "", num_cycles: int = 3) -> dict[str, Any]:
         """メイン実行エントリーポイント"""
-        logger.info(f"{'='*60}")
-        logger.info(f"NEXUS ORCHESTRATOR — Mode: {mode}")
-        logger.info(f"{'='*60}")
+        logger.info("=" * 60)
+        logger.info("NEXUS ORCHESTRATOR — Mode: %s", mode)
+        logger.info("=" * 60)
 
         if mode == "single":
             return self._run_single_cycle(market_context)
@@ -168,7 +168,7 @@ class NexusOrchestrator:
         all_results: dict[str, Any] = {"mode": "autonomous", "loops": []}
 
         for loop_num in range(1, num_loops + 1):
-            logger.info(f"--- Loop {loop_num}/{num_loops} ---")
+            logger.info("--- Loop %d/%d ---", loop_num, num_loops)
             loop_result: dict[str, Any] = {"loop": loop_num}
 
             # Step 1: CRAWL — 稼ぎ方を探索
@@ -184,7 +184,7 @@ class NexusOrchestrator:
             self.state.total_opportunities += len(opportunities)
 
             # Step 2: TRY — 実際に試す
-            logger.info(f"Step 2: TRY — {len(top_opps)}件をTRY")
+            logger.info("Step 2: TRY — %d件をTRY", len(top_opps))
             trials = self.trial.run_batch(top_opps, mode=TrialMode.DRY_RUN)
             self.state.trials_run += len(trials)
 
@@ -203,7 +203,7 @@ class NexusOrchestrator:
             debate_results = []
             retry_results = []
             if failures:
-                logger.info(f"Step 3: DEBATE — {len(failures)}件をAI同士で議論")
+                logger.info("Step 3: DEBATE — %d件をAI同士で議論", len(failures))
                 for failed_trial in failures[:2]:  # 最大2件を議論
                     debate_result = self.debate.debate(failed_trial)
                     debate_results.append(debate_result)
@@ -232,7 +232,7 @@ class NexusOrchestrator:
             new_patterns = []
             replicated_opps = []
             if successes:
-                logger.info(f"Step 4: EVOLVE — {len(successes)}件の成功パターンを増殖")
+                logger.info("Step 4: EVOLVE — %d件の成功パターンを増殖", len(successes))
                 for success in successes:
                     pattern = self.evolver.extract_pattern(success)
                     if pattern:
@@ -293,8 +293,8 @@ class NexusOrchestrator:
         self._save_full_report(all_results)
 
         logger.info("=== AUTONOMOUS MODE COMPLETE ===")
-        logger.info(f"Loops: {num_loops} | Trials: {self.state.trials_run} | "
-                    f"Successes: {self.state.trials_succeeded} | Patterns: {self.state.patterns_discovered}")
+        logger.info("Loops: %d | Trials: %d | Successes: %d | Patterns: %d",
+                    num_loops, self.state.trials_run, self.state.trials_succeeded, self.state.patterns_discovered)
 
         return all_results
 
@@ -365,7 +365,7 @@ class NexusOrchestrator:
 
     def _run_continuous(self, market_context: str, num_cycles: int) -> dict[str, Any]:
         """連続サイクル: ALPHA-OMEGAが止まらずにループ"""
-        logger.info(f"--- Continuous: {num_cycles} cycles ---")
+        logger.info("--- Continuous: %d cycles ---", num_cycles)
         results = self.bridge.run_continuous(num_cycles=num_cycles, market_context=market_context)
 
         for result in results:
@@ -414,7 +414,7 @@ class NexusOrchestrator:
         alpha_tasks = self._swarm_to_alpha_tasks(swarm_synthesis)
 
         # Step 3: ALPHA-OMEGAの連続ループ
-        logger.info(f"Step 3: ALPHA-OMEGA Loop — {num_cycles} cycles")
+        logger.info("Step 3: ALPHA-OMEGA Loop — %d cycles", num_cycles)
         cycle_results = []
         for i in range(num_cycles):
             tasks = alpha_tasks if i == 0 else None
@@ -452,9 +452,9 @@ class NexusOrchestrator:
         self._save_full_report(all_results)
 
         logger.info("=== FULL MODE COMPLETE ===")
-        logger.info(f"Total Revenue Potential: {self.state.total_revenue_potential:.0f}")
-        logger.info(f"Total Deals: {self.state.total_deals}")
-        logger.info(f"Total Outputs: {self.state.total_outputs}")
+        logger.info("Total Revenue Potential: %.0f", self.state.total_revenue_potential)
+        logger.info("Total Deals: %d", self.state.total_deals)
+        logger.info("Total Outputs: %d", self.state.total_outputs)
 
         return all_results
 
