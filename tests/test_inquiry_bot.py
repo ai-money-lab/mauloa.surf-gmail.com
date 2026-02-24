@@ -137,6 +137,60 @@ class TestAnalytics:
         log_files = list(ANALYTICS_DIR.glob("inquiries_*.jsonl"))
         assert len(log_files) > 0
 
+    def test_load_logs(self):
+        """ログの読み込みテスト."""
+        from inquiry_bot.analytics import InquiryAnalytics
+        analytics = InquiryAnalytics()
+        # ログを書いてから読む
+        analytics.log_inquiry({"session_id": "load_test", "channel": "web",
+                               "category": "general", "escalated": False})
+        logs = analytics.load_logs(days=1)
+        assert len(logs) > 0
+        assert any(l.get("session_id") == "load_test" for l in logs)
+
+    def test_generate_daily_report_with_data(self):
+        """データありで日次レポートの内容を検証."""
+        from inquiry_bot.analytics import InquiryAnalytics
+        analytics = InquiryAnalytics()
+        # 今日の日付でログを追加
+        analytics.log_inquiry({"category": "vacancy", "channel": "web", "escalated": False})
+        analytics.log_inquiry({"category": "viewing", "channel": "line", "escalated": True})
+        analytics.log_inquiry({"category": "vacancy", "channel": "web", "escalated": False})
+
+        report = analytics.generate_daily_report()
+        assert "サマリー" in report
+        assert "カテゴリ別" in report
+        assert "チャネル別" in report
+        assert "削減効果" in report
+        # 数値が入っていることを確認
+        assert "3件" in report or "総問い合わせ数" in report
+
+    def test_generate_monthly_summary_with_data(self):
+        """データありで月次サマリーの内容を検証."""
+        from inquiry_bot.analytics import InquiryAnalytics
+        analytics = InquiryAnalytics()
+        analytics.log_inquiry({"category": "general", "channel": "web", "escalated": False})
+
+        summary = analytics.generate_monthly_summary()
+        assert "月次サマリー" in summary
+        assert "実績データ" in summary
+        assert "削減効果" in summary
+
+    @patch("inquiry_bot.analytics.Notifier")
+    def test_send_daily_report(self, mock_notifier_cls):
+        """日次レポート送信テスト."""
+        from inquiry_bot.analytics import InquiryAnalytics
+        mock_notifier = MagicMock()
+        mock_notifier_cls.return_value = mock_notifier
+
+        analytics = InquiryAnalytics()
+        analytics.notifier = mock_notifier
+        analytics.send_daily_report()
+        mock_notifier.notify.assert_called_once()
+        # レポート文字列が渡される
+        call_args = mock_notifier.notify.call_args[0][0]
+        assert isinstance(call_args, str)
+
 
 # ═══ BotEngine config failureのテスト ═══
 
