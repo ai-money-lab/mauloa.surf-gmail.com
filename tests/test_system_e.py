@@ -17,7 +17,7 @@ from system_e.agents import (
 )
 from system_e.debate import DebateProtocol, QuickConsensus
 from system_e.self_improve import EvolutionEngine
-from system_e.meta_optimizer import MetaOptimizer, SystemHealthReport
+from system_e.meta_optimizer import MetaOptimizer
 from system_e.orchestrator import Orchestrator
 
 
@@ -201,15 +201,6 @@ class TestEvolutionEngine:
 
 # ─── Meta-Optimizer Tests ────────────────────────────────
 
-class TestSystemHealthReport:
-    def test_collect_returns_all_systems(self):
-        report = SystemHealthReport()
-        health = report.collect()
-
-        assert "systems" in health
-        assert set(health["systems"].keys()) == {"A", "B", "C", "D", "E"}
-
-
 class TestMetaOptimizer:
     @patch("system_e.meta_optimizer.ClaudeClient")
     def test_diagnose_structure(self, mock_client_cls):
@@ -233,8 +224,7 @@ class TestMetaOptimizer:
 
 class TestOrchestrator:
     @patch("system_e.orchestrator.ClaudeClient")
-    @patch("system_e.orchestrator.Notifier")
-    def test_orchestrator_init(self, mock_notifier, mock_client_cls):
+    def test_orchestrator_init(self, mock_client_cls):
         mock_client = MagicMock()
         mock_client_cls.return_value = mock_client
 
