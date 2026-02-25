@@ -1,0 +1,36 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 4,
+    "persona_match": 5,
+    "pillar_alignment": 6,
+    "algorithm_optimization": 3,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 0,
+    "cta_ending": 2,
+    "originality": 5,
+    "tone_balance": 6,
+    "algorithm_hooks": 3
+  },
+  "total_score": 64,
+  "threshold": 80,
+  "result": "rejected",
+  "rejection_reasons": [
+    "hook_powerが低い（4点）- 単純な事実の提示のみで興味を引く要素が不足",
+    "algorithm_optimizationが低い（3点）- エンゲージメントを促す要素が不足",
+    "number_includedが0点 - 数字や具体的なデータが含まれていない",
+    "cta_endingが低い（2点）- 明確な行動喚起がない",
+    "algorithm_hooksが低い（3点）- アルゴリズムに評価される要素が不足"
+  ],
+  "improvement_suggestions": [
+    "具体的な数字を追加（例：「施工コーディネーター、95%の人が知らない職種です」）",
+    "興味を引くフックを強化（例：「年収600万円も可能な施工コーディネーター」）",
+    "明確なCTAを追加（例：「詳しく知りたい方はコメントで👍」）",
+    "エンゲージメントを促す質問を追加（例：「この職種について知っていましたか？」）",
+    "具体的な仕事内容や魅力を1-2行で補足する"
+  ],
+  "checked_at": "2026-02-25T13:52:27.425186+09:00"
+}
