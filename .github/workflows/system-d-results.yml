@@ -1,0 +1,73 @@
+# GitHub Actions — System D: 実績コンテンツ生成 → System A連携
+#
+# スケジュール:
+#   - 毎週金曜 20:00 JST: 実績コンテンツ生成 → System A投稿パイプラインに注入
+#
+# 手動実行も可能（workflow_dispatch）
+
+name: System D Results Content
+
+on:
+  schedule:
+    - cron: '0 11 * * 5'    # 20:00 JST Friday (UTC 11:00)
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: '実行モード'
+        required: true
+        type: choice
+        options:
+          - 'generate_and_schedule'
+          - 'generate_only'
+
+permissions:
+  contents: write
+
+jobs:
+  results:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          pip install anthropic requests python-dotenv pyyaml \
+                    gspread google-auth
+
+      - name: Determine mode
+        id: mode
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "mode=${{ inputs.mode }}" >> $GITHUB_OUTPUT
+          else
+            echo "mode=generate_and_schedule" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Run System D
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          MODE="${{ steps.mode.outputs.mode }}"
+          echo "Running System D: $MODE"
+          if [ "$MODE" = "generate_and_schedule" ]; then
+            PYTHONPATH=. python -m system_d.schedule_results_posts
+          else
+            PYTHONPATH=. python system_d/generate_results_content.py
+          fi
+
+      - name: Commit results
+        if: success()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -f data/system_a/pipeline3/ data/system_d/
+          git diff --cached --quiet || git commit -m "auto: System D results content $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          git push

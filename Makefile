@@ -4,7 +4,9 @@
 # ═══════════════════════════════════════════════════════════
 
 .PHONY: help setup test bot-start bot-stop bot-dev deploy-render deploy-docker \
-        report-daily report-monthly faq-check health logs clean
+        report-daily report-monthly faq-check health logs clean \
+        nexus-v2 nexus-v2-daily nexus-v2-weekly nexus-v2-status nexus-v2-debate \
+        system-b-webhook
 
 # プロジェクトルートをPYTHONPATHに追加（core/ 等のimport解決）
 export PYTHONPATH := $(CURDIR):$(PYTHONPATH)
@@ -58,7 +60,14 @@ help:
 	@echo "   make system-e-optimize            システム間連携最適化"
 	@echo "   make system-e-full                フルサイクル実行"
 	@echo ""
-	@echo " NEXUS (Dual-AI Autonomous Revenue Engine):"
+	@echo " NEXUS V2 (デジタルアセット量産):"
+	@echo "   make nexus-v2           日次サイクル実行"
+	@echo "   make nexus-v2-daily     日次サイクル"
+	@echo "   make nexus-v2-weekly    週次全チャネル分析"
+	@echo "   make nexus-v2-status    ステータス確認"
+	@echo "   make nexus-v2-debate    収益議論"
+	@echo ""
+	@echo " NEXUS V1 (Dual-AI Revenue Engine):"
 	@echo "   make nexus              フル実行（最強モード）"
 	@echo "   make nexus-auto         完全自律ループ（CRAWL→TRY→DEBATE→EVOLVE）"
 	@echo "   make nexus-crawl        稼ぎ方をAIが探索"
@@ -203,7 +212,23 @@ cron-install:
 	@echo "✅ crontab 登録完了"
 	@crontab -l | grep -A1 "AI Empire"
 
-# ─── NEXUS: Dual-AI Autonomous Revenue Engine ───
+# ─── NEXUS V2: デジタルアセット量産パイプライン ───
+nexus-v2:
+	python -m nexus.v2.run daily
+
+nexus-v2-daily:
+	python -m nexus.v2.run daily
+
+nexus-v2-weekly:
+	python -m nexus.v2.run weekly
+
+nexus-v2-status:
+	python -m nexus.v2.run status
+
+nexus-v2-debate:
+	python -m nexus.v2.run debate
+
+# ─── NEXUS V1: Dual-AI Autonomous Revenue Engine ───
 nexus:
 	python -m nexus.orchestrator.nexus_core --mode full
 

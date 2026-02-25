@@ -1,0 +1,83 @@
+# GitHub Actions — Bot ヘルスチェック & レポート
+#
+# スケジュール:
+#   - 毎日 21:00 JST: 日次レポート生成
+#   - 毎週月曜 09:00 JST: FAQ更新チェック
+#
+# 手動実行も可能（workflow_dispatch）
+
+name: Bot Health & Reports
+
+on:
+  schedule:
+    - cron: '0 12 * * *'    # 21:00 JST (UTC 12:00)
+    - cron: '0 0 * * 1'     # 09:00 JST Monday (UTC 00:00)
+  workflow_dispatch:
+    inputs:
+      task:
+        description: '実行タスク'
+        required: true
+        type: choice
+        options:
+          - 'daily_report'
+          - 'health_check'
+          - 'faq_update_check'
+          - 'results_to_x'
+
+permissions:
+  contents: write
+
+jobs:
+  health:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          pip install anthropic requests python-dotenv pyyaml \
+                    gspread google-auth fastapi uvicorn httpx
+
+      - name: Determine task
+        id: task
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "task=${{ inputs.task }}" >> $GITHUB_OUTPUT
+          elif [ "$(date -u +%u)" = "1" ]; then
+            echo "task=faq_update_check" >> $GITHUB_OUTPUT
+          else
+            echo "task=daily_report" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Run task
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          LINE_CHANNEL_ACCESS_TOKEN: ${{ secrets.LINE_CHANNEL_ACCESS_TOKEN }}
+          LINE_CHANNEL_SECRET: ${{ secrets.LINE_CHANNEL_SECRET }}
+        run: |
+          TASK="${{ steps.task.outputs.task }}"
+          echo "Running: $TASK"
+          PYTHONPATH=. python -m inquiry_bot.scheduler $TASK
+
+          # 日次レポート日はヘルスチェックも実行
+          if [ "$TASK" = "daily_report" ]; then
+            echo "Following up with health check..."
+            PYTHONPATH=. python -m inquiry_bot.scheduler health_check
+          fi
+
+      - name: Commit logs
+        if: success()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -f data/inquiry_bot_logs/ data/system_a/
+          git diff --cached --quiet || git commit -m "auto: Bot ${{ steps.task.outputs.task }} $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          git push
