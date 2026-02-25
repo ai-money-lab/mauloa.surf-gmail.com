@@ -36,13 +36,11 @@ make bot-dev           # 開発サーバー起動
 make bot-test          # Botテスト
 ```
 
-## CI/CD ワークフロー（GitHub Actions）— 完全自動運用
+## CI/CD ワークフロー（GitHub Actions）
 | ワークフロー | トリガー | 内容 |
 |---|---|---|
 | `x-auto-post.yml` | 07:00/12:00/19:00 JST | X自動投稿（P1-P5選択→QC→投稿） |
 | `nexus-v2.yml` | 09:00 JST日次 + 月曜週次 | 収益エンジンサイクル |
-| `system-c-collect.yml` | 07:30 JST日次 + 月曜08:00週次 | 情報収集（市場・規制・テック） |
-| `system-d-results.yml` | 金曜 20:00 JST | 実績コンテンツ生成→System A連携 |
 | `system-e-meta.yml` | 23:00 JST日次 + 日曜22:00週次 | メタ知性（診断・進化・フルサイクル） |
 | `bot-health.yml` | 21:00 JST日次 + 月曜09:00週次 | Botヘルスチェック・レポート・FAQ |
 | `deploy-bot.yml` | push to master (inquiry_bot/*) | Bot CI/CD + Render.comデプロイ |
