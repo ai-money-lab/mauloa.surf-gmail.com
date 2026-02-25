@@ -1,17 +1,17 @@
-# GitHub Actions — System E: メタ知性エンジン
+# GitHub Actions — System E: AI自動コード生成サイクル
+#
+# AIが議論し、コードを生成し、検証し、コミットする閉ループ。
 #
 # スケジュール:
-#   - 毎日 23:00 JST: 日次診断 + 戦略進化
-#   - 毎週日曜 22:00 JST: フルサイクル（診断→議論→進化→レポート）
+#   - 毎週水曜 01:00 JST (UTC 16:00 火曜): 週次コード生成
 #
 # 手動実行も可能（workflow_dispatch）
 
-name: System E Meta-Intelligence
+name: System E Code Generation
 
 on:
   schedule:
-    - cron: '0 14 * * *'    # 23:00 JST (UTC 14:00)
-    - cron: '0 13 * * 0'    # 22:00 JST Sunday (UTC 13:00)
+    - cron: '0 16 * * 2'    # 01:00 JST Wednesday (UTC 16:00 Tuesday)
   workflow_dispatch:
     inputs:
       mode:
@@ -19,24 +19,19 @@ on:
         required: true
         type: choice
         options:
-          - 'diagnose'
-          - 'evolve'
-          - 'debate'
-          - 'optimize'
           - 'codegen'
           - 'evo-codegen'
-          - 'full-cycle'
       topic:
-        description: '議論トピック（debateモード用）'
+        description: '議論・生成トピック'
         required: false
         type: string
-        default: ''
+        default: 'システムの改善モジュールを設計・実装する'
 
 permissions:
   contents: write
 
 jobs:
-  meta:
+  codegen:
     runs-on: ubuntu-latest
     timeout-minutes: 30
 
@@ -58,38 +53,38 @@ jobs:
         run: |
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             echo "mode=${{ inputs.mode }}" >> $GITHUB_OUTPUT
-          elif [ "$(date -u +%u)" = "0" ]; then
-            echo "mode=full-cycle" >> $GITHUB_OUTPUT
           else
-            echo "mode=diagnose" >> $GITHUB_OUTPUT
+            echo "mode=codegen" >> $GITHUB_OUTPUT
           fi
 
-      - name: Run System E
+      - name: Run AI Code Generation
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: |
           MODE="${{ steps.mode.outputs.mode }}"
           TOPIC="${{ inputs.topic }}"
-          echo "Running System E: $MODE"
+          echo "=== AI Code Generation: $MODE ==="
 
           ARGS="--mode $MODE"
-          if [ -n "$TOPIC" ]; then
+          if [ -n "$TOPIC" ] && [ "$MODE" = "codegen" ]; then
             ARGS="$ARGS --topic \"$TOPIC\""
           fi
 
+          # コード生成（git commitはDeployerが行う）
           PYTHONPATH=. python -m system_e.orchestrator $ARGS
 
-          # 日次: diagnose 後に evolve も実行
-          if [ "$MODE" = "diagnose" ]; then
-            echo "Following up with evolution..."
-            PYTHONPATH=. python -m system_e.orchestrator --mode evolve
-          fi
+      - name: Run tests on generated code
+        run: |
+          echo "=== Testing generated code ==="
+          PYTHONPATH=. python -m pytest tests/ -v --tb=short
 
-      - name: Commit results
+      - name: Commit & push results
         if: success()
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add -f data/system_e/ generated/ || true
-          git diff --cached --quiet || git commit -m "auto: System E ${{ steps.mode.outputs.mode }} $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+
+          # generated/ と system_e/data/ をコミット
+          git add -f generated/ system_e/data/ || true
+          git diff --cached --quiet || git commit -m "auto: AI code generation $(date -u +%Y-%m-%dT%H:%M:%SZ)"
           git push

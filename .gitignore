@@ -7,6 +7,9 @@ config/google_credentials.json
 data/
 reports/
 
+# AI-generated code (CI writes via git add -f)
+generated/
+
 # Python
 __pycache__/
 *.pyc
