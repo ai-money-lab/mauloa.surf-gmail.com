@@ -1,0 +1,32 @@
+{
+  "pillar": 4,
+  "pillar_name": "経営者の日常",
+  "sub_theme": "コーデックス栽培の哲学",
+  "pattern_a": {
+    "text": "3年かけてコーデックスが成長するのを見て気づいたことがあります。\n\n不動産投資と似ているんです。一気に大きくしようと水をやりすぎると根腐れするし、放置しすぎても枯れてしまう。適度な距離感と継続的な観察が結果的に最も成長させる。\n\nコーデックス派？観葉植物派？",
+    "post_type": "thread",
+    "char_count": 134,
+    "hook_type": "数字",
+    "cta_type": "二択"
+  },
+  "pattern_b": {
+    "text": "コーデックスに水やりしながら、ふと思う。この子たちは急かされることを嫌う。不動産業界は常に「早く早く」だけど、本当に価値のあるものは時間をかけて育つものかもしれない。",
+    "post_type": "condensed",
+    "char_count": 102,
+    "hook_type": "意外性",
+    "cta_type": "共感誘発"
+  },
+  "pattern_c": {
+    "text": "なぜコーデックス栽培にハマるのか？",
+    "post_type": "punchline",
+    "char_count": 20,
+    "hook_type": "疑問",
+    "cta_type": "問いかけ"
+  },
+  "pipeline": "P3",
+  "theme": {
+    "pillar_number": 4,
+    "pillar_name": "経営者の日常",
+    "sub_theme": "コーデックス栽培の哲学"
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 6,
+    "persona_match": 7,
+    "pillar_alignment": 5,
+    "algorithm_optimization": 4,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 0,
+    "cta_ending": 2,
+    "originality": 8,
+    "tone_balance": 7,
+    "algorithm_hooks": 3
+  },
+  "total_score": 72,
+  "threshold": 80,
+  "result": "rejected",
+  "rejection_reasons": [
+    "合計スコアが80未満（72点）",
+    "数字が含まれていない",
+    "CTAが弱い（行動喚起がない）",
+    "アルゴリズム最適化が不十分（ハッシュタグ、絵文字なし）",
+    "アルゴリズムフック要素が不足"
+  ],
+  "improvement_suggestions": [
+    "具体的な数字を追加（例：「3年間で学んだこと」「10件の取引で気づいた」）",
+    "明確なCTAを追加（例：「あなたはどう思いますか？」「経験をシェアしてください」）",
+    "関連ハッシュタグを追加（#不動産 #投資 #価値創造など）",
+    "適度な絵文字を使用してエンゲージメントを向上",
+    "冒頭により強いフック要素を追加（疑問文や驚きの事実など）"
+  ],
+  "checked_at": "2026-02-25T19:40:47.477308+09:00"
+}
