@@ -65,7 +65,7 @@ jobs:
       - name: Run NEXUS V2
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-          NEXUS_MODEL: claude-sonnet-4-20250514
+          NEXUS_MODEL: claude-sonnet-4-6-20250514
         run: |
           echo "Running NEXUS V2 in ${{ steps.mode.outputs.mode }} mode..."
           PYTHONPATH=. python -m nexus.v2.run ${{ steps.mode.outputs.mode }}

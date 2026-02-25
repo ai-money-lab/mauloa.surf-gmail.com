@@ -114,6 +114,13 @@ def run_create(orchestrator: NexusV2Orchestrator) -> list[dict]:
     return [r.to_dict() for r in results]
 
 
+def run_debate(orchestrator: NexusV2Orchestrator) -> list[dict]:
+    """戦略議論のみ"""
+    logger.info("=== NEXUS V2 Debate Run ===")
+    results = orchestrator.run(mode="debate", focus="戦略レビュー: 収益最適化と新チャネル探索")
+    return [r.to_dict() for r in results]
+
+
 def run_status(orchestrator: NexusV2Orchestrator) -> list[dict]:
     """状態確認のみ（API呼び出しなし）"""
     logger.info("=== NEXUS V2 Status Check ===")
@@ -135,6 +142,7 @@ def main():
         "daily": run_daily,
         "weekly": run_weekly,
         "create": run_create,
+        "debate": run_debate,
         "status": run_status,
     }
 
