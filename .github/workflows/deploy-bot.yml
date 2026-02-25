@@ -17,9 +17,13 @@ on:
       - 'inquiry_bot/**'
       - 'core/**'
 
+permissions:
+  contents: read
+
 jobs:
   test:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
 
@@ -33,7 +37,7 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Run tests
-        run: pytest tests/ -v --tb=short
+        run: PYTHONPATH=. pytest tests/ -v --tb=short
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
 
@@ -46,6 +50,7 @@ jobs:
     needs: test
     if: github.ref == 'refs/heads/master' && github.event_name == 'push'
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       - name: Deploy to Render
         run: |
@@ -67,6 +72,7 @@ jobs:
   # FAQ/物件データ変更時の自動検証
   validate-data:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     if: |
       contains(github.event.head_commit.modified, 'faq_data.yaml') ||
       contains(github.event.head_commit.modified, 'properties.yaml')
