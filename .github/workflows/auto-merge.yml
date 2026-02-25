@@ -1,0 +1,69 @@
+# GitHub Actions — claude/* ブランチ自動テスト＆マージ
+# Claude Codeが作成したブランチをテスト通過後に自動でmasterへマージ
+
+name: Auto Merge Claude Branches
+
+on:
+  push:
+    branches:
+      - 'claude/**'
+
+permissions:
+  contents: write
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install ruff
+
+      - name: Run tests
+        env:
+          PYTHONPATH: .
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: pytest tests/ -v --tb=short
+
+      - name: Lint check
+        run: ruff check inquiry_bot/ core/ system_a/ system_b/ system_c/ system_d/ system_e/ nexus/ scripts/ tests/ --select E,W,F --ignore E501
+
+  auto-merge:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Merge to master
+        run: |
+          BRANCH="${GITHUB_REF#refs/heads/}"
+          echo "Merging $BRANCH → master"
+          git checkout master
+          git merge "$BRANCH" --no-edit -m "auto-merge: $BRANCH → master (CI passed)"
+          git push origin master
+
+      - name: Notify merge
+        if: success()
+        run: |
+          BRANCH="${GITHUB_REF#refs/heads/}"
+          curl -X POST "${{ secrets.SLACK_WEBHOOK_URL }}" \
+            -H 'Content-Type: application/json' \
+            -d "{\"text\":\"✅ 自動マージ完了: ${BRANCH} → master (commit: ${{ github.sha }})\"}"
+        continue-on-error: true
