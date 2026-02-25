@@ -22,7 +22,7 @@ logger = logging.getLogger("nexus.common")
 
 # ─── 設定 ───
 
-DEFAULT_MODEL = os.getenv("NEXUS_MODEL", "claude-sonnet-4-20250514")
+DEFAULT_MODEL = os.getenv("NEXUS_MODEL", "claude-sonnet-4-6-20250514")
 DEFAULT_TIMEOUT = int(os.getenv("NEXUS_TIMEOUT", "120"))
 MAX_RETRIES = int(os.getenv("NEXUS_MAX_RETRIES", "3"))
 

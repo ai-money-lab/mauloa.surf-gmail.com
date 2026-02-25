@@ -319,7 +319,7 @@ class ContentCreator:
         platforms = ASSET_TO_PLATFORMS.get(asset_type, [])
 
         # タイトル抽出（アセットタイプに応じて）
-        title = (
+        title_raw = (
             parsed.get("album_name")
             or parsed.get("title")
             or parsed.get("product_name")
@@ -327,13 +327,15 @@ class ContentCreator:
             or parsed.get("service_name")
             or f"{theme}_{asset_type.value}"
         )
+        title = title_raw if isinstance(title_raw, str) else str(title_raw)
 
-        description = (
+        desc_raw = (
             parsed.get("description")
             or parsed.get("tagline")
             or parsed.get("problem")
             or ""
         )
+        description = desc_raw if isinstance(desc_raw, str) else json.dumps(desc_raw, ensure_ascii=False)
 
         ts = datetime.now(timezone.utc).isoformat()
         asset_id = hashlib.sha256(f"{title}{asset_type}{ts}".encode()).hexdigest()[:16]
