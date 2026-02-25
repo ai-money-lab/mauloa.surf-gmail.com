@@ -14,6 +14,7 @@
     python -m system_e.orchestrator --mode analytics
     python -m system_e.orchestrator --mode bridge
     python -m system_e.orchestrator --mode smart-evolve
+    python -m system_e.orchestrator --mode bot-insight
 """
 
 import argparse
@@ -29,6 +30,8 @@ from system_e.code_generator import CodeGenerator
 from system_e.code_validator import CodeValidator
 from system_e.debate import DebateProtocol, QuickConsensus
 from system_e.meta_optimizer import MetaOptimizer
+from system_e.bot_insights_bridge import BotInsightsBridge
+from system_e.code_test_harness import CodeTestHarness
 from system_e.nexus_bridge import NexusBridge
 from system_e.performance_tracker import PerformanceTracker
 from system_e.self_improve import EvolutionEngine
@@ -52,6 +55,7 @@ class Orchestrator:
         analytics:    Performance analysis and reporting
         bridge:       NEXUS V2 ↔ System E bidirectional optimization
         smart-evolve: Data-driven evolution (analytics → bridge → evolve)
+        bot-insight:  Inquiry Bot → System E insights feedback
         full-cycle:   Run everything in sequence (including codegen)
 
     Args:
@@ -75,8 +79,10 @@ class Orchestrator:
         self.codegen = CodeGenerator(claude_client=self.claude)
         self.validator = CodeValidator()
         self.deployer = CodeDeployer(auto_push=auto_push)
+        self.test_harness = CodeTestHarness()
         self.tracker = PerformanceTracker()
         self.bridge = NexusBridge(claude_client=self.claude)
+        self.bot_insights = BotInsightsBridge(claude_client=self.claude)
         self._notify = on_notify or (lambda msg: logger.info("[Notify] %s", msg))
         ORCHESTRATOR_LOG.parent.mkdir(parents=True, exist_ok=True)
 
@@ -177,27 +183,39 @@ class Orchestrator:
 
         # Step 3: Validate
         try:
-            logger.info("[CodeGen 3/4] Code Validation")
+            logger.info("[CodeGen 3/5] Code Validation")
             val_result = self.validator.validate(gen_result)
             result["validation"] = val_result.to_dict()
         except Exception as e:
-            logger.error("[CodeGen 3/4] Validation failed: %s", e)
+            logger.error("[CodeGen 3/5] Validation failed: %s", e)
             result["validation"] = {"error": str(e)}
             return result
 
-        # Step 4: Deploy
+        # Step 4: Test Harness
         try:
-            logger.info("[CodeGen 4/4] Deployment")
+            logger.info("[CodeGen 4/5] Test Harness")
+            test_result = self.test_harness.run_tests(
+                gen_result.source_code, gen_result.module_name,
+            )
+            result["test_harness"] = test_result.to_dict()
+        except Exception as e:
+            logger.error("[CodeGen 4/5] Test harness failed: %s", e)
+            result["test_harness"] = {"error": str(e)}
+
+        # Step 5: Deploy
+        try:
+            logger.info("[CodeGen 5/5] Deployment")
             deploy_result = self.deployer.deploy(gen_result, val_result)
             result["deployment"] = deploy_result.to_dict()
         except Exception as e:
-            logger.error("[CodeGen 4/4] Deployment failed: %s", e)
+            logger.error("[CodeGen 5/5] Deployment failed: %s", e)
             result["deployment"] = {"error": str(e)}
 
         self._log_action("codegen", {
             "topic": topic,
             "module": result.get("generation", {}).get("module_name"),
             "validation_passed": result.get("validation", {}).get("passed"),
+            "test_harness_passed": result.get("test_harness", {}).get("passed"),
             "deploy_success": result.get("deployment", {}).get("success"),
         })
 
@@ -351,22 +369,32 @@ class Orchestrator:
 
         # Step 2: Collect NEXUS V2 feedback
         try:
-            logger.info("[SmartEvolve 2/3] Collecting NEXUS V2 feedback")
+            logger.info("[SmartEvolve 2/4] Collecting NEXUS V2 feedback")
             nexus_feedback = self.bridge.generate_nexus_feedback()
             result["nexus_feedback"] = nexus_feedback
         except Exception as e:
-            logger.error("[SmartEvolve 2/3] NEXUS feedback failed: %s", e)
+            logger.error("[SmartEvolve 2/4] NEXUS feedback failed: %s", e)
             nexus_feedback = {}
             result["nexus_feedback"] = {"error": str(e)}
 
-        # Step 3: Run evolution with combined metrics
+        # Step 3: Collect Bot insights feedback
+        bot_feedback: dict = {}
         try:
-            logger.info("[SmartEvolve 3/3] Running data-driven evolution")
-            combined_metrics = {**perf_metrics, **nexus_feedback}
+            logger.info("[SmartEvolve 3/4] Collecting Bot insights feedback")
+            bot_feedback = self.bot_insights.generate_evolution_feedback()
+            result["bot_feedback"] = bot_feedback
+        except Exception as e:
+            logger.error("[SmartEvolve 3/4] Bot feedback failed: %s", e)
+            result["bot_feedback"] = {"error": str(e)}
+
+        # Step 4: Run evolution with combined metrics
+        try:
+            logger.info("[SmartEvolve 4/4] Running data-driven evolution")
+            combined_metrics = {**perf_metrics, **nexus_feedback, **bot_feedback}
             combined_metrics["source"] = "smart_evolve"
             result["evolution"] = self.run_evolution(combined_metrics)
         except Exception as e:
-            logger.error("[SmartEvolve 3/3] Evolution failed: %s", e)
+            logger.error("[SmartEvolve 4/4] Evolution failed: %s", e)
             result["evolution"] = {"error": str(e)}
 
         self._log_action("smart_evolve", {
@@ -382,6 +410,37 @@ class Orchestrator:
         )
 
         logger.info("=== SMART EVOLUTION CYCLE COMPLETE ===")
+        return result
+
+    def run_bot_insight(self) -> dict:
+        """Inquiry Bot の運用データを分析し、進化エンジンにフィードバック.
+
+        1. Bot メトリクス収集
+        2. 改善パターン検出
+        3. 戦略分析
+        4. 進化用フィードバック生成
+
+        Returns:
+            Bot insight cycle result dict.
+        """
+        logger.info("[Orchestrator] Running Bot insight cycle")
+        result = self.bot_insights.run_insight_cycle()
+
+        metrics = result.get("metrics", {})
+        patterns = result.get("patterns", {})
+        self._log_action("bot_insight", {
+            "total_inquiries": metrics.get("total_inquiries", 0),
+            "auto_resolve_rate": metrics.get("auto_resolve_rate", 0),
+            "faq_gaps": len(patterns.get("faq_gaps", [])),
+        })
+
+        self._notify(
+            "System E Bot Insight 完了\n"
+            f"問い合わせ数: {metrics.get('total_inquiries', 0)}件\n"
+            f"自動応答率: {metrics.get('auto_resolve_rate', 0):.0%}\n"
+            f"FAQ ギャップ: {len(patterns.get('faq_gaps', []))}件"
+        )
+
         return result
 
     def run_interaction_optimization(self, architecture: str = "") -> dict:
@@ -534,7 +593,8 @@ def main():
         choices=[
             "debate", "quick", "evolve", "diagnose",
             "optimize", "codegen", "evo-codegen",
-            "analytics", "bridge", "smart-evolve", "full-cycle",
+            "analytics", "bridge", "bot-insight",
+            "smart-evolve", "full-cycle",
         ],
         default="diagnose",
         help="実行モード",
@@ -588,6 +648,10 @@ def main():
 
         elif args.mode == "bridge":
             result = orchestrator.run_bridge()
+            print(json.dumps(result, ensure_ascii=False, indent=2))
+
+        elif args.mode == "bot-insight":
+            result = orchestrator.run_bot_insight()
             print(json.dumps(result, ensure_ascii=False, indent=2))
 
         elif args.mode == "smart-evolve":

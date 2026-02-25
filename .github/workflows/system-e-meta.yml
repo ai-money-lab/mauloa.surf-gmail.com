@@ -1,7 +1,7 @@
 # GitHub Actions — System E: メタ知性エンジン
 #
 # スケジュール:
-#   - 毎日 23:00 JST: 日次診断 + 戦略進化
+#   - 毎日 23:00 JST: 日次診断 + スマート進化（NEXUS V2 + Bot データ統合）
 #   - 毎週日曜 22:00 JST: フルサイクル（診断→議論→進化→レポート）
 #
 # 手動実行も可能（workflow_dispatch）
@@ -21,10 +21,14 @@ on:
         options:
           - 'diagnose'
           - 'evolve'
+          - 'smart-evolve'
           - 'debate'
           - 'optimize'
           - 'codegen'
           - 'evo-codegen'
+          - 'analytics'
+          - 'bridge'
+          - 'bot-insight'
           - 'full-cycle'
       topic:
         description: '議論トピック（debateモード用）'
@@ -79,10 +83,10 @@ jobs:
 
           PYTHONPATH=. python -m system_e.orchestrator $ARGS
 
-          # 日次: diagnose 後に evolve も実行
+          # 日次: diagnose 後に smart-evolve を実行（NEXUS V2 + Bot データ統合）
           if [ "$MODE" = "diagnose" ]; then
-            echo "Following up with evolution..."
-            PYTHONPATH=. python -m system_e.orchestrator --mode evolve
+            echo "Following up with smart-evolve..."
+            PYTHONPATH=. python -m system_e.orchestrator --mode smart-evolve
           fi
 
       - name: Commit results
