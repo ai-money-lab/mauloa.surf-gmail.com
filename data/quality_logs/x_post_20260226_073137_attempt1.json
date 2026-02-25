@@ -1,0 +1,40 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 3,
+    "persona_match": 2,
+    "pillar_alignment": 2,
+    "algorithm_optimization": 2,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 2,
+    "number_included": 0,
+    "cta_ending": 0,
+    "originality": 4,
+    "tone_balance": 5,
+    "algorithm_hooks": 2
+  },
+  "total_score": 42,
+  "threshold": 80,
+  "result": "rejected",
+  "rejection_reasons": [
+    "文字数が極端に少なく、X投稿として不完全（15文字のみ）",
+    "具体的な内容や価値提供がない",
+    "CTAが全く含まれていない",
+    "数字やデータが含まれていない",
+    "アルゴリズム最適化要素が不足",
+    "ペルソナとの関連性が不明確",
+    "ピラー1との整合性が不十分"
+  ],
+  "improvement_suggestions": [
+    "遺品整理の具体的なエピソードや学びを3-5個追加する",
+    "「遺品整理で立ち会った時の3つの発見」など数字を含むタイトルに変更",
+    "具体的な体験談や感情的な気づきを200-250文字で展開",
+    "「あなたも経験ありますか？」などの読者参加型CTAを追加",
+    "ハッシュタグ（#遺品整理 #人生 #家族）を2-3個追加",
+    "「1. 〇〇な発見 2. △△な気持ち 3. □□な学び」のような構造化",
+    "読者の共感を呼ぶ具体的なシーンや感情を描写"
+  ],
+  "checked_at": "2026-02-26T07:31:37.465704+09:00"
+}
