@@ -11,6 +11,9 @@
     python -m system_e.orchestrator --mode diagnose
     python -m system_e.orchestrator --mode full-cycle
     python -m system_e.orchestrator --mode codegen --topic "新機能の実装"
+    python -m system_e.orchestrator --mode analytics
+    python -m system_e.orchestrator --mode bridge
+    python -m system_e.orchestrator --mode smart-evolve
 """
 
 import argparse
@@ -26,6 +29,8 @@ from system_e.code_generator import CodeGenerator
 from system_e.code_validator import CodeValidator
 from system_e.debate import DebateProtocol, QuickConsensus
 from system_e.meta_optimizer import MetaOptimizer
+from system_e.nexus_bridge import NexusBridge
+from system_e.performance_tracker import PerformanceTracker
 from system_e.self_improve import EvolutionEngine
 
 logger = logging.getLogger(__name__)
@@ -38,13 +43,16 @@ class Orchestrator:
     """The brain of System E — coordinates all meta-intelligence activities.
 
     Modes:
-        debate:     Multi-agent debate on a specific topic
-        quick:      Quick 2-agent consensus (Strategist + Critic)
-        evolve:     Self-improvement cycle based on performance data
-        diagnose:   Full system health diagnosis
-        optimize:   Optimize system interactions
-        codegen:    Debate → Code generation → Validation → Deploy
-        full-cycle: Run everything in sequence (including codegen)
+        debate:       Multi-agent debate on a specific topic
+        quick:        Quick 2-agent consensus (Strategist + Critic)
+        evolve:       Self-improvement cycle based on performance data
+        diagnose:     Full system health diagnosis
+        optimize:     Optimize system interactions
+        codegen:      Debate → Code generation → Validation → Deploy
+        analytics:    Performance analysis and reporting
+        bridge:       NEXUS V2 ↔ System E bidirectional optimization
+        smart-evolve: Data-driven evolution (analytics → bridge → evolve)
+        full-cycle:   Run everything in sequence (including codegen)
 
     Args:
         claude_client: Optional pre-configured ClaudeClient.
@@ -67,6 +75,8 @@ class Orchestrator:
         self.codegen = CodeGenerator(claude_client=self.claude)
         self.validator = CodeValidator()
         self.deployer = CodeDeployer(auto_push=auto_push)
+        self.tracker = PerformanceTracker()
+        self.bridge = NexusBridge(claude_client=self.claude)
         self._notify = on_notify or (lambda msg: logger.info("[Notify] %s", msg))
         ORCHESTRATOR_LOG.parent.mkdir(parents=True, exist_ok=True)
 
@@ -261,6 +271,119 @@ class Orchestrator:
         logger.info("=== EVOLUTION + CODEGEN CYCLE COMPLETE ===")
         return result
 
+    def run_analytics(self) -> dict:
+        """パフォーマンス分析レポートを生成.
+
+        PerformanceTracker がオーケストレーターログと NEXUS V2 履歴を解析し、
+        成功率・トレンド・ヘルススコア・改善推奨を算出する。
+
+        Returns:
+            Full performance report dict.
+        """
+        logger.info("[Orchestrator] Running performance analytics")
+        report = self.tracker.generate_full_report()
+        self._log_action("analytics", {
+            "health_score": report.get("health_score"),
+            "total_actions": report.get("system_e", {}).get("action_stats", {}).get("total_actions"),
+            "recommendations_count": len(report.get("recommendations", [])),
+        })
+
+        self._notify(
+            f"System E パフォーマンスレポート\n"
+            f"ヘルススコア: {report.get('health_score', '?')}/100\n"
+            f"推奨事項: {len(report.get('recommendations', []))}件"
+        )
+
+        return report
+
+    def run_bridge(self) -> dict:
+        """NEXUS V2 ↔ System E のブリッジサイクルを実行.
+
+        1. NEXUS V2 状態収集
+        2. 収益パフォーマンス分析
+        3. 最適化計画生成
+        4. 進化用フィードバック生成
+
+        Returns:
+            Bridge cycle result dict.
+        """
+        logger.info("[Orchestrator] Running NEXUS V2 bridge cycle")
+        result = self.bridge.run_bridge_cycle()
+        self._log_action("bridge", {
+            "nexus_cycles": result.get("nexus_state", {}).get("cycles"),
+            "nexus_assets": result.get("nexus_state", {}).get("assets"),
+        })
+
+        self._notify(
+            "System E ↔ NEXUS V2 ブリッジ完了\n"
+            f"NEXUS V2 サイクル: {result.get('nexus_state', {}).get('cycles', '?')}\n"
+            f"アセット: {result.get('nexus_state', {}).get('assets', '?')}"
+        )
+
+        return result
+
+    def run_smart_evolve(self) -> dict:
+        """データ駆動型の進化サイクルを実行.
+
+        従来の evolve は外部メトリクスを手動で渡す必要があったが、
+        smart-evolve は performance_tracker と nexus_bridge から
+        自動的にメトリクスを収集して進化エンジンに渡す。
+
+        1. パフォーマンスメトリクス自動収集
+        2. NEXUS V2 フィードバック収集
+        3. 統合メトリクスで進化を実行
+
+        Returns:
+            Evolution result dict with data-driven metrics.
+        """
+        logger.info("=== SMART EVOLUTION CYCLE START ===")
+        result: dict = {}
+
+        # Step 1: Collect performance metrics
+        try:
+            logger.info("[SmartEvolve 1/3] Collecting performance metrics")
+            perf_metrics = self.tracker.generate_evolution_metrics()
+            result["performance_metrics"] = perf_metrics
+        except Exception as e:
+            logger.error("[SmartEvolve 1/3] Metrics collection failed: %s", e)
+            perf_metrics = {}
+            result["performance_metrics"] = {"error": str(e)}
+
+        # Step 2: Collect NEXUS V2 feedback
+        try:
+            logger.info("[SmartEvolve 2/3] Collecting NEXUS V2 feedback")
+            nexus_feedback = self.bridge.generate_nexus_feedback()
+            result["nexus_feedback"] = nexus_feedback
+        except Exception as e:
+            logger.error("[SmartEvolve 2/3] NEXUS feedback failed: %s", e)
+            nexus_feedback = {}
+            result["nexus_feedback"] = {"error": str(e)}
+
+        # Step 3: Run evolution with combined metrics
+        try:
+            logger.info("[SmartEvolve 3/3] Running data-driven evolution")
+            combined_metrics = {**perf_metrics, **nexus_feedback}
+            combined_metrics["source"] = "smart_evolve"
+            result["evolution"] = self.run_evolution(combined_metrics)
+        except Exception as e:
+            logger.error("[SmartEvolve 3/3] Evolution failed: %s", e)
+            result["evolution"] = {"error": str(e)}
+
+        self._log_action("smart_evolve", {
+            "perf_health_score": perf_metrics.get("codegen_pass_rate"),
+            "nexus_assets": nexus_feedback.get("nexus_total_assets"),
+            "evolution_version": result.get("evolution", {}).get("version"),
+        })
+
+        self._notify(
+            "System E スマート進化完了\n"
+            f"戦略バージョン: v{result.get('evolution', {}).get('version', '?')}\n"
+            f"データソース: パフォーマンス + NEXUS V2"
+        )
+
+        logger.info("=== SMART EVOLUTION CYCLE COMPLETE ===")
+        return result
+
     def run_interaction_optimization(self, architecture: str = "") -> dict:
         """Optimize inter-system interactions.
 
@@ -410,7 +533,8 @@ def main():
         "--mode",
         choices=[
             "debate", "quick", "evolve", "diagnose",
-            "optimize", "codegen", "evo-codegen", "full-cycle",
+            "optimize", "codegen", "evo-codegen",
+            "analytics", "bridge", "smart-evolve", "full-cycle",
         ],
         default="diagnose",
         help="実行モード",
@@ -456,6 +580,18 @@ def main():
 
         elif args.mode == "evo-codegen":
             result = orchestrator.run_codegen_from_evolution()
+            print(json.dumps(result, ensure_ascii=False, indent=2))
+
+        elif args.mode == "analytics":
+            result = orchestrator.run_analytics()
+            print(json.dumps(result, ensure_ascii=False, indent=2))
+
+        elif args.mode == "bridge":
+            result = orchestrator.run_bridge()
+            print(json.dumps(result, ensure_ascii=False, indent=2))
+
+        elif args.mode == "smart-evolve":
+            result = orchestrator.run_smart_evolve()
             print(json.dumps(result, ensure_ascii=False, indent=2))
 
         elif args.mode == "full-cycle":
