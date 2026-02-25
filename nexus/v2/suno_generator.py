@@ -356,9 +356,37 @@ def generate_album(
 
 # ─── CLI ───
 
+def _load_env() -> None:
+    """プロジェクトルートの .env からAPIキーを読み込む"""
+    from pathlib import Path as _P
+    for env_path in [
+        _P(__file__).resolve().parent.parent.parent / ".env",
+        _P(__file__).resolve().parent.parent.parent / "config" / ".env",
+    ]:
+        if env_path.exists():
+            try:
+                from dotenv import load_dotenv
+                load_dotenv(env_path)
+            except ImportError:
+                for line in env_path.read_text().splitlines():
+                    line = line.strip()
+                    if line and not line.startswith("#") and "=" in line:
+                        key, _, val = line.partition("=")
+                        val = val.strip().strip('"').strip("'")
+                        if key.strip() and val:
+                            os.environ.setdefault(key.strip(), val)
+            break
+
+    # グローバル変数を更新
+    global AIMLAPI_KEY
+    AIMLAPI_KEY = os.getenv("AIMLAPI_KEY", "")
+
+
 def main() -> None:
     """コマンドライン実行用"""
     import argparse
+
+    _load_env()
 
     logging.basicConfig(
         level=logging.INFO,

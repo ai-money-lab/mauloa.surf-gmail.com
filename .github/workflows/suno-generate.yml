@@ -1,0 +1,98 @@
+# GitHub Actions — Suno AI 音楽生成パイプライン
+#
+# AIML API経由でSuno AIに楽曲生成リクエストを送信し、
+# 結果をリポジトリに保存する。
+#
+# 必要なシークレット:
+#   AIMLAPI_KEY: AIML APIキー（https://aimlapi.com で取得）
+#
+# 使い方:
+#   手動: Actions → Suno Music Generator → Run workflow → アルバム選択
+#   全アルバム一括: album = "all"
+
+name: Suno Music Generator
+
+on:
+  workflow_dispatch:
+    inputs:
+      album:
+        description: '生成するアルバム'
+        required: true
+        type: choice
+        options:
+          - 'music_90s_rnb_piano.json'
+          - 'music_90s_rnb_house.json'
+          - 'music_90s_house_piano.json'
+          - 'all'
+      track:
+        description: 'トラック番号 (空欄=全曲, 0-7で指定)'
+        required: false
+        type: string
+        default: ''
+      no_lyrics:
+        description: '歌詞APIをスキップ'
+        required: false
+        type: boolean
+        default: false
+      dry_run:
+        description: 'ドライラン（API呼び出しなし）'
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: pip install anthropic requests python-dotenv
+
+      - name: Generate music
+        env:
+          AIMLAPI_KEY: ${{ secrets.AIMLAPI_KEY }}
+        run: |
+          ALBUMS="${{ inputs.album }}"
+          EXTRA_ARGS=""
+
+          if [ "${{ inputs.no_lyrics }}" = "true" ]; then
+            EXTRA_ARGS="$EXTRA_ARGS --no-lyrics"
+          fi
+          if [ "${{ inputs.dry_run }}" = "true" ]; then
+            EXTRA_ARGS="$EXTRA_ARGS --dry-run"
+          fi
+          if [ -n "${{ inputs.track }}" ]; then
+            EXTRA_ARGS="$EXTRA_ARGS --track ${{ inputs.track }}"
+          fi
+
+          if [ "$ALBUMS" = "all" ]; then
+            for spec in music_90s_rnb_piano.json music_90s_rnb_house.json music_90s_house_piano.json; do
+              echo "=== Generating: $spec ==="
+              PYTHONPATH=. python -m nexus.v2.suno_generator $spec $EXTRA_ARGS || true
+              echo ""
+            done
+          else
+            echo "=== Generating: $ALBUMS ==="
+            PYTHONPATH=. python -m nexus.v2.suno_generator "$ALBUMS" $EXTRA_ARGS
+          fi
+
+      - name: Commit results
+        if: success() && inputs.dry_run != true
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -f nexus/data/v2/suno_generations/
+          git diff --cached --quiet || git commit -m "auto: Suno生成 ${{ inputs.album }} $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          git push
