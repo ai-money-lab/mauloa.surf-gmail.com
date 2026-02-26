@@ -1,0 +1,38 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 2,
+    "persona_match": 6,
+    "pillar_alignment": 7,
+    "algorithm_optimization": 3,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 8,
+    "number_included": 8,
+    "cta_ending": 4,
+    "originality": 6,
+    "tone_balance": 3,
+    "algorithm_hooks": 2
+  },
+  "total_score": 69,
+  "threshold": 80,
+  "result": "rejected",
+  "rejection_reasons": [
+    "煽り表現「8割の人が見落としている」が含まれている",
+    "上から目線・説教調の文体になっている",
+    "hook_powerが低い（2点）",
+    "algorithm_optimizationが不十分（3点）",
+    "tone_balanceが悪い（3点）",
+    "algorithm_hooksが弱い（2点）"
+  ],
+  "improvement_suggestions": [
+    "煽り表現を削除し、「内見時に確認したいポイント」など中立的な表現に変更",
+    "上から目線を避け、共感を呼ぶ体験談として再構成",
+    "冒頭を「内見で意外と忘れがちな携帯電波のチェック」など親しみやすい表現に変更",
+    "ハッシュタグ（#内見 #不動産 #賃貸）を追加してアルゴリズム最適化",
+    "「皆さんの経験も教えてください」など参加を促すCTAに強化",
+    "絵文字を適度に使用してエンゲージメント向上"
+  ],
+  "checked_at": "2026-02-27T07:31:41.836779+09:00"
+}
