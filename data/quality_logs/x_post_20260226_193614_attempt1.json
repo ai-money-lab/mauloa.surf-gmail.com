@@ -1,0 +1,37 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 6,
+    "persona_match": 5,
+    "pillar_alignment": 7,
+    "algorithm_optimization": 3,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 0,
+    "cta_ending": 0,
+    "originality": 4,
+    "tone_balance": 6,
+    "algorithm_hooks": 3
+  },
+  "total_score": 64,
+  "threshold": 80,
+  "result": "rejected",
+  "rejection_reasons": [
+    "合計スコアが80未満（64点）",
+    "数字が含まれていない",
+    "CTAが含まれていない",
+    "アルゴリズム最適化が不十分",
+    "独創性が低い",
+    "アルゴリズムフックが弱い"
+  ],
+  "improvement_suggestions": [
+    "具体的な数字を含める（例：「防犯対策5つのステップ」「3分でできる防犯チェック」）",
+    "明確なCTAを追加（例：「リプライで体験談教えて」「いいねで保存」）",
+    "より具体的で実用的な内容に変更（例：「一人暮らし女性の防犯対策」）",
+    "エンゲージメントを促す要素を追加（例：絵文字、質問形式の工夫）",
+    "独自の視点や体験談を含める"
+  ],
+  "checked_at": "2026-02-26T19:36:14.197211+09:00"
+}
