@@ -1,0 +1,35 @@
+{
+  "pillar": 5,
+  "pillar_name": "テクノロジー×不動産",
+  "sub_theme": "VR内見の成約率データ",
+  "pattern_a": {
+    "text": "VR内見、結局は現地見学が必要？",
+    "post_type": "punchline",
+    "char_count": 19,
+    "hook_type": "疑問",
+    "cta_type": "問いかけ"
+  },
+  "pattern_b": {
+    "text": "VR内見の成約率78%って聞いて導入したけど、実際は42%でした。MATTERPORTを使い続けて見えてきたのは、VRは物件の第一印象を良くするツールであって、最終的な成約は現地での体感が決め手になるということ。特に音や匂い、周辺環境は再現できませんからね。どう思いますか？",
+    "post_type": "condensed",
+    "char_count": 140,
+    "hook_type": "数字",
+    "cta_type": "問いかけ"
+  },
+  "pattern_c": {
+    "text": [
+      "2年間でVR内見を300件以上対応して気づいたことがあります。",
+      "成約率は確かに上がるけど、お客さんの満足度は現地見学の方が圧倒的に高い。VRは時間短縮のツールとして優秀ですが、住まいは五感で選ぶもの。技術と人の感覚のバランスが大切だなと…そんなことを考えました。"
+    ],
+    "post_type": "thread",
+    "char_count": 146,
+    "hook_type": "数字",
+    "cta_type": "共感誘発"
+  },
+  "pipeline": "P3",
+  "theme": {
+    "pillar_number": 5,
+    "pillar_name": "テクノロジー×不動産",
+    "sub_theme": "VR内見の成約率データ"
+  }
+}

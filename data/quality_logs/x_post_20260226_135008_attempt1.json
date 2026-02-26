@@ -1,0 +1,38 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 6,
+    "persona_match": 5,
+    "pillar_alignment": 4,
+    "algorithm_optimization": 3,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 3,
+    "number_included": 0,
+    "cta_ending": 0,
+    "originality": 5,
+    "tone_balance": 6,
+    "algorithm_hooks": 3
+  },
+  "total_score": 55,
+  "threshold": 80,
+  "result": "rejected",
+  "rejection_reasons": [
+    "文字数が極端に少なく、X投稿として不十分（19文字）",
+    "数値データや具体的な情報が含まれていない",
+    "CTAが全く含まれていない",
+    "アルゴリズム最適化要素が不足",
+    "Pillar 5との関連性が不明確",
+    "投稿として内容が薄すぎる"
+  ],
+  "improvement_suggestions": [
+    "VR内見の具体的なメリット・デメリットを数値付きで説明する",
+    "現地見学との比較データを追加する（時間短縮率、コスト削減額等）",
+    "読者への具体的な行動提案（CTA）を追加する",
+    "文字数を100-200文字程度に拡充する",
+    "ハッシュタグや絵文字でエンゲージメントを向上させる",
+    "Pillar 5の内容に明確に関連付けた情報を追加する"
+  ],
+  "checked_at": "2026-02-26T13:50:08.352779+09:00"
+}
