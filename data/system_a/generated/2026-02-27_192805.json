@@ -1,0 +1,35 @@
+{
+  "pillar": 5,
+  "pillar_name": "テクノロジー×不動産",
+  "sub_theme": "ChatGPTを業務で使ってみた結果",
+  "pattern_a": {
+    "text": "ChatGPTで契約書チェック、3時間が30分に短縮",
+    "post_type": "punchline",
+    "char_count": 27,
+    "hook_type": "数字",
+    "cta_type": "シミュレーション提案型"
+  },
+  "pattern_b": {
+    "text": "ChatGPTで賃貸の入居者トラブル対応を試してみました。20年のベテランでも悩む「騒音苦情の初回メール」が5分で完成。丁寧すぎず冷たすぎない絶妙な文面になる。人間の感情は読めないけど、文章の客観性は確実に上がりますね。一度シミュレーションしてみると見え方が変わりますよ",
+    "post_type": "condensed",
+    "char_count": 140,
+    "hook_type": "数字",
+    "cta_type": "シミュレーション提案型"
+  },
+  "pattern_c": {
+    "text": [
+      "MATTERPORT撮影で「この部屋の魅力を3行で」とChatGPTに聞いてみた結果が驚き",
+      "自分では「日当たり良好」としか書けない物件を「南東角部屋で朝の光が心地よく、コーヒータイムが贅沢に感じられる空間」と表現。20年やってても気づかなかった視点でした。数字を出してみたら想像と全然違いました"
+    ],
+    "post_type": "thread",
+    "char_count": 135,
+    "hook_type": "意外性",
+    "cta_type": "気づき共有型"
+  },
+  "pipeline": "P3",
+  "theme": {
+    "pillar_number": 5,
+    "pillar_name": "テクノロジー×不動産",
+    "sub_theme": "ChatGPTを業務で使ってみた結果"
+  }
+}

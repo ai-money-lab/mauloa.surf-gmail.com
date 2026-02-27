@@ -1,0 +1,31 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 7,
+    "persona_match": 8,
+    "pillar_alignment": 8,
+    "algorithm_optimization": 6,
+    "no_external_links": 10,
+    "no_banned_content": 0,
+    "character_limit": 9,
+    "number_included": 8,
+    "cta_ending": 7,
+    "originality": 8,
+    "tone_balance": 6,
+    "algorithm_hooks": 6
+  },
+  "total_score": 83,
+  "threshold": 80,
+  "result": "auto_approved",
+  "rejection_reasons": [
+    "煽り表現「絶妙な」が含まれている",
+    "「確実に」という断定的な煽り表現が含まれている"
+  ],
+  "improvement_suggestions": [
+    "「絶妙な文面になる」を「バランスの取れた文面になる」に変更",
+    "「確実に上がります」を「向上する傾向があります」に変更",
+    "断定的な表現を避け、より客観的な表現に修正する"
+  ],
+  "checked_at": "2026-02-27T19:28:16.945113+09:00"
+}
