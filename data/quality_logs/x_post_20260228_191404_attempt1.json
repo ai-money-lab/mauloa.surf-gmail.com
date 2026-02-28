@@ -1,0 +1,36 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 6,
+    "persona_match": 5,
+    "pillar_alignment": 4,
+    "algorithm_optimization": 3,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 8,
+    "cta_ending": 2,
+    "originality": 5,
+    "tone_balance": 7,
+    "algorithm_hooks": 3
+  },
+  "total_score": 73,
+  "threshold": 80,
+  "result": "rejected",
+  "rejection_reasons": [
+    "合計スコアが80未満（73点）",
+    "アルゴリズム最適化が不十分（ハッシュタグ、絵文字、エンゲージメント要素なし）",
+    "CTAが完全に欠如している",
+    "内容が一文のみで情報価値が低い",
+    "ピラー3との関連性が不明確"
+  ],
+  "improvement_suggestions": [
+    "具体的な体験談や学びを追加して内容を充実させる",
+    "「あなたはどちらを選びますか？」などのCTAを追加",
+    "関連するハッシュタグ（#不動産 #賃貸選び等）を追加",
+    "絵文字を適度に使用してエンゲージメントを向上",
+    "ピラー3に明確に関連する文脈や教訓を追加"
+  ],
+  "checked_at": "2026-02-28T19:14:04.175472+09:00"
+}
