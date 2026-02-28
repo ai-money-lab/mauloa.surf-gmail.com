@@ -1,0 +1,36 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 6,
+    "persona_match": 4,
+    "pillar_alignment": 3,
+    "algorithm_optimization": 3,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 8,
+    "cta_ending": 2,
+    "originality": 5,
+    "tone_balance": 6,
+    "algorithm_hooks": 4
+  },
+  "total_score": 71,
+  "threshold": 80,
+  "result": "rejected",
+  "rejection_reasons": [
+    "合計スコアが80未満（71点）",
+    "具体的な業務内容や手法が不明でPillar 5との関連性が薄い",
+    "CTAが全く含まれていない",
+    "アルゴリズム最適化要素が不足（ハッシュタグ、絵文字等なし）",
+    "ペルソナマッチが不十分で対象読者が不明確"
+  ],
+  "improvement_suggestions": [
+    "具体的な業務名や自動化手法を明記してPillar 5との関連を強化",
+    "「詳細はプロフィールから」「DMで質問受付中」等のCTAを追加",
+    "関連ハッシュタグ（#自動化 #効率化 #DX等）を2-3個追加",
+    "対象読者を明確化（「営業の方」「事務作業に悩む方」等）",
+    "具体的な成果や変化をより詳しく説明"
+  ],
+  "checked_at": "2026-03-01T07:20:45.152387+09:00"
+}
