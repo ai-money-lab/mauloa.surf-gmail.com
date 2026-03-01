@@ -1,0 +1,40 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 2,
+    "persona_match": 3,
+    "pillar_alignment": 4,
+    "algorithm_optimization": 1,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 8,
+    "cta_ending": 0,
+    "originality": 2,
+    "tone_balance": 5,
+    "algorithm_hooks": 1
+  },
+  "total_score": 56,
+  "threshold": 80,
+  "result": "rejected",
+  "rejection_reasons": [
+    "フック力が非常に弱い（スコア2）",
+    "アルゴリズム最適化が不十分（スコア1）",
+    "CTAが全く含まれていない（スコア0）",
+    "独創性に欠ける（スコア2）",
+    "アルゴリズムフックが不足（スコア1）",
+    "内容が短すぎて価値提供が不十分",
+    "エンゲージメントを促す要素がない"
+  ],
+  "improvement_suggestions": [
+    "冒頭に興味を引くフレーズを追加（例：「ハウスクリーニング業者選びで失敗しないために」）",
+    "3万円の根拠や内訳を具体的に説明",
+    "読者の体験談や質問を促すCTAを追加",
+    "ハッシュタグを適切に使用してリーチを拡大",
+    "価格帯別のサービス内容比較を含める",
+    "地域差や業者選びのポイントを追加",
+    "絵文字を使用して視覚的な魅力を向上"
+  ],
+  "checked_at": "2026-03-01T19:15:32.354567+09:00"
+}
