@@ -1,0 +1,221 @@
+# ═══════════════════════════════════════════════════════════
+# System E: マネタイズエンジン — 商品カタログ
+# 自動生成＆自動納品で回る収益商品の定義
+# ═══════════════════════════════════════════════════════════
+
+# ─── 即時生成商品（ペイパーユース） ───
+instant_products:
+
+  - id: "img_single"
+    name: "AI画像生成（1枚）"
+    description: "プロンプト指定でAI画像を1枚生成。商用利用OK。"
+    price_jpy: 500
+    generation:
+      type: "image"
+      count: 1
+      default_size: "1K"
+      default_model: "flash"
+    estimated_cost_jpy: 10
+    auto_rate: 100
+    delivery: "instant_download"
+    platforms: ["web", "line", "api"]
+
+  - id: "img_pack_5"
+    name: "AI画像パック（5枚）"
+    description: "統一テーマで5枚のAI画像を生成。SNS投稿・Webサイト素材に。"
+    price_jpy: 2000
+    generation:
+      type: "image_pack"
+      count: 5
+      default_size: "1K"
+      default_model: "flash"
+      variations: true
+    estimated_cost_jpy: 50
+    auto_rate: 100
+    delivery: "instant_download"
+    platforms: ["web", "line", "api"]
+
+  - id: "img_pack_20"
+    name: "AI画像パック（20枚）"
+    description: "大量素材が必要な方に。統一スタイルで20枚を一括生成。"
+    price_jpy: 6000
+    generation:
+      type: "image_pack"
+      count: 20
+      default_size: "1K"
+      default_model: "flash"
+      variations: true
+    estimated_cost_jpy: 200
+    auto_rate: 100
+    delivery: "instant_download"
+    platforms: ["web", "api"]
+
+  - id: "img_pro"
+    name: "AI画像生成 Pro（高品質1枚）"
+    description: "Proモデル + 4K解像度。広告・印刷物向けの高品質画像。"
+    price_jpy: 1500
+    generation:
+      type: "image"
+      count: 1
+      default_size: "4K"
+      default_model: "pro"
+    estimated_cost_jpy: 30
+    auto_rate: 100
+    delivery: "instant_download"
+    platforms: ["web", "api"]
+
+  - id: "img_transparent"
+    name: "透過PNG素材（1枚）"
+    description: "背景透過のAI画像。ロゴ・マスコット・アイコン制作に。"
+    price_jpy: 800
+    generation:
+      type: "image_transparent"
+      count: 1
+      default_size: "1K"
+      default_model: "flash"
+      transparent: true
+    estimated_cost_jpy: 15
+    auto_rate: 100
+    delivery: "instant_download"
+    platforms: ["web", "api"]
+
+  - id: "sns_content_pack"
+    name: "SNSコンテンツパック（画像5枚＋投稿文5本）"
+    description: "画像と投稿テキストをセットで生成。そのままSNSに投稿できる。"
+    price_jpy: 5000
+    generation:
+      type: "content_pack"
+      images: 5
+      posts: 5
+      default_size: "1K"
+      default_model: "flash"
+      aspect_ratio: "1:1"
+    estimated_cost_jpy: 100
+    auto_rate: 100
+    delivery: "instant_download"
+    platforms: ["web", "line", "api"]
+
+  - id: "property_marketing"
+    name: "物件マーケティング素材セット"
+    description: "不動産物件の広告用画像5枚＋キャッチコピー＋物件紹介文を自動生成。"
+    price_jpy: 9800
+    generation:
+      type: "property_pack"
+      images: 5
+      copy: true
+      listing_text: true
+      default_size: "2K"
+      default_model: "flash"
+      aspect_ratio: "16:9"
+    estimated_cost_jpy: 150
+    auto_rate: 95
+    delivery: "instant_download"
+    platforms: ["web", "api"]
+
+  - id: "brand_kit"
+    name: "AIブランドキット"
+    description: "ロゴ3案＋バナー2枚＋アイコンセット＋カラーパレット提案。"
+    price_jpy: 19800
+    generation:
+      type: "brand_kit"
+      logos: 3
+      banners: 2
+      icons: 5
+      color_palette: true
+      default_size: "2K"
+      default_model: "pro"
+    estimated_cost_jpy: 500
+    auto_rate: 90
+    delivery: "instant_download"
+    platforms: ["web", "api"]
+
+  - id: "ai_report_mini"
+    name: "AIミニレポート"
+    description: "指定トピックについてAIが調査・分析した5ページレポート（PDF）。"
+    price_jpy: 3000
+    generation:
+      type: "report"
+      pages: 5
+      format: "pdf"
+    estimated_cost_jpy: 50
+    auto_rate: 100
+    delivery: "instant_download"
+    platforms: ["web", "api"]
+
+# ─── サブスクリプション商品（月額課金） ───
+subscription_products:
+
+  - id: "sub_starter"
+    name: "コンテンツ Starter"
+    description: "月30枚の画像生成＋月10本のSNS投稿文。個人クリエイター向け。"
+    price_jpy_monthly: 9800
+    included:
+      images_per_month: 30
+      posts_per_month: 10
+      models: ["flash"]
+      max_size: "2K"
+      api_access: false
+    estimated_cost_jpy_monthly: 400
+    overage_per_image_jpy: 200
+    platforms: ["web"]
+
+  - id: "sub_pro"
+    name: "コンテンツ Pro"
+    description: "月100枚＋月30本の投稿文＋Proモデル＋API access。"
+    price_jpy_monthly: 29800
+    included:
+      images_per_month: 100
+      posts_per_month: 30
+      models: ["flash", "pro"]
+      max_size: "4K"
+      api_access: true
+      reports_per_month: 2
+    estimated_cost_jpy_monthly: 2000
+    overage_per_image_jpy: 150
+    platforms: ["web", "api"]
+
+  - id: "sub_enterprise"
+    name: "コンテンツ Enterprise"
+    description: "無制限画像＋無制限投稿文＋専用API＋カスタムモデル対応。"
+    price_jpy_monthly: 98000
+    included:
+      images_per_month: -1  # unlimited
+      posts_per_month: -1
+      models: ["flash", "pro"]
+      max_size: "4K"
+      api_access: true
+      reports_per_month: 10
+      priority_support: true
+      custom_style: true
+    estimated_cost_jpy_monthly: 10000
+    overage_per_image_jpy: 0
+    platforms: ["web", "api"]
+
+# ─── API従量課金 ───
+api_pricing:
+  image_generation:
+    flash_per_call_jpy: 50
+    pro_per_call_jpy: 100
+  text_generation:
+    post_per_call_jpy: 30
+    report_page_per_call_jpy: 100
+  minimum_monthly_jpy: 5000
+  free_tier:
+    enabled: true
+    images_per_month: 3
+    posts_per_month: 5
+
+# ─── 決済設定 ───
+payment:
+  provider: "stripe"
+  currency: "jpy"
+  webhook_path: "/api/payment/webhook"
+  success_url: "/payment/success"
+  cancel_url: "/payment/cancel"
+
+# ─── 納品設定 ───
+delivery:
+  download_expiry_hours: 72
+  max_download_count: 5
+  storage_dir: "data/system_e/deliverables"
+  archive_format: "zip"
