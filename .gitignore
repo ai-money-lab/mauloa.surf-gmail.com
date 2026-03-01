@@ -2,6 +2,7 @@
 .env
 config/credentials.json
 config/google_credentials.json
+.claude/secrets/
 
 # Data
 data/
