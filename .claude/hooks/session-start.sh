@@ -9,17 +9,21 @@ fi
 echo "=== SessionStart: 依存パッケージをインストール ==="
 
 # Python依存パッケージ
-echo "[1/3] pip install..."
+echo "[1/4] pip install..."
 pip install -r "$CLAUDE_PROJECT_DIR/requirements.txt" --quiet
 
 # ruff (linter)
-echo "[2/3] ruff install..."
+echo "[2/4] ruff install..."
 pip install ruff --quiet
 
 # Node.js依存パッケージ（MCP Server用）
-echo "[3/3] npm install..."
+echo "[3/4] npm install..."
 cd "$CLAUDE_PROJECT_DIR"
 npm install --no-fund --no-audit 2>/dev/null || true
+
+# nano-banana セットアップ
+echo "[4/4] nano-banana setup..."
+bash "$CLAUDE_PROJECT_DIR/.claude/hooks/setup-nano-banana.sh"
 
 # PYTHONPATHをセッションに設定
 echo "export PYTHONPATH=\"$CLAUDE_PROJECT_DIR:\${PYTHONPATH:-}\"" >> "$CLAUDE_ENV_FILE"
