@@ -41,6 +41,12 @@ help:
 	@echo "   make logs           直近のログ表示"
 	@echo "   make x-posts        実績→X投稿案生成"
 	@echo ""
+	@echo " マネタイズ:"
+	@echo "   make monetize-start マネタイズAPI起動"
+	@echo "   make monetize-dev   マネタイズAPI開発モード"
+	@echo "   make monetize-pl    P&Lレポート表示"
+	@echo "   make monetize-products 商品一覧表示"
+	@echo ""
 	@echo " テスト:"
 	@echo "   make test           全テスト実行"
 	@echo "   make lint           コード品質チェック"
@@ -126,9 +132,22 @@ test:
 
 lint:
 	@pip install ruff -q 2>/dev/null
-	ruff check inquiry_bot/ core/ system_a/ system_b/ system_c/ system_d/ --select E,W,F --ignore E501
+	ruff check inquiry_bot/ core/ system_a/ system_b/ system_c/ system_d/ monetize/ --select E,W,F --ignore E501
 
-# ─── System A-D ───
+# ─── マネタイズエンジン ───
+monetize-start:
+	uvicorn monetize.api:app --host 0.0.0.0 --port 8081
+
+monetize-dev:
+	uvicorn monetize.api:app --host 0.0.0.0 --port 8081 --reload --log-level debug
+
+monetize-pl:
+	PYTHONPATH=. python -c "from monetize.revenue_tracker import RevenueTracker; print(RevenueTracker().get_pl_report())"
+
+monetize-products:
+	PYTHONPATH=. python -c "from monetize.pricing_engine import PricingEngine; import json; print(json.dumps(PricingEngine().get_all_products_summary(), ensure_ascii=False, indent=2))"
+
+# ─── 既存パイプライン ───
 system-a:
 	python system_a/daily_pipeline.py
 

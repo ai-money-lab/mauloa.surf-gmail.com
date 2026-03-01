@@ -62,3 +62,13 @@ inquiry_bot:
   channels: ["line", "web"]
   daily_report_time: "21:00"
   escalation_notify: ["line_notify", "slack"]
+
+monetize:
+  enabled: true
+  server_port: 8081
+  payment_provider: "stripe"
+  currency: "jpy"
+  download_expiry_hours: 72
+  max_download_count: 5
+  notify_on_sale: true
+  daily_pl_report_time: "22:00"
