@@ -165,3 +165,16 @@ The CLI resolves the Gemini API key in this order:
 5. `~/.nano-banana/.env`
 
 Get a key at: https://aistudio.google.com/apikey
+
+## Vertex AI Mode (Claude Code Web)
+
+In Claude Code Web environments, the direct Gemini API is blocked by TLS inspection. nano-banana automatically falls back to **Vertex AI** (`aiplatform.googleapis.com`) when a service account key is found at `~/.nano-banana/vertex-ai-key.json`.
+
+- Model mapping: `gemini-3.1-flash-image-preview` → `gemini-2.0-flash-preview-image-generation`
+- Auth: Google Cloud service account (OAuth, not API key)
+- Setup: Use the `setup-vertex-ai` skill if 403 errors occur
+
+When Vertex AI mode is active, the CLI prints:
+```
+Mode: Vertex AI (project-id / us-central1)
+```
