@@ -1,0 +1,36 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 3,
+    "persona_match": 4,
+    "pillar_alignment": 5,
+    "algorithm_optimization": 2,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 0,
+    "cta_ending": 0,
+    "originality": 4,
+    "tone_balance": 6,
+    "algorithm_hooks": 2
+  },
+  "total_score": 56,
+  "threshold": 80,
+  "result": "rejected",
+  "rejection_reasons": [
+    "内容が短すぎて価値提供が不十分",
+    "具体的な体験談や詳細が欠如",
+    "エンゲージメントを促すCTAが皆無",
+    "アルゴリズム最適化要素が不足",
+    "フック力が弱く注目を引けない"
+  ],
+  "improvement_suggestions": [
+    "顔認証の具体的な使用場面や体験を詳しく記述する",
+    "便利だった理由を3-5個の具体例で説明する",
+    "「あなたも使ったことありますか？」等のCTAを追加",
+    "「iPhone顔認証で変わった3つの習慣」等の数字を含むタイトルに変更",
+    "使用前後の変化や驚いた点を具体的に描写して価値提供を強化"
+  ],
+  "checked_at": "2026-03-02T19:35:28.503542+09:00"
+}
