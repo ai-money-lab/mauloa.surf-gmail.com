@@ -1,0 +1,36 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 6,
+    "persona_match": 5,
+    "pillar_alignment": 7,
+    "algorithm_optimization": 4,
+    "no_external_links": 10,
+    "no_banned_content": 0,
+    "character_limit": 8,
+    "number_included": 8,
+    "cta_ending": 2,
+    "originality": 5,
+    "tone_balance": 3,
+    "algorithm_hooks": 4
+  },
+  "total_score": 62,
+  "threshold": 80,
+  "result": "rejected",
+  "rejection_reasons": [
+    "煽り表現「見抜けます」が断定的で煽り調になっている",
+    "上から目線の文体で読者を見下すような印象を与える",
+    "CTAが不十分で行動喚起が弱い",
+    "アルゴリズム最適化要素が不足している",
+    "トーンバランスが攻撃的すぎる"
+  ],
+  "improvement_suggestions": [
+    "「見抜けます」を「チェックできるポイントがあります」などソフトな表現に変更",
+    "「私が実践している管理会社の選び方」など謙虚な切り口に変更",
+    "「詳しくはスレッドで解説↓」などのCTAを追加",
+    "「実体験から学んだ」「初心者の方へ」など親しみやすい要素を追加",
+    "質問形式「管理会社選びで失敗したくないですか？」でエンゲージメント向上"
+  ],
+  "checked_at": "2026-03-02T13:47:56.155511+09:00"
+}
