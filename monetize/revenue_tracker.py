@@ -198,17 +198,18 @@ class RevenueTracker:
         return total
 
     def _load_month_orders(self, month: str) -> list[dict]:
-        """月次注文ログを読み込む."""
+        """月次注文ログを読み込む（ストリーミング読み込み）."""
         log_file = ORDERS_DIR / f"{month}_orders.jsonl"
         if not log_file.exists():
             return []
         orders = []
-        for line in log_file.read_text(encoding="utf-8").splitlines():
-            line = line.strip()
-            if not line:
-                continue
-            try:
-                orders.append(json.loads(line))
-            except Exception:
-                continue
+        with open(log_file, encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    orders.append(json.loads(line))
+                except Exception:
+                    continue
         return orders

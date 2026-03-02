@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 JST = timezone(timedelta(hours=9))
 BASE_DIR = Path(__file__).parent.parent
-DELIVERABLES_DIR = BASE_DIR / "data" / "system_e" / "deliverables"
+DELIVERABLES_DIR = BASE_DIR / "data" / "monetize" / "deliverables"
 PROMPTS_DIR = BASE_DIR / "prompts"
 
 

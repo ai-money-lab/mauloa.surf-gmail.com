@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 JST = timezone(timedelta(hours=9))
 CATALOG_PATH = Path(__file__).parent / "catalog.yaml"
-COSTS_LOG_DIR = Path(__file__).parent.parent / "data" / "system_e" / "costs"
+COSTS_LOG_DIR = Path(__file__).parent.parent / "data" / "monetize" / "costs"
 
 # nano-banana の実コスト（USD → JPY換算レート）
 USD_TO_JPY = 150
@@ -40,6 +40,17 @@ CLAUDE_COSTS = {
     "avg_tokens_per_post": 500,
     "avg_tokens_per_report_page": 2000,
 }
+
+
+def _image_cost(model: str, size: str, count: int) -> float:
+    """nano-banana 画像生成コスト（USD）."""
+    return NANO_BANANA_COSTS.get(model, {}).get(size, 0.067) * count
+
+
+def _text_cost(tokens: int) -> float:
+    """Claude テキスト生成コスト（USD）."""
+    k = tokens / 1000
+    return k * CLAUDE_COSTS["input_per_1k"] + k * CLAUDE_COSTS["output_per_1k"]
 
 
 class PricingEngine:
@@ -103,42 +114,21 @@ class PricingEngine:
 
         # 画像コスト
         if gen_type in ("image", "image_pack", "image_transparent"):
-            cost_per_image = NANO_BANANA_COSTS.get(use_model, {}).get(use_size, 0.067)
-            image_cost_usd = cost_per_image * use_count
+            image_cost_usd = _image_cost(use_model, use_size, use_count)
         elif gen_type == "content_pack":
-            img_count = gen.get("images", 5)
-            cost_per_image = NANO_BANANA_COSTS.get(use_model, {}).get(use_size, 0.067)
-            image_cost_usd = cost_per_image * img_count
-            post_count = gen.get("posts", 5)
-            tokens = CLAUDE_COSTS["avg_tokens_per_post"] * post_count
-            text_cost_usd = (
-                tokens / 1000 * CLAUDE_COSTS["input_per_1k"]
-                + tokens / 1000 * CLAUDE_COSTS["output_per_1k"]
-            )
+            image_cost_usd = _image_cost(use_model, use_size, gen.get("images", 5))
+            post_tokens = CLAUDE_COSTS["avg_tokens_per_post"] * gen.get("posts", 5)
+            text_cost_usd = _text_cost(post_tokens)
         elif gen_type == "property_pack":
-            img_count = gen.get("images", 5)
-            cost_per_image = NANO_BANANA_COSTS.get(use_model, {}).get(use_size, 0.067)
-            image_cost_usd = cost_per_image * img_count
-            tokens = 3000  # copy + listing text
-            text_cost_usd = (
-                tokens / 1000 * CLAUDE_COSTS["input_per_1k"]
-                + tokens / 1000 * CLAUDE_COSTS["output_per_1k"]
-            )
+            image_cost_usd = _image_cost(use_model, use_size, gen.get("images", 5))
+            text_cost_usd = _text_cost(3000)  # copy + listing text
         elif gen_type == "brand_kit":
-            logo_count = gen.get("logos", 3)
-            banner_count = gen.get("banners", 2)
-            icon_count = gen.get("icons", 5)
-            total_images = logo_count + banner_count + icon_count
-            cost_per_image = NANO_BANANA_COSTS.get(use_model, {}).get(use_size, 0.134)
-            image_cost_usd = cost_per_image * total_images
+            total_images = gen.get("logos", 3) + gen.get("banners", 2) + gen.get("icons", 5)
+            image_cost_usd = _image_cost(use_model, use_size, total_images)
             text_cost_usd = 0.02  # color palette prompt
         elif gen_type == "report":
-            pages = gen.get("pages", 5)
-            tokens = CLAUDE_COSTS["avg_tokens_per_report_page"] * pages
-            text_cost_usd = (
-                tokens / 1000 * CLAUDE_COSTS["input_per_1k"]
-                + tokens / 1000 * CLAUDE_COSTS["output_per_1k"]
-            )
+            report_tokens = CLAUDE_COSTS["avg_tokens_per_report_page"] * gen.get("pages", 5)
+            text_cost_usd = _text_cost(report_tokens)
 
         total_cost_usd = image_cost_usd + text_cost_usd
         total_cost_jpy = int(total_cost_usd * USD_TO_JPY)
