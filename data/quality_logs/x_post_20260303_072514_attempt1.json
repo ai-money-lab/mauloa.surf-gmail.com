@@ -1,0 +1,38 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 6,
+    "persona_match": 5,
+    "pillar_alignment": 4,
+    "algorithm_optimization": 3,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 8,
+    "cta_ending": 2,
+    "originality": 4,
+    "tone_balance": 5,
+    "algorithm_hooks": 3
+  },
+  "total_score": 70,
+  "threshold": 80,
+  "result": "rejected",
+  "rejection_reasons": [
+    "合計スコアが80未満（70点）",
+    "CTAが不明確で行動喚起が弱い",
+    "アルゴリズム最適化要素が不足",
+    "pillar_alignmentが不明確",
+    "コンテンツが短すぎて価値提供が不十分",
+    "エンゲージメントを促す要素が不足"
+  ],
+  "improvement_suggestions": [
+    "具体的なリフォーム内容や事例を追加して価値を明確化",
+    "「どのリフォームが効果的か知りたい方はコメントで教えてください」等のCTAを追加",
+    "ハッシュタグや絵文字を活用してアルゴリズム最適化",
+    "pillar 2に沿った専門性のある情報を追加",
+    "読者の関心を引く質問や体験談を盛り込む",
+    "具体的な数値データや根拠を追加して信頼性向上"
+  ],
+  "checked_at": "2026-03-03T07:25:14.946653+09:00"
+}
