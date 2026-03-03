@@ -155,6 +155,58 @@ nano-banana "pixel art treasure chest" -t -o chest
 nano-banana "mobile app onboarding screen" -a 9:16
 ```
 
+## Advanced Workflows
+
+### 間取り図→フォトリアルレンダリング
+
+2D間取り図からフォトリアリスティックなインテリアレンダリングを生成するワークフロー。
+
+#### 手順
+
+1. 間取り図画像（JPG/PNG）を用意
+2. `-r` で間取り図を参照画像として指定
+3. プロンプトでスタイル・視点を指定して生成
+
+#### プロンプト（トップダウン俯瞰レンダリング）
+
+```bash
+nano-banana "Analyze the provided floor plan and generate a photorealistic top-down (true 90° orthographic) rendering of the entire apartment, keeping the exact same dimensions, proportions, walls, doors, windows, and furniture placement as shown. Do not change layout, scale, or orientation. Style: Modern Japanese (Japandi) light natural wood, warm neutral tones (beige, off-white, soft gray), minimalist furniture, clean lines, built-in cabinetry, stone or microcement surfaces, matte black accents, soft natural daylight. Architectural visualization style, ultra-realistic materials, no perspective distortion, no added or removed elements." -r floorplan.png -s 2K -o rendered-floorplan
+```
+
+#### カスタマイズ要素
+
+| 要素 | デフォルト | 変更例 |
+|------|-----------|--------|
+| Style | Modern Japanese (Japandi) | Scandinavian, Industrial, Luxury Modern |
+| 素材 | light natural wood | walnut, concrete, marble |
+| 視点 | top-down (true 90° orthographic) | eye-level perspective（各部屋のパース画像） |
+| 家具 | minimalist furniture | mid-century modern furniture |
+| トーン | warm neutral tones | cool monochrome, warm earth tones |
+
+#### 視点バリエーション
+
+```bash
+# トップダウン俯瞰（デフォルト）
+nano-banana "...top-down (true 90° orthographic)..." -r floorplan.png -s 2K
+
+# リビングのパース画像
+nano-banana "Generate a photorealistic eye-level perspective of the living room based on this floor plan. Style: Modern Japanese (Japandi)..." -r floorplan.png -s 2K -a 16:9
+
+# 高品質版（Proモデル）
+nano-banana "..." -r floorplan.png -s 2K -m pro
+```
+
+#### 外部プラットフォーム（参考）
+
+| プラットフォーム | 特徴 |
+|-----------------|------|
+| mitte.ai | カスタムAIモデル対応。間取り図アップロード→プロンプト入力で生成 |
+| Rendair AI (rendair.ai) | チャットUIで自然言語編集可能 |
+| Fenestra (fenestra.app) | 建築・インテリア特化。2Dプラン→空間ビジュアライゼーション変換に強い |
+| Google AI Studio | Geminiモデルに直接アクセス。API利用も可能 |
+
+> 参考元: @EHuanglu (el.cine) — X投稿 / 田中義弘 (taziku CEO)
+
 ## API Key Setup
 
 The CLI resolves the Gemini API key in this order:
