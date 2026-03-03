@@ -1,156 +1,238 @@
+#!/usr/bin/env python3
 """
-岩崎ビル402号室 間取り図生成スクリプト
-添付された間取り図の寸法データからSVG→PNGを生成し、
-nano-banana のリファレンス画像として使えるようにする
+間取り図生成スクリプト
+
+JSON設定ファイルから間取り図SVG/PNGを生成し、
+nano-banana のリファレンス画像として使えるようにする。
+
+使い方:
+  python generate-floorplan.py                    # デフォルト設定
+  python generate-floorplan.py config.json        # JSON設定ファイル指定
+  python generate-floorplan.py -o output-name     # 出力ファイル名指定
 """
 import subprocess
 import os
+import sys
+import json
 
-# 寸法データ（添付間取り図から読み取り、単位: mm）
-# 外形
-TOTAL_W = 8636  # 東西方向（横幅）
-TOTAL_H = 6370  # 南北方向（奥行き）  ※概算: 面積35.83m²から逆算
+# デフォルト設定
+DEFAULT_CONFIG = {
+    "name": "default",
+    "area_sqm": 35.83,
+    # 外形（単位: mm）
+    "total_w": 8636,
+    "total_h": 6370,
+    # 部屋定義: type, x, y, w, h, label
+    "rooms": [
+        {"type": "room", "x": 0, "y": 0, "w": 8636, "h": 6370, "label": "居室"},
+        {"type": "bath", "x": 0, "y": 0, "w": 2275, "h": 2730, "label": "浴室・トイレ"},
+        {"type": "kitchen", "x": 0, "y": 2730, "w": 2275, "h": 3640, "label": "キッチン"},
+        {"type": "balcony", "x": 7726, "y": 0, "w": 910, "h": 6370, "label": "バルコニー"}
+    ],
+    # 壁（内壁）: x1, y1, x2, y2
+    "walls": [
+        {"x1": 0, "y1": 2730, "x2": 2275, "y2": 2730},
+        {"x1": 2275, "y1": 0, "x2": 2275, "y2": 2730},
+        {"x1": 2275, "y1": 2730, "x2": 2275, "y2": 6370}
+    ],
+    # 窓: x1, y1, x2, y2
+    "windows": [
+        {"x1": 7726, "y1": 200, "x2": 7726, "y2": 6170}
+    ],
+    # ドア: x1, y1, x2, y2, label（任意）
+    "doors": [
+        {"x1": 2285, "y1": 6370, "x2": 3195, "y2": 6370, "label": "玄関"}
+    ],
+    # 設備: type, x, y, w, h
+    "fixtures": [
+        {"type": "bathtub", "x": 1720, "y": 100, "w": 450, "h": 2480},
+        {"type": "toilet", "x": 100, "y": 2380, "w": 250, "h": 350},
+        {"type": "sink", "x": 100, "y": 100, "w": 310, "h": 220},
+        {"type": "kitchen_counter", "x": 50, "y": 2830, "w": 175, "h": 1820}
+    ],
+    # 寸法線表示
+    "dimensions": [
+        {"value": "8,636", "x": 4318, "y": -150, "orientation": "h"},
+        {"value": "2,275", "x": 1137, "y": -300, "orientation": "h"},
+        {"value": "6,370", "x": 8886, "y": 3185, "orientation": "v"}
+    ]
+}
 
-# バスルーム（左上）
-BATH_W = 2275  # 幅
-BATH_H = 2730  # 奥行き
-
-# 玄関・廊下（下部中央〜左）
-HALL_W = 1365  # 廊下幅
-ENTRANCE_W = 910  # 玄関幅
-
-# キッチン（廊下左壁沿い）
-KITCHEN_W = 1820  # キッチンカウンター長さ
-
-# バルコニー（東側、右壁全面）
-BALCONY_DEPTH = 910
-
-# スケール: 1mm = 0.1px → 全体 864x637px に収まる
 SCALE = 0.08
 MARGIN = 40
+
+ROOM_COLORS = {
+    "room": "#FFF8F0",
+    "bath": "#E8F4F8",
+    "kitchen": "#FFF0E0",
+    "balcony": "#E8F8E8",
+    "closet": "#F0F0F0",
+    "hallway": "#FFFBE8",
+    "bedroom": "#F0E8F8",
+    "living": "#FFF8F0",
+}
+
+FIXTURE_RENDERERS = {
+    "bathtub": lambda x, y, w, h: f'<rect x="{x}" y="{y}" width="{w}" height="{h}" rx="5" fill="#D0E8F0" stroke="#999" stroke-width="1"/>',
+    "toilet": lambda x, y, w, h: f'<rect x="{x}" y="{y}" width="{w}" height="{h}" rx="3" fill="#DDD" stroke="#999" stroke-width="1"/>',
+    "sink": lambda x, y, w, h: f'<rect x="{x}" y="{y}" width="{w}" height="{h}" rx="2" fill="#DDD" stroke="#999" stroke-width="1"/>',
+    "kitchen_counter": lambda x, y, w, h: f'<rect x="{x}" y="{y}" width="{w}" height="{h}" rx="1" fill="#DDB" stroke="#999" stroke-width="1"/>',
+    "washer": lambda x, y, w, h: f'<rect x="{x}" y="{y}" width="{w}" height="{h}" rx="3" fill="#E0E0E0" stroke="#999" stroke-width="1"/>',
+}
+
 
 def mm(v):
     return v * SCALE
 
-def generate_svg():
-    w = mm(TOTAL_W) + MARGIN * 2
-    h = mm(TOTAL_H) + MARGIN * 2
-    ox, oy = MARGIN, MARGIN  # 原点オフセット
 
-    svg = f'''<?xml version="1.0" encoding="UTF-8"?>
+def generate_svg(config):
+    total_w = config["total_w"]
+    total_h = config["total_h"]
+    w = mm(total_w) + MARGIN * 2
+    h = mm(total_h) + MARGIN * 2
+    ox, oy = MARGIN, MARGIN
+
+    parts = []
+    parts.append(f'''<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="{w:.0f}" height="{h:.0f}" viewBox="0 0 {w:.0f} {h:.0f}">
   <style>
     .wall {{ fill: none; stroke: #333; stroke-width: 3; }}
-    .thin-wall {{ fill: none; stroke: #333; stroke-width: 1.5; }}
-    .room {{ fill: #FFF8F0; stroke: none; }}
-    .bath {{ fill: #E8F4F8; stroke: none; }}
-    .kitchen {{ fill: #FFF0E0; stroke: none; }}
-    .balcony {{ fill: #E8F8E8; stroke: none; }}
     .door {{ fill: none; stroke: #666; stroke-width: 1.5; stroke-dasharray: 4,2; }}
     .window {{ fill: none; stroke: #4A90D9; stroke-width: 3; }}
     .dim {{ font-family: sans-serif; font-size: 9px; fill: #666; text-anchor: middle; }}
     .label {{ font-family: sans-serif; font-size: 11px; fill: #333; text-anchor: middle; font-weight: bold; }}
     .area {{ font-family: sans-serif; font-size: 14px; fill: #333; text-anchor: middle; font-weight: bold; }}
   </style>
+  <rect width="{w:.0f}" height="{h:.0f}" fill="white"/>''')
 
-  <!-- 背景 -->
-  <rect width="{w:.0f}" height="{h:.0f}" fill="white"/>
+    # 部屋の塗り
+    for room in config.get("rooms", []):
+        color = ROOM_COLORS.get(room["type"], "#F8F8F8")
+        rx = ox + mm(room["x"])
+        ry = oy + mm(room["y"])
+        rw = mm(room["w"])
+        rh = mm(room["h"])
+        parts.append(f'  <rect x="{rx:.1f}" y="{ry:.1f}" width="{rw:.1f}" height="{rh:.1f}" fill="{color}"/>')
 
-  <!-- メイン居室（床塗り） -->
-  <rect class="room" x="{ox}" y="{oy}" width="{mm(TOTAL_W):.1f}" height="{mm(TOTAL_H):.1f}"/>
+    # 外壁
+    parts.append(f'  <rect class="wall" x="{ox}" y="{oy}" width="{mm(total_w):.1f}" height="{mm(total_h):.1f}"/>')
 
-  <!-- バスルーム -->
-  <rect class="bath" x="{ox}" y="{oy}" width="{mm(BATH_W):.1f}" height="{mm(BATH_H):.1f}"/>
+    # 内壁
+    for wall in config.get("walls", []):
+        parts.append(f'  <line class="wall" x1="{ox + mm(wall["x1"]):.1f}" y1="{oy + mm(wall["y1"]):.1f}" x2="{ox + mm(wall["x2"]):.1f}" y2="{oy + mm(wall["y2"]):.1f}"/>')
 
-  <!-- キッチンエリア -->
-  <rect class="kitchen" x="{ox}" y="{oy + mm(BATH_H)}" width="{mm(BATH_W):.1f}" height="{mm(TOTAL_H - BATH_H):.1f}"/>
+    # 窓
+    for win in config.get("windows", []):
+        parts.append(f'  <line class="window" x1="{ox + mm(win["x1"]):.1f}" y1="{oy + mm(win["y1"]):.1f}" x2="{ox + mm(win["x2"]):.1f}" y2="{oy + mm(win["y2"]):.1f}"/>')
 
-  <!-- バルコニー -->
-  <rect class="balcony" x="{ox + mm(TOTAL_W - BALCONY_DEPTH)}" y="{oy}" width="{mm(BALCONY_DEPTH):.1f}" height="{mm(TOTAL_H):.1f}"/>
+    # ドア
+    for door in config.get("doors", []):
+        dx1 = ox + mm(door["x1"])
+        dy1 = oy + mm(door["y1"])
+        dx2 = ox + mm(door["x2"])
+        dy2 = oy + mm(door["y2"])
+        parts.append(f'  <line class="door" x1="{dx1:.1f}" y1="{dy1:.1f}" x2="{dx2:.1f}" y2="{dy2:.1f}"/>')
+        if "label" in door:
+            cx = (dx1 + dx2) / 2
+            cy = min(dy1, dy2) - 5
+            parts.append(f'  <text class="label" x="{cx:.1f}" y="{cy:.1f}">{door["label"]}</text>')
 
-  <!-- 外壁 -->
-  <rect class="wall" x="{ox}" y="{oy}" width="{mm(TOTAL_W):.1f}" height="{mm(TOTAL_H):.1f}"/>
+    # 設備
+    for fix in config.get("fixtures", []):
+        renderer = FIXTURE_RENDERERS.get(fix["type"])
+        if renderer:
+            fx = ox + mm(fix["x"])
+            fy = oy + mm(fix["y"])
+            fw = mm(fix["w"])
+            fh = mm(fix["h"])
+            parts.append(f'  {renderer(f"{fx:.1f}", f"{fy:.1f}", f"{fw:.1f}", f"{fh:.1f}")}')
 
-  <!-- バスルーム壁 -->
-  <line class="wall" x1="{ox}" y1="{oy + mm(BATH_H)}" x2="{ox + mm(BATH_W)}" y2="{oy + mm(BATH_H)}"/>
-  <line class="wall" x1="{ox + mm(BATH_W)}" y1="{oy}" x2="{ox + mm(BATH_W)}" y2="{oy + mm(BATH_H)}"/>
+    # ラベル
+    for room in config.get("rooms", []):
+        if "label" in room:
+            cx = ox + mm(room["x"] + room["w"] / 2)
+            cy = oy + mm(room["y"] + room["h"] / 2)
+            parts.append(f'  <text class="label" x="{cx:.1f}" y="{cy:.1f}">{room["label"]}</text>')
 
-  <!-- キッチン/廊下の仕切り壁 -->
-  <line class="wall" x1="{ox + mm(BATH_W)}" y1="{oy + mm(BATH_H)}" x2="{ox + mm(BATH_W)}" y2="{oy + mm(TOTAL_H)}"/>
+    # 面積表示（メイン居室）
+    area = config.get("area_sqm")
+    if area:
+        main_room = next((r for r in config.get("rooms", []) if r["type"] == "room"), None)
+        if main_room:
+            cx = ox + mm(main_room["x"] + main_room["w"] / 2)
+            cy = oy + mm(main_room["y"] + main_room["h"] / 2) + 16
+            parts.append(f'  <text class="area" x="{cx:.1f}" y="{cy:.1f}">{area}m²</text>')
 
-  <!-- バスルーム内部: トイレ -->
-  <rect x="{ox + 8}" y="{oy + mm(BATH_H) - 35}" width="20" height="28" rx="3" fill="#DDD" stroke="#999" stroke-width="1"/>
-  <!-- バスルーム内部: 浴槽 -->
-  <rect x="{ox + mm(BATH_W) - 55}" y="{oy + 8}" width="45" height="{mm(BATH_H) - 50:.1f}" rx="5" fill="#D0E8F0" stroke="#999" stroke-width="1"/>
-  <!-- バスルーム内部: 洗面台 -->
-  <rect x="{ox + 8}" y="{oy + 8}" width="25" height="18" rx="2" fill="#DDD" stroke="#999" stroke-width="1"/>
+    # 寸法線
+    for dim in config.get("dimensions", []):
+        dx = ox + mm(dim["x"])
+        dy = oy + mm(dim["y"])
+        if dim.get("orientation") == "v":
+            parts.append(f'  <text class="dim" x="{dx:.1f}" y="{dy:.1f}" transform="rotate(90, {dx:.1f}, {dy:.1f})">{dim["value"]}</text>')
+        else:
+            parts.append(f'  <text class="dim" x="{dx:.1f}" y="{dy:.1f}">{dim["value"]}</text>')
 
-  <!-- キッチンカウンター -->
-  <rect x="{ox + 4}" y="{oy + mm(BATH_H) + 8}" width="14" height="{mm(KITCHEN_W):.1f}" rx="1" fill="#DDB" stroke="#999" stroke-width="1"/>
+    parts.append('</svg>')
+    return '\n'.join(parts)
 
-  <!-- バスルームドア -->
-  <path class="door" d="M {ox + mm(BATH_W) - 5} {oy + mm(BATH_H) - 2} L {ox + mm(BATH_W) - 5} {oy + mm(BATH_H) - 40}"/>
 
-  <!-- 玄関ドア -->
-  <line class="door" x1="{ox + mm(BATH_W) + 10}" y1="{oy + mm(TOTAL_H)}" x2="{ox + mm(BATH_W) + 10 + mm(ENTRANCE_W)}" y2="{oy + mm(TOTAL_H)}"/>
-  <text class="label" x="{ox + mm(BATH_W) + 10 + mm(ENTRANCE_W)/2}" y="{oy + mm(TOTAL_H) - 5}">玄関</text>
+def svg_to_png(svg_path, png_path):
+    """SVG→PNG変換（ImageMagick or rsvg-convert）"""
+    try:
+        subprocess.run(
+            ["convert", "-density", "200", "-background", "white", svg_path, png_path],
+            check=True, capture_output=True
+        )
+        return True
+    except (FileNotFoundError, subprocess.CalledProcessError):
+        pass
+    try:
+        subprocess.run(
+            ["rsvg-convert", "-d", "200", "-p", "200", "-o", png_path, svg_path],
+            check=True, capture_output=True
+        )
+        return True
+    except (FileNotFoundError, subprocess.CalledProcessError):
+        return False
 
-  <!-- 窓（東側・バルコニーの内側線） -->
-  <line class="window" x1="{ox + mm(TOTAL_W - BALCONY_DEPTH)}" y1="{oy + 15}" x2="{ox + mm(TOTAL_W - BALCONY_DEPTH)}" y2="{oy + mm(TOTAL_H) - 15}"/>
-
-  <!-- ラベル -->
-  <text class="label" x="{ox + mm(BATH_W)/2}" y="{oy + mm(BATH_H)/2}">浴室・トイレ</text>
-  <text class="dim" x="{ox + mm(BATH_W)/2}" y="{oy + mm(BATH_H)/2 + 14}">UB</text>
-
-  <text class="label" x="{ox + mm(BATH_W)/2}" y="{oy + mm(BATH_H) + mm((TOTAL_H-BATH_H)/2)}">キッチン</text>
-
-  <text class="label" x="{ox + mm(BATH_W) + mm((TOTAL_W - BATH_W - BALCONY_DEPTH)/2)}" y="{oy + mm(TOTAL_H)/2 - 10}">居室</text>
-  <text class="area" x="{ox + mm(BATH_W) + mm((TOTAL_W - BATH_W - BALCONY_DEPTH)/2)}" y="{oy + mm(TOTAL_H)/2 + 10}">35.83m²</text>
-
-  <text class="label" x="{ox + mm(TOTAL_W - BALCONY_DEPTH/2)}" y="{oy + mm(TOTAL_H)/2}">バルコニー</text>
-
-  <!-- 寸法線 -->
-  <!-- 横幅（上） -->
-  <text class="dim" x="{ox + mm(TOTAL_W)/2}" y="{oy - 10}">8,636</text>
-  <line x1="{ox}" y1="{oy - 5}" x2="{ox + mm(TOTAL_W)}" y2="{oy - 5}" stroke="#999" stroke-width="0.5"/>
-
-  <!-- バスルーム幅 -->
-  <text class="dim" x="{ox + mm(BATH_W)/2}" y="{oy - 22}">2,275</text>
-
-  <!-- 縦（右） -->
-  <text class="dim" x="{ox + mm(TOTAL_W) + 25}" y="{oy + mm(TOTAL_H)/2}" transform="rotate(90, {ox + mm(TOTAL_W) + 25}, {oy + mm(TOTAL_H)/2})">6,370</text>
-
-</svg>'''
-    return svg
 
 def main():
+    config = DEFAULT_CONFIG.copy()
+    output_name = "floorplan"
     output_dir = os.path.dirname(os.path.abspath(__file__))
-    svg_path = os.path.join(output_dir, "floorplan.svg")
-    png_path = os.path.join(output_dir, "floorplan.png")
 
-    # SVG生成
-    svg = generate_svg()
+    # 引数パース
+    args = sys.argv[1:]
+    i = 0
+    while i < len(args):
+        if args[i] == "-o" and i + 1 < len(args):
+            output_name = args[i + 1]
+            i += 2
+        elif args[i] == "-d" and i + 1 < len(args):
+            output_dir = args[i + 1]
+            i += 2
+        elif args[i].endswith(".json"):
+            with open(args[i], "r", encoding="utf-8") as f:
+                config = json.load(f)
+            i += 1
+        else:
+            i += 1
+
+    svg_path = os.path.join(output_dir, f"{output_name}.svg")
+    png_path = os.path.join(output_dir, f"{output_name}.png")
+
+    svg = generate_svg(config)
     with open(svg_path, "w", encoding="utf-8") as f:
         f.write(svg)
-    print(f"SVG生成完了: {svg_path}")
+    print(f"SVG: {svg_path}")
 
-    # SVG→PNG変換（ImageMagickまたはrsvg-convert）
-    try:
-        subprocess.run([
-            "convert", "-density", "200", "-background", "white",
-            svg_path, png_path
-        ], check=True, capture_output=True)
-        print(f"PNG変換完了: {png_path}")
-    except FileNotFoundError:
-        try:
-            subprocess.run([
-                "rsvg-convert", "-d", "200", "-p", "200",
-                "-o", png_path, svg_path
-            ], check=True, capture_output=True)
-            print(f"PNG変換完了（rsvg）: {png_path}")
-        except FileNotFoundError:
-            print("警告: ImageMagick/rsvg-convert が未インストール。SVGのみ出力。")
-            print("手動変換: convert -density 200 floorplan.svg floorplan.png")
+    if svg_to_png(svg_path, png_path):
+        print(f"PNG: {png_path}")
+    else:
+        print("PNG変換失敗（ImageMagick/rsvg-convert未検出）")
+
+    return png_path
+
 
 if __name__ == "__main__":
     main()

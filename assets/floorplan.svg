@@ -2,83 +2,34 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="771" height="590" viewBox="0 0 771 590">
   <style>
     .wall { fill: none; stroke: #333; stroke-width: 3; }
-    .thin-wall { fill: none; stroke: #333; stroke-width: 1.5; }
-    .room { fill: #FFF8F0; stroke: none; }
-    .bath { fill: #E8F4F8; stroke: none; }
-    .kitchen { fill: #FFF0E0; stroke: none; }
-    .balcony { fill: #E8F8E8; stroke: none; }
     .door { fill: none; stroke: #666; stroke-width: 1.5; stroke-dasharray: 4,2; }
     .window { fill: none; stroke: #4A90D9; stroke-width: 3; }
     .dim { font-family: sans-serif; font-size: 9px; fill: #666; text-anchor: middle; }
     .label { font-family: sans-serif; font-size: 11px; fill: #333; text-anchor: middle; font-weight: bold; }
     .area { font-family: sans-serif; font-size: 14px; fill: #333; text-anchor: middle; font-weight: bold; }
   </style>
-
-  <!-- 背景 -->
   <rect width="771" height="590" fill="white"/>
-
-  <!-- メイン居室（床塗り） -->
-  <rect class="room" x="40" y="40" width="690.9" height="509.6"/>
-
-  <!-- バスルーム -->
-  <rect class="bath" x="40" y="40" width="182.0" height="218.4"/>
-
-  <!-- キッチンエリア -->
-  <rect class="kitchen" x="40" y="258.4" width="182.0" height="291.2"/>
-
-  <!-- バルコニー -->
-  <rect class="balcony" x="658.08" y="40" width="72.8" height="509.6"/>
-
-  <!-- 外壁 -->
+  <rect x="40.0" y="40.0" width="690.9" height="509.6" fill="#FFF8F0"/>
+  <rect x="40.0" y="40.0" width="182.0" height="218.4" fill="#E8F4F8"/>
+  <rect x="40.0" y="258.4" width="182.0" height="291.2" fill="#FFF0E0"/>
+  <rect x="658.1" y="40.0" width="72.8" height="509.6" fill="#E8F8E8"/>
   <rect class="wall" x="40" y="40" width="690.9" height="509.6"/>
-
-  <!-- バスルーム壁 -->
-  <line class="wall" x1="40" y1="258.4" x2="222.0" y2="258.4"/>
-  <line class="wall" x1="222.0" y1="40" x2="222.0" y2="258.4"/>
-
-  <!-- キッチン/廊下の仕切り壁 -->
+  <line class="wall" x1="40.0" y1="258.4" x2="222.0" y2="258.4"/>
+  <line class="wall" x1="222.0" y1="40.0" x2="222.0" y2="258.4"/>
   <line class="wall" x1="222.0" y1="258.4" x2="222.0" y2="549.6"/>
-
-  <!-- バスルーム内部: トイレ -->
-  <rect x="48" y="223.39999999999998" width="20" height="28" rx="3" fill="#DDD" stroke="#999" stroke-width="1"/>
-  <!-- バスルーム内部: 浴槽 -->
-  <rect x="167.0" y="48" width="45" height="168.4" rx="5" fill="#D0E8F0" stroke="#999" stroke-width="1"/>
-  <!-- バスルーム内部: 洗面台 -->
-  <rect x="48" y="48" width="25" height="18" rx="2" fill="#DDD" stroke="#999" stroke-width="1"/>
-
-  <!-- キッチンカウンター -->
-  <rect x="44" y="266.4" width="14" height="145.6" rx="1" fill="#DDB" stroke="#999" stroke-width="1"/>
-
-  <!-- バスルームドア -->
-  <path class="door" d="M 217.0 256.4 L 217.0 218.39999999999998"/>
-
-  <!-- 玄関ドア -->
-  <line class="door" x1="232.0" y1="549.6" x2="304.8" y2="549.6"/>
-  <text class="label" x="268.4" y="544.6">玄関</text>
-
-  <!-- 窓（東側・バルコニーの内側線） -->
-  <line class="window" x1="658.08" y1="55" x2="658.08" y2="534.6"/>
-
-  <!-- ラベル -->
+  <line class="window" x1="658.1" y1="56.0" x2="658.1" y2="533.6"/>
+  <line class="door" x1="222.8" y1="549.6" x2="295.6" y2="549.6"/>
+  <text class="label" x="259.2" y="544.6">玄関</text>
+  <rect x="177.6" y="48.0" width="36.0" height="198.4" rx="5" fill="#D0E8F0" stroke="#999" stroke-width="1"/>
+  <rect x="48.0" y="230.4" width="20.0" height="28.0" rx="3" fill="#DDD" stroke="#999" stroke-width="1"/>
+  <rect x="48.0" y="48.0" width="24.8" height="17.6" rx="2" fill="#DDD" stroke="#999" stroke-width="1"/>
+  <rect x="44.0" y="266.4" width="14.0" height="145.6" rx="1" fill="#DDB" stroke="#999" stroke-width="1"/>
+  <text class="label" x="385.4" y="294.8">居室</text>
   <text class="label" x="131.0" y="149.2">浴室・トイレ</text>
-  <text class="dim" x="131.0" y="163.2">UB</text>
-
   <text class="label" x="131.0" y="404.0">キッチン</text>
-
-  <text class="label" x="440.03999999999996" y="284.8">居室</text>
-  <text class="area" x="440.03999999999996" y="304.8">35.83m²</text>
-
-  <text class="label" x="694.48" y="294.8">バルコニー</text>
-
-  <!-- 寸法線 -->
-  <!-- 横幅（上） -->
-  <text class="dim" x="385.44" y="30">8,636</text>
-  <line x1="40" y1="35" x2="730.88" y2="35" stroke="#999" stroke-width="0.5"/>
-
-  <!-- バスルーム幅 -->
-  <text class="dim" x="131.0" y="18">2,275</text>
-
-  <!-- 縦（右） -->
-  <text class="dim" x="755.88" y="294.8" transform="rotate(90, 755.88, 294.8)">6,370</text>
-
+  <text class="label" x="694.5" y="294.8">バルコニー</text>
+  <text class="area" x="385.4" y="310.8">35.83m²</text>
+  <text class="dim" x="385.4" y="28.0">8,636</text>
+  <text class="dim" x="131.0" y="16.0">2,275</text>
+  <text class="dim" x="750.9" y="294.8" transform="rotate(90, 750.9, 294.8)">6,370</text>
 </svg>
