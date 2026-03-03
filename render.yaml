@@ -1,8 +1,9 @@
-# Render.com Blueprint — 問い合わせBot自動デプロイ
+# Render.com Blueprint — HIROKI AI Empire 自動デプロイ
 # https://render.com/docs/blueprint-spec
 # リポジトリのルートに配置 → Render が自動検出
 
 services:
+  # ═══ 問い合わせBot（Webサーバー）═══
   - type: web
     name: rockedge-inquiry-bot
     runtime: python
@@ -25,6 +26,80 @@ services:
       - key: SLACK_WEBHOOK_URL
         sync: false
       - key: INQUIRY_BOT_SHEET_ID
+        sync: false
+      - key: PYTHON_VERSION
+        value: "3.12.0"
+      - key: PYTHONPATH
+        value: "."
+
+  # ═══ System A: 日次X投稿パイプライン（18:30 JST = 01:30 UTC）═══
+  - type: cron
+    name: hiroki-daily-post
+    runtime: python
+    plan: free
+    region: oregon
+    branch: claude/build-ai-systems-IS1mw
+    buildCommand: pip install -r requirements.txt
+    schedule: "30 9 * * *"  # 09:30 UTC = 18:30 JST
+    startCommand: PYTHONPATH=. python system_a/daily_pipeline.py
+    envVars:
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: X_API_KEY
+        sync: false
+      - key: X_API_SECRET_KEY
+        sync: false
+      - key: X_ACCESS_TOKEN
+        sync: false
+      - key: X_ACCESS_TOKEN_SECRET
+        sync: false
+      - key: X_BEARER_TOKEN
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: LINE_NOTIFY_TOKEN
+        sync: false
+      - key: PYTHON_VERSION
+        value: "3.12.0"
+      - key: PYTHONPATH
+        value: "."
+
+  # ═══ System A: 日次パフォーマンス分析（21:00 JST = 12:00 UTC）═══
+  - type: cron
+    name: hiroki-daily-analysis
+    runtime: python
+    plan: free
+    region: oregon
+    branch: claude/build-ai-systems-IS1mw
+    buildCommand: pip install -r requirements.txt
+    schedule: "0 12 * * *"  # 12:00 UTC = 21:00 JST
+    startCommand: PYTHONPATH=. python system_a/analyze_performance.py
+    envVars:
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: X_BEARER_TOKEN
+        sync: false
+      - key: LINE_NOTIFY_TOKEN
+        sync: false
+      - key: PYTHON_VERSION
+        value: "3.12.0"
+      - key: PYTHONPATH
+        value: "."
+
+  # ═══ System C: 日次情報収集（07:00 JST = 22:00 UTC前日）═══
+  - type: cron
+    name: hiroki-daily-data-collect
+    runtime: python
+    plan: free
+    region: oregon
+    branch: claude/build-ai-systems-IS1mw
+    buildCommand: pip install -r requirements.txt
+    schedule: "0 22 * * *"  # 22:00 UTC = 07:00 JST
+    startCommand: PYTHONPATH=. python system_c/scheduler.py --task daily_watch
+    envVars:
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: LINE_NOTIFY_TOKEN
         sync: false
       - key: PYTHON_VERSION
         value: "3.12.0"

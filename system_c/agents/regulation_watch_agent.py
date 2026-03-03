@@ -101,4 +101,13 @@ class RegulationWatchAgent:
         findings = self.check_sources()
         result = self.analyze_impact(findings)
         logger.info("Found %d regulatory updates", len(findings))
+
+        # Save to disk
+        output_dir = DATA_DIR / "daily"
+        output_dir.mkdir(parents=True, exist_ok=True)
+        date_str = datetime.now(JST).strftime("%Y-%m-%d")
+        path = output_dir / f"regulation_watch_{date_str}.json"
+        path.write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8")
+        logger.info("Regulation watch saved: %s", path)
+
         return result
