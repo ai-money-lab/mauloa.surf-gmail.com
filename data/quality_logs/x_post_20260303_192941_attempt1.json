@@ -1,0 +1,35 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 7,
+    "persona_match": 5,
+    "pillar_alignment": 6,
+    "algorithm_optimization": 4,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 8,
+    "cta_ending": 2,
+    "originality": 6,
+    "tone_balance": 6,
+    "algorithm_hooks": 5
+  },
+  "total_score": 79,
+  "threshold": 80,
+  "result": "rejected",
+  "rejection_reasons": [
+    "合計スコアが80未満（79点）",
+    "CTAが全く含まれていない",
+    "アルゴリズム最適化が不十分（ハッシュタグ、絵文字、エンゲージメント要素なし）",
+    "内容が断片的で価値提供が不明確"
+  ],
+  "improvement_suggestions": [
+    "具体的な方法や経験談を追加して価値を明確化",
+    "適切なCTAを追加（「詳しく知りたい方はDMで」「体験談をリプで教えて」等）",
+    "関連ハッシュタグを追加（#退去費用 #賃貸 #節約術等）",
+    "絵文字を適度に使用してエンゲージメントを向上",
+    "どのような交渉や対策を行ったかの具体例を含める"
+  ],
+  "checked_at": "2026-03-03T19:29:41.842423+09:00"
+}
