@@ -11,6 +11,7 @@ from pathlib import Path
 import requests
 import yaml
 from dotenv import load_dotenv
+from core.notifier import Notifier
 
 load_dotenv()
 
@@ -31,6 +32,7 @@ class PerformanceAnalyzer:
     def __init__(self):
         self.api_key = os.getenv("TWITTERAPI_IO_KEY", "")
         self.bearer_token = os.getenv("X_BEARER_TOKEN", "")
+        self.notifier = Notifier()
         self._load_config()
 
     def _load_config(self):
@@ -280,6 +282,64 @@ class PerformanceAnalyzer:
             enriched.append(post)
         return enriched
 
+    def generate_insights(self, posts: list, report_type: str = "daily") -> str:
+        """Generate actionable insights from performance data and notify via LINE."""
+        if not posts:
+            return "投稿データなし"
+
+        pipeline_stats = self.analyze_by_pipeline(posts)
+        pillar_stats = self.analyze_by_pillar(posts)
+
+        # Find best/worst performing
+        total_likes = sum(p.get("likes", 0) for p in posts)
+        total_rts = sum(p.get("retweets", 0) for p in posts)
+        total_replies = sum(p.get("replies", 0) for p in posts)
+        total_impressions = sum(p.get("impressions", 0) for p in posts)
+        post_count = len(posts)
+
+        # Best post
+        best = max(posts, key=lambda p: p.get("likes", 0) + p.get("retweets", 0), default=None)
+
+        # Image vs no-image comparison
+        with_image = [p for p in posts if p.get("has_image")]
+        without_image = [p for p in posts if not p.get("has_image")]
+        img_avg_likes = sum(p.get("likes", 0) for p in with_image) / len(with_image) if with_image else 0
+        no_img_avg_likes = sum(p.get("likes", 0) for p in without_image) / len(without_image) if without_image else 0
+
+        insight_lines = [
+            f"📊 {report_type.upper()} 分析レポート",
+            f"投稿数: {post_count}",
+            f"合計: ❤️{total_likes} 🔄{total_rts} 💬{total_replies} 👁{total_impressions}",
+        ]
+
+        if best and (best.get("likes", 0) + best.get("retweets", 0)) > 0:
+            insight_lines.append(f"\n🏆 最高: {best.get('text', '')[:50]}...")
+            insight_lines.append(f"  ❤️{best.get('likes', 0)} 🔄{best.get('retweets', 0)}")
+
+        if with_image and without_image:
+            insight_lines.append(f"\n🖼 画像あり平均❤️{img_avg_likes:.1f} vs なし❤️{no_img_avg_likes:.1f}")
+
+        if total_impressions == 0 and post_count > 0:
+            insight_lines.append("\n⚠️ インプレッション0 → フォロワー増加施策が必要")
+            insight_lines.append("推奨: 不動産系アカウントにリプライ交流を開始")
+
+        insights = "\n".join(insight_lines)
+
+        # Send LINE notification
+        try:
+            self.notifier.send_line(insights)
+        except Exception as e:
+            logger.warning("Failed to send insights via LINE: %s", e)
+
+        # Save insights to file
+        REPORTS_DIR.mkdir(parents=True, exist_ok=True)
+        now = datetime.now(JST)
+        path = REPORTS_DIR / f"insights_{report_type}_{now.strftime('%Y-%m-%d')}.txt"
+        path.write_text(insights, encoding="utf-8")
+        logger.info("Insights saved: %s", path)
+
+        return insights
+
     def run_daily(self) -> None:
         """Run daily analysis."""
         logger.info("Running daily performance analysis...")
@@ -288,6 +348,9 @@ class PerformanceAnalyzer:
         if posts:
             self.generate_report(posts, "daily")
             self.update_winning_patterns(posts)
+            self.generate_insights(posts, "daily")
+        else:
+            logger.info("No posts found for daily analysis")
 
     def run_weekly(self) -> None:
         """Run weekly analysis with ratio adjustment."""
@@ -299,6 +362,9 @@ class PerformanceAnalyzer:
             self.auto_adjust_pipeline_ratio(pipeline_stats)
             self.generate_report(posts, "weekly")
             self.update_winning_patterns(posts)
+            self.generate_insights(posts, "weekly")
+        else:
+            logger.info("No posts found for weekly analysis")
 
 
 def main():

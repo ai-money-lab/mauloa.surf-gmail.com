@@ -8,6 +8,7 @@ import logging
 from datetime import datetime, timezone, timedelta
 
 from core.notifier import Notifier
+from core.image_generator import ImageGenerator
 from system_a.pipeline1_jp_buzz import Pipeline1JpBuzz
 from system_a.pipeline2_data_driven import Pipeline2DataDriven
 from system_a.pipeline3_ai_original import Pipeline3AIOriginal
@@ -29,6 +30,7 @@ class DailyPipeline:
         self.selector = PostSelector()
         self.poster = AutoPoster()
         self.notifier = Notifier()
+        self.image_generator = ImageGenerator()
 
     def run_generation(self) -> dict:
         """Run all 3 pipelines and return counts."""
@@ -84,12 +86,28 @@ class DailyPipeline:
             f"品質不足スキップ: {skipped}本"
         )
 
-        # Phase 4: Execute scheduled posts
+        # Phase 4: Generate images for selected posts
+        if self.image_generator.enabled:
+            logger.info("[06:08] Generating images for selected posts...")
+            for post in selected:
+                text = post.get("text", "")
+                display = text if isinstance(text, str) else text[0] if text else ""
+                pillar = post.get("pillar", 0)
+                try:
+                    image_path = self.image_generator.generate_for_post(display, pillar=pillar)
+                    if image_path:
+                        post["image_path"] = image_path
+                        logger.info("Image generated for pillar %s: %s", pillar, image_path)
+                except Exception as e:
+                    logger.warning("Image generation failed for post: %s", e)
+
+        # Phase 5: Execute scheduled posts
         for post in selected:
-            scheduled_time = post.get("scheduled_time", "07:00")
+            scheduled_time = post.get("scheduled_time", "19:00")
             logger.info(
-                "Scheduled: %s (pillar=%s, pipeline=%s)",
+                "Scheduled: %s (pillar=%s, pipeline=%s, image=%s)",
                 scheduled_time, post.get("pillar"), post.get("pipeline"),
+                bool(post.get("image_path")),
             )
 
         logger.info("=== Daily Pipeline Complete ===")

@@ -13,8 +13,8 @@ quality_checker:
     data_collection: 70
 
 system_a:
-  posts_per_day: 3
-  post_times: ["07:00", "12:00", "19:00"]
+  posts_per_day: 1
+  post_times: ["19:00"]
   min_interval_hours: 3
   pipeline_ratio:
     pipeline1_jp_buzz: 40      # よくある困りごと回答型（売却・相続中心）
