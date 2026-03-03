@@ -30,6 +30,7 @@ load_dotenv()
 
 from core.claude_client import ClaudeClient  # noqa: E402
 from core.quality_checker import QualityChecker  # noqa: E402
+from core.image_generator import ImageGenerator  # noqa: E402
 from system_a.auto_post import AutoPoster  # noqa: E402
 from system_a.theme_rotator import ThemeRotator  # noqa: E402
 
@@ -177,16 +178,41 @@ def interactive_select(checked: list) -> dict:
         print(f"1〜{len(checked)} の数字か q を入力してください")
 
 
-def post_to_x(text, pillar: int = 0, pipeline: str = "P3", pattern: str = "A") -> dict:
-    """Post text to X via AutoPoster."""
+def generate_image_for_post(text, pillar: int = 0) -> str | None:
+    """Generate an image for a post using Gemini Imagen."""
+    gen = ImageGenerator()
+    if not gen.enabled:
+        logger.info("Image generation disabled (no GEMINI_API_KEY)")
+        return None
+
+    display = text if isinstance(text, str) else text[0]
+    logger.info("Generating image for post...")
+    path = gen.generate_for_post(display, pillar=pillar)
+    if path:
+        logger.info("Image generated: %s", path)
+    else:
+        logger.warning("Image generation failed, will post text-only")
+    return path
+
+
+def post_to_x(text, pillar: int = 0, pipeline: str = "P3", pattern: str = "A",
+              image_path: str | None = None) -> dict:
+    """Post text to X via AutoPoster, optionally with an image."""
     poster = AutoPoster()
+
+    if image_path:
+        media_id = poster._upload_media(image_path)
+        if not media_id:
+            logger.warning("Image upload failed, posting text-only")
+    else:
+        media_id = None
 
     if isinstance(text, list):
         logger.info("Posting thread (%d tweets)...", len(text))
-        result = poster.post_thread(text)
+        result = poster.post_thread(text, media_id=media_id)
     else:
         logger.info("Posting single tweet...")
-        result = poster.post_tweet(text)
+        result = poster.post_tweet(text, media_id=media_id)
 
     return result
 
@@ -197,6 +223,7 @@ def main():
     parser.add_argument("--interactive", "-i", action="store_true", help="Choose pattern manually")
     parser.add_argument("--pillar", type=int, choices=[1, 2, 3, 4, 5], help="Target pillar")
     parser.add_argument("--text", type=str, help="Post specific text (skip generation)")
+    parser.add_argument("--no-image", action="store_true", help="Skip image generation")
     args = parser.parse_args()
 
     logging.basicConfig(
@@ -207,10 +234,15 @@ def main():
 
     # Direct text posting
     if args.text:
+        image_path = None
+        if not args.no_image:
+            image_path = generate_image_for_post(args.text)
         if args.dry_run:
             logger.info("[DRY RUN] Would post: %s", args.text)
+            if image_path:
+                logger.info("[DRY RUN] With image: %s", image_path)
             return
-        result = post_to_x(args.text)
+        result = post_to_x(args.text, image_path=image_path)
         tweet_id = result.get("data", {}).get("id", "unknown")
         logger.info("Posted! https://x.com/HirokiMiyao/status/%s", tweet_id)
         return
@@ -257,9 +289,14 @@ def main():
         logger.info("[DRY RUN] Would post: %s", selected["text"][:80])
         return
 
-    # Step 4: Post to X
+    # Step 4: Generate image (if enabled)
     post_text = selected["data"].get("text", selected["text"]) if isinstance(selected["data"], dict) else selected["text"]
-    post_result = post_to_x(post_text, pillar=pillar, pipeline="P3", pattern=label)
+    image_path = None
+    if not args.no_image:
+        image_path = generate_image_for_post(post_text, pillar=int(pillar) if str(pillar).isdigit() else 0)
+
+    # Step 5: Post to X
+    post_result = post_to_x(post_text, pillar=pillar, pipeline="P3", pattern=label, image_path=image_path)
 
     if isinstance(post_result, list):
         tweet_id = post_result[0].get("data", {}).get("id", "unknown") if post_result else "unknown"
