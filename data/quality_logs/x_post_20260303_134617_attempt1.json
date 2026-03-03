@@ -1,0 +1,38 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 2,
+    "persona_match": 3,
+    "pillar_alignment": 4,
+    "algorithm_optimization": 2,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 10,
+    "cta_ending": 0,
+    "originality": 3,
+    "tone_balance": 4,
+    "algorithm_hooks": 2
+  },
+  "total_score": 60,
+  "threshold": 80,
+  "result": "rejected",
+  "rejection_reasons": [
+    "hook_powerが低い（2点）- 単純な事実の羅列でエンゲージメントを促す要素が不足",
+    "algorithm_optimizationが低い（2点）- ハッシュタグや絵文字などの最適化要素が皆無",
+    "cta_endingが0点 - 行動喚起や続きを促す要素が全くない",
+    "algorithm_hooksが低い（2点）- アルゴリズムに評価される要素が不足",
+    "コンテンツが短すぎて価値提供が不十分",
+    "エンゲージメントを促す仕組みが欠如"
+  ],
+  "improvement_suggestions": [
+    "具体的な数値や期間の理由を説明して価値を高める（例：「なぜ3ヶ月なのか、その背景とは」）",
+    "関連するハッシュタグを追加（#不動産 #賃貸管理 #大家業など）",
+    "読者の関心を引く質問や続きを示唆する文言を追加",
+    "絵文字を適度に使用してビジュアル的な訴求力を向上",
+    "業界の専門知識や経験談を織り交ぜて独自性を強化",
+    "「この期間を短縮する方法は？」など読者参加を促す要素を追加"
+  ],
+  "checked_at": "2026-03-03T13:46:17.882217+09:00"
+}
