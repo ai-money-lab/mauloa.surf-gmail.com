@@ -1,0 +1,36 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 6,
+    "persona_match": 5,
+    "pillar_alignment": 5,
+    "algorithm_optimization": 3,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 3,
+    "number_included": 8,
+    "cta_ending": 0,
+    "originality": 4,
+    "tone_balance": 6,
+    "algorithm_hooks": 3
+  },
+  "total_score": 63,
+  "threshold": 80,
+  "result": "rejected",
+  "rejection_reasons": [
+    "文字数が極端に少なく、X投稿として不十分（19文字）",
+    "CTAが全く含まれていない",
+    "コンテンツが短すぎて価値提供が不十分",
+    "アルゴリズム最適化要素が不足",
+    "エンゲージメントを促す要素がない"
+  ],
+  "improvement_suggestions": [
+    "具体的な計算例や条件を追加して文字数を100-200文字程度に拡張",
+    "「住宅ローンを検討中の方はリツイート」などのCTAを追加",
+    "「例：3000万円の住宅ローンの場合」など具体例で価値を明確化",
+    "質問形式やエンゲージメント促進要素を追加",
+    "ハッシュタグや絵文字でアルゴリズム最適化を図る"
+  ],
+  "checked_at": "2026-03-04T07:27:28.770036+09:00"
+}
