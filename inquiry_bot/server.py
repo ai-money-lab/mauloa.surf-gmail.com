@@ -114,21 +114,65 @@ def create_server() -> FastAPI:
         background_tasks.add_task(run_collection)
         return {"status": "started", "task": "daily-collect"}
 
+    @app.post("/api/trigger/weekly-analysis")
+    async def trigger_weekly_analysis(request: Request, background_tasks: BackgroundTasks):
+        """System A: 週次分析+パイプライン比率自動調整（月曜 09:00 JST）"""
+        if not _check_trigger_auth(request):
+            return Response(status_code=403, content="Forbidden")
+
+        def run_weekly():
+            try:
+                from system_a.analyze_performance import PerformanceAnalyzer
+                logging.basicConfig(level=logging.INFO)
+                analyzer = PerformanceAnalyzer()
+                analyzer.run_weekly()
+            except Exception as e:
+                logger.error("Weekly analysis failed: %s", e)
+
+        background_tasks.add_task(run_weekly)
+        return {"status": "started", "task": "weekly-analysis"}
+
+    @app.post("/api/trigger/weekly-tech")
+    async def trigger_weekly_tech(request: Request, background_tasks: BackgroundTasks):
+        """System C: 週次テックトレンド収集（月曜 08:00 JST）"""
+        if not _check_trigger_auth(request):
+            return Response(status_code=403, content="Forbidden")
+
+        def run_weekly_tech():
+            try:
+                from system_c.scheduler import SystemCScheduler
+                logging.basicConfig(level=logging.INFO)
+                scheduler = SystemCScheduler()
+                scheduler.run_weekly_tech()
+            except Exception as e:
+                logger.error("Weekly tech collection failed: %s", e)
+
+        background_tasks.add_task(run_weekly_tech)
+        return {"status": "started", "task": "weekly-tech"}
+
+    # ═══ Keep-alive（Render無料プランのスリープ防止）═══
+    @app.get("/api/keep-alive")
+    async def keep_alive():
+        """cron-job.orgから14分ごとに呼び出してスリープを防止."""
+        return {"status": "alive"}
+
     @app.get("/")
     async def root():
         return {
             "service": "ROCKEDGE 問い合わせ自動対応Bot",
-            "version": "2.0.0",
+            "version": "2.1.0",
             "endpoints": {
                 "chat_api": "/api/chat",
                 "line_webhook": "/webhook/line",
                 "widget_demo": "/chat",
                 "health": "/api/health",
                 "analytics": "/api/analytics",
-                "widget_config": "/api/widget-config",
                 "trigger_daily_post": "POST /api/trigger/daily-post",
                 "trigger_daily_analysis": "POST /api/trigger/daily-analysis",
                 "trigger_daily_collect": "POST /api/trigger/daily-collect",
+                "trigger_weekly_analysis": "POST /api/trigger/weekly-analysis",
+                "trigger_weekly_tech": "POST /api/trigger/weekly-tech",
+                "keep_alive": "GET /api/keep-alive",
             },
         }
 
