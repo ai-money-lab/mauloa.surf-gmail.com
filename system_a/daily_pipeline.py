@@ -101,16 +101,23 @@ class DailyPipeline:
                 except Exception as e:
                     logger.warning("Image generation failed for post: %s", e)
 
-        # Phase 5: Execute scheduled posts
+        # Phase 5: Post to X immediately
+        posted = []
         for post in selected:
-            scheduled_time = post.get("scheduled_time", "19:00")
             logger.info(
-                "Scheduled: %s (pillar=%s, pipeline=%s, image=%s)",
-                scheduled_time, post.get("pillar"), post.get("pipeline"),
+                "Posting: pillar=%s, pipeline=%s, image=%s",
+                post.get("pillar"), post.get("pipeline"),
                 bool(post.get("image_path")),
             )
+            try:
+                result = self.poster.post_and_record(post)
+                posted.append(result)
+                logger.info("Posted successfully")
+            except Exception as e:
+                logger.error("Failed to post: %s", e)
+                self.notifier.send_line(f"投稿失敗: {e}")
 
-        logger.info("=== Daily Pipeline Complete ===")
+        logger.info("=== Daily Pipeline Complete: %d/%d posted ===", len(posted), len(selected))
         return selected
 
 
