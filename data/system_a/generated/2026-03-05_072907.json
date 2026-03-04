@@ -1,0 +1,35 @@
+{
+  "pillar": 2,
+  "pillar_name": "住環境・暮らしの知恵",
+  "sub_theme": "防犯カメラの選び方と設置のポイント",
+  "pattern_a": {
+    "text": "防犯カメラ200台設置してきて、実は8割が無駄になってます",
+    "post_type": "punchline",
+    "char_count": 32,
+    "hook_type": "数字",
+    "cta_type": "シミュレーション提案型"
+  },
+  "pattern_b": {
+    "text": "防犯カメラの設置費用、相場の3倍請求された案件を5件見ました。適正価格は工事込みで1台あたり15万円程度です。夜間の映像品質と録画容量で選ぶのがポイントですね #防犯",
+    "post_type": "condensed",
+    "char_count": 111,
+    "hook_type": "数字",
+    "cta_type": "行動促進型"
+  },
+  "pattern_c": {
+    "text": [
+      "管理物件で空き巣被害が2件続いた時の話です。",
+      "防犯カメラを急いで設置したんですが、死角に設置してしまい結局3件目も防げませんでした。玄関だけでなく、建物裏と駐輪場の角度が重要だったと後から気づいたんです"
+    ],
+    "post_type": "thread",
+    "char_count": 122,
+    "hook_type": "数字",
+    "cta_type": "共感誘発型"
+  },
+  "pipeline": "P3",
+  "theme": {
+    "pillar_number": 2,
+    "pillar_name": "住環境・暮らしの知恵",
+    "sub_theme": "防犯カメラの選び方と設置のポイント"
+  }
+}
