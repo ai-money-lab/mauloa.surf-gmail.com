@@ -1,0 +1,38 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 3,
+    "persona_match": 4,
+    "pillar_alignment": 3,
+    "algorithm_optimization": 2,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 0,
+    "cta_ending": 0,
+    "originality": 4,
+    "tone_balance": 6,
+    "algorithm_hooks": 2
+  },
+  "total_score": 54,
+  "threshold": 80,
+  "result": "rejected",
+  "rejection_reasons": [
+    "内容が短すぎて価値提供が不十分",
+    "具体的な根拠や説明が欠如",
+    "エンゲージメントを促す要素が皆無",
+    "数値データや具体例が含まれていない",
+    "CTAが全く含まれていない",
+    "アルゴリズム最適化要素が不足"
+  ],
+  "improvement_suggestions": [
+    "職人の無口さの理由を3-4つの具体的なポイントで説明する",
+    "実際の職人との体験談や具体例を追加する",
+    "「あなたの職場にもいませんか？」等の問いかけを追加",
+    "職人の技術習得年数などの数値データを含める",
+    "「共感したらいいね」「経験をコメントで教えて」等のCTAを追加",
+    "絵文字や改行を使って視覚的な読みやすさを向上させる"
+  ],
+  "checked_at": "2026-03-05T13:44:16.075177+09:00"
+}
