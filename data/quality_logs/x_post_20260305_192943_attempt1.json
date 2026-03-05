@@ -1,0 +1,36 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 6,
+    "persona_match": 5,
+    "pillar_alignment": 7,
+    "algorithm_optimization": 3,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 8,
+    "cta_ending": 0,
+    "originality": 6,
+    "tone_balance": 7,
+    "algorithm_hooks": 3
+  },
+  "total_score": 75,
+  "threshold": 80,
+  "result": "rejected",
+  "rejection_reasons": [
+    "合計スコアが80未満（75点）",
+    "CTAが全く含まれていない",
+    "アルゴリズム最適化要素が不足",
+    "エンゲージメントを促す要素が少ない",
+    "内容が短すぎて価値提供が不十分"
+  ],
+  "improvement_suggestions": [
+    "「あなたの部屋の収納率は何%ですか？」などのCTAを追加",
+    "具体的な理由や根拠を2-3行で補足説明を追加",
+    "「35%収納のメリット3つ↓」のような続きを示唆する表現を追加",
+    "ハッシュタグ（#整理収納 #ミニマリスト等）を追加してアルゴリズム最適化",
+    "「実際に試してみた結果...」など体験談要素を加える"
+  ],
+  "checked_at": "2026-03-05T19:29:43.471158+09:00"
+}
