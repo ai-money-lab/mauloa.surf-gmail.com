@@ -13,6 +13,7 @@ import yaml
 
 from core.quality_checker import QualityChecker
 from core.claude_client import ClaudeClient
+from core.fact_checker import FactChecker
 
 logger = logging.getLogger(__name__)
 
@@ -30,6 +31,7 @@ class PostSelector:
     def __init__(self):
         self.claude = ClaudeClient()
         self.quality_checker = QualityChecker(self.claude)
+        self.fact_checker = FactChecker()
         self._load_config()
 
     def _load_config(self):
@@ -103,14 +105,36 @@ class PostSelector:
         return posts
 
     def quality_check_all(self, candidates: list) -> list:
-        """Run quality checks on all candidates."""
+        """Run quality checks and fact checks on all candidates."""
         approved = []
         for candidate in candidates:
             posts = self._extract_posts(candidate)
             for post in posts:
+                text = post["text"]
+
+                # Step 1: Auto-fix known typos before checking
+                text = self.fact_checker.auto_fix(text)
+                post["text"] = text
+
+                # Step 2: Fact check — reject fabricated content
+                fact_result = self.fact_checker.check(text)
+                if not fact_result.passed:
+                    logger.warning(
+                        "Fact check REJECTED: P%s pillar%s — %s",
+                        post["pipeline"], post["pillar"],
+                        "; ".join(v["message"] for v in fact_result.violations),
+                    )
+                    post["quality_result"] = {
+                        "result": "rejected",
+                        "rejection_reasons": [v["message"] for v in fact_result.violations],
+                        "total_score": 0,
+                    }
+                    continue
+
+                # Step 3: Quality check
                 result = self.quality_checker.check(
                     profile="x_post",
-                    content=post["text"],
+                    content=text,
                     context=f"Pipeline: {post['pipeline']}, Pillar: {post['pillar']}",
                 )
                 post["quality_result"] = result

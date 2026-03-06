@@ -9,6 +9,7 @@ from datetime import datetime, timezone, timedelta
 
 from core.notifier import Notifier
 from core.image_generator import ImageGenerator
+from core.engagement_learner import EngagementLearner
 from system_a.pipeline1_jp_buzz import Pipeline1JpBuzz
 from system_a.pipeline2_data_driven import Pipeline2DataDriven
 from system_a.pipeline3_ai_original import Pipeline3AIOriginal
@@ -31,6 +32,7 @@ class DailyPipeline:
         self.poster = AutoPoster()
         self.notifier = Notifier()
         self.image_generator = ImageGenerator()
+        self.learner = EngagementLearner()
 
     def run_generation(self) -> dict:
         """Run all 3 pipelines and return counts."""
@@ -64,10 +66,30 @@ class DailyPipeline:
         logger.info("[06:06] Post selection and scheduling")
         return self.selector.run()
 
+    def run_learning(self) -> None:
+        """Run engagement learning cycle before generation.
+
+        Analyzes popular posts (own + industry), extracts patterns,
+        and saves insights for use during generation.
+        """
+        logger.info("[Pre-gen] Running engagement learning cycle...")
+        try:
+            insights = self.learner.run()
+            patterns = len(insights.get("top_patterns", []))
+            learnings = len(insights.get("key_learnings", []))
+            logger.info(
+                "Learning complete: %d patterns, %d learnings", patterns, learnings
+            )
+        except Exception as e:
+            logger.warning("Engagement learning failed (non-fatal): %s", e)
+
     def run(self) -> None:
         """Execute the complete daily flow."""
         now = datetime.now(JST)
         logger.info("=== Daily Pipeline Start: %s ===", now.strftime("%Y-%m-%d %H:%M"))
+
+        # Phase 0: Learn from popular posts before generating
+        self.run_learning()
 
         # Phase 1: Generation
         gen_results = self.run_generation()

@@ -15,6 +15,7 @@ from dotenv import load_dotenv
 
 from core.claude_client import ClaudeClient
 from core.quality_checker import QualityChecker
+from core.engagement_learner import EngagementLearner
 
 load_dotenv()
 
@@ -33,6 +34,7 @@ class Pipeline1JpBuzz:
         self.api_key = os.getenv("TWITTERAPI_IO_KEY", "")
         self.claude = ClaudeClient()
         self.quality_checker = QualityChecker(self.claude)
+        self.learner = EngagementLearner()
         self.min_likes = 10000
         self.lookback_hours = 72
         self.max_results = 30
@@ -120,10 +122,15 @@ class Pipeline1JpBuzz:
         prompt_template = (PROMPTS_DIR / "rewrite_jp_buzz.txt").read_text(encoding="utf-8")
         generated = []
 
+        # Get learning context from past performance
+        learning_context = self.learner.build_generation_context()
+
         for item in analyzed[:10]:
+            learning_section = f"\n\n{learning_context}" if learning_context else ""
             prompt = (
                 f"{prompt_template}\n\n"
                 f"## 元ツイートの構造分析:\n{json.dumps(item, ensure_ascii=False, indent=2)}"
+                f"{learning_section}"
             )
             try:
                 result = self.claude.generate_json(prompt, temperature=0.8)

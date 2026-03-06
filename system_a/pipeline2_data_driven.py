@@ -11,6 +11,7 @@ from pathlib import Path
 
 from core.claude_client import ClaudeClient
 from core.quality_checker import QualityChecker
+from core.engagement_learner import EngagementLearner
 from system_a.collect_jp_trends import JpTrendsCollector
 
 logger = logging.getLogger(__name__)
@@ -28,6 +29,7 @@ class Pipeline2DataDriven:
         self.claude = ClaudeClient()
         self.quality_checker = QualityChecker(self.claude)
         self.trends_collector = JpTrendsCollector()
+        self.learner = EngagementLearner()
 
     def collect_sources(self) -> dict:
         """Collect data from System C and domestic trends."""
@@ -54,10 +56,15 @@ class Pipeline2DataDriven:
                 "data": sc,
             })
 
+        # Get learning context from past performance
+        learning_context = self.learner.build_generation_context()
+
         for material in materials[:8]:
+            learning_section = f"\n\n{learning_context}" if learning_context else ""
             prompt = (
                 f"{prompt_template}\n\n"
                 f"## 素材データ:\n{json.dumps(material, ensure_ascii=False, indent=2)}"
+                f"{learning_section}"
             )
             try:
                 result = self.claude.generate_json(prompt, temperature=0.8)

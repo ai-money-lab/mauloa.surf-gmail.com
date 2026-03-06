@@ -11,6 +11,7 @@ from pathlib import Path
 
 from core.claude_client import ClaudeClient
 from core.quality_checker import QualityChecker
+from core.engagement_learner import EngagementLearner
 from system_a.theme_rotator import ThemeRotator
 
 logger = logging.getLogger(__name__)
@@ -28,11 +29,18 @@ class Pipeline3AIOriginal:
         self.claude = ClaudeClient()
         self.quality_checker = QualityChecker(self.claude)
         self.theme_rotator = ThemeRotator()
+        self.learner = EngagementLearner()
 
     def generate_posts(self, count: int = 5) -> list:
-        """Generate original posts for selected themes."""
+        """Generate original posts for selected themes.
+
+        Injects engagement learnings from past analysis to continuously improve.
+        """
         prompt_template = (PROMPTS_DIR / "ai_original.txt").read_text(encoding="utf-8")
         generated = []
+
+        # Get learning context from past performance analysis
+        learning_context = self.learner.build_generation_context()
 
         for _ in range(count):
             theme = self.theme_rotator.select_theme()
@@ -47,6 +55,10 @@ class Pipeline3AIOriginal:
             ).replace(
                 "{sub_theme}", theme["sub_theme"]
             )
+
+            # Inject learning context if available
+            if learning_context:
+                prompt += f"\n\n{learning_context}"
 
             try:
                 result = self.claude.generate_json(prompt, temperature=0.9)
