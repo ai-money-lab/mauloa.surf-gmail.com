@@ -1,0 +1,35 @@
+{
+  "pillar": 5,
+  "pillar_name": "テクノロジー×不動産",
+  "sub_theme": "MATTERPORTの活用事例",
+  "pattern_a": {
+    "text": "MATTERPORT導入から2年、内見時間が40%短縮されました。",
+    "post_type": "punchline",
+    "char_count": 35,
+    "hook_type": "数字",
+    "cta_type": "共感誘発"
+  },
+  "pattern_b": {
+    "text": "先月だけで15件のMATTERPORT撮影をしましたが、想定外の活用法が見つかりました。単なる内見ツールではなく、施工前後の比較記録として使うと、リフォーム提案時の説得力が段違いです。3Dで見ると、平面図では伝わらない空間の変化が一目瞭然になりますね。一度試してみると見え方が変わりますよ。",
+    "post_type": "condensed",
+    "char_count": 140,
+    "hook_type": "数字",
+    "cta_type": "行動促進型"
+  },
+  "pattern_c": {
+    "text": [
+      "MATTERPORT撮影で80%の物件が問い合わせ増になった理由があります。",
+      "実は3Dスキャンそのものより、撮影時に気づく「見せ方の改善点」の方が重要でした。照明の位置、家具の配置、カメラアングル。データを見返すと、成約率の高い物件には共通パターンがあることに気づきました。"
+    ],
+    "post_type": "thread",
+    "char_count": 125,
+    "hook_type": "数字",
+    "cta_type": "気づき共有型"
+  },
+  "pipeline": "P3",
+  "theme": {
+    "pillar_number": 5,
+    "pillar_name": "テクノロジー×不動産",
+    "sub_theme": "MATTERPORTの活用事例"
+  }
+}
