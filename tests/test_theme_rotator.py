@@ -1,7 +1,6 @@
 """Tests for system_a/theme_rotator.py."""
 
 import json
-from pathlib import Path
 from unittest.mock import patch
 
 import pytest

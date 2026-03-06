@@ -9,7 +9,6 @@ Covers:
 - EA/FX content filtering
 """
 
-import json
 from pathlib import Path
 from unittest.mock import patch, MagicMock
 

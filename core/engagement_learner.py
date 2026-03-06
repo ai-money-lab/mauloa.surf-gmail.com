@@ -7,7 +7,6 @@ they resonate, and feeds those insights back into content generation.
 import json
 import logging
 import os
-from collections import defaultdict
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
 
@@ -249,8 +248,8 @@ class EngagementLearner:
 
         # Key learnings
         high_priority = [
-            l for l in insights.get("key_learnings", [])
-            if l.get("priority") == "high"
+            item for item in insights.get("key_learnings", [])
+            if item.get("priority") == "high"
         ]
         if high_priority:
             lines.append("\n## 重要な教訓:")

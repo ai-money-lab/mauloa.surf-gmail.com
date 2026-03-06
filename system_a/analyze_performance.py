@@ -287,9 +287,6 @@ class PerformanceAnalyzer:
         if not posts:
             return "投稿データなし"
 
-        pipeline_stats = self.analyze_by_pipeline(posts)
-        pillar_stats = self.analyze_by_pillar(posts)
-
         # Find best/worst performing
         total_likes = sum(p.get("likes", 0) for p in posts)
         total_rts = sum(p.get("retweets", 0) for p in posts)

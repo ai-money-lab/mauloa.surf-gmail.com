@@ -1,8 +1,7 @@
 """Tests for system_a/analyze_performance.py."""
 
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 
-import pytest
 
 from system_a.analyze_performance import PerformanceAnalyzer
 

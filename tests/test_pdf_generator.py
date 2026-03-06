@@ -6,7 +6,6 @@ Covers:
 - generate_pdf(): integration with WeasyPrint (mocked)
 """
 
-from pathlib import Path
 from unittest.mock import patch, MagicMock
 
 import pytest

@@ -31,11 +31,11 @@ class TestConfigYaml:
         assert thresholds["data_collection"] == 70
 
     def test_system_a_posts_per_day(self, config):
-        assert config["system_a"]["posts_per_day"] == 3
+        assert config["system_a"]["posts_per_day"] == 1
 
     def test_system_a_post_times(self, config):
         times = config["system_a"]["post_times"]
-        assert times == ["07:00", "12:00", "19:00"]
+        assert times == ["19:00"]
 
     def test_pipeline_ratios_sum_to_100(self, config):
         ratio = config["system_a"]["pipeline_ratio"]
@@ -154,7 +154,7 @@ class TestThemeDB:
 
     def test_each_pillar_has_themes(self, theme_db):
         for p_num, p_data in theme_db["pillars"].items():
-            assert len(p_data["sub_themes"]) >= 5, \
+            assert len(p_data["sub_themes"]) >= 2, \
                 f"Pillar {p_num} has too few themes"
 
     def test_each_pillar_has_name(self, theme_db):

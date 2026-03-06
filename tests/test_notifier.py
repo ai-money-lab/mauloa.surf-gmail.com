@@ -7,9 +7,8 @@ Covers:
 - Correct API endpoints and payload formats
 """
 
-from unittest.mock import patch, MagicMock, call
+from unittest.mock import patch, MagicMock
 
-import pytest
 
 from core.notifier import Notifier
 

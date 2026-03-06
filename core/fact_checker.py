@@ -97,8 +97,11 @@ FABRICATION_PATTERNS = [
 ]
 
 # Numbers that should always be softened
+# Softener words that make number claims acceptable
+_SOFTENERS = ("約", "くらい", "ほど", "体感で", "体感では", "だいたい", "およそ")
+
 HARD_NUMBER_PATTERNS = [
-    (r"(?<!約)(?<!くらい)(?<!ほど)(?<!体感では?)(\d+)万円(損|得|節約|儲|増)",
+    (r"(\d+)万円(損|得|節約|儲|増)",
      "hard_number_claim",
      "数字が柔らかいニュアンスなしに断定されている"),
 ]
@@ -185,9 +188,12 @@ class FactChecker:
     def _check_hard_numbers(self, text: str, result: FactCheckResult):
         """Check for hard number claims without softeners."""
         for pattern, code, message in HARD_NUMBER_PATTERNS:
-            matches = re.findall(pattern, text)
-            if matches:
-                result.add_violation(code, message, str(matches[0]))
+            for match in re.finditer(pattern, text):
+                # Check if any softener word appears before the number
+                start = max(0, match.start() - 10)
+                prefix = text[start:match.start()]
+                if not any(s in prefix for s in _SOFTENERS):
+                    result.add_violation(code, message, match.group())
 
     def _check_tool_references(self, text: str, result: FactCheckResult):
         """Check if referenced tools/services actually exist."""

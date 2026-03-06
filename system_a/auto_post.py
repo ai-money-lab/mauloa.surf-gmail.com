@@ -228,24 +228,6 @@ class AutoPoster:
             json.dumps(existing, ensure_ascii=False, indent=2), encoding="utf-8"
         )
 
-    def execute_scheduled(self, posts: list) -> None:
-        """Execute scheduled posts at their designated times."""
-        now = datetime.now(JST)
-        current_time = now.strftime("%H:%M")
-
-        for post in posts:
-            scheduled = post.get("scheduled_time", "")
-            if scheduled == current_time:
-                logger.info("Posting scheduled tweet at %s", scheduled)
-                self.post_and_record(post)
-
-                # Notify 30 min later
-                self.notifier.send_line(
-                    f"投稿完了（{scheduled}）。リプ返信推奨。\n"
-                    f"柱{post.get('pillar', '?')} / {post.get('pipeline', '?')}"
-                )
-
-
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
     poster = AutoPoster()

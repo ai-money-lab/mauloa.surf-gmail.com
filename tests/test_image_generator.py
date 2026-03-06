@@ -1,7 +1,6 @@
 """Tests for core.image_generator — Gemini Imagen (Nano Banana 2) client."""
 
 import base64
-import json
 from pathlib import Path
 from unittest.mock import patch, MagicMock
 
@@ -269,7 +268,7 @@ class TestAutoPosterMediaUpload:
         mock_post.return_value = mock_resp
 
         poster = AutoPoster()
-        result = poster.post_tweet("テスト", media_id="12345")
+        poster.post_tweet("テスト", media_id="12345")
 
         # Verify the payload included media
         call_kwargs = mock_post.call_args
@@ -288,7 +287,7 @@ class TestAutoPosterMediaUpload:
         mock_post.return_value = mock_resp
 
         poster = AutoPoster()
-        result = poster.post_tweet("テスト")
+        poster.post_tweet("テスト")
 
         call_kwargs = mock_post.call_args
         payload = call_kwargs.kwargs.get("json") or call_kwargs[1].get("json")

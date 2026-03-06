@@ -11,7 +11,7 @@ services:
     runtime: python
     plan: free
     region: oregon
-    branch: claude/build-ai-systems-IS1mw
+    branch: claude/navigate-desktop-AYs6B
     buildCommand: pip install -r requirements.txt
     startCommand: uvicorn inquiry_bot.server:app --host 0.0.0.0 --port $PORT
     healthCheckPath: /api/health

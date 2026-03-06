@@ -1,10 +1,7 @@
 """Tests for system_a/post_selector.py."""
 
-import json
-from pathlib import Path
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 
-import pytest
 
 from system_a.post_selector import PostSelector, TARGET_PILLAR_RATIO
 
@@ -50,22 +47,20 @@ class TestPostSelector:
     @patch("system_a.post_selector.ClaudeClient")
     def test_assign_time_slots(self, mock_claude, mock_qc):
         selector = PostSelector()
-        posts = [{"text": "a"}, {"text": "b"}, {"text": "c"}]
+        posts = [{"text": "a"}]
         result = selector.assign_time_slots(posts)
-        assert result[0]["scheduled_time"] == "07:00"
-        assert result[1]["scheduled_time"] == "12:00"
-        assert result[2]["scheduled_time"] == "19:00"
+        assert result[0]["scheduled_time"] == "19:00"
 
     @patch("system_a.post_selector.QualityChecker")
     @patch("system_a.post_selector.ClaudeClient")
-    def test_select_with_pillar_balance_limits_to_3(self, mock_claude, mock_qc):
+    def test_select_with_pillar_balance_limits_to_posts_per_day(self, mock_claude, mock_qc):
         selector = PostSelector()
         approved = [
             {"text": f"post{i}", "pillar": (i % 5) + 1, "quality_score": 90}
             for i in range(10)
         ]
         selected = selector.select_with_pillar_balance(approved)
-        assert len(selected) == 3
+        assert len(selected) == selector.posts_per_day
 
     @patch("system_a.post_selector.QualityChecker")
     @patch("system_a.post_selector.ClaudeClient")
