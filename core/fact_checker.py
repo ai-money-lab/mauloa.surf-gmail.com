@@ -44,11 +44,19 @@ CORRECT_SPELLINGS = {
     "Rock Edge": "ROCKEDGE",
     "ロックエッジ": "ROCKEDGE",
     "マターポート": "MATTERPORT",
-    "シュミレーション": "シミュレーション",  # よくある誤字
-    "シュミレーター": "シミュレーター",
+    "シュミレーション": "",  # 使用禁止語。auto_fixで削除はしない（violationで弾く）
+    "シュミレーター": "",
     "コーディック": "コーデックス",
     "コーデクス": "コーデックス",
 }
+
+# Words completely banned from X posts
+BANNED_WORDS = [
+    (r"シミュレーション|シュミレーション", "banned_word",
+     "「シミュレーション」は使用禁止。存在しないサービスを連想させるため即不合格"),
+    (r"シミュレーター|シュミレーター", "banned_word",
+     "「シミュレーター」は使用禁止。存在しないサービスを連想させるため即不合格"),
+]
 
 # Common Japanese typos and incorrect expressions
 TYPO_PATTERNS = [
@@ -64,7 +72,7 @@ TYPO_PATTERNS = [
 # Patterns that indicate fabricated content
 FABRICATION_PATTERNS = [
     # Non-existent tools/services mentioned vaguely
-    (r"シミュレーター|シュミレーター|ツール|アプリ|計算機",
+    (r"ツール|アプリ|計算機",
      "tool_reference",
      "存在しないツール・アプリへの言及の可能性"),
     # Inflated personal experience numbers
@@ -137,6 +145,7 @@ class FactChecker:
 
         result = FactCheckResult()
 
+        self._check_banned_words(text, result)
         self._check_fabrication_patterns(text, result)
         self._check_hard_numbers(text, result)
         self._check_tool_references(text, result)
@@ -153,6 +162,13 @@ class FactChecker:
                 logger.warning("  [%s] %s: %s", v["code"], v["message"], v["matched_text"])
 
         return result
+
+    def _check_banned_words(self, text: str, result: FactCheckResult):
+        """Check for completely banned words."""
+        for pattern, code, message in BANNED_WORDS:
+            match = re.search(pattern, text)
+            if match:
+                result.add_violation(code, message, match.group())
 
     def _check_fabrication_patterns(self, text: str, result: FactCheckResult):
         """Check for known fabrication patterns."""
@@ -263,10 +279,12 @@ class FactChecker:
         """Apply automatic fixes for known typos.
 
         Returns corrected text. Only fixes unambiguous errors.
+        Banned words (empty correction) are NOT auto-fixed — they must be rejected.
         """
         if isinstance(text, list):
             return [self.auto_fix(t) for t in text]
 
         for wrong, correct in CORRECT_SPELLINGS.items():
-            text = text.replace(wrong, correct)
+            if correct:  # Skip banned words (empty correction)
+                text = text.replace(wrong, correct)
         return text
