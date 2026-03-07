@@ -5,14 +5,14 @@ name: Bot CI/CD
 
 on:
   push:
-    branches: [main]
+    branches: [claude/build-ai-systems-IS1mw]
     paths:
       - 'inquiry_bot/**'
       - 'core/**'
       - 'prompts/inquiry_bot_system.txt'
       - 'requirements.txt'
   pull_request:
-    branches: [main]
+    branches: [claude/build-ai-systems-IS1mw]
     paths:
       - 'inquiry_bot/**'
       - 'core/**'
@@ -44,7 +44,7 @@ jobs:
 
   deploy-render:
     needs: test
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    if: github.ref == 'refs/heads/claude/build-ai-systems-IS1mw' && github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
       - name: Deploy to Render
