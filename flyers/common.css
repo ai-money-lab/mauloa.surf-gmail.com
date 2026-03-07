@@ -1,4 +1,5 @@
-/* A4 チラシ共通CSS — デンキチ × M.K CREATE */
+/* A4 チラシ共通CSS — デンキチ × M.K CREATE
+   お年寄りにも読みやすいデザイン（大文字・高コントラスト・シンプル） */
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&display=swap');
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -12,8 +13,10 @@ body {
   font-family: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif;
   -webkit-print-color-adjust: exact;
   print-color-adjust: exact;
+  background: #eee;
 }
 
+/* ===== A4フレーム ===== */
 .flyer {
   width: 210mm;
   height: 297mm;
@@ -27,35 +30,36 @@ body {
 
 /* ===== ヘッダー: デンキチロゴ帯 ===== */
 .header {
-  background: #003DA5;
+  background: linear-gradient(135deg, #003DA5, #0052D4);
   color: #fff;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 6mm 8mm;
-  min-height: 22mm;
+  padding: 5mm 8mm;
+  min-height: 20mm;
 }
 
 .header .denkichi-logo {
-  font-size: 28px;
+  font-size: 26px;
   font-weight: 900;
-  letter-spacing: 2px;
+  letter-spacing: 3px;
   background: #E30613;
-  padding: 4px 16px;
+  padding: 3px 14px;
   border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.3);
 }
 
 .header .tagline {
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 700;
   text-align: right;
-  line-height: 1.5;
+  line-height: 1.6;
 }
 
 /* ===== メインタイトルエリア ===== */
 .title-area {
   position: relative;
-  min-height: 60mm;
+  min-height: 55mm;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -66,7 +70,7 @@ body {
   position: absolute;
   top: 0; left: 0; width: 100%; height: 100%;
   object-fit: cover;
-  filter: brightness(0.4);
+  filter: brightness(0.35);
 }
 
 .title-area .overlay {
@@ -74,55 +78,51 @@ body {
   z-index: 2;
   text-align: center;
   color: #fff;
-  padding: 10mm 8mm;
+  padding: 8mm;
 }
 
 .title-area .overlay .main-title {
-  font-size: 52px;
+  font-size: 48px;
   font-weight: 900;
-  letter-spacing: 6px;
-  text-shadow: 3px 3px 8px rgba(0,0,0,0.7);
-  line-height: 1.2;
-  margin-bottom: 4mm;
+  letter-spacing: 8px;
+  text-shadow: 3px 3px 8px rgba(0,0,0,0.8);
+  line-height: 1.3;
+  margin-bottom: 3mm;
 }
 
 .title-area .overlay .sub-title {
-  font-size: 22px;
+  font-size: 20px;
   font-weight: 700;
   text-shadow: 2px 2px 6px rgba(0,0,0,0.7);
+  letter-spacing: 2px;
 }
 
-/* ===== 即日対応バッジ ===== */
+/* ===== バッジ帯 ===== */
 .badges {
   display: flex;
   justify-content: center;
-  gap: 4mm;
-  padding: 4mm 8mm;
+  gap: 3mm;
+  padding: 4mm 6mm;
   background: #FFF8E1;
+  border-top: 2px solid #FFC107;
+  border-bottom: 2px solid #FFC107;
 }
 
 .badge {
   background: #E30613;
   color: #fff;
   font-weight: 900;
-  font-size: 15px;
-  padding: 3mm 6mm;
+  font-size: 16px;
+  padding: 3mm 5mm;
   border-radius: 50px;
   text-align: center;
   white-space: nowrap;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
 }
 
-.badge.blue {
-  background: #003DA5;
-}
-
-.badge.green {
-  background: #2E7D32;
-}
-
-.badge.orange {
-  background: #E65100;
-}
+.badge.blue { background: #003DA5; }
+.badge.green { background: #1B8C3D; }
+.badge.orange { background: #D84315; }
 
 /* ===== コンテンツエリア ===== */
 .content {
@@ -133,17 +133,41 @@ body {
   gap: 4mm;
 }
 
-/* セクション見出し */
-.section-title {
+/* ===== 目立つ吹き出し ===== */
+.callout {
+  background: linear-gradient(135deg, #E30613, #C62828);
+  color: #fff;
+  text-align: center;
+  padding: 4mm 6mm;
+  border-radius: 4mm;
   font-size: 20px;
   font-weight: 900;
-  color: #003DA5;
-  border-left: 5px solid #E30613;
-  padding-left: 3mm;
-  margin-bottom: 2mm;
+  letter-spacing: 1px;
+  box-shadow: 0 3px 6px rgba(227,6,19,0.3);
+  line-height: 1.5;
 }
 
-/* サービス一覧グリッド */
+.callout.blue {
+  background: linear-gradient(135deg, #003DA5, #1565C0);
+  box-shadow: 0 3px 6px rgba(0,61,165,0.3);
+}
+
+.callout.green {
+  background: linear-gradient(135deg, #1B8C3D, #2E7D32);
+  box-shadow: 0 3px 6px rgba(27,140,61,0.3);
+}
+
+/* ===== セクション見出し ===== */
+.section-title {
+  font-size: 22px;
+  font-weight: 900;
+  color: #003DA5;
+  border-left: 6px solid #E30613;
+  padding-left: 4mm;
+  margin-top: 1mm;
+}
+
+/* ===== サービス一覧グリッド ===== */
 .service-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -151,32 +175,36 @@ body {
 }
 
 .service-card {
-  background: #F5F5F5;
-  border-radius: 3mm;
+  background: #F8F9FA;
+  border-radius: 4mm;
   padding: 4mm;
   text-align: center;
-  border: 1px solid #ddd;
+  border: 2px solid #E0E0E0;
+  transition: none;
 }
 
 .service-card .icon {
-  font-size: 36px;
-  margin-bottom: 1mm;
+  font-size: 40px;
+  margin-bottom: 2mm;
+  line-height: 1;
 }
 
 .service-card .name {
-  font-size: 15px;
+  font-size: 17px;
   font-weight: 900;
   color: #003DA5;
+  line-height: 1.3;
 }
 
 .service-card .desc {
-  font-size: 11px;
-  color: #555;
+  font-size: 13px;
+  color: #444;
   margin-top: 1mm;
-  line-height: 1.4;
+  line-height: 1.5;
+  font-weight: 400;
 }
 
-/* 特徴・メリット */
+/* ===== 特徴ボックス ===== */
 .features {
   display: flex;
   gap: 3mm;
@@ -184,27 +212,45 @@ body {
 
 .feature-box {
   flex: 1;
-  background: #E8F5E9;
-  border-radius: 3mm;
-  padding: 4mm;
+  border-radius: 4mm;
+  padding: 4mm 3mm;
   text-align: center;
+  border: 2px solid transparent;
 }
 
-.feature-box.blue { background: #E3F2FD; }
-.feature-box.red { background: #FFEBEE; }
-.feature-box.yellow { background: #FFF8E1; }
+.feature-box.blue {
+  background: #E3F2FD;
+  border-color: #90CAF9;
+}
+
+.feature-box.red {
+  background: #FFEBEE;
+  border-color: #EF9A9A;
+}
+
+.feature-box.yellow {
+  background: #FFF8E1;
+  border-color: #FFE082;
+}
+
+.feature-box.green {
+  background: #E8F5E9;
+  border-color: #A5D6A7;
+}
 
 .feature-box .num {
-  font-size: 32px;
+  font-size: 34px;
   font-weight: 900;
   color: #E30613;
+  line-height: 1.2;
 }
 
 .feature-box .label {
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 700;
   color: #333;
   margin-top: 1mm;
+  line-height: 1.4;
 }
 
 /* ===== サービスの流れ ===== */
@@ -214,25 +260,26 @@ body {
   gap: 2mm;
   padding: 3mm;
   background: #F5F5F5;
-  border-radius: 3mm;
+  border-radius: 4mm;
+  border: 1px solid #E0E0E0;
 }
 
 .flow-step {
   flex: 1;
   text-align: center;
   background: #fff;
-  border-radius: 2mm;
+  border-radius: 3mm;
   padding: 3mm 2mm;
-  border: 1px solid #003DA5;
+  border: 2px solid #003DA5;
 }
 
 .flow-step .step-num {
   background: #003DA5;
   color: #fff;
   font-weight: 900;
-  font-size: 12px;
-  width: 22px;
-  height: 22px;
+  font-size: 14px;
+  width: 26px;
+  height: 26px;
   border-radius: 50%;
   display: inline-flex;
   align-items: center;
@@ -241,13 +288,14 @@ body {
 }
 
 .flow-step .step-text {
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 700;
   color: #333;
+  line-height: 1.4;
 }
 
 .flow-arrow {
-  font-size: 20px;
+  font-size: 22px;
   color: #003DA5;
   font-weight: 900;
 }
@@ -255,13 +303,13 @@ body {
 /* ===== 価格帯 ===== */
 .pricing {
   background: #FFF3E0;
-  border: 2px solid #E65100;
-  border-radius: 3mm;
+  border: 3px solid #E65100;
+  border-radius: 4mm;
   padding: 4mm;
 }
 
 .pricing .price-title {
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 900;
   color: #E65100;
   text-align: center;
@@ -276,40 +324,97 @@ body {
 .price-table th {
   background: #E65100;
   color: #fff;
-  font-size: 12px;
-  padding: 2mm;
+  font-size: 14px;
+  padding: 3mm 2mm;
   text-align: center;
+  font-weight: 700;
 }
 
 .price-table td {
-  font-size: 12px;
-  padding: 2mm;
+  font-size: 14px;
+  padding: 3mm 2mm;
   text-align: center;
   border-bottom: 1px solid #ddd;
+  font-weight: 500;
+}
+
+.price-table tr:nth-child(even) td {
+  background: #FFF8E1;
 }
 
 .price-table td.price {
   font-weight: 900;
   color: #E30613;
-  font-size: 14px;
+  font-size: 16px;
 }
 
-/* ===== 目立つ吹き出し ===== */
-.callout {
-  background: #E30613;
-  color: #fff;
+/* ===== 安心ポイント（競合差別化） ===== */
+.trust-points {
+  display: flex;
+  gap: 3mm;
+  padding: 3mm 0;
+}
+
+.trust-point {
+  flex: 1;
   text-align: center;
-  padding: 4mm;
-  border-radius: 3mm;
+  background: #F1F8E9;
+  border: 2px solid #8BC34A;
+  border-radius: 4mm;
+  padding: 3mm;
+}
+
+.trust-point .tp-icon {
+  font-size: 32px;
+  line-height: 1;
+}
+
+.trust-point .tp-text {
+  font-size: 14px;
+  font-weight: 700;
+  color: #333;
+  margin-top: 1mm;
+  line-height: 1.3;
+}
+
+/* ===== こんなお困りごとありませんか? ===== */
+.trouble-list {
+  background: #FFF3E0;
+  border-radius: 4mm;
+  padding: 4mm 6mm;
+  border: 2px solid #FFB74D;
+}
+
+.trouble-list .trouble-title {
   font-size: 18px;
+  font-weight: 900;
+  color: #E65100;
+  text-align: center;
+  margin-bottom: 3mm;
+}
+
+.trouble-item {
+  font-size: 16px;
+  font-weight: 700;
+  color: #333;
+  padding: 2mm 0;
+  border-bottom: 1px dashed #FFB74D;
+  line-height: 1.5;
+}
+
+.trouble-item:last-child {
+  border-bottom: none;
+}
+
+.trouble-item::before {
+  content: "✓ ";
+  color: #E65100;
   font-weight: 900;
 }
 
-.callout.blue { background: #003DA5; }
-
-/* ===== フッター: 連絡先 ===== */
+/* ===== フッター: 連絡先（超大型） ===== */
 .footer {
-  background: #003DA5;
+  background: linear-gradient(135deg, #003DA5, #0052D4);
   color: #fff;
   padding: 5mm 8mm;
   display: flex;
@@ -322,57 +427,79 @@ body {
 }
 
 .footer .phone-label {
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 700;
-  border: 1px solid #fff;
+  border: 2px solid #fff;
   display: inline-block;
-  padding: 1mm 3mm;
-  border-radius: 2mm;
-  margin-bottom: 1mm;
+  padding: 1mm 4mm;
+  border-radius: 3mm;
+  margin-bottom: 2mm;
+  letter-spacing: 1px;
 }
 
 .footer .phone-number {
-  font-size: 32px;
+  font-size: 36px;
   font-weight: 900;
-  letter-spacing: 2px;
+  letter-spacing: 3px;
+  text-shadow: 1px 1px 3px rgba(0,0,0,0.3);
 }
 
 .footer .phone-hours {
-  font-size: 11px;
+  font-size: 13px;
   margin-top: 1mm;
+  font-weight: 400;
 }
 
 .footer .denkichi-note {
   background: #FFF8E1;
   color: #333;
   padding: 3mm 4mm;
-  border-radius: 3mm;
-  font-size: 13px;
-  font-weight: 700;
+  border-radius: 4mm;
+  font-size: 14px;
+  font-weight: 900;
   text-align: center;
-  max-width: 50mm;
-  line-height: 1.5;
+  max-width: 52mm;
+  line-height: 1.6;
+  border: 2px solid #FFC107;
 }
 
 .footer-bottom {
   background: #002A73;
-  color: #ccc;
+  color: #bbb;
   text-align: center;
-  font-size: 10px;
+  font-size: 11px;
   padding: 2mm;
+  letter-spacing: 0.5px;
 }
 
-/* ===== ユーティリティ ===== */
-.text-red { color: #E30613; }
-.text-blue { color: #003DA5; }
-.text-center { text-align: center; }
-.fw-900 { font-weight: 900; }
-.fs-large { font-size: 18px; }
-.mt-2 { margin-top: 2mm; }
-.mb-2 { margin-bottom: 2mm; }
+/* ===== 緊急対応用テーマ ===== */
+.flyer.emergency .header {
+  background: linear-gradient(135deg, #B71C1C, #D32F2F);
+}
 
-/* 印刷設定 */
+.flyer.emergency .footer {
+  background: linear-gradient(135deg, #B71C1C, #D32F2F);
+}
+
+.flyer.emergency .callout {
+  animation: none;
+}
+
+.flyer.emergency .badges {
+  background: #FFEBEE;
+  border-color: #EF9A9A;
+}
+
+/* ===== 印刷設定 ===== */
 @media print {
-  body { margin: 0; }
-  .flyer { page-break-after: always; margin: 0; }
+  body { margin: 0; background: #fff; }
+  .flyer { page-break-after: always; margin: 0; box-shadow: none; }
+}
+
+/* ===== 画面表示 ===== */
+@media screen {
+  .flyer {
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    margin: 10mm auto;
+  }
 }
