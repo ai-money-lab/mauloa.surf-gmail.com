@@ -1,13 +1,11 @@
 """Daily pipeline orchestrator for System A.
 
-Runs all 3 pipelines, selects posts, and schedules them.
-Designed to be called via cron at 06:00 JST daily.
+Fully automated: generate → fact check → quality check → image → post → notify.
+Runs via GitHub Actions (18:30 JST) or cron daily.
 """
 
-import json
 import logging
 from datetime import datetime, timezone, timedelta
-from pathlib import Path
 
 from core.notifier import Notifier
 from core.image_generator import ImageGenerator
@@ -40,21 +38,21 @@ class DailyPipeline:
         """Run all 3 pipelines and return counts."""
         results = {"P1": 0, "P2": 0, "P3": 0}
 
-        logger.info("[06:00] Pipeline 1: JP Buzz Structure Import")
+        logger.info("Pipeline 1: JP Buzz Structure Import")
         try:
             p1_posts = self.p1.run()
             results["P1"] = len(p1_posts)
         except Exception as e:
             logger.error("Pipeline 1 failed: %s", e)
 
-        logger.info("[06:02] Pipeline 2: Data-Driven Original")
+        logger.info("Pipeline 2: Data-Driven Original")
         try:
             p2_posts = self.p2.run()
             results["P2"] = len(p2_posts)
         except Exception as e:
             logger.error("Pipeline 2 failed: %s", e)
 
-        logger.info("[06:04] Pipeline 3: AI Original Creation")
+        logger.info("Pipeline 3: AI Original Creation")
         try:
             p3_posts = self.p3.run()
             results["P3"] = len(p3_posts)
@@ -64,17 +62,13 @@ class DailyPipeline:
         return results
 
     def run_selection(self) -> list:
-        """Select and schedule posts."""
-        logger.info("[06:06] Post selection and scheduling")
+        """Select and schedule posts (includes fact check + quality check)."""
+        logger.info("Post selection (fact check + quality check)...")
         return self.selector.run()
 
     def run_learning(self) -> None:
-        """Run engagement learning cycle before generation.
-
-        Analyzes popular posts (own + industry), extracts patterns,
-        and saves insights for use during generation.
-        """
-        logger.info("[Pre-gen] Running engagement learning cycle...")
+        """Run engagement learning cycle before generation."""
+        logger.info("Running engagement learning cycle...")
         try:
             insights = self.learner.run()
             patterns = len(insights.get("top_patterns", []))
@@ -85,34 +79,28 @@ class DailyPipeline:
         except Exception as e:
             logger.warning("Engagement learning failed (non-fatal): %s", e)
 
-    def run(self) -> None:
-        """Execute the complete daily flow."""
+    def run(self) -> list:
+        """Execute the complete daily flow: generate → check → post → notify."""
         now = datetime.now(JST)
         logger.info("=== Daily Pipeline Start: %s ===", now.strftime("%Y-%m-%d %H:%M"))
 
         # Phase 0: Learn from popular posts before generating
         self.run_learning()
 
-        # Phase 1: Generation
+        # Phase 1: Generation (3 pipelines)
         gen_results = self.run_generation()
 
-        # Phase 2: Selection
+        # Phase 2: Selection (fact check + quality check + pillar balance)
         selected = self.run_selection()
 
-        # Phase 3: Notify
-        pipeline_counts = ", ".join(f"{k}:{v}本" for k, v in gen_results.items())
-        selected_count = len(selected)
-        skipped = sum(gen_results.values()) - selected_count
+        if not selected:
+            self.notifier.send_line("本日の投稿候補なし（品質基準未達）")
+            logger.info("=== No posts passed quality check ===")
+            return []
 
-        self.notifier.send_line(
-            f"本日の投稿{selected_count}本がスケジュールされました\n"
-            f"生成: {pipeline_counts}\n"
-            f"品質不足スキップ: {skipped}本"
-        )
-
-        # Phase 4: Generate images for selected posts
+        # Phase 3: Generate images
         if self.image_generator.enabled:
-            logger.info("[06:08] Generating images for selected posts...")
+            logger.info("Generating images for selected posts...")
             for post in selected:
                 text = post.get("text", "")
                 display = text if isinstance(text, str) else text[0] if text else ""
@@ -125,48 +113,47 @@ class DailyPipeline:
                 except Exception as e:
                     logger.warning("Image generation failed for post: %s", e)
 
-        # Phase 5: Save to pending approval (DO NOT auto-post)
-        if selected:
-            # Save best post to pending approval
-            best = selected[0]
-            pending_path = Path(__file__).parent.parent / "data" / "system_a" / "pending_approval.json"
-            pending_path.parent.mkdir(parents=True, exist_ok=True)
+        # Phase 4: Post to X
+        posted = []
+        for post in selected:
+            text = post.get("text", "")
+            display = text if isinstance(text, str) else text[0] if text else ""
+            pillar = post.get("pillar", "?")
+            pipeline = post.get("pipeline", "?")
+            score = post.get("quality_score", "?")
 
-            text = best.get("text", "")
-            display = text if isinstance(text, str) else "\n".join(text) if text else ""
-            pillar = best.get("pillar", "?")
-            pipeline = best.get("pipeline", "?")
-            score = best.get("quality_score", "?")
-
-            pending_data = {
-                "text": text,
-                "image_path": best.get("image_path"),
-                "pillar": pillar,
-                "pipeline": pipeline,
-                "pattern": best.get("pattern", "A"),
-                "quality_score": score,
-                "created_at": now.isoformat(),
-            }
-            pending_path.write_text(
-                json.dumps(pending_data, ensure_ascii=False, indent=2), encoding="utf-8"
+            logger.info(
+                "Posting: pillar=%s, pipeline=%s, score=%s, image=%s",
+                pillar, pipeline, score, bool(post.get("image_path")),
             )
+            try:
+                result = self.poster.post_and_record(post)
+                posted.append(result)
 
-            # Send LINE notification for approval
-            self.notifier.send_line(
-                f"【X投稿 承認待ち】\n"
-                f"柱{pillar} / {pipeline}\n"
-                f"スコア: {score}\n"
-                f"---\n"
-                f"{display[:200]}\n"
-                f"---\n"
-                f"承認: python -m system_a.generate_and_post --approve"
-            )
-            logger.info("Pending approval: pillar=%s, pipeline=%s, score=%s", pillar, pipeline, score)
-        else:
-            self.notifier.send_line("本日の投稿候補がありませんでした（品質基準未達）")
+                # Get tweet ID for notification
+                if isinstance(result, list):
+                    tweet_id = result[0].get("data", {}).get("id", "") if result else ""
+                else:
+                    tweet_id = result.get("data", {}).get("id", "")
 
-        logger.info("=== Daily Pipeline Complete: %d candidates pending approval ===", len(selected))
-        return selected
+                self.notifier.send_line(
+                    f"投稿完了 (柱{pillar}/{pipeline}/スコア{score})\n"
+                    f"{display[:140]}\n"
+                    f"https://x.com/HirokiMiyao/status/{tweet_id}"
+                )
+            except Exception as e:
+                logger.error("Failed to post: %s", e)
+                self.notifier.send_line(
+                    f"投稿失敗 (柱{pillar}/{pipeline})\nエラー: {e}"
+                )
+
+        # Phase 5: Summary
+        pipeline_counts = ", ".join(f"{k}:{v}本" for k, v in gen_results.items())
+        logger.info(
+            "=== Daily Pipeline Complete: generated=%s, posted=%d ===",
+            pipeline_counts, len(posted),
+        )
+        return posted
 
 
 def main():
