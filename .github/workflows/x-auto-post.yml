@@ -1,5 +1,5 @@
 # GitHub Actions — System A: X 自動投稿
-# 毎日 07:00 / 12:00 / 19:00 JST に自動投稿（1日3回）
+# HIROKIMIYAO戦略: 週8本（曜日別スケジュール）
 # 手動実行も可能（workflow_dispatch）
 
 name: X Auto Post
@@ -7,9 +7,13 @@ name: X Auto Post
 on:
   schedule:
     # cron は UTC で指定（JST = UTC+9）
-    - cron: '0 22 * * *'   # 07:00 JST
-    - cron: '0 3 * * *'    # 12:00 JST
-    - cron: '0 10 * * *'   # 19:00 JST
+    - cron: '30 22 * * 0'  # 月 07:30 JST — プロの裏話（柱1）
+    - cron: '0 3 * * 2'    # 火 12:00 JST — 相談事例（柱3）
+    - cron: '30 22 * * 2'  # 水 07:30 JST — プロの裏話（柱1）
+    - cron: '0 11 * * 4'   # 木 20:00 JST — ビフォーアフター（柱2）
+    - cron: '30 22 * * 4'  # 金 07:30 JST — プロの裏話/時事ネタ（柱1/5）
+    - cron: '0 1 * * 6'    # 土 10:00 JST — 日常・人柄（柱4）
+    - cron: '0 11 * * 0'   # 日 20:00 JST — 相談事例/Q&A（柱3）
   workflow_dispatch:
     inputs:
       pillar:

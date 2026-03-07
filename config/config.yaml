@@ -14,8 +14,16 @@ quality_checker:
     data_collection: 70
 
 system_a:
-  posts_per_day: 3
-  post_times: ["07:00", "12:00", "19:00"]
+  posts_per_week: 8
+  weekly_schedule:
+    mon: { time: "07:30", pillar: 1, category: "プロの裏話" }
+    tue: { time: "12:00", pillar: 3, category: "相談事例" }
+    wed: { time: "07:30", pillar: 1, category: "プロの裏話" }
+    thu: { time: "20:00", pillar: 2, category: "ビフォーアフター" }
+    fri: { time: "07:30", pillar: [1, 5], category: "プロの裏話/時事ネタ" }
+    sat: { time: "10:00", pillar: 4, category: "日常・人柄" }
+    sun: { time: "20:00", pillar: 3, category: "相談事例/Q&A" }
+    irregular: { pillar: 5, category: "時事ネタ速報" }
   min_interval_hours: 3
   pipeline_ratio:
     pipeline1_jp_buzz: 40

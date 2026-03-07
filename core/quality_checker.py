@@ -28,7 +28,7 @@ PROFILES = {
             "originality",
         ],
         "pass_fail_items": ["no_external_links", "no_banned_content", "character_limit"],
-        "threshold": 70,
+        "threshold": 80,
         "description": "X投稿用品質チェック",
     },
     "report": {
