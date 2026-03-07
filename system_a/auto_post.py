@@ -22,8 +22,11 @@ JST = timezone(timedelta(hours=9))
 POSTED_LOG_PATH = Path(__file__).parent.parent / "data" / "system_a" / "posted_tweets.json"
 
 
+MAX_POSTS_PER_DAY = 1
+
+
 class AutoPoster:
-    """Post tweets to X automatically."""
+    """Post tweets to X automatically with safety guards."""
 
     def __init__(self):
         self.api_key = os.getenv("X_API_KEY", "")
@@ -160,12 +163,57 @@ class AutoPoster:
 
         return results
 
+    def _get_today_posts(self) -> list:
+        """Get posts already made today from local log."""
+        if not POSTED_LOG_PATH.exists():
+            return []
+        try:
+            records = json.loads(POSTED_LOG_PATH.read_text(encoding="utf-8"))
+        except Exception:
+            return []
+        today = datetime.now(JST).strftime("%Y-%m-%d")
+        return [r for r in records if r.get("datetime", "").startswith(today)]
+
+    def _is_duplicate_text(self, text: str) -> bool:
+        """Check if this exact text was posted in the last 30 days."""
+        if not POSTED_LOG_PATH.exists():
+            return False
+        try:
+            records = json.loads(POSTED_LOG_PATH.read_text(encoding="utf-8"))
+        except Exception:
+            return False
+        # Normalize: compare first 100 chars to catch near-duplicates
+        check_text = (text if isinstance(text, str) else " | ".join(text))[:100]
+        for r in records[-90:]:  # Check last ~90 records (≈30 days × 1-3/day)
+            if r.get("text", "")[:100] == check_text:
+                return True
+        return False
+
     def post_and_record(self, post: dict) -> dict:
         """Post a tweet/thread and record to Google Sheets.
 
+        Safety guards:
+        - Blocks if MAX_POSTS_PER_DAY already posted today
+        - Blocks if exact same text was posted recently
         If post contains 'image_path', uploads the image and attaches it.
         """
         text = post.get("text", "")
+
+        # Guard 1: Daily post limit
+        today_posts = self._get_today_posts()
+        if len(today_posts) >= MAX_POSTS_PER_DAY:
+            msg = f"本日の投稿上限({MAX_POSTS_PER_DAY}件)に達しています。投稿をスキップ。"
+            logger.warning(msg)
+            self.notifier.send_line(f"【投稿ブロック】{msg}")
+            raise RuntimeError(msg)
+
+        # Guard 2: Duplicate text check
+        if self._is_duplicate_text(text):
+            msg = "同一テキストが直近で投稿済みです。重複投稿をスキップ。"
+            logger.warning(msg)
+            self.notifier.send_line(f"【投稿ブロック】{msg}")
+            raise RuntimeError(msg)
+
         image_path = post.get("image_path")
         is_thread = isinstance(text, list)
 

@@ -10,7 +10,9 @@
 PROJECT_ROOT=$PROJECT_ROOT
 
 # ═══ System A: X Hybrid Posting Pipeline ═══
-# 18:30 生成→品質チェック→画像生成→19:00投稿（ゴールデンタイム集中）
+# ⚠ GitHub Actions でも同時刻に generate_and_post.py が走る
+# auto_post.py に 1日1投稿ガード あり（MAX_POSTS_PER_DAY=1）
+# どちらが先に投稿しても、2本目はブロックされる
 30 18 * * *  cd $PROJECT_ROOT && PYTHONPATH=. python system_a/daily_pipeline.py >> data/cron.log 2>&1
 # 21:00 日次パフォーマンス分析（メトリクス取得→レポート→勝ちパターン蓄積）
 0 21 * * *  cd $PROJECT_ROOT && PYTHONPATH=. python system_a/analyze_performance.py >> data/cron.log 2>&1
