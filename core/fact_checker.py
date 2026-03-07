@@ -229,25 +229,38 @@ class FactChecker:
 
     def _check_experience_claims(self, text: str, result: FactCheckResult):
         """Check for inflated or specific experience claims."""
-        # Specific year counts are prohibited
-        year_match = re.search(r"(\d+)\s*年[間以上]?\s*(?:の経験|やって|従事|携わ)", text)
-        if year_match:
-            result.add_violation(
-                "specific_years",
-                "具体的な業界歴の年数表現は禁止（「長年」を使う）",
-                year_match.group(),
-            )
-
-        # Large case count claims
-        case_match = re.search(r"(\d+)\s*件\s*(?:以上|を超える|見てき|対応してき|扱ってき)", text)
-        if case_match:
-            count = int(case_match.group(1))
-            if count >= 100:
+        # Specific year counts are prohibited — catch all patterns like
+        # "20年この業界", "10年間で", "15年以上", "20年やって", "不動産24年目"
+        year_patterns = [
+            r"(\d+)\s*年[間以上]*\s*(?:の経験|やって|従事|携わ|この業界|不動産|業界に|いて)",
+            r"(\d+)\s*年目",
+            r"不動産(?:歴|業界)?\s*(\d+)\s*年",
+        ]
+        for pattern in year_patterns:
+            year_match = re.search(pattern, text)
+            if year_match:
                 result.add_violation(
-                    "inflated_case_count",
-                    f"大きな実績数字（{count}件）はマウントに聞こえる。禁止",
+                    "specific_years",
+                    "具体的な業界歴の年数表現は禁止（「長年」を使う）",
+                    year_match.group(),
+                )
+                break  # One violation is enough
+
+        # Specific case count claims — ANY concrete number + 件 in a boasting context
+        case_patterns = [
+            r"(\d+)\s*件\s*(?:以上|を超える|見てき|対応してき|扱ってき|こなし|経験|実績)",
+            r"(\d+)\s*件\s*の\s*(?:MATTERPORT|撮影|相談|仲介|売買|管理|対応|実績)",
+            r"(?:月|年|先月|今月|先週)[にだで]*(?:けで?)?\s*(\d+)\s*件",
+        ]
+        for pattern in case_patterns:
+            case_match = re.search(pattern, text)
+            if case_match:
+                result.add_violation(
+                    "specific_case_count",
+                    "具体的な実績件数は禁止（「最近増えている」「何度か経験した」等に留める）",
                     case_match.group(),
                 )
+                break
 
     def _check_typos_and_names(self, text: str, result: FactCheckResult):
         """Check for typos, especially in names and key terms.

@@ -1,8 +1,11 @@
 """Generate a post with Claude API, quality-check it, and post to X.
 
 Usage:
-    # Full auto: generate + QC + post best pattern
+    # 承認待ちモード（デフォルト）: 生成 + QC + LINE通知 → 承認待ち
     python -m system_a.generate_and_post
+
+    # 承認して投稿: 承認待ちの投稿を投稿する
+    python -m system_a.generate_and_post --approve
 
     # Interactive: generate + QC + choose pattern yourself
     python -m system_a.generate_and_post --interactive
@@ -30,7 +33,9 @@ load_dotenv()
 
 from core.claude_client import ClaudeClient  # noqa: E402
 from core.quality_checker import QualityChecker  # noqa: E402
+from core.fact_checker import FactChecker  # noqa: E402
 from core.image_generator import ImageGenerator  # noqa: E402
+from core.notifier import Notifier  # noqa: E402
 from system_a.auto_post import AutoPoster  # noqa: E402
 from system_a.theme_rotator import ThemeRotator  # noqa: E402
 
@@ -42,6 +47,7 @@ PROMPTS_DIR = BASE_DIR / "prompts"
 DATA_DIR = BASE_DIR / "data" / "system_a" / "generated"
 
 QUALITY_THRESHOLD = 84
+PENDING_POST_PATH = BASE_DIR / "data" / "system_a" / "pending_approval.json"
 
 
 def generate_post(pillar: int = None) -> dict:
@@ -87,9 +93,10 @@ def generate_post(pillar: int = None) -> dict:
 
 
 def quality_check_patterns(result: dict) -> list:
-    """Run quality check on all A/B/C patterns. Returns sorted list."""
+    """Run fact check + quality check on all A/B/C patterns. Returns sorted list."""
     claude = ClaudeClient()
     checker = QualityChecker(claude)
+    fact_checker = FactChecker()
 
     checked = []
     for key in ["pattern_a", "pattern_b", "pattern_c"]:
@@ -102,6 +109,28 @@ def quality_check_patterns(result: dict) -> list:
         else:
             display_text = str(text)
 
+        # Step 1: Auto-fix known typos
+        display_text = fact_checker.auto_fix(display_text)
+
+        # Step 2: Fact check — reject fabricated/rule-violating content
+        logger.info("Fact checking %s...", key)
+        fact_result = fact_checker.check(display_text)
+        if not fact_result.passed:
+            violations = [v["message"] for v in fact_result.violations]
+            logger.warning("  %s: FACT CHECK REJECTED — %s", key, "; ".join(violations))
+            checked.append({
+                "key": key,
+                "text": display_text,
+                "format": p.get("format", "single") if isinstance(p, dict) else "single",
+                "cta_type": p.get("cta_type", "") if isinstance(p, dict) else "",
+                "data": p,
+                "quality_score": 0,
+                "quality_result": {"result": "rejected", "rejection_reasons": violations, "total_score": 0},
+                "passed": False,
+            })
+            continue
+
+        # Step 3: Quality check (only if fact check passed)
         logger.info("Quality checking %s...", key)
         qr = checker.check(
             profile="x_post",
@@ -217,10 +246,62 @@ def post_to_x(text, pillar: int = 0, pipeline: str = "P3", pattern: str = "A",
     return result
 
 
+def save_pending(post_data: dict) -> None:
+    """Save a post to pending approval file."""
+    PENDING_POST_PATH.parent.mkdir(parents=True, exist_ok=True)
+    PENDING_POST_PATH.write_text(
+        json.dumps(post_data, ensure_ascii=False, indent=2), encoding="utf-8"
+    )
+    logger.info("Saved to pending approval: %s", PENDING_POST_PATH)
+
+
+def load_pending() -> dict | None:
+    """Load the pending approval post."""
+    if not PENDING_POST_PATH.exists():
+        return None
+    try:
+        return json.loads(PENDING_POST_PATH.read_text(encoding="utf-8"))
+    except Exception:
+        return None
+
+
+def clear_pending() -> None:
+    """Remove the pending approval file after posting."""
+    if PENDING_POST_PATH.exists():
+        PENDING_POST_PATH.unlink()
+
+
+def notify_for_approval(selected: dict, pillar, sub_theme) -> None:
+    """Send LINE notification with post content for human approval."""
+    notifier = Notifier()
+    text = selected["text"]
+    if isinstance(text, list):
+        display = "\n".join(text)
+    else:
+        display = text
+
+    label = selected["key"].replace("pattern_", "").upper()
+    score = selected["quality_score"]
+
+    message = (
+        f"【X投稿 承認待ち】\n"
+        f"柱{pillar} / {sub_theme}\n"
+        f"パターン{label} (スコア: {score})\n"
+        f"---\n"
+        f"{display}\n"
+        f"---\n"
+        f"承認する場合:\n"
+        f"python -m system_a.generate_and_post --approve"
+    )
+    notifier.send_line(message)
+    logger.info("LINE approval notification sent")
+
+
 def main():
     parser = argparse.ArgumentParser(description="Generate and post to X")
     parser.add_argument("--dry-run", action="store_true", help="Generate + QC only, no posting")
     parser.add_argument("--interactive", "-i", action="store_true", help="Choose pattern manually")
+    parser.add_argument("--approve", action="store_true", help="Approve and post the pending post")
     parser.add_argument("--pillar", type=int, choices=[1, 2, 3, 4, 5], help="Target pillar")
     parser.add_argument("--text", type=str, help="Post specific text (skip generation)")
     parser.add_argument("--no-image", action="store_true", help="Skip image generation")
@@ -232,7 +313,36 @@ def main():
         datefmt="%H:%M:%S",
     )
 
-    # Direct text posting
+    # Approve mode: post the pending approved content
+    if args.approve:
+        pending = load_pending()
+        if not pending:
+            logger.error("承認待ちの投稿がありません")
+            sys.exit(1)
+
+        post_text = pending["text"]
+        image_path = pending.get("image_path")
+        pillar = pending.get("pillar", 0)
+        pattern = pending.get("pattern", "A")
+
+        logger.info("Posting approved content...")
+        post_result = post_to_x(
+            post_text, pillar=pillar, pipeline="P3",
+            pattern=pattern, image_path=image_path,
+        )
+
+        if isinstance(post_result, list):
+            tweet_id = post_result[0].get("data", {}).get("id", "unknown") if post_result else "unknown"
+        else:
+            tweet_id = post_result.get("data", {}).get("id", "unknown")
+
+        clear_pending()
+        notifier = Notifier()
+        notifier.send_line(f"投稿完了\nhttps://x.com/HirokiMiyao/status/{tweet_id}")
+        logger.info("Posted! https://x.com/HirokiMiyao/status/%s", tweet_id)
+        return
+
+    # Direct text posting (requires --interactive or explicit intent)
     if args.text:
         image_path = None
         if not args.no_image:
@@ -242,13 +352,24 @@ def main():
             if image_path:
                 logger.info("[DRY RUN] With image: %s", image_path)
             return
-        result = post_to_x(args.text, image_path=image_path)
-        tweet_id = result.get("data", {}).get("id", "unknown")
-        logger.info("Posted! https://x.com/HirokiMiyao/status/%s", tweet_id)
+        # Direct text still requires saving to pending + approval
+        save_pending({
+            "text": args.text,
+            "image_path": image_path,
+            "pillar": 0,
+            "pattern": "direct",
+            "created_at": datetime.now(JST).isoformat(),
+        })
+        notifier = Notifier()
+        notifier.send_line(
+            f"【X投稿 承認待ち（直接テキスト）】\n---\n{args.text}\n---\n"
+            f"承認: python -m system_a.generate_and_post --approve"
+        )
+        logger.info("Pending approval. Use --approve to post.")
         return
 
-    # Full pipeline: Generate -> QC -> Post
-    logger.info("=== Generate & Post Pipeline ===")
+    # Full pipeline: Generate -> QC -> Pending Approval
+    logger.info("=== Generate & Approve Pipeline ===")
 
     # Step 1: Generate
     result = generate_post(pillar=args.pillar)
@@ -256,7 +377,7 @@ def main():
     sub_theme = result.get("sub_theme", result.get("theme", {}).get("sub_theme", "?"))
     logger.info("Generated for pillar %s / %s", pillar, sub_theme)
 
-    # Step 2: Quality check all patterns
+    # Step 2: Quality check all patterns (includes fact check)
     checked = quality_check_patterns(result)
     if not checked:
         logger.error("No patterns generated")
@@ -264,23 +385,27 @@ def main():
 
     # Step 3: Select pattern
     if args.interactive:
-        # Interactive: show all, let user choose
         display_patterns(checked, pillar, sub_theme)
         selected = interactive_select(checked)
     elif args.dry_run:
-        # Dry-run: show all, don't post
         display_patterns(checked, pillar, sub_theme)
         best = checked[0]
         logger.info("[DRY RUN] Auto-select: %s (score=%d)", best["key"], best["quality_score"])
         return
     else:
-        # Full auto: pick highest score that passes
+        # Auto-select: pick highest score that passes
         passed = [p for p in checked if p["passed"]]
         if passed:
             selected = passed[0]
         else:
-            logger.warning("No pattern passed QC (threshold=%d). Using best score.", QUALITY_THRESHOLD)
-            selected = checked[0]
+            logger.warning("No pattern passed QC (threshold=%d). Skipping today.", QUALITY_THRESHOLD)
+            notifier = Notifier()
+            notifier.send_line(
+                f"【X投稿 品質不足でスキップ】\n"
+                f"柱{pillar} / {sub_theme}\n"
+                f"全パターンが品質基準を満たしませんでした。"
+            )
+            return
 
     label = selected["key"].replace("pattern_", "").upper()
     logger.info("Selected: Pattern %s (score=%d)", label, selected["quality_score"])
@@ -295,16 +420,21 @@ def main():
     if not args.no_image:
         image_path = generate_image_for_post(post_text, pillar=int(pillar) if str(pillar).isdigit() else 0)
 
-    # Step 5: Post to X
-    post_result = post_to_x(post_text, pillar=pillar, pipeline="P3", pattern=label, image_path=image_path)
+    # Step 5: Save to pending approval (DO NOT auto-post)
+    save_pending({
+        "text": post_text,
+        "image_path": image_path,
+        "pillar": pillar,
+        "pattern": label,
+        "pipeline": "P3",
+        "sub_theme": sub_theme,
+        "quality_score": selected["quality_score"],
+        "created_at": datetime.now(JST).isoformat(),
+    })
 
-    if isinstance(post_result, list):
-        tweet_id = post_result[0].get("data", {}).get("id", "unknown") if post_result else "unknown"
-    else:
-        tweet_id = post_result.get("data", {}).get("id", "unknown")
-
-    logger.info("Posted! https://x.com/HirokiMiyao/status/%s", tweet_id)
-    logger.info("=== Complete ===")
+    # Step 6: Send LINE notification for approval
+    notify_for_approval(selected, pillar, sub_theme)
+    logger.info("=== Pending approval. Use --approve to post. ===")
 
 
 if __name__ == "__main__":

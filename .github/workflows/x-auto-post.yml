@@ -1,5 +1,5 @@
 # GitHub Actions — System A: X 自動投稿
-# 毎日 07:00 / 12:00 / 19:00 JST に自動投稿（1日3回）
+# 毎日 18:30 JST に生成 → LINE承認待ち → 承認後に19:00投稿（1日1回）
 # 手動実行も可能（workflow_dispatch）
 
 name: X Auto Post
@@ -7,13 +7,19 @@ name: X Auto Post
 on:
   schedule:
     # cron は UTC で指定（JST = UTC+9）
-    - cron: '0 22 * * *'   # 07:00 JST
-    - cron: '0 3 * * *'    # 12:00 JST
-    - cron: '0 10 * * *'   # 19:00 JST
+    - cron: '30 9 * * *'   # 18:30 JST（生成＋承認依頼）
   workflow_dispatch:
     inputs:
+      mode:
+        description: 'Mode: generate (生成+承認待ち) or approve (承認して投稿)'
+        required: true
+        type: choice
+        options:
+          - 'generate'
+          - 'approve'
+        default: 'generate'
       pillar:
-        description: 'Target pillar (1-5, empty=auto)'
+        description: 'Target pillar (1-5, empty=auto) — generate mode only'
         required: false
         type: choice
         options:
@@ -24,7 +30,7 @@ on:
           - '4'
           - '5'
       dry_run:
-        description: 'Dry run (no posting)'
+        description: 'Dry run (no posting) — generate mode only'
         required: false
         type: boolean
         default: false
@@ -51,7 +57,7 @@ jobs:
           pip install anthropic requests requests-oauthlib python-dotenv \
                     pyyaml gspread google-auth beautifulsoup4 lxml pandas
 
-      - name: Generate and Post
+      - name: Generate or Approve
         env:
           X_API_KEY: ${{ secrets.X_API_KEY }}
           X_API_SECRET_KEY: ${{ secrets.X_API_SECRET_KEY }}
@@ -60,15 +66,26 @@ jobs:
           X_BEARER_TOKEN: ${{ secrets.X_BEARER_TOKEN }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           TWITTERAPI_IO_KEY: ${{ secrets.TWITTERAPI_IO_KEY }}
+          LINE_NOTIFY_TOKEN: ${{ secrets.LINE_NOTIFY_TOKEN }}
         run: |
-          ARGS=""
-          if [ "${{ inputs.dry_run }}" = "true" ]; then
-            ARGS="$ARGS --dry-run"
+          MODE="${{ inputs.mode }}"
+          # Scheduled runs always generate (never auto-post)
+          if [ -z "$MODE" ]; then
+            MODE="generate"
           fi
-          if [ -n "${{ inputs.pillar }}" ]; then
-            ARGS="$ARGS --pillar ${{ inputs.pillar }}"
+
+          if [ "$MODE" = "approve" ]; then
+            PYTHONPATH=. python -m system_a.generate_and_post --approve
+          else
+            ARGS=""
+            if [ "${{ inputs.dry_run }}" = "true" ]; then
+              ARGS="$ARGS --dry-run"
+            fi
+            if [ -n "${{ inputs.pillar }}" ]; then
+              ARGS="$ARGS --pillar ${{ inputs.pillar }}"
+            fi
+            PYTHONPATH=. python -m system_a.generate_and_post $ARGS
           fi
-          PYTHONPATH=. python -m system_a.generate_and_post $ARGS
 
       - name: Commit data updates
         if: success()

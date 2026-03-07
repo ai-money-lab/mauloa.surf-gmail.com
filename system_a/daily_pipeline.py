@@ -4,8 +4,10 @@ Runs all 3 pipelines, selects posts, and schedules them.
 Designed to be called via cron at 06:00 JST daily.
 """
 
+import json
 import logging
 from datetime import datetime, timezone, timedelta
+from pathlib import Path
 
 from core.notifier import Notifier
 from core.image_generator import ImageGenerator
@@ -123,23 +125,47 @@ class DailyPipeline:
                 except Exception as e:
                     logger.warning("Image generation failed for post: %s", e)
 
-        # Phase 5: Post to X immediately
-        posted = []
-        for post in selected:
-            logger.info(
-                "Posting: pillar=%s, pipeline=%s, image=%s",
-                post.get("pillar"), post.get("pipeline"),
-                bool(post.get("image_path")),
-            )
-            try:
-                result = self.poster.post_and_record(post)
-                posted.append(result)
-                logger.info("Posted successfully")
-            except Exception as e:
-                logger.error("Failed to post: %s", e)
-                self.notifier.send_line(f"投稿失敗: {e}")
+        # Phase 5: Save to pending approval (DO NOT auto-post)
+        if selected:
+            # Save best post to pending approval
+            best = selected[0]
+            pending_path = Path(__file__).parent.parent / "data" / "system_a" / "pending_approval.json"
+            pending_path.parent.mkdir(parents=True, exist_ok=True)
 
-        logger.info("=== Daily Pipeline Complete: %d/%d posted ===", len(posted), len(selected))
+            text = best.get("text", "")
+            display = text if isinstance(text, str) else "\n".join(text) if text else ""
+            pillar = best.get("pillar", "?")
+            pipeline = best.get("pipeline", "?")
+            score = best.get("quality_score", "?")
+
+            pending_data = {
+                "text": text,
+                "image_path": best.get("image_path"),
+                "pillar": pillar,
+                "pipeline": pipeline,
+                "pattern": best.get("pattern", "A"),
+                "quality_score": score,
+                "created_at": now.isoformat(),
+            }
+            pending_path.write_text(
+                json.dumps(pending_data, ensure_ascii=False, indent=2), encoding="utf-8"
+            )
+
+            # Send LINE notification for approval
+            self.notifier.send_line(
+                f"【X投稿 承認待ち】\n"
+                f"柱{pillar} / {pipeline}\n"
+                f"スコア: {score}\n"
+                f"---\n"
+                f"{display[:200]}\n"
+                f"---\n"
+                f"承認: python -m system_a.generate_and_post --approve"
+            )
+            logger.info("Pending approval: pillar=%s, pipeline=%s, score=%s", pillar, pipeline, score)
+        else:
+            self.notifier.send_line("本日の投稿候補がありませんでした（品質基準未達）")
+
+        logger.info("=== Daily Pipeline Complete: %d candidates pending approval ===", len(selected))
         return selected
 
 
