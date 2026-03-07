@@ -220,25 +220,28 @@ def generate_image_for_post(text, pillar: int = 0) -> str | None:
 
 
 def post_to_x(text, pillar: int = 0, pipeline: str = "P3", pattern: str = "A",
-              image_path: str | None = None) -> dict:
-    """Post text to X via AutoPoster, optionally with an image."""
+              image_path: str | None = None, quality_score: int = 0) -> dict:
+    """Post text to X via AutoPoster.post_and_record() with full safety guards.
+
+    All posts go through post_and_record() which enforces:
+    - Daily post limit (MAX_POSTS_PER_DAY)
+    - Duplicate text detection
+    - Local log recording
+    - Google Sheets recording
+    """
     poster = AutoPoster()
 
+    post_data = {
+        "text": text,
+        "pillar": pillar,
+        "pipeline": pipeline,
+        "pattern": pattern,
+        "quality_score": quality_score,
+    }
     if image_path:
-        media_id = poster._upload_media(image_path)
-        if not media_id:
-            logger.warning("Image upload failed, posting text-only")
-    else:
-        media_id = None
+        post_data["image_path"] = image_path
 
-    if isinstance(text, list):
-        logger.info("Posting thread (%d tweets)...", len(text))
-        result = poster.post_thread(text, media_id=media_id)
-    else:
-        logger.info("Posting single tweet...")
-        result = poster.post_tweet(text, media_id=media_id)
-
-    return result
+    return poster.post_and_record(post_data)
 
 
 def main():
@@ -258,20 +261,47 @@ def main():
 
     notifier = Notifier()
 
-    # Direct text posting
+    # Direct text posting (with safety checks)
     if args.text:
+        fact_checker = FactChecker()
+        # Step 1: Auto-fix known typos
+        fixed_text = fact_checker.auto_fix(args.text)
+        # Step 2: Fact check
+        fact_result = fact_checker.check(fixed_text)
+        if not fact_result.passed:
+            violations = [v["message"] for v in fact_result.violations]
+            logger.error("FACT CHECK FAILED: %s", "; ".join(violations))
+            notifier.send_line(
+                f"【--text投稿ブロック】FactCheck不合格\n"
+                + "\n".join(f"・{v}" for v in violations)
+            )
+            sys.exit(1)
+        # Step 3: Quality check
+        claude = ClaudeClient()
+        checker = QualityChecker(claude)
+        qr = checker.check(profile="x_post", content=fixed_text, context="Direct text post")
+        score = qr.get("total_score", 0)
+        if score < QUALITY_THRESHOLD:
+            reasons = qr.get("rejection_reasons", [])
+            logger.error("QUALITY CHECK FAILED: score=%d (threshold=%d)", score, QUALITY_THRESHOLD)
+            notifier.send_line(
+                f"【--text投稿ブロック】品質スコア{score}/{QUALITY_THRESHOLD}\n"
+                + "\n".join(f"・{r}" for r in reasons[:3])
+            )
+            sys.exit(1)
+        logger.info("Safety checks passed (score=%d)", score)
         image_path = None
         if not args.no_image:
-            image_path = generate_image_for_post(args.text)
+            image_path = generate_image_for_post(fixed_text)
         if args.dry_run:
-            logger.info("[DRY RUN] Would post: %s", args.text)
+            logger.info("[DRY RUN] Would post: %s", fixed_text)
             return
-        result = post_to_x(args.text, image_path=image_path)
+        result = post_to_x(fixed_text, image_path=image_path, quality_score=score)
         if isinstance(result, list):
             tweet_id = result[0].get("data", {}).get("id", "unknown") if result else "unknown"
         else:
             tweet_id = result.get("data", {}).get("id", "unknown")
-        notifier.send_line(f"投稿完了\nhttps://x.com/HirokiMiyao/status/{tweet_id}")
+        notifier.send_line(f"投稿完了 (スコア{score})\nhttps://x.com/HirokiMiyao/status/{tweet_id}")
         logger.info("Posted! https://x.com/HirokiMiyao/status/%s", tweet_id)
         return
 
@@ -325,10 +355,11 @@ def main():
     if not args.no_image:
         image_path = generate_image_for_post(post_text, pillar=int(pillar) if str(pillar).isdigit() else 0)
 
-    # Step 5: Post to X
+    # Step 5: Post to X (via post_and_record with safety guards)
     post_result = post_to_x(
         post_text, pillar=int(pillar) if str(pillar).isdigit() else 0,
         pipeline="P3", pattern=label, image_path=image_path,
+        quality_score=selected["quality_score"],
     )
 
     if isinstance(post_result, list):
