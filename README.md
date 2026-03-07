@@ -237,8 +237,8 @@ cp config/.env.example .env
 | `X_API_KEY` / `X_API_SECRET` | X (Twitter) API |
 | `X_ACCESS_TOKEN` / `X_ACCESS_SECRET` | X投稿用アクセストークン |
 | `TWITTERAPI_IO_KEY` | twitterapi.io（バズツイート取得） |
-| `LINE_NOTIFY_TOKEN` | LINE Notify（通知用） |
-| `LINE_CHANNEL_SECRET` / `LINE_CHANNEL_TOKEN` | LINE Messaging API（Bot用） |
+| `LINE_CHANNEL_SECRET` / `LINE_CHANNEL_ACCESS_TOKEN` | LINE Messaging API（Bot + 通知） |
+| `LINE_USER_ID` | LINE通知先ユーザーID |
 | `GOOGLE_SHEETS_CREDENTIALS` | Google Sheets API（案件管理） |
 | `ESTAT_API_KEY` | e-Stat API（政府統計） |
 

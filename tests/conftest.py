@@ -19,7 +19,8 @@ os.environ.setdefault("X_ACCESS_TOKEN", "test-token")
 os.environ.setdefault("X_ACCESS_TOKEN_SECRET", "test-token-secret")
 os.environ.setdefault("X_BEARER_TOKEN", "test-bearer")
 os.environ.setdefault("TWITTERAPI_IO_KEY", "test-twitter-io")
-os.environ.setdefault("LINE_NOTIFY_TOKEN", "")
+os.environ.setdefault("LINE_CHANNEL_ACCESS_TOKEN", "")
+os.environ.setdefault("LINE_USER_ID", "")
 os.environ.setdefault("SLACK_WEBHOOK_URL", "")
 
 

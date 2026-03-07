@@ -61,4 +61,4 @@ inquiry_bot:
   model: "claude-sonnet-4-20250514"
   channels: ["line", "web"]
   daily_report_time: "21:00"
-  escalation_notify: ["line_notify", "slack"]
+  escalation_notify: ["line_messaging_api", "slack"]

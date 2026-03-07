@@ -42,8 +42,8 @@ class PostSelector:
             self.config = {}
 
         sa = self.config.get("system_a", {})
-        self.posts_per_day = sa.get("posts_per_day", 3)
-        self.post_times = sa.get("post_times", ["07:00", "12:00", "19:00"])
+        self.posts_per_day = sa.get("posts_per_day", 1)
+        self.post_times = sa.get("post_times", ["19:00"])
 
         ratio = sa.get("pipeline_ratio", {})
         self.pipeline_ratio = {

@@ -1,7 +1,7 @@
 """Tests for core/notifier.py — Notifier class.
 
 Covers:
-- send_line(): with token, without token, error handling
+- send_line(): LINE Messaging API push message
 - send_slack(): with webhook, without webhook, error handling
 - notify(): calls both channels
 - Correct API endpoints and payload formats
@@ -18,36 +18,45 @@ from core.notifier import Notifier
 # ---------------------------------------------------------------------------
 
 class TestSendLine:
-    """Tests for Notifier.send_line()."""
+    """Tests for Notifier.send_line() — LINE Messaging API."""
 
     def test_returns_false_without_token(self):
         notifier = Notifier()
-        notifier.line_token = ""
+        notifier.line_channel_token = ""
+        notifier.line_user_id = ""
+        assert notifier.send_line("test") is False
+
+    def test_returns_false_without_user_id(self):
+        notifier = Notifier()
+        notifier.line_channel_token = "test-token"
+        notifier.line_user_id = ""
         assert notifier.send_line("test") is False
 
     @patch("core.notifier.requests.post")
-    def test_returns_true_with_valid_token(self, mock_post):
+    def test_returns_true_with_valid_config(self, mock_post):
         mock_post.return_value = MagicMock(status_code=200)
         mock_post.return_value.raise_for_status = MagicMock()
 
         notifier = Notifier()
-        notifier.line_token = "test-token"
+        notifier.line_channel_token = "test-token"
+        notifier.line_user_id = "U1234567890"
         result = notifier.send_line("テスト通知")
 
         assert result is True
         mock_post.assert_called_once()
 
     @patch("core.notifier.requests.post")
-    def test_sends_to_correct_line_endpoint(self, mock_post):
+    def test_sends_to_messaging_api_endpoint(self, mock_post):
         mock_post.return_value = MagicMock()
         mock_post.return_value.raise_for_status = MagicMock()
 
         notifier = Notifier()
-        notifier.line_token = "test-token"
+        notifier.line_channel_token = "test-token"
+        notifier.line_user_id = "U1234567890"
         notifier.send_line("msg")
 
         call_args = mock_post.call_args
-        assert call_args[0][0] == "https://notify-api.line.me/api/notify"
+        assert call_args[0][0] == "https://api.line.me/v2/bot/message/push"
 
     @patch("core.notifier.requests.post")
     def test_sends_bearer_authorization_header(self, mock_post):
@@ -55,7 +64,8 @@ class TestSendLine:
         mock_post.return_value.raise_for_status = MagicMock()
 
         notifier = Notifier()
-        notifier.line_token = "my-token-123"
+        notifier.line_channel_token = "my-token-123"
+        notifier.line_user_id = "U1234567890"
         notifier.send_line("msg")
 
         call_kwargs = mock_post.call_args
@@ -63,24 +73,27 @@ class TestSendLine:
         assert headers["Authorization"] == "Bearer my-token-123"
 
     @patch("core.notifier.requests.post")
-    def test_message_prefixed_with_newline(self, mock_post):
+    def test_sends_push_message_payload(self, mock_post):
         mock_post.return_value = MagicMock()
         mock_post.return_value.raise_for_status = MagicMock()
 
         notifier = Notifier()
-        notifier.line_token = "test-token"
+        notifier.line_channel_token = "test-token"
+        notifier.line_user_id = "U1234567890"
         notifier.send_line("hello")
 
         call_kwargs = mock_post.call_args
-        data = call_kwargs[1]["data"]
-        assert data["message"] == "\nhello"
+        json_payload = call_kwargs[1]["json"]
+        assert json_payload["to"] == "U1234567890"
+        assert json_payload["messages"] == [{"type": "text", "text": "hello"}]
 
     @patch("core.notifier.requests.post")
     def test_returns_false_on_network_error(self, mock_post):
         mock_post.side_effect = Exception("Network error")
 
         notifier = Notifier()
-        notifier.line_token = "test-token"
+        notifier.line_channel_token = "test-token"
+        notifier.line_user_id = "U1234567890"
         result = notifier.send_line("テスト")
 
         assert result is False
@@ -166,7 +179,8 @@ class TestNotify:
 
     def test_does_not_raise_when_both_unconfigured(self):
         notifier = Notifier()
-        notifier.line_token = ""
+        notifier.line_channel_token = ""
+        notifier.line_user_id = ""
         notifier.slack_webhook = ""
         # Should not raise
         notifier.notify("test message")
@@ -175,7 +189,8 @@ class TestNotify:
     def test_line_failure_does_not_prevent_slack(self, mock_post):
         """Even if LINE fails, Slack should still be attempted."""
         notifier = Notifier()
-        notifier.line_token = "token"
+        notifier.line_channel_token = "token"
+        notifier.line_user_id = "U123"
         notifier.slack_webhook = "https://hooks.slack.com/test"
 
         # First call (LINE) raises, second call (Slack) succeeds

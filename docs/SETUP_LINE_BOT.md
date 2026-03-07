@@ -69,8 +69,8 @@ LINE公式アカウント → Messaging API → Webhook → inquiry_bot/server.p
 LINE_CHANNEL_SECRET=取得したチャネルシークレット
 LINE_CHANNEL_ACCESS_TOKEN=取得したチャネルアクセストークン
 
-# ═══ LINE Notify（管理者通知用・既存） ═══
-LINE_NOTIFY_TOKEN=既存のトークン（エスカレーション通知に使用）
+# ═══ LINE通知先ユーザーID（管理者通知用） ═══
+LINE_USER_ID=LINE Developersコンソールで確認できるユーザーID
 
 # ═══ 問い合わせBot Google Sheets ═══
 INQUIRY_BOT_SHEET_ID=（Step 5で作成）
@@ -162,7 +162,7 @@ railway init
 railway variables set LINE_CHANNEL_SECRET=xxx
 railway variables set LINE_CHANNEL_ACCESS_TOKEN=xxx
 railway variables set ANTHROPIC_API_KEY=xxx
-railway variables set LINE_NOTIFY_TOKEN=xxx
+railway variables set LINE_USER_ID=xxx
 
 # デプロイ
 railway up

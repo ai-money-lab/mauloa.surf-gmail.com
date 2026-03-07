@@ -75,8 +75,8 @@ class TestEnvExample:
     def test_has_google_sheets(self, env_content):
         assert "SHEETS_POST_MANAGEMENT_ID=" in env_content
 
-    def test_has_line_notify(self, env_content):
-        assert "LINE_NOTIFY_TOKEN=" in env_content
+    def test_has_line_user_id(self, env_content):
+        assert "LINE_USER_ID=" in env_content
 
     def test_no_actual_keys(self, env_content):
         """Ensure no actual API keys are committed."""

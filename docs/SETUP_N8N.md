@@ -231,7 +231,7 @@ System Bの受注処理をWebhookで自動化します。ランサーズ・コ�
 ```
 LINE_CHANNEL_SECRET=your_line_channel_secret
 LINE_CHANNEL_ACCESS_TOKEN=your_line_channel_access_token
-LINE_NOTIFY_TOKEN=your_line_notify_token
+LINE_USER_ID=your_line_user_id
 INQUIRY_BOT_SHEET_ID=your_google_sheets_id
 ```
 

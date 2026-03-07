@@ -106,30 +106,27 @@
     },
     {
       "id": "escalation_notify_line",
-      "name": "LINE Notifyエスカレーション通知",
+      "name": "LINE Messaging APIエスカレーション通知",
       "type": "n8n-nodes-base.httpRequest",
       "position": [1100, 500],
       "parameters": {
-        "url": "https://notify-api.line.me/api/notify",
+        "url": "https://api.line.me/v2/bot/message/push",
         "method": "POST",
         "headerParameters": {
           "parameters": [
             {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
               "name": "Authorization",
-              "value": "Bearer {{ $env.LINE_NOTIFY_TOKEN }}"
+              "value": "Bearer {{ $env.LINE_CHANNEL_ACCESS_TOKEN }}"
             }
           ]
         },
         "sendBody": true,
-        "contentType": "form-urlencoded",
-        "bodyParameters": {
-          "parameters": [
-            {
-              "name": "message",
-              "value": "=\n🚨 エスカレーション発生\nユーザー: {{ $('parse_line_event').json.userId }}\nメッセージ: {{ $('parse_line_event').json.message }}"
-            }
-          ]
-        }
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"to\": \"{{ $env.LINE_USER_ID }}\",\n  \"messages\": [\n    {\n      \"type\": \"text\",\n      \"text\": \"🚨 エスカレーション発生\\nユーザー: {{ $('parse_line_event').json.userId }}\\nメッセージ: {{ $('parse_line_event').json.message }}\"\n    }\n  ]\n}"
       }
     },
     {
@@ -198,26 +195,23 @@
       "type": "n8n-nodes-base.httpRequest",
       "position": [700, 600],
       "parameters": {
-        "url": "https://notify-api.line.me/api/notify",
+        "url": "https://api.line.me/v2/bot/message/push",
         "method": "POST",
         "headerParameters": {
           "parameters": [
             {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
               "name": "Authorization",
-              "value": "Bearer {{ $env.LINE_NOTIFY_TOKEN }}"
+              "value": "Bearer {{ $env.LINE_CHANNEL_ACCESS_TOKEN }}"
             }
           ]
         },
         "sendBody": true,
-        "contentType": "form-urlencoded",
-        "bodyParameters": {
-          "parameters": [
-            {
-              "name": "message",
-              "value": "={{ $json.report }}"
-            }
-          ]
-        }
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"to\": \"{{ $env.LINE_USER_ID }}\",\n  \"messages\": [\n    {\n      \"type\": \"text\",\n      \"text\": \"{{ $json.report }}\"\n    }\n  ]\n}"
       }
     }
   ],

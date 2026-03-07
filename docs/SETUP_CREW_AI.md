@@ -265,7 +265,7 @@ GOOGLE_DRIVE_DELIVERABLES_FOLDER_ID=your_deliverables_folder_id
 ### 6-2. 環境変数に設定
 
 ```env
-LINE_NOTIFY_TOKEN=your_line_notify_token
+LINE_USER_ID=your_line_user_id
 ```
 
 ---

@@ -60,7 +60,8 @@ def main():
     # 3. 通知環境変数
     print("\n3. 通知設定")
     print("-" * 40)
-    check_env_var("LINE_NOTIFY_TOKEN", required=False)
+    check_env_var("LINE_CHANNEL_ACCESS_TOKEN", required=False)
+    check_env_var("LINE_USER_ID", required=False)
     check_env_var("SLACK_WEBHOOK_URL", required=False)
 
     # 4. Google Sheets

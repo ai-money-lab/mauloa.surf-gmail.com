@@ -65,7 +65,7 @@ escalation:
     - condition: "3回以上の再質問"
   # エスカレーション時の通知先
   notify_channels:
-    - "line_notify"
+    - "line_messaging_api"
     - "slack"
   escalation_message: >
     申し訳ございません。ご質問の内容について、担当者より直接ご連絡いたします。
