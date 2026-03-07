@@ -1,0 +1,378 @@
+/* A4 チラシ共通CSS — デンキチ × M.K CREATE */
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&display=swap');
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+@page {
+  size: A4 portrait;
+  margin: 0;
+}
+
+body {
+  font-family: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+.flyer {
+  width: 210mm;
+  height: 297mm;
+  margin: 0 auto;
+  position: relative;
+  overflow: hidden;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ===== ヘッダー: デンキチロゴ帯 ===== */
+.header {
+  background: #003DA5;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6mm 8mm;
+  min-height: 22mm;
+}
+
+.header .denkichi-logo {
+  font-size: 28px;
+  font-weight: 900;
+  letter-spacing: 2px;
+  background: #E30613;
+  padding: 4px 16px;
+  border-radius: 4px;
+}
+
+.header .tagline {
+  font-size: 13px;
+  font-weight: 700;
+  text-align: right;
+  line-height: 1.5;
+}
+
+/* ===== メインタイトルエリア ===== */
+.title-area {
+  position: relative;
+  min-height: 60mm;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.title-area .bg-image {
+  position: absolute;
+  top: 0; left: 0; width: 100%; height: 100%;
+  object-fit: cover;
+  filter: brightness(0.4);
+}
+
+.title-area .overlay {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  color: #fff;
+  padding: 10mm 8mm;
+}
+
+.title-area .overlay .main-title {
+  font-size: 52px;
+  font-weight: 900;
+  letter-spacing: 6px;
+  text-shadow: 3px 3px 8px rgba(0,0,0,0.7);
+  line-height: 1.2;
+  margin-bottom: 4mm;
+}
+
+.title-area .overlay .sub-title {
+  font-size: 22px;
+  font-weight: 700;
+  text-shadow: 2px 2px 6px rgba(0,0,0,0.7);
+}
+
+/* ===== 即日対応バッジ ===== */
+.badges {
+  display: flex;
+  justify-content: center;
+  gap: 4mm;
+  padding: 4mm 8mm;
+  background: #FFF8E1;
+}
+
+.badge {
+  background: #E30613;
+  color: #fff;
+  font-weight: 900;
+  font-size: 15px;
+  padding: 3mm 6mm;
+  border-radius: 50px;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.badge.blue {
+  background: #003DA5;
+}
+
+.badge.green {
+  background: #2E7D32;
+}
+
+.badge.orange {
+  background: #E65100;
+}
+
+/* ===== コンテンツエリア ===== */
+.content {
+  flex: 1;
+  padding: 5mm 8mm;
+  display: flex;
+  flex-direction: column;
+  gap: 4mm;
+}
+
+/* セクション見出し */
+.section-title {
+  font-size: 20px;
+  font-weight: 900;
+  color: #003DA5;
+  border-left: 5px solid #E30613;
+  padding-left: 3mm;
+  margin-bottom: 2mm;
+}
+
+/* サービス一覧グリッド */
+.service-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3mm;
+}
+
+.service-card {
+  background: #F5F5F5;
+  border-radius: 3mm;
+  padding: 4mm;
+  text-align: center;
+  border: 1px solid #ddd;
+}
+
+.service-card .icon {
+  font-size: 36px;
+  margin-bottom: 1mm;
+}
+
+.service-card .name {
+  font-size: 15px;
+  font-weight: 900;
+  color: #003DA5;
+}
+
+.service-card .desc {
+  font-size: 11px;
+  color: #555;
+  margin-top: 1mm;
+  line-height: 1.4;
+}
+
+/* 特徴・メリット */
+.features {
+  display: flex;
+  gap: 3mm;
+}
+
+.feature-box {
+  flex: 1;
+  background: #E8F5E9;
+  border-radius: 3mm;
+  padding: 4mm;
+  text-align: center;
+}
+
+.feature-box.blue { background: #E3F2FD; }
+.feature-box.red { background: #FFEBEE; }
+.feature-box.yellow { background: #FFF8E1; }
+
+.feature-box .num {
+  font-size: 32px;
+  font-weight: 900;
+  color: #E30613;
+}
+
+.feature-box .label {
+  font-size: 13px;
+  font-weight: 700;
+  color: #333;
+  margin-top: 1mm;
+}
+
+/* ===== サービスの流れ ===== */
+.flow {
+  display: flex;
+  align-items: center;
+  gap: 2mm;
+  padding: 3mm;
+  background: #F5F5F5;
+  border-radius: 3mm;
+}
+
+.flow-step {
+  flex: 1;
+  text-align: center;
+  background: #fff;
+  border-radius: 2mm;
+  padding: 3mm 2mm;
+  border: 1px solid #003DA5;
+}
+
+.flow-step .step-num {
+  background: #003DA5;
+  color: #fff;
+  font-weight: 900;
+  font-size: 12px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1mm;
+}
+
+.flow-step .step-text {
+  font-size: 11px;
+  font-weight: 700;
+  color: #333;
+}
+
+.flow-arrow {
+  font-size: 20px;
+  color: #003DA5;
+  font-weight: 900;
+}
+
+/* ===== 価格帯 ===== */
+.pricing {
+  background: #FFF3E0;
+  border: 2px solid #E65100;
+  border-radius: 3mm;
+  padding: 4mm;
+}
+
+.pricing .price-title {
+  font-size: 16px;
+  font-weight: 900;
+  color: #E65100;
+  text-align: center;
+  margin-bottom: 2mm;
+}
+
+.price-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.price-table th {
+  background: #E65100;
+  color: #fff;
+  font-size: 12px;
+  padding: 2mm;
+  text-align: center;
+}
+
+.price-table td {
+  font-size: 12px;
+  padding: 2mm;
+  text-align: center;
+  border-bottom: 1px solid #ddd;
+}
+
+.price-table td.price {
+  font-weight: 900;
+  color: #E30613;
+  font-size: 14px;
+}
+
+/* ===== 目立つ吹き出し ===== */
+.callout {
+  background: #E30613;
+  color: #fff;
+  text-align: center;
+  padding: 4mm;
+  border-radius: 3mm;
+  font-size: 18px;
+  font-weight: 900;
+}
+
+.callout.blue { background: #003DA5; }
+
+/* ===== フッター: 連絡先 ===== */
+.footer {
+  background: #003DA5;
+  color: #fff;
+  padding: 5mm 8mm;
+  display: flex;
+  align-items: center;
+  gap: 4mm;
+}
+
+.footer .phone-area {
+  flex: 1;
+}
+
+.footer .phone-label {
+  font-size: 12px;
+  font-weight: 700;
+  border: 1px solid #fff;
+  display: inline-block;
+  padding: 1mm 3mm;
+  border-radius: 2mm;
+  margin-bottom: 1mm;
+}
+
+.footer .phone-number {
+  font-size: 32px;
+  font-weight: 900;
+  letter-spacing: 2px;
+}
+
+.footer .phone-hours {
+  font-size: 11px;
+  margin-top: 1mm;
+}
+
+.footer .denkichi-note {
+  background: #FFF8E1;
+  color: #333;
+  padding: 3mm 4mm;
+  border-radius: 3mm;
+  font-size: 13px;
+  font-weight: 700;
+  text-align: center;
+  max-width: 50mm;
+  line-height: 1.5;
+}
+
+.footer-bottom {
+  background: #002A73;
+  color: #ccc;
+  text-align: center;
+  font-size: 10px;
+  padding: 2mm;
+}
+
+/* ===== ユーティリティ ===== */
+.text-red { color: #E30613; }
+.text-blue { color: #003DA5; }
+.text-center { text-align: center; }
+.fw-900 { font-weight: 900; }
+.fs-large { font-size: 18px; }
+.mt-2 { margin-top: 2mm; }
+.mb-2 { margin-bottom: 2mm; }
+
+/* 印刷設定 */
+@media print {
+  body { margin: 0; }
+  .flyer { page-break-after: always; margin: 0; }
+}
