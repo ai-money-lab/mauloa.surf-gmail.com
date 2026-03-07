@@ -1,239 +1,301 @@
-"""Order processing pipeline for System B.
+"""System B - TASK B-3: 案件処理パイプライン
 
-Handles the full flow from order intake to delivery:
-order → data collection → report generation → quality check → PDF → delivery.
+受注→データ収集→レポート生成→品質チェック→PDF→納品の完全自動フロー。
 """
 
+import argparse
 import json
 import logging
+import sys
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
 
-import yaml
+_ROOT = Path(__file__).parent.parent
+sys.path.insert(0, str(_ROOT))
+
 from dotenv import load_dotenv
+load_dotenv(_ROOT / ".env", override=True)
+
+import yaml
 
 from core.claude_client import ClaudeClient
 from core.quality_checker import QualityChecker
-from core.pdf_generator import PDFGenerator
 from core.sheets_client import SheetsClient
 from core.notifier import Notifier
-
-load_dotenv()
+from core.pdf_generator import PDFGenerator
+from system_c.agents.realestate_data_agent import RealEstateDataAgent
+from system_c.agents.market_analysis_agent import MarketAnalysisAgent
+from system_c.agents.regulation_watch_agent import RegulationWatchAgent
+from system_c.agents.tech_trend_agent import TechTrendAgent
 
 logger = logging.getLogger(__name__)
 
 JST = timezone(timedelta(hours=9))
 BASE_DIR = Path(__file__).parent.parent
-PRODUCTS_PATH = Path(__file__).parent / "products.yaml"
+PRODUCTS_PATH = BASE_DIR / "system_b" / "products.yaml"
 DELIVERABLES_DIR = BASE_DIR / "data" / "system_b" / "deliverables"
-PROMPTS_DIR = BASE_DIR / "prompts"
+
+
+def load_products() -> dict:
+    with open(PRODUCTS_PATH, "r", encoding="utf-8") as f:
+        data = yaml.safe_load(f)
+    return {p["id"]: p for p in data.get("products", [])}
 
 
 class OrderProcessor:
-    """Process orders end-to-end."""
+    """案件処理パイプライン"""
 
     def __init__(self):
+        self.products = load_products()
         self.claude = ClaudeClient()
-        self.quality_checker = QualityChecker(self.claude)
-        self.pdf_gen = PDFGenerator()
+        self.quality_checker = QualityChecker()
         self.sheets = SheetsClient()
         self.notifier = Notifier()
-        self._load_products()
-
-    def _load_products(self):
-        with open(PRODUCTS_PATH, encoding="utf-8") as f:
-            data = yaml.safe_load(f)
-        self.products = {p["id"]: p for p in data.get("products", [])}
-
-    def _get_product(self, product_id: str) -> dict:
-        if product_id not in self.products:
-            raise ValueError(f"Unknown product: {product_id}")
-        return self.products[product_id]
-
-    def _collect_data(self, product: dict, params: dict) -> dict:
-        """Trigger System C agents to collect required data."""
-        crew_tasks = product.get("crew_tasks", [])
-        collected = {}
-
-        for task_name in crew_tasks:
-            data_dir = BASE_DIR / "data" / "system_c"
-            # Look for existing data or trigger collection
-            for subdir in ["reports", "daily", "weekly", "valuations", "costs"]:
-                task_dir = data_dir / subdir
-                if task_dir.exists():
-                    files = sorted(task_dir.glob(f"{task_name}*.json"), reverse=True)
-                    if files:
-                        try:
-                            collected[task_name] = json.loads(
-                                files[0].read_text(encoding="utf-8")
-                            )
-                        except Exception as e:
-                            logger.warning("Failed to load %s data: %s", task_name, e)
-
-        # If no data from System C, generate via Claude
-        if not collected:
-            logger.info("No System C data available, generating via Claude API")
-            prompt = (
-                f"指定された条件に基づき、レポート用のデータを生成してください。\n"
-                f"商品: {product['name']}\n"
-                f"パラメータ: {json.dumps(params, ensure_ascii=False)}\n"
-                f"JSON形式で出力してください。"
-            )
-            try:
-                collected["ai_generated"] = self.claude.generate_json(prompt)
-            except Exception as e:
-                logger.error("Data generation failed: %s", e)
-
-        # Quality check collected data
-        for key, data in collected.items():
-            result = self.quality_checker.check(
-                profile="data_collection",
-                content=json.dumps(data, ensure_ascii=False),
-                context=f"Order data collection: {key}",
-            )
-            if result.get("result") != "auto_approved":
-                logger.warning("Data quality check failed for %s: %s", key, result)
-
-        return collected
-
-    def _generate_report(self, product: dict, params: dict, data: dict) -> str:
-        """Generate report content from template and data."""
-        report_prompt_path = PROMPTS_DIR / "generate_report.txt"
-        report_prompt = report_prompt_path.read_text(encoding="utf-8")
-
-        prompt = report_prompt.replace(
-            "{report_type}", product["name"]
-        ).replace(
-            "{variables}", json.dumps(params, ensure_ascii=False)
-        ).replace(
-            "{collected_data}", json.dumps(data, ensure_ascii=False)
-        )
-
-        report_content = self.claude.generate(prompt, temperature=0.5)
-        return report_content
-
-    def _generate_insight(self, report_summary: str, params: dict) -> str:
-        """Generate professional insight section."""
-        insight_prompt_path = PROMPTS_DIR / "professional_insight.txt"
-        insight_prompt = insight_prompt_path.read_text(encoding="utf-8")
-
-        prompt = insight_prompt.replace(
-            "{report_summary}", report_summary[:2000]
-        ).replace(
-            "{target}", json.dumps(params, ensure_ascii=False)
-        ).replace(
-            "{key_data}", ""
-        )
-
-        return self.claude.generate(prompt, temperature=0.6)
+        self.pdf_gen = PDFGenerator()
 
     def process(self, order: dict) -> dict:
-        """Process a single order end-to-end.
-
-        Args:
-            order: Dict with order_id, product_id, client_name,
-                   parameters, deadline, platform.
-
-        Returns:
-            Dict with delivery status and file path.
-        """
+        """案件を完全自動処理"""
         order_id = order["order_id"]
         product_id = order["product_id"]
-        params = order.get("parameters", {})
-        product = self._get_product(product_id)
+        logger.info(f"Processing order: {order_id} (product: {product_id})")
 
-        logger.info("Processing order %s: %s", order_id, product["name"])
-
-        # Step 1: Register order
-        try:
-            self.sheets.record_order({
-                **order,
-                "status": "processing",
-                "created_at": datetime.now(JST).isoformat(),
-            })
-        except Exception as e:
-            logger.warning("Failed to record order to Sheets: %s", e)
-
-        # Step 2: Collect data
-        logger.info("[%s] Collecting data...", order_id)
-        collected_data = self._collect_data(product, params)
-
-        # Step 3: Generate report
-        logger.info("[%s] Generating report...", order_id)
-        report_content = self._generate_report(product, params, collected_data)
-
-        # Step 4: Generate professional insight
-        logger.info("[%s] Generating professional insight...", order_id)
-        insight = self._generate_insight(report_content[:2000], params)
-        full_report = f"{report_content}\n\n## プロフェッショナル所見\n\n{insight}"
-
-        # Step 5: Quality check report
-        logger.info("[%s] Quality checking report...", order_id)
-        report_text, quality_result = self.quality_checker.check_with_retry(
-            profile="report",
-            content=full_report,
-            context=f"Order {order_id}: {product['name']}",
-        )
-
-        if quality_result.get("result") == "escalated":
-            self.notifier.send_line(
-                f"案件 {order_id} の品質チェックが失敗しました。手動確認が必要です。"
-            )
-            return {"order_id": order_id, "status": "escalated"}
-
-        # Step 6: Generate PDF
-        logger.info("[%s] Generating PDF...", order_id)
-        output_dir = DELIVERABLES_DIR / order_id
-        output_dir.mkdir(parents=True, exist_ok=True)
-
-        template_name = product.get("template", "area_analysis_report.md")
-        template_vars = {
-            "report_title": product["name"],
-            "client_name": order.get("client_name", ""),
-            "date": datetime.now(JST).strftime("%Y年%m月%d日"),
-            "content": report_text,
-            **params,
-        }
-
-        pdf_path = str(output_dir / f"{order_id}_report.pdf")
-        try:
-            self.pdf_gen.generate_pdf(template_name, template_vars, pdf_path)
-        except Exception as e:
-            logger.error("PDF generation failed: %s", e)
-            # Save as markdown instead
-            md_path = output_dir / f"{order_id}_report.md"
-            md_path.write_text(report_text, encoding="utf-8")
-            pdf_path = str(md_path)
-
-        # Step 7: Update status
-        try:
-            self.sheets.update_order_status(order_id, "delivered")
-        except Exception as e:
-            logger.warning("Failed to update order status: %s", e)
-
-        # Step 8: Notify
-        self.notifier.send_line(f"案件 {order_id} の納品が完了しました。")
+        product = self.products.get(product_id)
+        if not product:
+            raise ValueError(f"Unknown product: {product_id}")
 
         result = {
             "order_id": order_id,
-            "status": "delivered",
-            "file_path": pdf_path,
-            "quality_score": quality_result.get("total_score", 0),
+            "product_id": product_id,
+            "status": "processing",
+            "started_at": datetime.now(JST).isoformat(),
         }
 
-        logger.info("Order %s completed: %s", order_id, result)
+        # Step 1: 案件登録
+        if self.sheets.available:
+            self.sheets.append_order_record(order)
+
+        # Step 2: データ収集（System C呼び出し）
+        collected_data = self._collect_data(order, product)
+
+        # Step 3: データ品質チェック
+        if collected_data:
+            data_quality = self.quality_checker.check(
+                profile="data_collection",
+                content=json.dumps(collected_data, ensure_ascii=False),
+                context=f"order_{order_id}",
+            )
+            if data_quality.result != "auto_approved":
+                logger.warning(f"Data quality low: {data_quality.total_score}")
+
+        # Step 4: レポート生成
+        report_md = self._generate_report(order, product, collected_data)
+
+        # Step 5: プロフェッショナル所見生成
+        insight = self._generate_insight(order, collected_data, report_md)
+        report_md += f"\n\n## プロフェッショナル所見\n\n{insight}"
+
+        # Step 6: レポート品質チェック（リトライ付き）
+        quality_result, final_report = self.quality_checker.check_with_retry(
+            profile="report",
+            content=report_md,
+            context=f"order_{order_id}_report",
+            regenerate_fn=lambda content, suggestions: self._improve_report(
+                content, suggestions, order, product, collected_data
+            ),
+        )
+
+        if quality_result.result == "escalated":
+            self.notifier.notify(
+                f"⚠️ 案件 {order_id} のレポート品質が基準未達です。手動確認してください。",
+                urgent=True,
+            )
+            result["status"] = "escalated"
+            return result
+
+        # Step 7: PDF生成
+        output_path = self._generate_pdf(order, product, final_report)
+        result["deliverable_path"] = output_path
+
+        # Step 8: ステータス更新
+        result["status"] = "delivered"
+        result["completed_at"] = datetime.now(JST).isoformat()
+        result["quality_score"] = quality_result.total_score
+
+        if self.sheets.available:
+            self.sheets.update_order_status(order_id, "delivered")
+
+        # Step 9: 通知
+        self.notifier.notify(
+            f"案件 {order_id} の納品が完了しました\n"
+            f"商品: {product['name']}\n"
+            f"品質スコア: {quality_result.total_score}"
+        )
+
+        logger.info(f"Order {order_id} completed successfully")
         return result
+
+    def _collect_data(self, order: dict, product: dict) -> dict:
+        """System Cのエージェントにデータ収集を依頼（リアルタイムAPI経由）"""
+        crew_tasks = product.get("crew_tasks", [])
+        if not crew_tasks:
+            return {}
+
+        params = order.get("parameters", {})
+        product_id = product["id"]
+        collected = {}
+
+        try:
+            # エリア情報を抽出（住所から）
+            area = params.get("property_address", "") or params.get("area", "東京都")
+
+            # ── 商品別に適切なエージェントを呼び出し ──
+
+            if product_id in ("tier1_area_analysis", "tier2_sell_strategy"):
+                # エリア分析 / 売却戦略 → 不動産データエージェント + 市場分析エージェント
+                logger.info(f"[System C] エリア分析データ収集: {area}")
+                re_agent = RealEstateDataAgent()
+                collected["area_data"] = re_agent.collect_area_data(area, params)
+
+                market_agent = MarketAnalysisAgent()
+                collected["market_analysis"] = market_agent.analyze_market(
+                    area, collected["area_data"]
+                )
+
+            elif product_id == "tier2_rental_valuation":
+                # 賃料査定 → 不動産データエージェント（賃料特化）
+                logger.info(f"[System C] 賃料データ収集: {area}")
+                re_agent = RealEstateDataAgent()
+                collected["rental_data"] = re_agent.collect_rental_data(
+                    area,
+                    property_type=params.get("property_type", ""),
+                    params=params,
+                )
+                # 地価データも補完
+                collected["area_data"] = re_agent.collect_area_data(area, params)
+
+            elif product_id == "tier2_renovation_cost":
+                # リフォーム費用 → 不動産データエージェント（リフォーム特化）
+                logger.info(f"[System C] リフォーム費用データ収集")
+                re_agent = RealEstateDataAgent()
+                work_type = params.get("work_type", "全般")
+                collected["renovation_data"] = re_agent.collect_renovation_costs(
+                    work_type, area, params
+                )
+
+            elif product_id == "tier1_dx_consulting":
+                # DXコンサル → テックトレンドエージェント
+                logger.info("[System C] テクノロジートレンド収集")
+                tech_agent = TechTrendAgent()
+                collected["tech_trends"] = tech_agent.collect_weekly_trends()
+                collected["matterport"] = tech_agent.collect_matterport_updates()
+
+            elif product_id == "tier3_market_newsletter":
+                # ニュースレター → 市場分析 + 法規制 + テックトレンド
+                logger.info("[System C] ニュースレターデータ収集")
+                market_agent = MarketAnalysisAgent()
+                collected["daily_market"] = market_agent.daily_market_watch()
+
+                reg_agent = RegulationWatchAgent()
+                collected["regulations"] = reg_agent.check_regulations()
+
+                tech_agent = TechTrendAgent()
+                collected["tech_trends"] = tech_agent.collect_weekly_trends()
+
+            else:
+                # その他 → Claude APIフォールバック
+                logger.info(f"[System C] フォールバック: Claude APIでデータ生成")
+                prompt = (
+                    f"以下のパラメータに基づき、{product['name']}に必要なデータを"
+                    f"JSON形式で生成してください。\n\n"
+                    f"パラメータ: {json.dumps(params, ensure_ascii=False)}\n"
+                    f"必要データ: {json.dumps(product.get('deliverables', []), ensure_ascii=False)}"
+                )
+                collected = self.claude.generate_json(prompt, max_tokens=4096)
+
+            # メタ情報を付加
+            collected["_meta"] = {
+                "collection_method": "system_c_realtime_api",
+                "collected_at": datetime.now(JST).isoformat(),
+                "product_id": product_id,
+                "crew_tasks": crew_tasks,
+            }
+
+            logger.info(f"Data collection completed for {product_id}")
+            return collected
+
+        except Exception as e:
+            logger.error(f"Data collection failed: {e}")
+            # フォールバック: Claude APIで補完
+            logger.info("Falling back to Claude API for data generation")
+            try:
+                fallback_prompt = (
+                    f"以下のパラメータに基づき、{product['name']}に必要なデータを"
+                    f"JSON形式で生成してください。\n"
+                    f"最新の市場データに基づいてください。\n\n"
+                    f"パラメータ: {json.dumps(params, ensure_ascii=False)}"
+                )
+                return self.claude.generate_json(fallback_prompt, max_tokens=4096)
+            except Exception as fallback_err:
+                logger.error(f"Fallback also failed: {fallback_err}")
+                return {}
+
+    def _generate_report(self, order: dict, product: dict, data: dict) -> str:
+        """レポート本文を生成"""
+        prompt = self.claude.load_prompt(
+            "generate_report.txt",
+            report_type=product["name"],
+            template_name=product["template"],
+            client_name=order.get("client_name", ""),
+            collected_data=json.dumps(data, ensure_ascii=False, indent=2),
+        )
+
+        return self.claude.generate(prompt, max_tokens=8192, temperature=0.5)
+
+    def _generate_insight(self, order: dict, data: dict, report: str) -> str:
+        """プロフェッショナル所見を生成"""
+        prompt = self.claude.load_prompt(
+            "professional_insight.txt",
+            report_summary=report[:2000],
+            analysis_data=json.dumps(data, ensure_ascii=False)[:3000],
+        )
+
+        return self.claude.generate(prompt, max_tokens=2048, temperature=0.6)
+
+    def _improve_report(
+        self, content: str, suggestions: list[str], order: dict, product: dict, data: dict
+    ) -> str:
+        """品質不足時にレポートを改善"""
+        suggestions_text = "\n".join(f"- {s}" for s in suggestions)
+        prompt = (
+            f"以下のレポートを改善してください。\n\n"
+            f"## 改善提案:\n{suggestions_text}\n\n"
+            f"## 現在のレポート:\n{content}"
+        )
+        return self.claude.generate(prompt, max_tokens=8192, temperature=0.5)
+
+    def _generate_pdf(self, order: dict, product: dict, report_md: str) -> str:
+        """PDF生成"""
+        DELIVERABLES_DIR.mkdir(parents=True, exist_ok=True)
+        order_id = order["order_id"]
+        date_str = datetime.now(JST).strftime("%Y%m%d")
+        output_path = DELIVERABLES_DIR / f"{order_id}_{date_str}.pdf"
+
+        return self.pdf_gen.generate_pdf(report_md, str(output_path))
+
+
+def main():
+    logging.basicConfig(level=logging.INFO)
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--order", required=True, help="Path to order JSON file")
+    args = parser.parse_args()
+
+    with open(args.order, "r", encoding="utf-8") as f:
+        order = json.load(f)
+
+    processor = OrderProcessor()
+    result = processor.process(order)
+    print(f"Order processed: {json.dumps(result, ensure_ascii=False, indent=2)}")
 
 
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.INFO)
-    processor = OrderProcessor()
-    # Example:
-    # processor.process({
-    #     "order_id": "ORD-20260216-001",
-    #     "product_id": "tier1_area_analysis",
-    #     "client_name": "田中太郎",
-    #     "parameters": {"area": "港区赤坂", "budget": "1億円"},
-    #     "deadline": "2026-02-23",
-    #     "platform": "lancers",
-    # })
+    main()

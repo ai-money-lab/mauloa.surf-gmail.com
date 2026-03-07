@@ -1,165 +1,281 @@
-"""Auto-post to X (Twitter) via MCP Server or TwitterAPI.io."""
+"""System A - TASK A-5: 自動品質チェック＋投稿
+
+品質チェック → 自動スケジュール → X投稿を実行する。
+"""
 
 import json
 import logging
-import os
-import time
+import sys
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
 
-import requests
-from dotenv import load_dotenv
+sys.path.insert(0, str(Path(__file__).parent.parent))
 
+import yaml
+
+from core.quality_checker import QualityChecker
 from core.sheets_client import SheetsClient
 from core.notifier import Notifier
-
-load_dotenv()
+from system_a.x_poster import XPoster
 
 logger = logging.getLogger(__name__)
 
 JST = timezone(timedelta(hours=9))
-POSTED_LOG_PATH = Path(__file__).parent.parent / "data" / "system_a" / "posted_tweets.json"
+BASE_DIR = Path(__file__).parent.parent
+TRANSFORMED_DIR = BASE_DIR / "data" / "system_a" / "transformed"
+
+
+def load_config() -> dict:
+    with open(BASE_DIR / "config" / "config.yaml", "r", encoding="utf-8") as f:
+        return yaml.safe_load(f)
 
 
 class AutoPoster:
-    """Post tweets to X automatically."""
+    """品質チェック付き自動投稿"""
 
     def __init__(self):
-        self.api_key = os.getenv("X_API_KEY", "")
-        self.api_secret = os.getenv("X_API_SECRET_KEY", "")
-        self.access_token = os.getenv("X_ACCESS_TOKEN", "")
-        self.access_secret = os.getenv("X_ACCESS_TOKEN_SECRET", "")
-        self.bearer_token = os.getenv("X_BEARER_TOKEN", "")
+        self.config = load_config()["system_a"]
+        self.quality_checker = QualityChecker()
         self.sheets = SheetsClient()
         self.notifier = Notifier()
+        self.post_times = self.config["post_times"]
+        self._scheduled = []
+        self.x_poster = XPoster()
 
-    def _get_oauth1_session(self):
-        """Create OAuth1 session for X API v2."""
-        from requests_oauthlib import OAuth1
+    def load_transformed(self, date_str: str | None = None) -> list[dict]:
+        """変換済みツイートを読み込む"""
+        if date_str is None:
+            date_str = datetime.now(JST).strftime("%Y-%m-%d")
 
-        return OAuth1(
-            self.api_key,
-            client_secret=self.api_secret,
-            resource_owner_key=self.access_token,
-            resource_owner_secret=self.access_secret,
-        )
+        file_path = TRANSFORMED_DIR / f"{date_str}.json"
+        if not file_path.exists():
+            logger.error(f"Transformed data not found: {file_path}")
+            return []
 
-    def post_tweet(self, text: str) -> dict:
-        """Post a single tweet."""
-        url = "https://api.x.com/2/tweets"
-        auth = self._get_oauth1_session()
-        payload = {"text": text}
+        with open(file_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        return data.get("tweets", [])
 
-        try:
-            resp = requests.post(url, json=payload, auth=auth, timeout=15)
-            resp.raise_for_status()
-            data = resp.json()
-            logger.info("Tweet posted: %s", data.get("data", {}).get("id"))
-            return data
-        except Exception as e:
-            logger.error("Failed to post tweet: %s", e)
-            raise
+    def select_best_pattern(self, tweet: dict) -> dict | None:
+        """3パターンから最も品質の高いものを選定"""
+        patterns = tweet.get("patterns", {})
+        best = None
+        best_score = -1
 
-    def post_thread(self, texts: list) -> list:
-        """Post a thread of tweets."""
-        results = []
-        reply_to = None
+        for pattern_key in ["A", "B", "C"]:
+            pattern = patterns.get(pattern_key)
+            if not pattern:
+                continue
 
-        for text in texts:
-            url = "https://api.x.com/2/tweets"
-            auth = self._get_oauth1_session()
-            payload = {"text": text}
-            if reply_to:
-                payload["reply"] = {"in_reply_to_tweet_id": reply_to}
+            text = pattern.get("text", "")
+            if not text:
+                continue
 
-            try:
-                resp = requests.post(url, json=payload, auth=auth, timeout=15)
-                resp.raise_for_status()
-                data = resp.json()
-                tweet_id = data.get("data", {}).get("id")
-                reply_to = tweet_id
-                results.append(data)
-                time.sleep(2)  # Avoid rate limits
-            except Exception as e:
-                logger.error("Thread post failed at tweet %d: %s", len(results) + 1, e)
-                break
+            result = self.quality_checker.check(
+                profile="x_post",
+                content=text,
+                context=f"pattern_{pattern_key}_pillar_{tweet.get('pillar', '?')}",
+            )
 
-        return results
+            if result.total_score > best_score:
+                best_score = result.total_score
+                best = {
+                    "pattern_key": pattern_key,
+                    "text": text,
+                    "hashtags": pattern.get("hashtags", []),
+                    "is_thread": pattern.get("is_thread", False),
+                    "thread_texts": pattern.get("thread_texts", []),
+                    "quality_score": result.total_score,
+                    "quality_result": result.result,
+                    "pillar": tweet.get("pillar", 0),
+                    "original_id": tweet.get("original_id", ""),
+                }
 
-    def post_and_record(self, post: dict) -> dict:
-        """Post a tweet/thread and record to Google Sheets."""
-        text = post.get("text", "")
-        is_thread = isinstance(text, list)
+        return best
 
-        if is_thread:
-            result = self.post_thread(text)
-        else:
-            result = self.post_tweet(text)
+    def process_tweets(self, tweets: list[dict], target_date: str | None = None) -> list[dict]:
+        """全ツイートを品質チェック→スケジュール
 
-        # Build record
-        now = datetime.now(JST)
-        tweet_id = ""
-        if isinstance(result, dict):
-            tweet_id = result.get("data", {}).get("id", "")
-        elif isinstance(result, list) and result:
-            tweet_id = result[0].get("data", {}).get("id", "")
+        Args:
+            target_date: 投稿日（YYYY-MM-DD）。23時実行時は翌日。
+        """
+        approved = []
+        skipped = []
 
-        record = {
-            "datetime": now.isoformat(),
-            "tweet_id": tweet_id,
-            "pillar": str(post.get("pillar", "")),
-            "pipeline": post.get("pipeline", ""),
-            "pattern": post.get("pattern", ""),
-            "text": text if isinstance(text, str) else " | ".join(text),
-            "quality_score": post.get("quality_score", ""),
-            "status": "posted",
-        }
+        for tweet in tweets:
+            best = self.select_best_pattern(tweet)
+            if not best:
+                logger.warning(f"No valid pattern for tweet {tweet.get('original_id')}")
+                continue
 
-        # Save to local log
-        self._save_to_local_log(record)
-
-        # Record to Sheets
-        try:
-            self.sheets.record_post(record)
-        except Exception as e:
-            logger.warning("Failed to record to Sheets: %s", e)
-
-        return result
-
-    def _save_to_local_log(self, record: dict) -> None:
-        """Append a posted tweet record to the local JSON log."""
-        existing = []
-        if POSTED_LOG_PATH.exists():
-            try:
-                existing = json.loads(POSTED_LOG_PATH.read_text(encoding="utf-8"))
-            except Exception:
-                existing = []
-
-        existing.append(record)
-        POSTED_LOG_PATH.parent.mkdir(parents=True, exist_ok=True)
-        POSTED_LOG_PATH.write_text(
-            json.dumps(existing, ensure_ascii=False, indent=2), encoding="utf-8"
-        )
-
-    def execute_scheduled(self, posts: list) -> None:
-        """Execute scheduled posts at their designated times."""
-        now = datetime.now(JST)
-        current_time = now.strftime("%H:%M")
-
-        for post in posts:
-            scheduled = post.get("scheduled_time", "")
-            if scheduled == current_time:
-                logger.info("Posting scheduled tweet at %s", scheduled)
-                self.post_and_record(post)
-
-                # Notify 30 min later
-                self.notifier.send_line(
-                    f"投稿完了（{scheduled}）。リプ返信推奨。\n"
-                    f"柱{post.get('pillar', '?')} / {post.get('pipeline', '?')}"
+            if best["quality_result"] == "auto_approved":
+                approved.append(best)
+                logger.info(
+                    f"Approved: pattern {best['pattern_key']} "
+                    f"(score: {best['quality_score']})"
                 )
+            else:
+                improved = self._retry_with_improvement(tweet, best)
+                if improved:
+                    approved.append(improved)
+                else:
+                    skipped.append(best)
+                    logger.warning(
+                        f"Skipped: quality too low (score: {best['quality_score']})"
+                    )
+
+        scheduled = self._schedule_posts(approved, target_date)
+        return scheduled
+
+    def _retry_with_improvement(self, tweet: dict, original: dict) -> dict | None:
+        """品質不足時のリトライ"""
+        from core.claude_client import ClaudeClient
+
+        claude = ClaudeClient()
+        max_retries = 3
+
+        for attempt in range(max_retries):
+            result = self.quality_checker.check(
+                profile="x_post",
+                content=original["text"],
+            )
+            if result.result == "auto_approved":
+                original["quality_score"] = result.total_score
+                original["quality_result"] = "approved_after_retry"
+                return original
+
+            suggestions = "\n".join(result.improvement_suggestions)
+            prompt = (
+                f"以下のX投稿を改善してください。\n\n"
+                f"現在のテキスト:\n{original['text']}\n\n"
+                f"改善提案:\n{suggestions}\n\n"
+                f"改善されたテキストのみ出力してください。"
+            )
+            try:
+                improved_text = claude.generate(prompt, temperature=0.7, max_tokens=500)
+                original["text"] = improved_text.strip()
+            except Exception as e:
+                logger.error(f"Retry generation failed: {e}")
+
+        return None
+
+    def _schedule_posts(self, approved: list[dict], target_date: str | None = None) -> list[dict]:
+        """投稿をスケジュール（7:00 / 12:00 / 19:00）
+
+        Args:
+            target_date: 投稿日（YYYY-MM-DD）。Noneなら翌日。
+        """
+        scheduled = []
+        if target_date is None:
+            # 23時実行を想定：翌日の日付を使用
+            now = datetime.now(JST)
+            if now.hour >= 20:
+                target_date = (now + timedelta(days=1)).strftime("%Y-%m-%d")
+            else:
+                target_date = now.strftime("%Y-%m-%d")
+
+        for i, post in enumerate(approved[: len(self.post_times)]):
+            post_time = self.post_times[i] if i < len(self.post_times) else self.post_times[-1]
+            post["scheduled_time"] = f"{target_date}T{post_time}:00+09:00"
+            post["status"] = "scheduled"
+            post["created_at"] = datetime.now(JST).isoformat()
+            scheduled.append(post)
+
+        # Google Sheetsに記録（行番号をJSONに保存）
+        for post in scheduled:
+            if self.sheets.available:
+                row_num = self.sheets.append_post_record(post)
+                if row_num:
+                    post["sheet_row"] = row_num
+
+        # スケジュールをJSONファイルに保存（sheet_row込み）
+        self._save_scheduled(scheduled, target_date)
+
+        return scheduled
+
+    def _save_scheduled(self, scheduled: list[dict], target_date: str | None = None):
+        """スケジュールをJSON保存（run_scheduled_posts.pyが読み込む）"""
+        scheduled_dir = BASE_DIR / "data" / "system_a" / "scheduled"
+        scheduled_dir.mkdir(parents=True, exist_ok=True)
+
+        if target_date is None:
+            target_date = datetime.now(JST).strftime("%Y-%m-%d")
+        file_path = scheduled_dir / f"{target_date}.json"
+
+        with open(file_path, "w", encoding="utf-8") as f:
+            json.dump(
+                {
+                    "scheduled_at": datetime.now(JST).isoformat(),
+                    "posts": scheduled,
+                },
+                f,
+                ensure_ascii=False,
+                indent=2,
+            )
+        logger.info(f"Scheduled posts saved: {file_path}")
+
+    def post_to_x(self, post: dict) -> dict:
+        """X投稿実行（tweepy v2使用）
+
+        Returns:
+            {"success": bool, "tweet_ids": list, "error": str | None}
+        """
+        try:
+            result = self.x_poster.post(post)
+
+            if result["success"]:
+                tweet_ids = result["tweet_ids"]
+                logger.info(f"Successfully posted to X: {tweet_ids}")
+
+                # Google Sheetsに投稿記録を更新
+                if self.sheets.available:
+                    record = {
+                        "pillar": post.get("pillar", ""),
+                        "pattern_key": post.get("pattern_key", ""),
+                        "text": post.get("text", ""),
+                        "quality_score": post.get("quality_score", 0),
+                        "status": "posted",
+                        "tweet_id": tweet_ids[0],
+                        "all_tweet_ids": ",".join(tweet_ids),
+                        "scheduled_time": post.get("scheduled_time", ""),
+                        "posted_at": datetime.now(JST).isoformat(),
+                    }
+                    self.sheets.append_post_record(record)
+
+                return {
+                    "success": True,
+                    "tweet_ids": tweet_ids,
+                    "error": None,
+                }
+            else:
+                error = result.get("error", "Unknown error")
+                logger.error(f"Post failed: {error}")
+                return {"success": False, "tweet_ids": [], "error": error}
+
+        except Exception as e:
+            logger.error(f"Post error: {e}")
+            return {"success": False, "tweet_ids": [], "error": str(e)}
+
+
+def main():
+    logging.basicConfig(level=logging.INFO)
+    poster = AutoPoster()
+
+    tweets = poster.load_transformed()
+    if not tweets:
+        print("No transformed tweets found")
+        return
+
+    scheduled = poster.process_tweets(tweets)
+    print(f"Scheduled {len(scheduled)} posts")
+
+    for post in scheduled:
+        print(f"  [{post['scheduled_time']}] {post['text'][:60]}...")
+
+    poster.notifier.notify(
+        f"本日の投稿{len(scheduled)}本がスケジュールされました"
+    )
 
 
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.INFO)
-    poster = AutoPoster()
-    # Example usage: poster.post_tweet("テスト投稿です")
+    main()

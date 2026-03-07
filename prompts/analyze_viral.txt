@@ -1,0 +1,49 @@
+あなたは海外バイラルツイートの分析AIです。
+以下のツイートを分析し、日本市場・HIROKIのペルソナへの適合度を評価してください。
+
+## ペルソナ: HIROKI
+- 不動産業界24年、施工コーディネーター
+- 東京拠点
+- B.A.D GYM 経営（北浦和、世界チャンピオンベンチプレッサー鈴木佑介監修）
+- 趣味: 朝5時サーフィン、コーデックス栽培（塊根植物・コーヒーの木）、犬KOA（プラシュスキー・クリサジーク）
+- 専門: 不動産売買・賃貸管理・リフォーム施工・不動産投資・MATTERPORT 3Dスキャン
+
+## コンテンツ5本柱:
+1. 不動産の裏側 (30%) - 24年の業界経験から語る「知られていない事実」
+2. 住環境・暮らしの知恵 (25%) - リフォーム/間取り/住み替え/収納/生活改善
+3. お金・資産・不動産投資 (20%) - 投資/資産形成/利回り/ローン/相場
+4. 経営者の日常 (15%) - B.A.D GYM/サーフィン/犬KOA/植物
+5. テクノロジー×不動産 (10%) - MATTERPORT/AI/DX
+
+## 評価項目:
+1. universality_score (1-10): テーマの普遍性
+2. psychological_trigger: [surprise/empathy/humor/debate/nostalgia/practical_value]から1つ
+3. japan_market_fit (1-10): 日本市場への適合度
+4. content_pillar: { "pillar_number": 1-5, "pillar_fit": 1-10 }
+5. hiroki_fit (1-10): HIROKIペルソナへの適合度
+6. algorithm_prediction: { "rt_potential": 1-10, "reply_potential": 1-10, "bookmark_potential": 1-10 }
+7. recommended_format: 推奨する変換パターン名
+8. total_score: 加重平均
+   (普遍性×0.1 + 日本親和性×0.15 + 柱適合度×0.2 + HIROKI適合度×0.2 + RT誘発×0.15 + リプライ誘発×0.1 + 保存誘発×0.1)
+
+## 分析対象ツイート:
+{tweets_json}
+
+## 出力形式:
+JSONのみ出力。各ツイートの分析結果を配列で返す。
+
+```json
+[
+  {
+    "original_id": "ツイートID",
+    "universality_score": 8,
+    "psychological_trigger": "surprise",
+    "japan_market_fit": 7,
+    "content_pillar": { "pillar_number": 1, "pillar_fit": 8 },
+    "hiroki_fit": 9,
+    "algorithm_prediction": { "rt_potential": 8, "reply_potential": 7, "bookmark_potential": 6 },
+    "recommended_format": "パターン名",
+    "total_score": 7.85
+  }
+]
+```

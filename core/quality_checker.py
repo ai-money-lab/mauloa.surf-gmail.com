@@ -1,13 +1,13 @@
-"""AI Quality Checker — automated quality gate for all systems."""
+"""AI品質チェッカー - 全システム共通の品質ゲート"""
 
 import json
 import logging
+import os
+import re
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
-from typing import Optional
 
-from core.claude_client import ClaudeClient
-from core.notifier import Notifier
+from .claude_client import ClaudeClient
 
 logger = logging.getLogger(__name__)
 
@@ -26,11 +26,10 @@ PROFILES = {
             "number_included",
             "cta_ending",
             "originality",
-            "tone_balance",
-            "algorithm_hooks",
         ],
-        "threshold": 80,
-        "max_score": 120,
+        "pass_fail_items": ["no_external_links", "no_banned_content", "character_limit"],
+        "threshold": 70,
+        "description": "X投稿用品質チェック",
     },
     "report": {
         "items": [
@@ -45,8 +44,9 @@ PROFILES = {
             "market_relevance",
             "deliverable_format",
         ],
+        "pass_fail_items": ["no_banned_content", "deliverable_format"],
         "threshold": 75,
-        "max_score": 100,
+        "description": "レポート納品物用品質チェック",
     },
     "data_collection": {
         "items": [
@@ -61,131 +61,169 @@ PROFILES = {
             "metadata_complete",
             "usability",
         ],
+        "pass_fail_items": ["no_banned_content"],
         "threshold": 70,
-        "max_score": 100,
+        "description": "情報収集結果用品質チェック",
     },
 }
 
-PROMPT_TEMPLATE_PATH = Path(__file__).parent.parent / "prompts" / "quality_check.txt"
-LOG_DIR = Path(__file__).parent.parent / "data" / "quality_logs"
+# 禁止キーワード: 完全一致（単語境界）で検出するもの
+BANNED_KEYWORDS_EXACT = [
+    r"\bEA\b", r"\bFX\b", r"\bMT4\b", r"\bMT5\b",
+    r"\bXAUUSD\b", r"\bpips\b",
+]
+
+# 禁止キーワード: 部分一致で検出するもの（日本語含む）
+BANNED_KEYWORDS_PARTIAL = [
+    "自動売買", "ゴールド取引", "MetaTrader", "Expert Advisor",
+    "為替", "通貨ペア", "ロット数",
+]
+
+
+class QualityCheckResult:
+    """品質チェック結果"""
+
+    def __init__(self, scores: dict, profile: str, content: str):
+        self.scores = scores
+        self.profile = profile
+        self.content = content
+
+        profile_config = PROFILES[profile]
+        self.threshold = profile_config["threshold"]
+
+        self.total_score = sum(scores.values())
+        self.result = "auto_approved" if self.total_score >= self.threshold else "rejected"
+        self.rejection_reasons = []
+        self.improvement_suggestions = []
+        self.checked_at = datetime.now(JST).isoformat()
+
+    def to_dict(self) -> dict:
+        return {
+            "scores": self.scores,
+            "total_score": self.total_score,
+            "threshold": self.threshold,
+            "result": self.result,
+            "rejection_reasons": self.rejection_reasons,
+            "improvement_suggestions": self.improvement_suggestions,
+            "checked_at": self.checked_at,
+        }
 
 
 class QualityChecker:
-    """Automated quality gate using Claude API."""
+    """AI品質チェッカー"""
 
-    def __init__(self, claude_client: Optional[ClaudeClient] = None):
-        self.claude = claude_client or ClaudeClient()
-        self.notifier = Notifier()
-        LOG_DIR.mkdir(parents=True, exist_ok=True)
+    def __init__(self):
+        self.claude = ClaudeClient()
+        self.log_dir = Path(__file__).parent.parent / "data" / "quality_logs"
+        self.log_dir.mkdir(parents=True, exist_ok=True)
 
-    def _load_prompt_template(self) -> str:
-        return PROMPT_TEMPLATE_PATH.read_text(encoding="utf-8")
+    def _contains_banned_content(self, text: str) -> bool:
+        # 完全一致（単語境界）チェック
+        for pattern in BANNED_KEYWORDS_EXACT:
+            if re.search(pattern, text):
+                return True
+        # 部分一致チェック（日本語キーワード）
+        text_lower = text.lower()
+        for keyword in BANNED_KEYWORDS_PARTIAL:
+            if keyword.lower() in text_lower:
+                return True
+        return False
 
-    def _build_prompt(self, profile: str, content: str, context: str = "") -> str:
-        profile_cfg = PROFILES[profile]
-        template = self._load_prompt_template()
-        items_list = "\n".join(f"- {item}" for item in profile_cfg["items"])
-        prompt = template.replace("{profile}", profile)
-        prompt = prompt.replace("{チェック項目リスト（プロファイルに応じて上記から選択）}", items_list)
-        prompt = prompt.replace("{threshold}", str(profile_cfg["threshold"]))
-        prompt += f"\n\n## チェック対象コンテンツ:\n{content}"
-        if context:
-            prompt += f"\n\n## コンテキスト:\n{context}"
-        return prompt
-
-    def check(
-        self,
-        profile: str,
-        content: str,
-        context: str = "",
-        max_retries: int = 3,
-    ) -> dict:
-        """Run quality check. Returns result dict with scores and verdict."""
+    def check(self, profile: str, content: str, context: str = "") -> QualityCheckResult:
+        """品質チェックを実行"""
         if profile not in PROFILES:
-            raise ValueError(f"Unknown profile: {profile}. Must be one of {list(PROFILES.keys())}")
+            raise ValueError(f"Unknown profile: {profile}. Valid: {list(PROFILES.keys())}")
 
-        profile_cfg = PROFILES[profile]
+        profile_config = PROFILES[profile]
 
-        for attempt in range(1, max_retries + 1):
-            try:
-                prompt = self._build_prompt(profile, content, context)
-                result = self.claude.generate_json(prompt, temperature=0.2)
-                result["checked_at"] = datetime.now(JST).isoformat()
-                result.setdefault("threshold", profile_cfg["threshold"])
+        if self._contains_banned_content(content):
+            scores = {item: 0 for item in profile_config["items"]}
+            result = QualityCheckResult(scores, profile, content)
+            result.result = "rejected"
+            result.rejection_reasons = ["禁止コンテンツ（EA/FX関連）が検出されました"]
+            self._save_log(result, context)
+            return result
 
-                total = result.get("total_score", 0)
-                if total >= profile_cfg["threshold"]:
-                    result["result"] = "auto_approved"
+        prompt = self.claude.load_prompt(
+            "quality_check.txt",
+            profile=profile,
+            threshold=profile_config["threshold"],
+        )
+
+        check_items_text = "\n".join(
+            f"- {item} (1-10)" if item not in profile_config["pass_fail_items"]
+            else f"- {item} (pass/fail → 10=pass, 0=fail)"
+            for item in profile_config["items"]
+        )
+        prompt = prompt.replace("{チェック項目リスト}", check_items_text)
+
+        full_prompt = f"{prompt}\n\n## チェック対象コンテンツ:\n{content}"
+        if context:
+            full_prompt += f"\n\n## コンテキスト:\n{context}"
+
+        try:
+            raw_result = self.claude.generate_json(
+                full_prompt,
+                temperature=0.1,
+                max_tokens=2048,
+            )
+
+            scores = {}
+            for item in profile_config["items"]:
+                score = raw_result.get("scores", {}).get(item, 5)
+                if item in profile_config["pass_fail_items"]:
+                    scores[item] = 10 if score in (10, True, "pass") else 0
                 else:
-                    result["result"] = "rejected"
+                    scores[item] = max(0, min(10, int(score)))
 
-                self._save_log(profile, result, attempt)
-                return result
+            result = QualityCheckResult(scores, profile, content)
+            result.rejection_reasons = raw_result.get("rejection_reasons", [])
+            result.improvement_suggestions = raw_result.get("improvement_suggestions", [])
 
-            except (json.JSONDecodeError, KeyError) as e:
-                logger.warning("Quality check attempt %d failed: %s", attempt, e)
-                if attempt == max_retries:
-                    escalated = {
-                        "result": "escalated",
-                        "error": str(e),
-                        "checked_at": datetime.now(JST).isoformat(),
-                        "threshold": profile_cfg["threshold"],
-                        "total_score": 0,
-                        "scores": {},
-                    }
-                    self._save_log(profile, escalated, attempt)
-                    self.notifier.send_line(
-                        f"品質チェック失敗（{max_retries}回リトライ後）: {profile}"
-                    )
-                    return escalated
+        except (json.JSONDecodeError, KeyError) as e:
+            logger.error(f"Quality check parse error: {e}")
+            scores = {item: 5 for item in profile_config["items"]}
+            result = QualityCheckResult(scores, profile, content)
+            result.result = "rejected"
+            result.rejection_reasons = [f"品質チェック解析エラー: {e}"]
 
-        # Should not reach here, but safety net
-        return {"result": "escalated", "total_score": 0, "scores": {}}
+        self._save_log(result, context)
+        return result
 
     def check_with_retry(
-        self,
-        profile: str,
-        content: str,
-        regenerate_fn=None,
-        context: str = "",
-        max_retries: int = 3,
-    ) -> tuple:
-        """Check quality and optionally regenerate on failure.
+        self, profile: str, content: str, context: str = "", regenerate_fn=None
+    ) -> tuple[QualityCheckResult, str]:
+        """品質チェックをリトライ付きで実行"""
+        current_content = content
+        max_retries = 3
 
-        Args:
-            profile: Quality profile name.
-            content: Content to check.
-            regenerate_fn: Callable that takes (rejection_reasons, suggestions) and
-                returns new content. If None, no regeneration is attempted.
-            context: Optional context string.
-            max_retries: Max regeneration attempts.
+        for attempt in range(max_retries + 1):
+            result = self.check(profile, current_content, context)
 
-        Returns:
-            Tuple of (final_content, quality_result).
-        """
-        for attempt in range(max_retries):
-            result = self.check(profile, content, context)
-            if result["result"] == "auto_approved":
-                return content, result
+            if result.result == "auto_approved":
+                return result, current_content
 
-            if regenerate_fn is None or attempt == max_retries - 1:
-                if attempt == max_retries - 1 and result["result"] != "auto_approved":
-                    result["result"] = "escalated"
-                    self.notifier.send_line(
-                        f"品質チェック{max_retries}回失敗 escalated: {profile}"
-                    )
-                return content, result
+            if attempt < max_retries and regenerate_fn and result.improvement_suggestions:
+                logger.info(
+                    f"Quality check rejected (attempt {attempt + 1}), regenerating..."
+                )
+                current_content = regenerate_fn(
+                    current_content, result.improvement_suggestions
+                )
+            elif attempt == max_retries:
+                result.result = "escalated"
+                logger.warning(f"Quality check escalated after {max_retries} retries")
 
-            # Regenerate
-            reasons = result.get("rejection_reasons", [])
-            suggestions = result.get("improvement_suggestions", [])
-            content = regenerate_fn(reasons, suggestions)
+        return result, current_content
 
-        return content, result
+    def _save_log(self, result: QualityCheckResult, context: str):
+        """チェック結果をログ保存"""
+        log_entry = result.to_dict()
+        log_entry["context"] = context
+        log_entry["content_preview"] = result.content[:200]
 
-    def _save_log(self, profile: str, result: dict, attempt: int) -> None:
-        timestamp = datetime.now(JST).strftime("%Y%m%d_%H%M%S")
-        log_path = LOG_DIR / f"{profile}_{timestamp}_attempt{attempt}.json"
-        log_data = {"profile": profile, "attempt": attempt, **result}
-        log_path.write_text(json.dumps(log_data, ensure_ascii=False, indent=2), encoding="utf-8")
-        logger.info("Quality log saved: %s", log_path)
+        date_str = datetime.now(JST).strftime("%Y-%m-%d")
+        log_file = self.log_dir / f"{date_str}.jsonl"
+
+        with open(log_file, "a", encoding="utf-8") as f:
+            f.write(json.dumps(log_entry, ensure_ascii=False) + "\n")

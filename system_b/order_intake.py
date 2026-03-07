@@ -1,76 +1,120 @@
-"""Order intake module — detects new orders from email/webhook."""
+"""System B - 受注検知
+
+メール/Webhookから案件を検知し、process_order.pyに渡す。
+"""
 
 import logging
+import sys
 from datetime import datetime, timezone, timedelta
+from pathlib import Path
+
+_ROOT = Path(__file__).parent.parent
+sys.path.insert(0, str(_ROOT))
+
+from dotenv import load_dotenv
+load_dotenv(_ROOT / ".env", override=True)
 
 from core.notifier import Notifier
-from system_b.process_order import OrderProcessor
 
 logger = logging.getLogger(__name__)
 
 JST = timezone(timedelta(hours=9))
+BASE_DIR = Path(__file__).parent.parent
 
 
 class OrderIntake:
-    """Detect and route incoming orders."""
+    """案件受注検知"""
 
     def __init__(self):
-        self.processor = OrderProcessor()
         self.notifier = Notifier()
 
-    def handle_webhook(self, payload: dict) -> dict:
-        """Handle incoming order webhook.
+    def create_order(
+        self,
+        product_id: str,
+        client_name: str,
+        parameters: dict,
+        deadline: str,
+        platform: str = "direct",
+        price: int = 0,
+    ) -> dict:
+        """案件JSONを作成"""
+        now = datetime.now(JST)
+        order_id = f"ORD-{now.strftime('%Y%m%d')}-{now.strftime('%H%M%S')}"
 
-        Args:
-            payload: Webhook payload with order details.
-
-        Returns:
-            Processing result.
-        """
         order = {
-            "order_id": payload.get("order_id", self._generate_order_id()),
-            "product_id": payload.get("product_id", ""),
-            "client_name": payload.get("client_name", ""),
-            "parameters": payload.get("parameters", {}),
-            "deadline": payload.get("deadline", ""),
-            "platform": payload.get("platform", "direct"),
+            "order_id": order_id,
+            "product_id": product_id,
+            "client_name": client_name,
+            "parameters": parameters,
+            "deadline": deadline,
+            "platform": platform,
+            "price": price,
+            "created_at": now.isoformat(),
+            "status": "received",
         }
 
-        logger.info("New order received: %s", order["order_id"])
-        self.notifier.send_line(
-            f"新規案件受注: {order['order_id']}\n"
-            f"商品: {order['product_id']}\n"
-            f"クライアント: {order['client_name']}\n"
-            f"納期: {order['deadline']}"
+        logger.info(f"New order created: {order_id}")
+        return order
+
+    def save_order(self, order: dict) -> str:
+        """案件JSONを保存"""
+        orders_dir = BASE_DIR / "data" / "system_b" / "orders"
+        orders_dir.mkdir(parents=True, exist_ok=True)
+
+        output_path = orders_dir / f"{order['order_id']}.json"
+        with open(output_path, "w", encoding="utf-8") as f:
+            json.dump(order, f, ensure_ascii=False, indent=2)
+
+        return str(output_path)
+
+    def process_webhook(self, payload: dict) -> dict:
+        """Webhook受信時の処理"""
+        platform = payload.get("platform", "direct")
+        product_id = payload.get("product_id", "")
+        client_name = payload.get("client_name", "")
+        parameters = payload.get("parameters", {})
+        deadline = payload.get("deadline", "")
+        price = payload.get("price", 0)
+
+        order = self.create_order(
+            product_id=product_id,
+            client_name=client_name,
+            parameters=parameters,
+            deadline=deadline,
+            platform=platform,
+            price=price,
         )
 
-        return self.processor.process(order)
+        path = self.save_order(order)
 
-    def _generate_order_id(self) -> str:
-        now = datetime.now(JST)
-        return f"ORD-{now.strftime('%Y%m%d')}-{now.strftime('%H%M%S')}"
-
-    def handle_email_order(self, email_data: dict) -> dict:
-        """Parse order from email and process."""
-        # Extract order details from email body using Claude
-        from core.claude_client import ClaudeClient
-
-        claude = ClaudeClient()
-        prompt = (
-            "以下のメール本文から案件情報を抽出してください。\n"
-            "JSON形式で出力: order_id, product_id, client_name, parameters, deadline, platform\n\n"
-            f"件名: {email_data.get('subject', '')}\n"
-            f"本文: {email_data.get('body', '')}"
+        self.notifier.notify(
+            f"新規案件を受注しました\n"
+            f"案件ID: {order['order_id']}\n"
+            f"商品: {product_id}\n"
+            f"クライアント: {client_name}\n"
+            f"プラットフォーム: {platform}\n"
+            f"納期: {deadline}"
         )
 
-        try:
-            parsed = claude.generate_json(prompt, temperature=0.2)
-            return self.handle_webhook(parsed)
-        except Exception as e:
-            logger.error("Email order parsing failed: %s", e)
-            self.notifier.send_line(f"メール案件の解析に失敗: {e}")
-            return {"status": "error", "message": str(e)}
+        return order
+
+
+def main():
+    logging.basicConfig(level=logging.INFO)
+
+    intake = OrderIntake()
+    order = intake.create_order(
+        product_id="tier1_area_analysis",
+        client_name="サンプル太郎",
+        parameters={"area": "港区赤坂", "budget": "1億円"},
+        deadline="2026-02-23",
+        platform="lancers",
+        price=400000,
+    )
+    path = intake.save_order(order)
+    print(f"Sample order created: {path}")
+    print(json.dumps(order, ensure_ascii=False, indent=2))
 
 
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.INFO)
+    main()

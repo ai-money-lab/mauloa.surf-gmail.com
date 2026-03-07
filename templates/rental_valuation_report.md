@@ -1,258 +1,152 @@
----
-title: "{{ report_title }}"
-date: "{{ date }}"
-client: "{{ client_name }}"
-type: "rental_valuation"
----
+# 賃料査定AI分析レポート
 
-<!-- ============================================================ -->
-<!--  ROCKEDGE Property Management | HIROKI                       -->
-<!--  賃料査定AI分析レポート                                         -->
-<!-- ============================================================ -->
+## {{ property_name | default("対象物件") }}
 
-# {{ report_title }}
-
-**ROCKEDGE Property Management**
-**担当: HIROKI**
-
-| 項目 | 内容 |
-|------|------|
-| レポート作成日 | {{ date }} |
-| クライアント | {{ client_name }} |
-| 対象物件 | {{ property_name }} |
-| 物件所在地 | {{ property_address }} |
-| レポートID | {{ report_id }} |
+作成者: {{ header }} / {{ author }}
+作成日: {{ date }}
+CONFIDENTIAL
 
 ---
 
 ## 目次
 
-1. [エグゼクティブサマリー](#1-エグゼクティブサマリー)
-2. [物件概要](#2-物件概要)
-3. [AI査定結果](#3-ai査定結果)
-4. [比較物件分析](#4-比較物件分析)
-5. [賃料設定要因分析](#5-賃料設定要因分析)
-6. [エリアマーケット分析](#6-エリアマーケット分析)
-7. [収益シミュレーション](#7-収益シミュレーション)
-8. [賃料最適化提案](#8-賃料最適化提案)
-9. [リスク分析](#9-リスク分析)
-10. [プロフェッショナル所見](#10-プロフェッショナル所見)
+1. 査定結果サマリー
+2. 対象物件概要
+3. 周辺賃料相場分析
+4. 比較物件データ
+5. 適正賃料の算出
+6. 賃料設定シミュレーション
+7. 競合物件との差別化ポイント
+8. 賃料最大化のための改善提案
+9. プロフェッショナル所見
+10. 付録
 
 ---
 
-## 1. エグゼクティブサマリー
-
-{{ executive_summary }}
-
-### AI査定結果ハイライト
+## 1. 査定結果サマリー
 
 | 項目 | 結果 |
 |------|------|
-| 推奨賃料 | **{{ recommended_rent }}** |
-| 査定賃料レンジ | {{ rent_range_low }} 〜 {{ rent_range_high }} |
-| 市場平均との比較 | {{ market_comparison }} |
-| 信頼度スコア | {{ confidence_score }} |
+| 推定適正賃料 | {{ estimated_rent | default("¥---,---") }} |
+| 賃料レンジ | {{ rent_range | default("¥---,--- 〜 ¥---,---") }} |
+| 対周辺相場 | {{ vs_market | default("---") }} |
+| 推奨募集賃料 | {{ recommended_rent | default("¥---,---") }} |
+| 想定空室期間 | {{ expected_vacancy | default("---") }} |
 
 ---
 
-## 2. 物件概要
+## 2. 対象物件概要
 
-### 2.1 基本情報
+{{ property_overview | default("（物件情報）") }}
 
-| 項目 | 詳細 |
-|------|------|
-| 物件名 | {{ property_name }} |
-| 所在地 | {{ property_address }} |
-| 最寄駅 | {{ nearest_station }} (徒歩 {{ walk_minutes }}分) |
-| 構造 | {{ building_structure }} |
-| 築年数 | {{ building_age }}年 ({{ construction_year }}年築) |
-| 階数 | {{ floor_count }}階建 / {{ target_floor }}階 |
-| 専有面積 | {{ floor_area }} m2 |
-| 間取り | {{ layout }} |
-| 向き | {{ direction }} |
-| 駐車場 | {{ parking }} |
+### 2.1 設備・仕様一覧
 
-### 2.2 設備・仕様
-
-{{ equipment_details }}
-
-### 2.3 物件写真・状態評価
-
-{{ property_condition }}
+{{ equipment_list | default("（設備詳細リスト）") }}
 
 ---
 
-## 3. AI査定結果
+## 3. 周辺賃料相場分析
 
-### 3.1 査定モデル概要
+### 3.1 駅距離別・築年別相場
 
-{{ ai_model_description }}
+{{ market_analysis | default("（相場分析データ）") }}
 
-### 3.2 査定結果詳細
+![賃料相場ヒートマップ]({{ chart_rental_heatmap | default("") }})
 
-| 査定手法 | 算出賃料 | 重み |
-|---------|----------|:----:|
-| 取引事例比較法 (AI) | {{ comp_based_rent }} | {{ comp_weight }} |
-| 収益還元法 (AI) | {{ income_based_rent }} | {{ income_weight }} |
-| ヘドニック法 (AI) | {{ hedonic_rent }} | {{ hedonic_weight }} |
-| **加重平均推奨賃料** | **{{ recommended_rent }}** | - |
+### 3.2 エリア別賃料比較
 
-### 3.3 査定精度指標
+{{ area_comparison | default("（周辺エリアとの賃料比較）") }}
 
-| 指標 | 値 |
-|------|------|
-| 予測精度 (R2) | {{ r2_score }} |
-| 平均誤差率 | {{ mean_error_rate }} |
-| 使用データ件数 | {{ data_count }}件 |
-| データ取得期間 | {{ data_period }} |
+### 3.3 賃料トレンド（過去3年）
 
-### 3.4 賃料感応度分析
-
-{{ sensitivity_analysis }}
+{{ rental_trend | default("（賃料の上昇/下降トレンド）") }}
 
 ---
 
-## 4. 比較物件分析
+## 4. 比較物件データ
 
-### 4.1 類似物件一覧
+### 4.1 成約事例（直近6ヶ月）
 
-{% for comp in comparable_properties %}
-#### {{ comp.name }}
+{{ comparable_properties | default("（比較物件一覧）") }}
 
-| 項目 | 詳細 |
-|------|------|
-| 所在地 | {{ comp.address }} |
-| 最寄駅 | {{ comp.station }} (徒歩 {{ comp.walk_min }}分) |
-| 築年数 | {{ comp.age }}年 |
-| 間取り / 面積 | {{ comp.layout }} / {{ comp.area }} m2 |
-| 賃料 | {{ comp.rent }} |
-| 管理費 | {{ comp.management_fee }} |
-| 賃料単価 | {{ comp.rent_per_sqm }} 円/m2 |
+### 4.2 現在募集中の競合物件
 
-{% endfor %}
+{{ current_listings | default("（現在募集中の類似物件）") }}
 
-### 4.2 比較分析サマリー
+### 4.3 比較物件の個別データシート
 
-{{ comparison_summary }}
+{{ comparable_details | default("（各比較物件の詳細情報）") }}
 
 ---
 
-## 5. 賃料設定要因分析
+## 5. 適正賃料の算出
 
-### 5.1 プラス要因
+### 5.1 取引事例比較法
 
-{{ positive_factors }}
+{{ rent_comparison_method | default("（取引事例による算出）") }}
 
-### 5.2 マイナス要因
+### 5.2 賃料利回り法
 
-{{ negative_factors }}
+{{ rent_yield_method | default("（利回りからの逆算）") }}
 
-### 5.3 要因別影響度
+### 5.3 AI回帰分析法
 
-| 要因 | 影響度 | 金額換算 |
-|------|:------:|----------|
-{% for factor in rent_factors %}| {{ factor.name }} | {{ factor.impact_level }} | {{ factor.amount_impact }} |
-{% endfor %}
+{{ rent_ai_method | default("（機械学習モデルによる予測）") }}
 
----
+### 5.4 総合判定
 
-## 6. エリアマーケット分析
-
-### 6.1 エリア賃料トレンド
-
-{{ area_rent_trend }}
-
-### 6.2 空室率推移
-
-{{ vacancy_trend }}
-
-### 6.3 需要動向
-
-{{ demand_trend }}
-
-### 6.4 競合供給状況
-
-{{ supply_situation }}
+{{ rent_calculation | default("（3手法の統合結果）") }}
 
 ---
 
-## 7. 収益シミュレーション
+## 6. 賃料設定シミュレーション
 
-### 7.1 シナリオ別収益予測
+{{ rent_simulation | default("（シミュレーション結果）") }}
 
-| シナリオ | 設定賃料 | 想定空室率 | 年間収入 | 実質利回り |
-|---------|----------|:---------:|----------|:---------:|
-| 強気 | {{ scenario_high_rent }} | {{ scenario_high_vacancy }} | {{ scenario_high_income }} | {{ scenario_high_yield }} |
-| 標準 | {{ scenario_mid_rent }} | {{ scenario_mid_vacancy }} | {{ scenario_mid_income }} | {{ scenario_mid_yield }} |
-| 保守的 | {{ scenario_low_rent }} | {{ scenario_low_vacancy }} | {{ scenario_low_income }} | {{ scenario_low_yield }} |
+![賃料設定シミュレーション]({{ chart_rent_simulation | default("") }})
 
-### 7.2 長期収益予測 (5年間)
+### 6.1 推奨賃料戦略
 
-{{ long_term_projection }}
-
-### 7.3 キャッシュフロー分析
-
-{{ cashflow_analysis }}
+{{ rent_strategy | default("（募集開始価格と改定タイミングの提案）") }}
 
 ---
 
-## 8. 賃料最適化提案
+## 7. 競合物件との差別化ポイント
 
-### 8.1 推奨賃料設定
-
-{{ recommended_rent_strategy }}
-
-### 8.2 付加価値向上施策
-
-{{ value_add_suggestions }}
-
-### 8.3 募集条件の最適化
-
-{{ listing_optimization }}
+{{ differentiation_points | default("（競合と比較した本物件の強み・弱み）") }}
 
 ---
 
-## 9. リスク分析
+## 8. 賃料最大化のための改善提案
 
-### 9.1 賃料下落リスク
+### 8.1 費用対効果の高い設備投資
 
-{{ rent_decline_risk }}
+{{ improvement_suggestions | default("（設備投資の提案と期待効果）") }}
 
-### 9.2 空室長期化リスク
+### 8.2 ターゲット層の最適化
 
-{{ vacancy_risk }}
-
-### 9.3 外部環境リスク
-
-{{ external_risk }}
+{{ target_optimization | default("（ターゲット入居者層の提案）") }}
 
 ---
 
-## 10. プロフェッショナル所見
+## 9. プロフェッショナル所見
 
-{{ professional_insight }}
-
-### 最終推奨賃料
-
-| 項目 | 金額 |
-|------|------|
-| 推奨賃料 | **{{ final_recommended_rent }}** |
-| 推奨管理費 | {{ final_recommended_mgmt_fee }} |
-| 推奨敷金 | {{ final_recommended_deposit }} |
-| 推奨礼金 | {{ final_recommended_key_money }} |
-
-### 次のステップ
-
-{{ next_steps }}
+{{ professional_insight | default("（HIROKI所見）") }}
 
 ---
 
-{{ content }}
+## 10. 付録
 
----
+### A. データソース一覧
 
-> **ROCKEDGE Property Management | HIROKI**
-> 作成日: {{ date }}
-> 本レポートは {{ client_name }} 様専用に作成された機密資料です。
-> 無断転載・複製・第三者への開示を固く禁じます。
-> (C) ROCKEDGE Property Management. All Rights Reserved.
+{{ data_sources | default("（使用データの出典一覧）") }}
+
+### B. AI分析モデルの精度情報
+
+{{ model_accuracy | default("（回帰モデルのR²、MAE等）") }}
+
+### C. 免責事項
+
+本レポートは{{ header }}が作成したものです。
+査定額は参考値であり、実際の成約賃料を保証するものではありません。
+{{ date }} 作成 | CONFIDENTIAL

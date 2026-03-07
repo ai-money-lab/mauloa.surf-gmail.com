@@ -2,6 +2,7 @@ general:
   timezone: "Asia/Tokyo"
   language: "ja"
   log_level: "INFO"
+  project_root: "."
   monthly_api_budget_jpy: 50000
 
 quality_checker:
@@ -36,6 +37,17 @@ system_a:
   pipeline3:
     theme_overlap_check_days: 30
     max_same_sub_theme_per_month: 2
+  collection:
+    api_provider: "twitterapi.io"
+    min_likes: 50000
+    lookback_hours: 72
+    max_results: 20
+  pillar_ratios:
+    1: 0.30
+    2: 0.25
+    3: 0.20
+    4: 0.15
+    5: 0.10
 
 system_b:
   auto_delivery: true

@@ -1,231 +1,263 @@
----
-title: "{{ report_title }}"
-date: "{{ date }}"
-client: "{{ client_name }}"
-type: "area_analysis"
----
+# {{ report_title | default("不動産投資エリア分析レポート") }}
 
-<!-- ============================================================ -->
-<!--  ROCKEDGE Property Management | HIROKI                       -->
-<!--  不動産投資エリア分析レポート                                    -->
-<!-- ============================================================ -->
+## {{ area_name }}
 
-# {{ report_title }}
-
-**ROCKEDGE Property Management**
-**担当: HIROKI**
-
-| 項目 | 内容 |
-|------|------|
-| レポート作成日 | {{ date }} |
-| クライアント | {{ client_name }} |
-| 対象エリア | {{ target_area }} |
-| 分析対象期間 | {{ analysis_period }} |
-| レポートID | {{ report_id }} |
+作成者: {{ header }} / {{ author }}
+作成日: {{ date }}
+CONFIDENTIAL
 
 ---
 
 ## 目次
 
-1. [エグゼクティブサマリー](#1-エグゼクティブサマリー)
-2. [エリア概要](#2-エリア概要)
-3. [人口動態分析](#3-人口動態分析)
-4. [賃貸市場分析](#4-賃貸市場分析)
-5. [売買市場分析](#5-売買市場分析)
-6. [競合物件分析](#6-競合物件分析)
-7. [交通・インフラ分析](#7-交通インフラ分析)
-8. [将来性評価](#8-将来性評価)
-9. [投資リスク評価](#9-投資リスク評価)
-10. [プロフェッショナル所見](#10-プロフェッショナル所見)
+1. エグゼクティブサマリー
+2. エリア概要
+3. 人口動態分析
+4. 地価推移と予測
+5. 賃料相場と空室率
+6. 競合物件の供給状況
+7. 再開発・インフラ計画
+8. 収益シミュレーション
+9. 投資判断マトリクス
+10. リスク分析
+11. プロフェッショナル所見
+12. 付録
 
 ---
 
 ## 1. エグゼクティブサマリー
 
-{{ executive_summary }}
+{{ executive_summary | default("（AI生成セクション）") }}
 
-### 総合評価スコア
+### 投資判断スコアカード
 
-| 評価項目 | スコア (5段階) | 備考 |
-|----------|:--------------:|------|
-| 収益性 | {{ score_profitability }} | {{ note_profitability }} |
-| 安定性 | {{ score_stability }} | {{ note_stability }} |
-| 成長性 | {{ score_growth }} | {{ note_growth }} |
-| 流動性 | {{ score_liquidity }} | {{ note_liquidity }} |
-| **総合評価** | **{{ score_overall }}** | {{ note_overall }} |
+{{ investment_scorecard | default("") }}
 
 ---
 
 ## 2. エリア概要
 
-### 2.1 基本情報
+| 項目 | 内容 |
+|------|------|
+| 対象エリア | {{ area_name }} |
+| 所在地 | {{ location | default("") }} |
+| 最寄り駅 | {{ nearest_station | default("") }} |
+| 用途地域 | {{ zoning | default("") }} |
+| 建ぺい率/容積率 | {{ coverage_ratio | default("") }} |
 
-{{ area_overview }}
+{{ area_overview | default("") }}
 
-| 項目 | データ |
-|------|--------|
-| 所在地 | {{ area_location }} |
-| 最寄駅 | {{ nearest_station }} |
-| 主要駅までの所要時間 | {{ travel_time_to_major_station }} |
-| 用途地域 | {{ zoning_type }} |
-| 平均地価 (円/m2) | {{ avg_land_price }} |
+### 2.1 交通アクセス
+
+{{ transport_access | default("（交通アクセス詳細）") }}
 
 ### 2.2 生活利便施設
 
-{{ area_amenities }}
+{{ living_facilities | default("（商業施設・医療・教育等）") }}
+
+### 2.3 ハザードマップ情報
+
+{{ hazard_info | default("（洪水・地震・土砂災害リスク）") }}
 
 ---
 
 ## 3. 人口動態分析
 
-### 3.1 人口推移
+### 3.1 人口推移（過去10年）
 
-{{ population_trend }}
+{{ population_trend | default("（データ挿入セクション）") }}
 
-### 3.2 世帯構成
+![人口推移グラフ]({{ chart_population_trend | default("") }})
 
-{{ household_composition }}
+### 3.2 将来人口予測
 
-### 3.3 年齢別人口構成
+{{ population_forecast | default("（データ挿入セクション）") }}
 
-{{ age_distribution }}
+### 3.3 世帯構成の変化
 
----
+{{ household_composition | default("（データ挿入セクション）") }}
 
-## 4. 賃貸市場分析
+![世帯構成グラフ]({{ chart_household | default("") }})
 
-### 4.1 賃料相場
+### 3.4 年齢構成分析
 
-| 間取り | 平均賃料 | 前年比 | 空室率 |
-|--------|----------|--------|--------|
-{% for unit in rental_market_data %}| {{ unit.layout }} | {{ unit.avg_rent }} | {{ unit.yoy_change }} | {{ unit.vacancy_rate }} |
-{% endfor %}
+{{ age_distribution | default("（年齢別人口構成）") }}
 
-### 4.2 需給バランス
+### 3.5 転入出動向
 
-{{ supply_demand_analysis }}
-
-### 4.3 入居者属性
-
-{{ tenant_demographics }}
+{{ migration_trend | default("（転入超過・転出超過の傾向）") }}
 
 ---
 
-## 5. 売買市場分析
+## 4. 地価推移と予測
 
-### 5.1 取引価格推移
+### 4.1 公示地価
 
-{{ transaction_price_trend }}
+{{ official_land_price | default("（データ挿入セクション）") }}
 
-### 5.2 利回り分析
+![地価推移グラフ]({{ chart_land_price | default("") }})
 
-| 物件タイプ | 表面利回り | 実質利回り |
-|-----------|-----------|-----------|
-{% for prop in yield_data %}| {{ prop.type }} | {{ prop.gross_yield }} | {{ prop.net_yield }} |
-{% endfor %}
+### 4.2 路線価
 
-### 5.3 売買取引動向
+{{ roadside_land_price | default("（データ挿入セクション）") }}
 
-{{ sales_transaction_trend }}
+### 4.3 実勢価格（取引事例）
 
----
+{{ market_land_price | default("（データ挿入セクション）") }}
 
-## 6. 競合物件分析
+### 4.4 価格予測（3年・5年・10年）
 
-{{ competitor_analysis }}
+{{ price_forecast | default("（データ挿入セクション）") }}
 
-### 主要競合物件一覧
+### 4.5 近隣エリアとの地価比較
 
-{% for comp in competitor_properties %}
-#### {{ comp.name }}
-
-- 所在地: {{ comp.address }}
-- 築年数: {{ comp.age }}
-- 賃料帯: {{ comp.rent_range }}
-- 空室率: {{ comp.vacancy_rate }}
-- 特徴: {{ comp.features }}
-
-{% endfor %}
+{{ land_price_comparison | default("（周辺エリアとの比較表）") }}
 
 ---
 
-## 7. 交通・インフラ分析
+## 5. 賃料相場と空室率
 
-### 7.1 交通アクセス
+### 5.1 賃料相場（間取り別・築年別）
 
-{{ transportation_access }}
+{{ rental_market | default("（データ挿入セクション）") }}
 
-### 7.2 再開発計画
+![賃料相場ヒートマップ]({{ chart_rental_heatmap | default("") }})
 
-{{ redevelopment_plans }}
+### 5.2 空室率推移
 
-### 7.3 インフラ整備状況
+{{ vacancy_rate | default("（データ挿入セクション）") }}
 
-{{ infrastructure_status }}
+![空室率推移グラフ]({{ chart_vacancy_rate | default("") }})
 
----
+### 5.3 賃料トレンド分析
 
-## 8. 将来性評価
+{{ rental_trend_analysis | default("（賃料の上昇/下降トレンド分析）") }}
 
-### 8.1 中期予測 (3-5年)
+### 5.4 入居者属性分析
 
-{{ mid_term_forecast }}
-
-### 8.2 長期予測 (5-10年)
-
-{{ long_term_forecast }}
-
-### 8.3 注目ポイント
-
-{{ key_highlights }}
+{{ tenant_demographics | default("（入居者の年齢層・職業・世帯構成）") }}
 
 ---
 
-## 9. 投資リスク評価
+## 6. 競合物件の供給状況
 
-### 9.1 主要リスク要因
+### 6.1 新築マンション供給動向
 
-{{ risk_factors }}
+{{ new_construction_supply | default("（新築供給データ）") }}
 
-### 9.2 リスク軽減策
+### 6.2 賃貸物件の供給状況
 
-{{ risk_mitigation }}
+{{ rental_supply | default("（賃貸供給データ）") }}
 
-### 9.3 災害リスク
+### 6.3 競合物件の詳細分析
 
-| リスク種別 | 評価 | 詳細 |
-|-----------|------|------|
-| 地震リスク | {{ earthquake_risk }} | {{ earthquake_detail }} |
-| 水害リスク | {{ flood_risk }} | {{ flood_detail }} |
-| 液状化リスク | {{ liquefaction_risk }} | {{ liquefaction_detail }} |
+{{ competitor_detail | default("（主要競合物件の個別データ）") }}
 
----
+### 6.4 需給バランス評価
 
-## 10. プロフェッショナル所見
-
-{{ professional_insight }}
-
-### 推奨アクション
-
-{{ recommended_actions }}
-
-### 投資判断サマリー
-
-| 項目 | 判断 |
-|------|------|
-| 投資推奨度 | {{ investment_recommendation }} |
-| 推奨投資タイプ | {{ recommended_investment_type }} |
-| 推奨保有期間 | {{ recommended_holding_period }} |
-| 想定ROI | {{ expected_roi }} |
+{{ supply_demand_balance | default("（需給バランスの総合評価）") }}
 
 ---
 
-{{ content }}
+## 7. 再開発・インフラ計画
+
+### 7.1 都市計画・再開発事業
+
+{{ redevelopment_plans | default("（再開発計画詳細）") }}
+
+### 7.2 交通インフラ整備
+
+{{ transport_infrastructure | default("（鉄道・道路の整備計画）") }}
+
+### 7.3 商業施設・公共施設の計画
+
+{{ commercial_development | default("（商業・公共施設の開発計画）") }}
+
+### 7.4 再開発の資産価値への影響予測
+
+{{ redevelopment_impact | default("（資産価値への影響シミュレーション）") }}
 
 ---
 
-> **ROCKEDGE Property Management | HIROKI**
-> 作成日: {{ date }}
-> 本レポートは {{ client_name }} 様専用に作成された機密資料です。
-> 無断転載・複製・第三者への開示を固く禁じます。
-> (C) ROCKEDGE Property Management. All Rights Reserved.
+## 8. 収益シミュレーション
+
+### 想定物件条件
+
+{{ simulation_conditions | default("（シミュレーション前提条件）") }}
+
+### シナリオA: 楽観ケース
+
+{{ scenario_optimistic | default("（シミュレーションデータ）") }}
+
+### シナリオB: 基本ケース
+
+{{ scenario_base | default("（シミュレーションデータ）") }}
+
+### シナリオC: 保守ケース
+
+{{ scenario_conservative | default("（シミュレーションデータ）") }}
+
+![収益シミュレーション比較]({{ chart_yield_comparison | default("") }})
+
+### 10年間キャッシュフロー予測
+
+{{ cashflow_10year | default("（10年間の年次キャッシュフロー予測表）") }}
+
+---
+
+## 9. 投資判断マトリクス
+
+{{ investment_matrix | default("（投資判断の総合マトリクス表）") }}
+
+### 9.1 推奨物件タイプ
+
+{{ recommended_property_type | default("（エリアに最適な物件タイプの提案）") }}
+
+### 9.2 推奨価格帯
+
+{{ recommended_price_range | default("（推奨取得価格帯）") }}
+
+---
+
+## 10. リスク分析
+
+### 10.1 マクロリスク
+
+{{ macro_risk | default("（金利・経済・人口等のマクロリスク）") }}
+
+### 10.2 エリア固有リスク
+
+{{ area_specific_risk | default("（当該エリア特有のリスク要因）") }}
+
+### 10.3 リスク軽減策
+
+{{ risk_mitigation | default("（各リスクに対する対策提案）") }}
+
+---
+
+## 11. プロフェッショナル所見
+
+{{ professional_insight | default("（24年の経験に基づくHIROKI所見がここに入ります）") }}
+
+---
+
+## 12. 付録
+
+### A. データソース一覧
+
+{{ data_sources | default("（使用データの出典・取得日一覧）") }}
+
+### B. 用語集
+
+{{ glossary | default("（レポート内で使用した専門用語の解説）") }}
+
+### C. 分析手法の説明
+
+{{ methodology | default("（AI分析・統計手法の説明）") }}
+
+### D. 免責事項
+
+本レポートは{{ header }}が作成したものです。
+情報の正確性には万全を期しておりますが、投資判断は自己責任でお願いいたします。
+本レポートの内容は作成時点の情報に基づいており、将来の市場動向を保証するものではありません。
+{{ date }} 作成 | CONFIDENTIAL

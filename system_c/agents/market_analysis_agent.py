@@ -1,13 +1,19 @@
-"""Market Analysis Agent.
+"""不動産マーケットアナリストエージェント
 
-Analyzes macro-economic indicators and their correlation
-with real estate markets.
+人口動態・金利・供給量から市場予測を行う。
 """
 
 import json
 import logging
+import sys
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
+
+_ROOT = Path(__file__).parent.parent.parent
+sys.path.insert(0, str(_ROOT))
+
+from dotenv import load_dotenv
+load_dotenv(_ROOT / ".env", override=True)
 
 from core.claude_client import ClaudeClient
 from core.quality_checker import QualityChecker
@@ -15,83 +21,86 @@ from core.quality_checker import QualityChecker
 logger = logging.getLogger(__name__)
 
 JST = timezone(timedelta(hours=9))
-BASE_DIR = Path(__file__).parent.parent.parent
-DATA_DIR = BASE_DIR / "data" / "system_c"
+BASE_DIR = _ROOT
 
 
 class MarketAnalysisAgent:
-    """Analyze market data and produce forecasts."""
+    """不動産マーケット分析エージェント"""
 
     def __init__(self):
         self.claude = ClaudeClient()
-        self.quality_checker = QualityChecker(self.claude)
+        self.quality_checker = QualityChecker()
+
+    def analyze_market(self, area: str, data: dict | None = None) -> dict:
+        """市場分析を実行"""
+        logger.info(f"Analyzing market for: {area}")
+
+        context_data = json.dumps(data, ensure_ascii=False) if data else "{}"
+
+        prompt = (
+            f"不動産マーケットアナリストとして、{area}の市場分析を行ってください。\n\n"
+            f"## 利用可能データ:\n{context_data}\n\n"
+            f"## 分析項目:\n"
+            f"1. 市場トレンド（上昇/横ばい/下落）\n"
+            f"2. 需給バランス\n"
+            f"3. 金利影響分析\n"
+            f"4. 人口動態の影響\n"
+            f"5. 再開発・インフラ計画\n"
+            f"6. 投資判断（推奨/中立/非推奨）\n"
+            f"7. リスク要因\n"
+            f"8. 6ヶ月〜1年の見通し\n\n"
+            f"JSON形式で出力してください。"
+        )
+
+        try:
+            analysis = self.claude.generate_json(prompt, max_tokens=4096, temperature=0.4)
+            analysis["area"] = area
+            analysis["analyzed_at"] = datetime.now(JST).isoformat()
+
+            quality = self.quality_checker.check(
+                profile="data_collection",
+                content=json.dumps(analysis, ensure_ascii=False),
+                context=f"market_analysis_{area}",
+            )
+            analysis["quality_score"] = quality.total_score
+
+            return analysis
+        except Exception as e:
+            logger.error(f"Market analysis failed: {e}")
+            return {"area": area, "error": str(e)}
 
     def daily_market_watch(self) -> dict:
-        """Daily check of market conditions."""
-        logger.info("Running daily market watch...")
+        """日次マーケットウォッチ"""
+        logger.info("Running daily market watch")
 
         prompt = (
-            "以下の項目について、最新の市場動向をJSON形式でまとめてください:\n"
-            "1. 金利動向（住宅ローン金利の変動）\n"
-            "2. 不動産関連法改正の動き\n"
-            "3. 新築マンション供給状況\n"
-            "4. 補助金・助成金の新設・変更\n"
-            "5. 地価の注目動向\n\n"
-            "各項目について source, summary, impact_level(high/medium/low), "
-            "relevance_to_hiroki を含めてください。"
+            "不動産マーケットアナリストとして、本日の市場動向をJSON形式で報告してください。\n\n"
+            "## チェック項目:\n"
+            "1. 金利動向（日銀政策・住宅ローン金利）\n"
+            "2. 新築マンション供給状況\n"
+            "3. 中古マンション価格指数\n"
+            "4. 地価動向\n"
+            "5. 注目の再開発プロジェクト\n"
+            "6. 法改正・補助金の動き\n"
+            "7. 市場全体の所感\n\n"
+            "各項目にsource_urlとconfidence_levelを含めてください。"
         )
 
         try:
-            result = self.claude.generate_json(prompt, temperature=0.3)
+            report = self.claude.generate_json(prompt, max_tokens=4096, temperature=0.3)
+            report["report_date"] = datetime.now(JST).strftime("%Y-%m-%d")
+            return report
         except Exception as e:
-            logger.error("Market watch failed: %s", e)
-            result = {"error": str(e)}
+            logger.error(f"Daily market watch failed: {e}")
+            return {"error": str(e)}
 
-        output = {
-            "type": "daily_market_watch",
-            "date": datetime.now(JST).isoformat(),
-            "data": result,
-        }
+    def save_result(self, data: dict, output_path: str) -> str:
+        """結果を保存"""
+        path = Path(output_path)
+        path.parent.mkdir(parents=True, exist_ok=True)
 
-        # Quality check
-        qr = self.quality_checker.check(
-            profile="data_collection",
-            content=json.dumps(output, ensure_ascii=False),
-            context="Daily market watch",
-        )
-        output["quality_check"] = qr
+        with open(path, "w", encoding="utf-8") as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
 
-        # Save
-        output_dir = DATA_DIR / "daily"
-        output_dir.mkdir(parents=True, exist_ok=True)
-        date_str = datetime.now(JST).strftime("%Y-%m-%d")
-        path = output_dir / f"market_watch_{date_str}.json"
-        path.write_text(json.dumps(output, ensure_ascii=False, indent=2), encoding="utf-8")
-        logger.info("Daily market watch saved: %s", path)
-        return output
-
-    def analyze_area_market(self, area: str, data: dict) -> dict:
-        """Analyze market conditions for a specific area."""
-        prompt = (
-            f"以下のデータを基に、{area}の不動産市場分析を行ってください。\n"
-            f"JSON形式で出力。項目:\n"
-            f"- market_overview: 市場概況\n"
-            f"- price_trend: 価格トレンド（上昇/横ばい/下落）\n"
-            f"- supply_demand: 需給バランス\n"
-            f"- forecast_6months: 6ヶ月予測\n"
-            f"- forecast_1year: 1年予測\n"
-            f"- risks: リスク要因\n"
-            f"- opportunities: 機会\n\n"
-            f"データ:\n{json.dumps(data, ensure_ascii=False)[:3000]}"
-        )
-
-        try:
-            analysis = self.claude.generate_json(prompt, temperature=0.4)
-            return {
-                "area": area,
-                "analysis_date": datetime.now(JST).isoformat(),
-                "analysis": analysis,
-            }
-        except Exception as e:
-            logger.error("Area market analysis failed: %s", e)
-            return {"area": area, "error": str(e)}
+        logger.info(f"Analysis saved: {path}")
+        return str(path)
