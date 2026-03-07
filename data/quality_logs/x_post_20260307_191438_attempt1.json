@@ -1,0 +1,34 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 0,
+    "persona_match": 6,
+    "pillar_alignment": 7,
+    "algorithm_optimization": 5,
+    "no_external_links": 10,
+    "no_banned_content": 0,
+    "character_limit": 8,
+    "number_included": 8,
+    "cta_ending": 4,
+    "originality": 6,
+    "tone_balance": 3,
+    "algorithm_hooks": 5
+  },
+  "total_score": 62,
+  "threshold": 80,
+  "result": "rejected",
+  "rejection_reasons": [
+    "煽り表現「教えたがらない」「裏技」が含まれている",
+    "上から目線・説教調の文体になっている",
+    "絶対不合格条件に該当するため即fail"
+  ],
+  "improvement_suggestions": [
+    "「教えたがらない」「裏技」を「節約術」「コツ」などの中性的な表現に変更",
+    "「引っ越し費用を抑える2つの方法」など、煽りのない見出しに修正",
+    "「1200件の引っ越しを見てきて気づいたこと」を「引っ越し経験から学んだ節約方法」に変更",
+    "より親しみやすく、共感を呼ぶ文体に調整",
+    "具体的なCTAを追加（「皆さんはどんな節約術を使っていますか？」など）"
+  ],
+  "checked_at": "2026-03-07T19:14:38.170540+09:00"
+}
