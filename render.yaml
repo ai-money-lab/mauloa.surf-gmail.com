@@ -15,7 +15,8 @@ services:
     buildCommand: pip install -r requirements.txt
     startCommand: uvicorn inquiry_bot.server:app --host 0.0.0.0 --port $PORT
     healthCheckPath: /api/health
-    autoDeploy: true
+    # ⚠️ 2026-03-07 緊急停止: 自動デプロイ無効化
+    autoDeploy: false
     envVars:
       # 共通
       - key: ANTHROPIC_API_KEY

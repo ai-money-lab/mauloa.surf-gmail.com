@@ -61,21 +61,11 @@ def create_server() -> FastAPI:
 
     @app.post("/api/trigger/daily-post")
     async def trigger_daily_post(request: Request, background_tasks: BackgroundTasks):
-        """System A: 投稿生成→品質チェック→画像→X投稿（1日1回 18:30 JST）"""
-        if not _check_trigger_auth(request):
-            return Response(status_code=403, content="Forbidden")
-
-        def run_pipeline():
-            try:
-                from system_a.daily_pipeline import DailyPipeline
-                logging.basicConfig(level=logging.INFO)
-                pipeline = DailyPipeline()
-                pipeline.run()
-            except Exception as e:
-                logger.error("Daily post pipeline failed: %s", e)
-
-        background_tasks.add_task(run_pipeline)
-        return {"status": "started", "task": "daily-post"}
+        """System A: 投稿生成→品質チェック→画像→X投稿（1日1回 18:30 JST）
+        ⚠️ 2026-03-07 緊急停止: ルール違反投稿の調査のため無効化
+        """
+        logger.warning("daily-post trigger is DISABLED (emergency stop 2026-03-07)")
+        return {"status": "disabled", "reason": "emergency stop 2026-03-07"}
 
     @app.post("/api/trigger/daily-analysis")
     async def trigger_daily_analysis(request: Request, background_tasks: BackgroundTasks):
