@@ -1,0 +1,30 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 8,
+    "persona_match": 9,
+    "pillar_alignment": 10,
+    "usefulness": 9,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 0,
+    "cta_ending": 6,
+    "originality": 8,
+    "tone_balance": 9,
+    "problem_solving": 9
+  },
+  "total_score": 98,
+  "threshold": 84,
+  "result": "auto_approved",
+  "usefulness_summary": "家を売りたい人が最初に取るべき具体的なアクション（査定）を明確に示している",
+  "rejection_reasons": [
+    "絶対不合格条件: 数字が含まれていない（number_included = 0点）"
+  ],
+  "improvement_suggestions": [
+    "「3〜4社くらいに査定してもらうと」のように具体的な数字を含める",
+    "「査定額に100万円以上の差が出ることも」など数字で説得力を高める"
+  ],
+  "checked_at": "2026-03-08T18:52:44.131310+09:00"
+}

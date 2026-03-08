@@ -1,0 +1,25 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 6,
+    "persona_match": 8,
+    "pillar_alignment": 9,
+    "usefulness": 6,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 10,
+    "cta_ending": 4,
+    "originality": 7,
+    "tone_balance": 8,
+    "problem_solving": 5
+  },
+  "total_score": 93,
+  "threshold": 84,
+  "result": "auto_approved",
+  "usefulness_summary": "家を売る際の基本的な流れと期間の目安を知りたい人の参考になる",
+  "rejection_reasons": [],
+  "improvement_suggestions": [],
+  "checked_at": "2026-03-08T18:52:37.970338+09:00"
+}
