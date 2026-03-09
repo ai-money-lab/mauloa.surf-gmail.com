@@ -22,5 +22,17 @@
     "image_path": "",
     "has_image": false,
     "status": "posted"
+  },
+  {
+    "datetime": "2026-03-09T19:12:35.776788+09:00",
+    "tweet_id": "2030949864868331597",
+    "pillar": "4",
+    "pipeline": "P3",
+    "pattern": "A",
+    "text": "中古マンション、見学で見るべき3つ\n\n・共用部の清掃状態\n・隣の部屋の音\n・管理人さんの対応\n\n特に管理人さんとは軽く話してみてください。住民の雰囲気とか、過去にトラブルがあったかとか、なんとなく感じ取れます。\n\n良い物件って、人が作ってるんですよね。",
+    "quality_score": 110,
+    "image_path": "",
+    "has_image": false,
+    "status": "posted"
   }
 ]
