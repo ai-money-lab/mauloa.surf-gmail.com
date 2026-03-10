@@ -45,12 +45,22 @@ export default function NewPropertyPage() {
     setFormData((prev) => ({ ...prev, [key]: val }));
   };
 
+  const [error, setError] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [savedId, setSavedId] = useState<string | null>(null);
+  const [toast, setToast] = useState("");
+
+  const showToast = (msg: string) => {
+    setToast(msg);
+    setTimeout(() => setToast(""), 3000);
+  };
+
   const startLoad = async () => {
     if (!address.trim()) return;
     setLoading(true);
     setPhase(0);
+    setError("");
 
-    // Animate loading phases while fetching
     const phaseTimers = [1, 2, 3, 4, 5].map((p, i) =>
       setTimeout(() => setPhase(p), (i + 1) * 400)
     );
@@ -65,12 +75,14 @@ export default function NewPropertyPage() {
       if (res.ok) {
         const data: SearchResult = await res.json();
         setApiData(data);
+      } else {
+        const err = await res.json().catch(() => ({ error: "APIエラー" }));
+        setError(err.error || `APIエラー (${res.status})`);
       }
     } catch {
-      // Continue with empty data on error
+      setError("ネットワークエラー。接続を確認してください。");
     }
 
-    // Clear timers and complete
     phaseTimers.forEach(clearTimeout);
     setPhase(6);
     setTimeout(() => {
@@ -80,69 +92,196 @@ export default function NewPropertyPage() {
   };
 
   const ad = apiData;
+  const pTypeLabel = pType === "mansion" ? "区分マンション" : pType === "land" ? "土地" : pType === "house" ? "一戸建て" : "一棟";
+
+  // CSV injection safe escape
+  const csvEscape = (s: string) => `"${s.replace(/"/g, '""')}"`;
+
+  const buildAllData = (): Partial<PropertyData> & { address: string; property_type: string } => ({
+    address,
+    property_type: pType,
+    latitude: ad?.lat,
+    longitude: ad?.lng,
+    // API data
+    zoning: ad?.zoning || undefined,
+    building_coverage_ratio: ad?.building_coverage_ratio || undefined,
+    floor_area_ratio: ad?.floor_area_ratio || undefined,
+    fire_zone: ad?.fire_zone || undefined,
+    urban_plan_zone: ad?.urban_plan_zone || undefined,
+    height_district: ad?.height_district || undefined,
+    flood_level: ad?.flood_level,
+    flood_text: ad?.flood_text || undefined,
+    tsunami_level: ad?.tsunami_level,
+    tsunami_text: ad?.tsunami_text || undefined,
+    hightide_level: ad?.hightide_level,
+    hightide_text: ad?.hightide_text || undefined,
+    sediment_risk: ad?.sediment_risk,
+    landslide_text: ad?.landslide_text || undefined,
+    school_district: ad?.school_district || undefined,
+    school_district_jr: ad?.school_district_jr || undefined,
+    land_price: ad?.land_price || undefined,
+    land_price_year: ad?.land_price_year || undefined,
+    land_price_point: ad?.land_price_point || undefined,
+    future_pop: ad?.future_pop || undefined,
+    future_pop_2050: ad?.future_pop_2050 || undefined,
+    future_pop_change: ad?.future_pop_change || undefined,
+    api_fetched_at: ad ? new Date().toISOString() : undefined,
+    // Form data
+    ...formData,
+    is_incident: incident,
+    incident_detail: incident ? formData.incident_detail : undefined,
+  });
+
+  const saveDraft = async () => {
+    setSaving(true);
+    try {
+      const payload = buildAllData();
+      const method = savedId ? "PUT" : "POST";
+      const url = savedId ? `/api/properties/${savedId}` : "/api/properties";
+      const res = await fetch(url, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (!savedId) setSavedId(data.id);
+        showToast("下書きを保存しました");
+      } else {
+        showToast("保存に失敗しました");
+      }
+    } catch {
+      showToast("ネットワークエラー");
+    }
+    setSaving(false);
+  };
 
   const generateCSV = () => {
     const BOM = "\uFEFF";
-    const rows = [
-      ["項目", "内容", "区分"],
-      ["住所", address, "基本"],
-      ["物件種別", pType === "mansion" ? "区分マンション" : pType === "land" ? "土地" : pType === "house" ? "一戸建て" : "一棟", "基本"],
-      ["用途地域", ad?.zoning || "", "自動取得"],
-      ["建ぺい率", ad?.building_coverage_ratio ? `${ad.building_coverage_ratio}%` : "", "自動取得"],
-      ["容積率", ad?.floor_area_ratio ? `${ad.floor_area_ratio}%` : "", "自動取得"],
-      ["防火地域", ad?.fire_zone || "", "自動取得"],
-      ["洪水浸水想定", ad?.flood_text || "", "自動取得"],
-      ["津波浸水想定", ad?.tsunami_text || "", "自動取得"],
-      ["高潮浸水想定", ad?.hightide_text || "", "自動取得"],
-      ["土砂災害", ad?.landslide_text || "", "自動取得"],
-      ["学区", ad?.school_district || "", "自動取得"],
-      ["公示地価", ad?.land_price ? `${ad.land_price}円/㎡` : "", "自動取得"],
-      ["上水道", formData.water_supply || "", "手動入力"],
-      ["下水道", formData.sewage || "", "手動入力"],
-      ["ガス", formData.gas_type || "", "手動入力"],
-      ["接面道路", formData.road_type || "", "手動入力"],
-      ["道路幅員", formData.road_width || "", "手動入力"],
-      ["所有者名", formData.owner_name || "", "手動入力"],
-      ["土地面積", formData.land_area || "", "手動入力"],
-      ["建物面積", formData.building_area || "", "手動入力"],
-      ["抵当権", formData.mortgage || "", "手動入力"],
-      ["取引価格", formData.price || "", "手動入力"],
-      ["取引態様", formData.transaction_type || "", "手動入力"],
+    const rows: string[][] = [
+      ["カテゴリ", "項目", "内容", "区分"],
+      // 基本情報
+      ["基本情報", "住所", address, "基本"],
+      ["基本情報", "物件種別", pTypeLabel, "基本"],
+      // 都市計画
+      ["都市計画", "用途地域", ad?.zoning || "", "自動取得"],
+      ["都市計画", "建ぺい率", ad?.building_coverage_ratio ? `${ad.building_coverage_ratio}%` : "", "自動取得"],
+      ["都市計画", "容積率", ad?.floor_area_ratio ? `${ad.floor_area_ratio}%` : "", "自動取得"],
+      ["都市計画", "防火地域", ad?.fire_zone || "", "自動取得"],
+      ["都市計画", "高度地区", ad?.height_district || "", "自動取得"],
+      ["都市計画", "都市計画区域区分", ad?.urban_plan_zone || "", "自動取得"],
+      // ハザード
+      ["ハザード", "洪水浸水想定", ad?.flood_text || "", "自動取得"],
+      ["ハザード", "津波浸水想定", ad?.tsunami_text || "", "自動取得"],
+      ["ハザード", "高潮浸水想定", ad?.hightide_text || "", "自動取得"],
+      ["ハザード", "土砂災害警戒", ad?.landslide_text || "", "自動取得"],
+      // 参考
+      ["参考", "学区（小学校）", ad?.school_district || "", "自動取得"],
+      ["参考", "学区（中学校）", ad?.school_district_jr || "", "自動取得"],
+      ["参考", "公示地価", ad?.land_price ? `${ad.land_price}円/㎡` : "", "自動取得"],
+      ["参考", "将来人口変化率", ad?.future_pop_change != null ? `${ad.future_pop_change}%（2050年）` : "", "自動取得"],
+      // インフラ
+      ["インフラ", "上水道", formData.water_supply || "", "手動入力"],
+      ["インフラ", "下水道", formData.sewage || "", "手動入力"],
+      ["インフラ", "ガス", formData.gas_type || "", "手動入力"],
+      ["インフラ", "電気", formData.electricity || "", "手動入力"],
+      // 道路
+      ["道路", "接面道路の種別", formData.road_type || "", "手動入力"],
+      ["道路", "道路幅員（m）", formData.road_width || "", "手動入力"],
+      ["道路", "接道間口（m）", formData.road_frontage || "", "手動入力"],
+      ["道路", "私道負担", formData.private_road || "", "手動入力"],
+      // 登記
+      ["登記", "所有者名", formData.owner_name || "", "手動入力"],
+      ["登記", "土地面積（㎡）", formData.land_area || "", "手動入力"],
+      ["登記", "建物面積（㎡）", formData.building_area || "", "手動入力"],
+      ["登記", "抵当権", formData.mortgage || "", "手動入力"],
     ];
 
+    // マンション固有
     if (pType === "mansion") {
       rows.push(
-        ["管理費", formData.mgmt_fee || "", "手動入力"],
-        ["修繕積立金", formData.repair_reserve || "", "手動入力"],
-        ["管理会社", formData.mgmt_company || "", "手動入力"],
-        ["総戸数", formData.total_units || "", "手動入力"]
+        ["管理", "管理費（月額）", formData.mgmt_fee || "", "手動入力"],
+        ["管理", "修繕積立金（月額）", formData.repair_reserve || "", "手動入力"],
+        ["管理", "駐車場（月額）", formData.parking_fee || "", "手動入力"],
+        ["管理", "管理形態", formData.mgmt_form || "", "手動入力"],
+        ["管理", "管理会社", formData.mgmt_company || "", "手動入力"],
+        ["管理", "総戸数", formData.total_units || "", "手動入力"],
+        ["管理", "大規模修繕予定", formData.major_repair_plan || "", "手動入力"],
       );
     }
 
-    const csvContent = rows.map((r) => r.map((c) => `"${c}"`).join(",")).join("\n");
+    // 告知事項
+    rows.push(
+      ["告知", "心理的瑕疵（事故物件）", incident ? "あり" : "なし", "手動入力"],
+    );
+    if (incident) {
+      rows.push(["告知", "告知事項詳細", formData.incident_detail || "", "手動入力"]);
+    }
+    rows.push(
+      ["告知", "その他の告知事項", formData.disclosure_notes || "", "手動入力"],
+      ["告知", "アスベスト調査", formData.asbestos || "", "手動入力"],
+      ["告知", "耐震診断", formData.earthquake_resistance || "", "手動入力"],
+    );
+
+    // 契約
+    rows.push(
+      ["契約", "取引価格（円）", formData.price || "", "手動入力"],
+      ["契約", "取引態様", formData.transaction_type || "", "手動入力"],
+      ["契約", "手付金（円）", formData.earnest_money || "", "手動入力"],
+      ["契約", "引渡予定日", formData.delivery_date || "", "手動入力"],
+      ["契約", "特約事項", formData.special_terms || "", "手動入力"],
+    );
+
+    const csvContent = rows.map((r) => r.map(csvEscape).join(",")).join("\n");
     const blob = new Blob([BOM + csvContent], {
       type: "text/csv;charset=utf-8;",
     });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `重説_${address || "物件"}_${new Date().toISOString().slice(0, 10)}.csv`;
+    a.download = `重説_${address.replace(/[/\\:*?"<>|]/g, "_") || "物件"}_${new Date().toISOString().slice(0, 10)}.csv`;
     a.click();
     URL.revokeObjectURL(url);
+    showToast("CSVをダウンロードしました");
   };
 
-  const confirmRows = [
+  const confirmRows: Array<{ k: string; v: string; t: "auto" | "manual" | "missing" }> = [
+    // API auto
     { k: "用途地域", v: ad?.zoning || "—", t: ad?.zoning ? "auto" : "missing" },
     { k: "建ぺい率", v: ad?.building_coverage_ratio ? `${ad.building_coverage_ratio}%` : "—", t: ad?.building_coverage_ratio ? "auto" : "missing" },
     { k: "容積率", v: ad?.floor_area_ratio ? `${ad.floor_area_ratio}%` : "—", t: ad?.floor_area_ratio ? "auto" : "missing" },
     { k: "防火地域", v: ad?.fire_zone || "—", t: ad?.fire_zone ? "auto" : "missing" },
     { k: "洪水浸水想定", v: ad?.flood_text || "—", t: ad?.flood_text ? "auto" : "missing" },
     { k: "津波浸水想定", v: ad?.tsunami_text || "—", t: ad?.tsunami_text ? "auto" : "missing" },
+    { k: "高潮浸水想定", v: ad?.hightide_text || "—", t: ad?.hightide_text ? "auto" : "missing" },
+    { k: "土砂災害", v: ad?.landslide_text || "—", t: ad?.landslide_text ? "auto" : "missing" },
     { k: "公示地価", v: ad?.land_price ? `${ad.land_price.toLocaleString()}円/㎡` : "—", t: ad?.land_price ? "auto" : "missing" },
+    // Manual
     { k: "上水道", v: formData.water_supply || "—", t: formData.water_supply ? "manual" : "missing" },
-    { k: "接面道路", v: formData.road_type || "未入力", t: formData.road_type ? "manual" : "missing" },
-    { k: "取引価格", v: formData.price || "未入力", t: formData.price ? "manual" : "missing" },
-  ] as const;
+    { k: "下水道", v: formData.sewage || "—", t: formData.sewage ? "manual" : "missing" },
+    { k: "ガス", v: formData.gas_type || "—", t: formData.gas_type ? "manual" : "missing" },
+    { k: "接面道路", v: formData.road_type || "—", t: formData.road_type ? "manual" : "missing" },
+    { k: "道路幅員", v: formData.road_width ? `${formData.road_width}m` : "—", t: formData.road_width ? "manual" : "missing" },
+    { k: "所有者名", v: formData.owner_name || "—", t: formData.owner_name ? "manual" : "missing" },
+    { k: "土地面積", v: formData.land_area ? `${formData.land_area}㎡` : "—", t: formData.land_area ? "manual" : "missing" },
+    { k: "抵当権", v: formData.mortgage || "—", t: formData.mortgage ? "manual" : "missing" },
+    { k: "取引価格", v: formData.price ? `${Number(formData.price).toLocaleString()}円` : "—", t: formData.price ? "manual" : "missing" },
+    { k: "取引態様", v: formData.transaction_type || "—", t: formData.transaction_type ? "manual" : "missing" },
+    { k: "アスベスト", v: formData.asbestos || "—", t: formData.asbestos ? "manual" : "missing" },
+    { k: "耐震診断", v: formData.earthquake_resistance || "—", t: formData.earthquake_resistance ? "manual" : "missing" },
+  ];
+
+  if (pType === "mansion") {
+    confirmRows.push(
+      { k: "管理費", v: formData.mgmt_fee ? `${Number(formData.mgmt_fee).toLocaleString()}円/月` : "—", t: formData.mgmt_fee ? "manual" : "missing" },
+      { k: "修繕積立金", v: formData.repair_reserve ? `${Number(formData.repair_reserve).toLocaleString()}円/月` : "—", t: formData.repair_reserve ? "manual" : "missing" },
+      { k: "管理形態", v: formData.mgmt_form || "—", t: formData.mgmt_form ? "manual" : "missing" },
+    );
+  }
+
+  if (incident) {
+    confirmRows.push({ k: "心理的瑕疵", v: "あり", t: "manual" });
+  }
 
   const autoCount = confirmRows.filter((r) => r.t === "auto").length;
   const manualCount = confirmRows.filter((r) => r.t === "manual").length;
@@ -166,7 +305,7 @@ export default function NewPropertyPage() {
                 <label style={{ fontSize: 13, fontWeight: 700, color: "#0F172A", display: "block", marginBottom: 8 }}>
                   物件種別
                 </label>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 8 }}>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(80px, 1fr))", gap: 8 }}>
                   {PROPERTY_TYPES.map((t) => (
                     <button
                       key={t.v}
@@ -314,28 +453,53 @@ export default function NewPropertyPage() {
         {/* STEP 2 */}
         {step === 2 && (
           <div className="animate-fade-in">
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 12,
-                padding: "14px 18px",
-                background: "#DCFCE7",
-                border: "1.5px solid #86EFAC",
-                borderRadius: 8,
-                marginBottom: 16,
-              }}
-            >
-              <CheckCircle2 size={20} color="#166534" strokeWidth={2.5} />
-              <div>
-                <div style={{ fontSize: 14, fontWeight: 700, color: "#14532D" }}>
-                  情報を自動取得しました{ad?.elapsed_ms ? `（${(ad.elapsed_ms / 1000).toFixed(1)}秒）` : ""}
-                </div>
-                <div style={{ fontSize: 12, color: "#334155", marginTop: 2, fontWeight: 500 }}>
-                  手動調査 約2時間 → 自動取得で数秒に短縮
+            {error ? (
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 12,
+                  padding: "14px 18px",
+                  background: "#FEE2E2",
+                  border: "1.5px solid #FCA5A5",
+                  borderRadius: 8,
+                  marginBottom: 16,
+                }}
+              >
+                <AlertTriangle size={20} color="#B91C1C" strokeWidth={2.5} />
+                <div>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: "#B91C1C" }}>
+                    取得エラー
+                  </div>
+                  <div style={{ fontSize: 12, color: "#B91C1C", marginTop: 2, fontWeight: 500 }}>
+                    {error}
+                  </div>
                 </div>
               </div>
-            </div>
+            ) : (
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 12,
+                  padding: "14px 18px",
+                  background: "#DCFCE7",
+                  border: "1.5px solid #86EFAC",
+                  borderRadius: 8,
+                  marginBottom: 16,
+                }}
+              >
+                <CheckCircle2 size={20} color="#166534" strokeWidth={2.5} />
+                <div>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: "#14532D" }}>
+                    情報を自動取得しました{ad?.elapsed_ms ? `（${(ad.elapsed_ms / 1000).toFixed(1)}秒）` : ""}
+                  </div>
+                  <div style={{ fontSize: 12, color: "#334155", marginTop: 2, fontWeight: 500 }}>
+                    手動調査 約2時間 → 自動取得で数秒に短縮
+                  </div>
+                </div>
+              </div>
+            )}
 
             <Section icon={Shield} title="都市計画情報" sub="不動産情報ライブラリ API">
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
@@ -658,13 +822,37 @@ export default function NewPropertyPage() {
             </Section>
 
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 10 }}>
-              <Btn variant="secondary" full icon={Save}>ドラフト保存</Btn>
+              <Btn variant="secondary" full icon={Save} onClick={saveDraft} disabled={saving}>
+                {saving ? "保存中..." : savedId ? "上書き保存" : "ドラフト保存"}
+              </Btn>
               <Btn variant="success" full icon={Download} onClick={generateCSV}>CSV出力</Btn>
             </div>
             <Btn variant="secondary" full onClick={() => go(4)} icon={ChevronLeft}>入力に戻る</Btn>
           </div>
         )}
       </main>
+
+      {/* Toast notification */}
+      {toast && (
+        <div
+          style={{
+            position: "fixed",
+            bottom: 24,
+            left: "50%",
+            transform: "translateX(-50%)",
+            background: "#1E293B",
+            color: "#F8FAFC",
+            padding: "12px 24px",
+            borderRadius: 8,
+            fontSize: 14,
+            fontWeight: 600,
+            boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
+            zIndex: 1000,
+          }}
+        >
+          {toast}
+        </div>
+      )}
     </div>
   );
 }

@@ -8,8 +8,12 @@ export async function geocode(
 ): Promise<{ lat: number; lng: number } | null> {
   const url = `https://msearch.gsi.go.jp/address-search/AddressSearch?q=${encodeURIComponent(address)}`;
   const res = await fetch(url);
+  if (!res.ok) return null;
   const data = await res.json();
-  if (!data || data.length === 0) return null;
-  const [lng, lat] = data[0].geometry.coordinates;
+  if (!Array.isArray(data) || data.length === 0) return null;
+  const coords = data[0]?.geometry?.coordinates;
+  if (!Array.isArray(coords) || coords.length < 2) return null;
+  const [lng, lat] = coords;
+  if (typeof lat !== "number" || typeof lng !== "number") return null;
   return { lat, lng };
 }

@@ -21,13 +21,20 @@ export default function DashboardPage() {
   const [properties, setProperties] = useState<PropertySummary[]>([]);
   const [filter, setFilter] = useState<"all" | "draft" | "completed">("all");
 
+  const [loadError, setLoadError] = useState("");
+  const [loaded, setLoaded] = useState(false);
+
   useEffect(() => {
     fetch("/api/properties")
       .then((r) => r.json())
       .then((data) => {
         if (data.results) setProperties(data.results);
+        setLoaded(true);
       })
-      .catch(() => {});
+      .catch(() => {
+        setLoadError("物件の読み込みに失敗しました");
+        setLoaded(true);
+      });
   }, []);
 
   const filtered = properties.filter((p) => {

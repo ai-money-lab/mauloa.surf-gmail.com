@@ -5,26 +5,48 @@ import { fetchHazard, floodLevelToText } from "@/lib/api/hazard";
 
 export async function POST(req: NextRequest) {
   const start = Date.now();
-  const { address } = await req.json();
 
-  if (!address) {
+  let body: { address?: string };
+  try {
+    body = await req.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+  }
+
+  const { address } = body;
+  if (!address || typeof address !== "string") {
     return NextResponse.json({ error: "address is required" }, { status: 400 });
   }
 
   // Step 1: Geocode
-  const geo = await geocode(address);
+  let geo: { lat: number; lng: number } | null;
+  try {
+    geo = await geocode(address);
+  } catch {
+    return NextResponse.json({ error: "ジオコーディングサービスに接続できません" }, { status: 502 });
+  }
   if (!geo) {
-    return NextResponse.json({ error: "住所のジオコーディングに失敗しました" }, { status: 404 });
+    return NextResponse.json({ error: "住所のジオコーディングに失敗しました。住所を確認してください。" }, { status: 404 });
   }
 
   const { lat, lng } = geo;
-  const apiKey = process.env.REINFOLIB_API_KEY || "";
+  const apiKey = process.env.REINFOLIB_API_KEY;
+  if (!apiKey) {
+    console.error("REINFOLIB_API_KEY is not configured");
+  }
 
   // Step 2 & 3: Fetch reinfolib + hazard in parallel
-  const [reinfolibData, hazardData] = await Promise.all([
+  // Step 2 & 3: Fetch reinfolib + hazard in parallel (graceful degradation)
+  let reinfolibData: Awaited<ReturnType<typeof fetchAllReinfolib>> | null = null;
+  let hazardData: Awaited<ReturnType<typeof fetchHazard>> | null = null;
+
+  const [reinfolibResult, hazardResult] = await Promise.allSettled([
     apiKey ? fetchAllReinfolib(lat, lng, apiKey) : Promise.resolve(null),
     fetchHazard(lat, lng),
   ]);
+
+  if (reinfolibResult.status === "fulfilled") reinfolibData = reinfolibResult.value;
+  if (hazardResult.status === "fulfilled") hazardData = hazardResult.value;
 
   // Extract properties from GeoJSON
   const zoningProps = reinfolibData

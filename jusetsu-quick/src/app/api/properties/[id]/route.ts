@@ -1,14 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-
-// Shared in-memory store reference (same pattern as parent route for MVP)
-// In production, this would use D1 database
-const store: Record<string, Record<string, unknown>> = {};
+import { getStore } from "@/lib/store";
 
 export async function GET(
   _req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const property = store[params.id];
+  const { id } = await params;
+  const store = getStore();
+  const property = store.get(id);
   if (!property) {
     return NextResponse.json({ error: "not found" }, { status: 404 });
   }
@@ -17,17 +16,29 @@ export async function GET(
 
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const existing = store[params.id];
+  const { id } = await params;
+  const store = getStore();
+  const existing = store.get(id);
   if (!existing) {
     return NextResponse.json({ error: "not found" }, { status: 404 });
   }
-  const data = await req.json();
-  store[params.id] = {
+
+  let data: Record<string, unknown>;
+  try {
+    data = await req.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+  }
+
+  const updated = {
     ...existing,
     ...data,
+    id: existing.id,
+    created_at: existing.created_at,
     updated_at: new Date().toISOString(),
   };
-  return NextResponse.json(store[params.id]);
+  store.set(id, updated);
+  return NextResponse.json(updated);
 }
