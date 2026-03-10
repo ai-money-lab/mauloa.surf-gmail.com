@@ -1,0 +1,12 @@
+name = "jusetsu-quick"
+compatibility_date = "2024-01-01"
+pages_build_output_dir = ".vercel/output/static"
+
+# D1 Database binding (update database_id after running: wrangler d1 create jusetsu-quick-db)
+# [[d1_databases]]
+# binding = "DB"
+# database_name = "jusetsu-quick-db"
+# database_id = "<YOUR_DATABASE_ID>"
+
+[vars]
+# REINFOLIB_API_KEY should be set via: npx wrangler secret put REINFOLIB_API_KEY
