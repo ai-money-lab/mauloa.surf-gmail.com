@@ -2,7 +2,16 @@
   "name": "hiroki-ai-empire",
   "version": "1.0.0",
   "description": "HIROKI AI Empire - 4-system automated revenue platform",
+  "scripts": {
+    "worker:dev": "wrangler dev",
+    "worker:deploy": "wrangler deploy",
+    "worker:deploy:staging": "wrangler deploy --env staging",
+    "worker:tail": "wrangler tail"
+  },
   "dependencies": {
     "@mbelinky/x-mcp-server": "latest"
+  },
+  "devDependencies": {
+    "wrangler": "^3"
   }
 }

@@ -2,7 +2,8 @@
 # https://render.com/docs/blueprint-spec
 #
 # 自動化方式: inquiry bot（無料Webサーバー）にトリガーAPIを内蔵
-# 外部cron（cron-job.org 無料）からHTTPで呼び出してSystem A/Cを実行
+# Cloudflare Workers Cron Triggers からHTTPで呼び出してSystem A/Cを実行
+# （旧: cron-job.org → 新: Cloudflare Workers に移行済み）
 # → Render cronジョブ（有料$1/月×3）は不要
 
 services:

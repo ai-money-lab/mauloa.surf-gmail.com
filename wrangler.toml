@@ -1,0 +1,40 @@
+# Cloudflare Workers — HIROKI AI Empire
+# Render.com のスリープ防止 + cron-job.org の置き換え
+#
+# デプロイ: npx wrangler deploy
+# ローカル開発: npx wrangler dev
+
+name = "hiroki-ai-cron"
+main = "workers/cron-trigger.js"
+compatibility_date = "2024-09-23"
+
+# ═══ 環境変数（wrangler secret で設定） ═══
+# RENDER_APP_URL    — Render.com のアプリURL (例: https://rockedge-inquiry-bot.onrender.com)
+# TRIGGER_SECRET    — トリガーAPI認証シークレット
+# LINE_NOTIFY_URL   — 障害通知用（オプション）
+
+# ═══ Cron Triggers（JST = UTC+9） ═══
+# cron-job.org の完全置き換え
+[triggers]
+crons = [
+  # Keep-alive: 14分ごと（Render無料プランのスリープ防止）
+  "*/14 * * * *",
+  # System A: デイリー投稿パイプライン (18:30 JST = 09:30 UTC)
+  "30 9 * * *",
+  # System A: 日次パフォーマンス分析 (21:00 JST = 12:00 UTC)
+  "0 12 * * *",
+  # System C: 日次情報収集 (07:00 JST = 22:00 UTC 前日)
+  "0 22 * * *",
+  # System A: 週次分析 + 比率調整 (月曜 09:00 JST = 日曜 00:00 UTC)
+  "0 0 * * 1",
+  # System C: 週次テックトレンド (月曜 08:00 JST = 日曜 23:00 UTC)
+  "0 23 * * 0",
+]
+
+# ═══ 本番環境 ═══
+[env.production]
+name = "hiroki-ai-cron"
+
+# ═══ ステージング環境 ═══
+[env.staging]
+name = "hiroki-ai-cron-staging"

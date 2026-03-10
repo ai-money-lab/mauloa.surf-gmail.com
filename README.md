@@ -265,6 +265,7 @@ make cron-install
 - [CrewAI セットアップ](docs/SETUP_CREW_AI.md)
 - [n8n セットアップ](docs/SETUP_N8N.md)
 - [LINE Bot セットアップ](docs/SETUP_LINE_BOT.md)
+- [Cloudflare Workers セットアップ](docs/SETUP_CLOUDFLARE.md)
 
 ---
 
