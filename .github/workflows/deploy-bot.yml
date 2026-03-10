@@ -64,6 +64,24 @@ jobs:
             -d '{"text":"✅ 問い合わせBot デプロイ完了 (commit: ${{ github.sha }})"}'
         continue-on-error: true
 
+  # Render デプロイ後に Worker も再デプロイ（シークレット同期）
+  deploy-worker:
+    needs: deploy-render
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Deploy Cloudflare Worker
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          secrets: |
+            RENDER_APP_URL
+            TRIGGER_SECRET
+        env:
+          RENDER_APP_URL: ${{ secrets.RENDER_APP_URL }}
+          TRIGGER_SECRET: ${{ secrets.TRIGGER_SECRET }}
+
   # FAQ/物件データ変更時の自動検証
   validate-data:
     runs-on: ubuntu-latest

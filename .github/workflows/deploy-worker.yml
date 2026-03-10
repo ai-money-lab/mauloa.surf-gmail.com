@@ -1,0 +1,46 @@
+# GitHub Actions — Cloudflare Worker 自動デプロイ
+# mainブランチへのpushで自動発火
+
+name: Worker CI/CD
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'workers/**'
+      - 'wrangler.toml'
+  workflow_dispatch:  # 手動実行も可能
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    name: Deploy to Cloudflare Workers
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Deploy Worker
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          secrets: |
+            RENDER_APP_URL
+            TRIGGER_SECRET
+        env:
+          RENDER_APP_URL: ${{ secrets.RENDER_APP_URL }}
+          TRIGGER_SECRET: ${{ secrets.TRIGGER_SECRET }}
+
+      - name: Verify deployment
+        run: |
+          echo "Worker deployed. Checking status..."
+          sleep 5
+          curl -sf "https://hiroki-ai-cron.${WORKER_SUBDOMAIN}.workers.dev/status" \
+            | python3 -m json.tool || echo "Status check skipped (subdomain not set)"
+        env:
+          WORKER_SUBDOMAIN: ${{ secrets.CLOUDFLARE_WORKER_SUBDOMAIN }}
+        continue-on-error: true

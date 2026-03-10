@@ -80,6 +80,32 @@ npm run worker:tail
 | `0 0 * * 1` | 月曜 09:00 | weekly-analysis | System A 週次分析 |
 | `0 23 * * 0` | 月曜 08:00 | weekly-tech | System C テックトレンド |
 
+## GitHub Actions 自動デプロイ（推奨）
+
+`workers/` や `wrangler.toml` を変更して main にプッシュすると、GitHub Actions が自動でデプロイします。
+
+### GitHub Secrets に登録（1回だけ）
+
+リポジトリの Settings > Secrets and variables > Actions に以下を追加:
+
+| Secret 名 | 値 | 取得方法 |
+|-----------|---|---------|
+| `CLOUDFLARE_API_TOKEN` | APIトークン | [Cloudflare ダッシュボード](https://dash.cloudflare.com/profile/api-tokens) → Create Token → "Edit Cloudflare Workers" テンプレート |
+| `CLOUDFLARE_ACCOUNT_ID` | アカウントID | ダッシュボード右サイドバーの Account ID |
+| `RENDER_APP_URL` | `https://rockedge-inquiry-bot.onrender.com` | Render ダッシュボード |
+| `TRIGGER_SECRET` | トリガー認証シークレット | Render 側の環境変数と同じ値 |
+
+### APIトークンの作り方
+
+1. https://dash.cloudflare.com/profile/api-tokens にアクセス
+2. "Create Token" をクリック
+3. "Edit Cloudflare Workers" テンプレートを選択
+4. Account Resources: 自分のアカウントを選択
+5. "Continue to summary" → "Create Token"
+6. 表示されたトークンをコピーして GitHub Secrets に登録
+
+設定後は `workers/` 配下のコード変更を main にマージするだけで自動デプロイされます。
+
 ## cron-job.org からの移行
 
 1. Cloudflare Workers をデプロイ
