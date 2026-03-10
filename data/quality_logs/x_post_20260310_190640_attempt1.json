@@ -1,0 +1,29 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 8,
+    "persona_match": 9,
+    "pillar_alignment": 9,
+    "usefulness": 9,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 0,
+    "cta_ending": 8,
+    "originality": 8,
+    "tone_balance": 9,
+    "problem_solving": 8
+  },
+  "total_score": 98,
+  "threshold": 84,
+  "result": "auto_approved",
+  "usefulness_summary": "引越し当日の隣人挨拶の重要性と具体的な挨拶方法を教えてくれる",
+  "rejection_reasons": [
+    "「1年後に感謝することになります」という確認できない断定的な表現にクッション言葉がない"
+  ],
+  "improvement_suggestions": [
+    "「1年後にきっと感謝することになると思います」や「1年後に感謝することが多いです」のようにクッション言葉を追加する"
+  ],
+  "checked_at": "2026-03-10T19:06:40.094855+09:00"
+}
