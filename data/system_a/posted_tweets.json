@@ -46,5 +46,17 @@
     "image_path": "",
     "has_image": false,
     "status": "posted"
+  },
+  {
+    "datetime": "2026-03-11T19:07:34.015619+09:00",
+    "tweet_id": "2031673374964138196",
+    "pillar": "4",
+    "pipeline": "P3",
+    "pattern": "A",
+    "text": "家を買うとき、立地で迷いますよね。\n\n私が必ずお伝えしている3つ：\n\n・雨の日に歩いてみる\n・夜の街灯の明るさを確認\n・最寄り駅まで実際に歩く\n\n晴れた日の昼間だけ見て決めちゃうと、住んでから「あれ？」ってなることが多いです。\n\n時間帯と天気を変えて見るだけで、全然違いますよ。",
+    "quality_score": 108,
+    "image_path": "",
+    "has_image": false,
+    "status": "posted"
   }
 ]

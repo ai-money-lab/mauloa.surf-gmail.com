@@ -1,0 +1,29 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 8,
+    "persona_match": 9,
+    "pillar_alignment": 9,
+    "usefulness": 9,
+    "no_external_links": 10,
+    "no_banned_content": 0,
+    "character_limit": 10,
+    "number_included": 10,
+    "cta_ending": 10,
+    "originality": 8,
+    "tone_balance": 9,
+    "problem_solving": 8
+  },
+  "total_score": 100,
+  "threshold": 84,
+  "result": "auto_approved",
+  "usefulness_summary": "物件選びで雨の日の現地確認という具体的なアクションを提示し、住み始めてからの後悔を防げる",
+  "rejection_reasons": [
+    "「絶対確認してほしい」という煽り表現が含まれている"
+  ],
+  "improvement_suggestions": [
+    "「絶対確認してほしい」を「ぜひ確認してほしい」「確認をおすすめしたい」「確認していただきたい」等の柔らかい表現に変更する"
+  ],
+  "checked_at": "2026-03-11T19:07:33.760228+09:00"
+}
