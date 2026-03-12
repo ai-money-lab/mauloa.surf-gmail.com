@@ -92,6 +92,24 @@ const ZONING_DEFAULTS: Record<string, { bcr: number; far: string }> = {
   "工業専用地域": { bcr: 60, far: "100〜400" },
 };
 
+// ── Infrastructure estimation from zoning ────────────────────
+// 用途地域が市街化区域内であればインフラはほぼ確定
+function estimateInfrastructure(zoningName: string | null, address: string) {
+  // 用途地域がある = 市街化区域内 → 上下水道・都市ガスが整備済みの可能性が高い
+  const isUrban = !!zoningName;
+  const isCommercial = zoningName?.includes("商業") || zoningName?.includes("工業");
+
+  // 大都市圏判定（住所から）
+  const majorCity = /東京|大阪|名古屋|横浜|川崎|さいたま|千葉|神戸|京都|福岡|札幌|仙台|広島|北九州/.test(address);
+
+  return {
+    water_supply: isUrban ? "公営水道" : null,
+    sewage: isUrban ? "公共下水" : null,
+    gas_type: (isCommercial || majorCity) && isUrban ? "都市ガス" : isUrban ? "都市ガス" : null,
+    infra_source: isUrban ? "用途地域から推定（要確認）" : null,
+  };
+}
+
 // ── Main handler ────────────────────────────────────────────
 
 export async function POST(req: NextRequest) {
@@ -291,6 +309,8 @@ export async function POST(req: NextRequest) {
     future_pop: futurePop,
     future_pop_2050: futurePop2050,
     future_pop_change: futurePopChange,
+    // Infrastructure estimation
+    ...estimateInfrastructure(zoning, address),
     // Diagnostics (will be stripped before DB save)
     api_errors: Object.keys(apiErrors).length > 0 ? apiErrors : undefined,
     data_sources: {

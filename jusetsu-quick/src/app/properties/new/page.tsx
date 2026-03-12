@@ -212,6 +212,14 @@ export default function NewPropertyPage() {
           console.log("[jusetsu] API debug - raw landPrice props:", data._debug_raw?.landPrice);
         }
         setApiData(data as SearchResult);
+        // Auto-fill infrastructure from API estimation (only if not already set)
+        setFormData((prev) => {
+          const updates: Partial<PropertyData> = {};
+          if (!prev.water_supply && data.water_supply) updates.water_supply = data.water_supply;
+          if (!prev.sewage && data.sewage) updates.sewage = data.sewage;
+          if (!prev.gas_type && data.gas_type) updates.gas_type = data.gas_type;
+          return Object.keys(updates).length > 0 ? { ...prev, ...updates } : prev;
+        });
       } else {
         const err = await res.json().catch(() => ({ error: "APIエラー" }));
         setError(err.error || `APIエラー (${res.status})`);
@@ -401,10 +409,10 @@ export default function NewPropertyPage() {
     { k: "高潮浸水想定", v: ad?.hightide_text || "—", t: ad?.hightide_text ? "auto" : "missing" },
     { k: "土砂災害", v: ad?.landslide_text || "—", t: ad?.landslide_text ? "auto" : "missing" },
     { k: "公示地価", v: ad?.land_price ? `${ad.land_price.toLocaleString()}円/㎡` : "—", t: ad?.land_price ? "auto" : "missing" },
-    // Manual
-    { k: "上水道", v: formData.water_supply || "—", t: formData.water_supply ? "manual" : "missing" },
-    { k: "下水道", v: formData.sewage || "—", t: formData.sewage ? "manual" : "missing" },
-    { k: "ガス", v: formData.gas_type || "—", t: formData.gas_type ? "manual" : "missing" },
+    // Infrastructure (may be auto-estimated)
+    { k: "上水道", v: formData.water_supply || "—", t: formData.water_supply ? (ad?.infra_source ? "auto" : "manual") : "missing" },
+    { k: "下水道", v: formData.sewage || "—", t: formData.sewage ? (ad?.infra_source ? "auto" : "manual") : "missing" },
+    { k: "ガス", v: formData.gas_type || "—", t: formData.gas_type ? (ad?.infra_source ? "auto" : "manual") : "missing" },
     { k: "接面道路", v: formData.road_type || "—", t: formData.road_type ? "manual" : "missing" },
     { k: "道路幅員", v: formData.road_width ? `${formData.road_width}m` : "—", t: formData.road_width ? "manual" : "missing" },
     { k: "所有者名", v: formData.owner_name || "—", t: formData.owner_name ? "manual" : "missing" },
@@ -749,7 +757,7 @@ export default function NewPropertyPage() {
           <div className="animate-fade-in">
             <ProgressBar percent={completion.percent} />
 
-            <Section icon={Plug} title="インフラ設備" sub="手動入力が必要な項目です">
+            <Section icon={Plug} title="インフラ設備" sub={ad?.infra_source ? `${ad.infra_source} — 変更可能` : "手動入力が必要な項目です"}>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                 <Field label="上水道" options={["公営水道", "井戸水", "受水槽", "その他"]} half value={formData.water_supply} onChange={(v) => updateForm("water_supply", v)} required />
                 <Field label="下水道" options={["公共下水", "浄化槽（個別）", "浄化槽（集中）", "汲み取り"]} half value={formData.sewage} onChange={(v) => updateForm("sewage", v)} required />

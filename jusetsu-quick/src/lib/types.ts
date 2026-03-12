@@ -103,5 +103,10 @@ export interface SearchResult {
   future_pop?: number;
   future_pop_2050?: number;
   future_pop_change?: number;
+  // Infrastructure estimation
+  water_supply?: string;
+  sewage?: string;
+  gas_type?: string;
+  infra_source?: string;
   elapsed_ms?: number;
 }
