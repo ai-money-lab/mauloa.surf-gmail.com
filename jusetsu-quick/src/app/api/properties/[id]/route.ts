@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getRequestContext } from "@cloudflare/next-on-pages";
 import { getProperty, updatePropertyManual } from "@/lib/db/queries";
+import { ensureSchema } from "@/lib/db/ensure-schema";
 
 export const runtime = "edge";
 
@@ -11,6 +12,7 @@ export async function GET(
   const { id } = await params;
   const { env } = getRequestContext();
   const db = env.DB;
+  await ensureSchema(db);
 
   const property = await getProperty(db, id);
   if (!property) {
@@ -26,6 +28,7 @@ export async function DELETE(
   const { id } = await params;
   const { env } = getRequestContext();
   const db = env.DB;
+  await ensureSchema(db);
 
   const property = await getProperty(db, id);
   if (!property) {
@@ -43,6 +46,7 @@ export async function PUT(
   const { id } = await params;
   const { env } = getRequestContext();
   const db = env.DB;
+  await ensureSchema(db);
 
   const existing = await getProperty(db, id);
   if (!existing) {

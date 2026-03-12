@@ -8,7 +8,10 @@
     "start": "next start",
     "pages:build": "npx @cloudflare/next-on-pages",
     "pages:dev": "npx wrangler pages dev .vercel/output/static --compatibility-flags=nodejs_compat",
-    "pages:deploy": "npm run pages:build && npx wrangler pages deploy .vercel/output/static"
+    "pages:deploy": "npm run pages:build && npx wrangler pages deploy .vercel/output/static",
+    "db:migrate": "bash scripts/migrate.sh --remote",
+    "db:migrate:local": "bash scripts/migrate.sh --local",
+    "deploy": "npm run db:migrate && npm run pages:deploy"
   },
   "dependencies": {
     "@turf/boolean-point-in-polygon": "^7.3.4",

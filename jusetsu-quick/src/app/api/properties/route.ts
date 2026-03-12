@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getRequestContext } from "@cloudflare/next-on-pages";
 import { createProperty, listProperties } from "@/lib/db/queries";
+import { ensureSchema } from "@/lib/db/ensure-schema";
 
 export const runtime = "edge";
 
@@ -8,6 +9,7 @@ export async function GET() {
   try {
     const { env } = getRequestContext();
     const db = env.DB;
+    await ensureSchema(db);
     const { results } = await listProperties(db);
     return NextResponse.json({ results });
   } catch (e: unknown) {
@@ -42,6 +44,8 @@ export async function POST(req: NextRequest) {
   if (!db) {
     return NextResponse.json({ error: "Database not configured (DB binding missing)" }, { status: 500 });
   }
+
+  await ensureSchema(db);
 
   const id =
     (typeof data.id === "string" && data.id) ||
