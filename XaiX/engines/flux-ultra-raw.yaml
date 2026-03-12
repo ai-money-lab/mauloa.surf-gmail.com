@@ -1,0 +1,12 @@
+# FLUX 1.1 Pro Ultra Raw — AI感が最も少ないモード
+name: flux-ultra-raw
+description: "FLUX 1.1 Pro Ultra Raw — 4MP高解像度、最もAI感がない自然な仕上がり"
+endpoint: "fal-ai/flux-pro/v1.1-ultra"
+fallback_endpoint: "fal-ai/flux-pro/v1.1"
+defaults:
+  num_inference_steps: 40
+  guidance_scale: 3.5
+  image_size: portrait_4_3
+  num_images: 1
+  # raw=trueでAI感を消す（fal.aiのraw modeパラメータ）
+  raw: true

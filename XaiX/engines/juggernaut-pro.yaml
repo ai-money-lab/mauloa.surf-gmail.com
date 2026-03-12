@@ -1,0 +1,10 @@
+# Juggernaut Flux Pro — リアリズム最強エンジン
+name: juggernaut-pro
+description: "Juggernaut Flux Pro — RunDiffusion製、顔・肌のリアリズムが最高レベル"
+endpoint: "rundiffusion-fal/juggernaut-flux/pro"
+fallback_endpoint: "fal-ai/flux-2-pro"
+defaults:
+  num_inference_steps: 40
+  guidance_scale: 3.5
+  image_size: portrait_4_3
+  num_images: 1

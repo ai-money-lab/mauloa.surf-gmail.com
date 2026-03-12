@@ -97,6 +97,11 @@ def generate_image(
     if scene.get("negative_prompt"):
         arguments["negative_prompt"] = scene["negative_prompt"]
 
+    # エンジン固有のパラメータ（raw mode等）
+    for key in ["raw", "enable_safety_checker"]:
+        if key in defaults:
+            arguments[key] = defaults[key]
+
     print(f"生成中... エンジン: {engine['name']}, シーン: {scene['name']}")
     print(f"  エンドポイント: {endpoint}")
     print(f"  ステップ数: {arguments['num_inference_steps']}")
