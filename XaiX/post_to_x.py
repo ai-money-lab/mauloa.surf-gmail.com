@@ -4,6 +4,8 @@ XaiX — X（Twitter）投稿スクリプト
 生成した画像をXに投稿する
 """
 
+from __future__ import annotations
+
 import argparse
 import os
 import sys

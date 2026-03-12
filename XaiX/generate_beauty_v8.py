@@ -4,6 +4,8 @@ XaiX — AI美女画像生成パイプライン v8
 fal.ai FLUX LoRA Realism を使ったフォトリアル画像生成
 """
 
+from __future__ import annotations
+
 import argparse
 import hashlib
 import json
