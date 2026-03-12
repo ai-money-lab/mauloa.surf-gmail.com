@@ -119,11 +119,22 @@ export async function POST(req: NextRequest) {
   const sediment = parseSedimentRisk(hazardData);
 
   // Extract zoning fields - try all possible reinfolib field names, then smart-match
-  const zoningValue = tryFields(zoningProps, "use_area_ja", "用途地域", "youto", "A29_004", "A09_004");
+  // 国土数値情報 A29: A29_004=コード, A29_005=用途地域名, A29_006=建蔽率, A29_007=容積率
+  const zoningValue = tryFields(zoningProps,
+    "A29_005", "A29_005_ja", "A29_004_ja",  // A29_005=用途地域名, A29_004_ja=コードの日本語
+    "use_area_ja", "用途地域", "youto", "A29_004", "A09_004"
+  );
 
   // For BCR/FAR, try known field names first, then scan all properties
-  let bcrRaw = tryFields(zoningProps, "u_building_coverage_ratio_ja", "建ぺい率", "建蔽率", "kenpei", "A29_005", "A09_006");
-  let farRaw = tryFields(zoningProps, "u_floor_area_ratio_ja", "容積率", "youseki", "A29_006", "A09_007");
+  // A29_006=建蔽率, A29_007=容積率 (NOT A29_005/A29_006 which are zone name/BCR)
+  let bcrRaw = tryFields(zoningProps,
+    "A29_006", "A29_006_ja",  // 国土数値情報 正式フィールド
+    "u_building_coverage_ratio_ja", "建ぺい率", "建蔽率", "kenpei", "A09_006"
+  );
+  let farRaw = tryFields(zoningProps,
+    "A29_007", "A29_007_ja",  // 国土数値情報 正式フィールド
+    "u_floor_area_ratio_ja", "容積率", "youseki", "A09_007"
+  );
 
   // Smart scan: if BCR/FAR still null, search zoningProps keys for partial matches
   if (zoningProps && (bcrRaw === null || farRaw === null)) {

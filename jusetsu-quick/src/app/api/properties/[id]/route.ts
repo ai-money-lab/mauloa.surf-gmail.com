@@ -59,8 +59,16 @@ export async function PUT(
   // Remove fields that should not be updated directly
   delete data.id;
   delete data.created_at;
+  delete data.company_id;
+  delete data.created_by;
 
-  await updatePropertyManual(db, id, data);
+  try {
+    await updatePropertyManual(db, id, data);
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : String(e);
+    console.error("updatePropertyManual failed:", msg);
+    return NextResponse.json({ error: `DB更新エラー: ${msg}` }, { status: 500 });
+  }
 
   const updated = await getProperty(db, id);
   return NextResponse.json(updated);

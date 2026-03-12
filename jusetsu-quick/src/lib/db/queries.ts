@@ -57,7 +57,9 @@ export async function createProperty(
   for (const col of PROPERTY_COLUMNS) {
     if (data[col] !== undefined) {
       columns.push(col);
-      values.push(data[col]);
+      // Convert booleans to integers for SQLite
+      const val = data[col];
+      values.push(typeof val === "boolean" ? (val ? 1 : 0) : val);
     }
   }
 
@@ -75,10 +77,16 @@ export async function updatePropertyManual(
   id: string,
   data: Record<string, unknown>
 ) {
-  const fields = Object.keys(data).filter((k) => data[k] !== undefined);
+  const allowedCols = new Set<string>(PROPERTY_COLUMNS);
+  const fields = Object.keys(data).filter(
+    (k) => data[k] !== undefined && allowedCols.has(k)
+  );
   if (fields.length === 0) return;
   const setClauses = fields.map((f) => `${f} = ?`).join(", ");
-  const values = fields.map((f) => data[f]);
+  const values = fields.map((f) => {
+    const val = data[f];
+    return typeof val === "boolean" ? (val ? 1 : 0) : val;
+  });
   return db
     .prepare(
       `UPDATE properties SET ${setClauses}, updated_at = datetime('now') WHERE id = ?`

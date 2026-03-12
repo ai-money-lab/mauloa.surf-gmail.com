@@ -41,12 +41,18 @@ export async function POST(req: NextRequest) {
     status: (data.status as string) || "draft",
   };
 
-  await createProperty(db, property as Record<string, unknown> & {
-    id: string;
-    company_id: string;
-    created_by: string;
-    address: string;
-  });
+  try {
+    await createProperty(db, property as Record<string, unknown> & {
+      id: string;
+      company_id: string;
+      created_by: string;
+      address: string;
+    });
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : String(e);
+    console.error("createProperty failed:", msg);
+    return NextResponse.json({ error: `DB保存エラー: ${msg}` }, { status: 500 });
+  }
 
   // Return the created property with timestamps
   const created = await db

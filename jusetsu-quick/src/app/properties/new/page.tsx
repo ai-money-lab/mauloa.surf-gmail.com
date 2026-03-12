@@ -203,8 +203,15 @@ export default function NewPropertyPage() {
       });
 
       if (res.ok) {
-        const data: SearchResult = await res.json();
-        setApiData(data);
+        const data = await res.json();
+        // Log debug info to help diagnose missing fields
+        if (data._debug_fields || data._debug_raw) {
+          console.log("[jusetsu] API debug - field keys:", data._debug_fields);
+          console.log("[jusetsu] API debug - raw zoning props:", data._debug_raw?.zoning);
+          console.log("[jusetsu] API debug - raw fire props:", data._debug_raw?.fire);
+          console.log("[jusetsu] API debug - raw landPrice props:", data._debug_raw?.landPrice);
+        }
+        setApiData(data as SearchResult);
       } else {
         const err = await res.json().catch(() => ({ error: "APIエラー" }));
         setError(err.error || `APIエラー (${res.status})`);
@@ -283,7 +290,10 @@ export default function NewPropertyPage() {
         showToast("保存しました。物件詳細に移動します...");
         setTimeout(() => router.push(`/properties/${newId}`), 800);
       } else {
-        showToast("保存に失敗しました");
+        const errData = await res.json().catch(() => null);
+        const detail = errData?.error || `HTTP ${res.status}`;
+        console.error("Save failed:", detail);
+        showToast(`保存に失敗しました: ${detail}`);
       }
     } catch {
       showToast("ネットワークエラー");
