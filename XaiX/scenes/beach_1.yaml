@@ -1,20 +1,24 @@
-# ビーチ — 正面ビキニショット
+# バスルーム — お風呂上がりの彼女
 name: beach_1
-description: "ビーチで正面からビキニ姿の彼女"
+description: "お風呂上がりにバスタオル姿の彼女"
 prompt_template: >
-  RAW photo, shot on Canon EOS R5 85mm f/1.4, shallow depth of field,
-  1japanese girl, 24 years old, solo, looking at viewer, facing front,
-  beautiful detailed face, round jawline, big brown eyes with catchlight, long eyelashes,
-  long straight black hair, small nose, full glossy lips,
-  natural blush, sun-kissed dewy skin, bright sexy smile,
-  very slim body, extremely thin waist, large breasts, flat toned stomach, slim long legs,
-  wearing white string bikini showing cleavage and waist curves,
-  standing on beach facing camera, hands on hips pose,
-  golden hour sunset backlight, ocean behind her, warm glow on skin,
-  front view, full body shot, eye contact with camera,
-  best quality, masterpiece, photorealistic, 8k, ultra detailed skin texture
+  RAW photo, candid snapshot, warm bathroom lighting,
+  1japanese girl, 24 years old, solo, looking at viewer,
+  sharp slim jawline, oval face shape, small pointed chin,
+  large double-lidded brown eyes with wide crease, long natural eyelashes,
+  thin straight eyebrows slightly arched, no eyeshadow bare face,
+  narrow straight nose bridge with small refined nose tip,
+  full soft lips with natural pink tint slightly parted, shy playful expression,
+  wet dark brown hair slicked back, bare face completely no makeup,
+  flushed pink cheeks and ears from hot bath, dewy damp skin glistening,
+  very slim body, extremely thin waist, large natural breasts, visible cleavage above towel,
+  wearing only white bath towel wrapped around chest barely covering,
+  standing in steamy bathroom doorway facing camera, one hand holding towel,
+  warm soft bathroom light from behind, steam in air, mirror reflection,
+  front view, medium shot from thighs up, intimate natural moment,
+  photorealistic, 8k, film grain, natural color grading
 negative_prompt: >
-  ugly, deformed, bad anatomy, bad hands, blurry, watermark, text, back view
+  ugly, deformed, bad anatomy, blurry, watermark, text
 image_size: portrait_4_3
 num_inference_steps: 40
 guidance_scale: 3.5

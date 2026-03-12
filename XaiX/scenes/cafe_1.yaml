@@ -1,20 +1,24 @@
-# カフェ — 胸元チラ見せの彼女
+# キッチン — 料理中の彼女
 name: cafe_1
-description: "カフェで胸元をチラ見せしながら微笑む彼女"
+description: "キッチンで料理しながら振り向く彼女"
 prompt_template: >
-  RAW photo, shot on Canon EOS R5 85mm f/1.4, shallow depth of field, bokeh,
-  1japanese girl, 24 years old, solo, looking at viewer, facing front,
-  beautiful detailed face, round jawline, big brown eyes with catchlight, long eyelashes,
-  see-through bangs, long straight black hair, small nose, full glossy lips,
-  natural blush cheeks, dewy glowing skin, playful seductive smile biting lower lip,
-  very slim body, extremely thin waist, large breasts, visible cleavage, delicate collarbones,
-  wearing loose V-neck knit sweater falling off one shoulder showing bra strap and cleavage,
-  leaning forward on cafe table toward camera, coffee cup beside her,
-  warm afternoon window light, soft shadows on skin,
-  front view, upper body close-up, eye contact with camera, intimate distance,
-  best quality, masterpiece, photorealistic, 8k, ultra detailed skin texture
+  RAW photo, candid snapshot, natural kitchen lighting,
+  1japanese girl, 24 years old, solo, looking at viewer,
+  sharp slim jawline, oval face shape, small pointed chin,
+  large double-lidded brown eyes with wide crease, long natural eyelashes,
+  thin straight eyebrows slightly arched, subtle brown eyeshadow,
+  narrow straight nose bridge with small refined nose tip,
+  full soft lips with natural pink tint, warm genuine smile,
+  see-through bangs, long dark brown hair tied in loose messy bun with strands falling,
+  natural bare minimum makeup, healthy glowing skin, slight sweat on forehead,
+  very slim body, extremely thin waist, large natural breasts,
+  wearing tight fitted apron over thin white t-shirt with no bra visible outline,
+  standing in modern kitchen holding wooden spatula, turning toward camera,
+  warm kitchen overhead light, steam from cooking, homey atmosphere,
+  front view, medium shot, natural candid moment,
+  photorealistic, 8k, film grain, natural color grading
 negative_prompt: >
-  ugly, deformed, bad anatomy, bad hands, blurry, watermark, text, back view
+  ugly, deformed, bad anatomy, blurry, watermark, text
 image_size: portrait_4_3
 num_inference_steps: 40
 guidance_scale: 3.5

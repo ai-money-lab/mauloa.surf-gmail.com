@@ -1,20 +1,24 @@
-# 夜の東京 — 正面セクシーショット
+# リビング — ソファでくつろぐ彼女
 name: night_1
-description: "夜の東京、正面からセクシーに微笑む彼女"
+description: "夜のリビング、ソファでくつろぐ彼女"
 prompt_template: >
-  RAW photo, shot on Canon EOS R5 85mm f/1.4, shallow depth of field,
-  1japanese girl, 24 years old, solo, looking at viewer, facing front,
-  beautiful detailed face, round jawline, big brown eyes with catchlight, long eyelashes,
-  see-through bangs, long straight black hair, small nose, full glossy lips,
-  natural blush cheeks, dewy glowing skin, seductive cute smile,
-  very slim body, extremely thin waist, large breasts, visible cleavage,
-  wearing low-cut tight camisole top showing deep cleavage and tiny waist,
-  standing facing camera on Tokyo night street,
-  neon lights bokeh background, warm street lighting,
-  front view, medium shot from waist up, eye contact with camera,
-  best quality, masterpiece, photorealistic, 8k, ultra detailed skin texture
+  RAW photo, candid snapshot, natural indoor lighting,
+  1japanese girl, 24 years old, solo, looking at viewer,
+  sharp slim jawline, oval face shape, small pointed chin,
+  large double-lidded brown eyes with wide crease, long natural eyelashes,
+  thin straight eyebrows slightly arched, subtle brown eyeshadow,
+  narrow straight nose bridge with small refined nose tip,
+  full soft lips with natural pink tint, slight open mouth smile,
+  see-through bangs, long straight dark brown hair past shoulders,
+  natural bare minimum makeup, healthy glowing skin, light blush,
+  very slim body, extremely thin waist, large natural breasts pushing against top,
+  wearing oversized cream knit cardigan over thin camisole showing cleavage,
+  sitting on living room sofa with legs tucked under, holding mug,
+  warm dim living room lighting, TV glow in background, cozy home atmosphere,
+  front view, upper body shot, relaxed natural expression,
+  photorealistic, 8k, film grain, natural color grading
 negative_prompt: >
-  ugly, deformed, bad anatomy, bad hands, blurry, watermark, text, back view
+  ugly, deformed, bad anatomy, blurry, watermark, text
 image_size: portrait_4_3
 num_inference_steps: 40
 guidance_scale: 3.5

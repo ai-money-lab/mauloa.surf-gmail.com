@@ -1,20 +1,24 @@
-# 温泉旅館 — 浴衣がはだけた彼女
+# ベッドルーム — 夜の部屋着姿の彼女
 name: onsen_1
-description: "温泉旅館で浴衣がはだけてセクシーな彼女"
+description: "夜のベッドルームで部屋着姿の彼女"
 prompt_template: >
-  RAW photo, shot on Canon EOS R5 50mm f/1.8, warm indoor light,
-  1japanese girl, 24 years old, solo, looking at viewer, facing front,
-  beautiful detailed face, round jawline, big brown eyes with catchlight, long eyelashes,
-  long black hair loosely tied up with strands falling, small nose, full glossy lips,
-  flushed pink cheeks, dewy damp skin glistening, seductive inviting smile,
-  very slim body, extremely thin waist, large breasts, cleavage visible,
-  wearing loosely tied yukata wide open at chest showing deep cleavage and collarbones,
-  sitting on tatami facing camera, leaning back slightly on hands,
-  warm golden indoor lighting, futon in background,
-  front view, medium shot, eye contact with camera, intimate atmosphere,
-  best quality, masterpiece, photorealistic, 8k, ultra detailed skin texture
+  RAW photo, candid snapshot, warm bedside lamp lighting,
+  1japanese girl, 24 years old, solo, looking at viewer,
+  sharp slim jawline, oval face shape, small pointed chin,
+  large double-lidded brown eyes with wide crease, long natural eyelashes,
+  thin straight eyebrows slightly arched, subtle brown eyeshadow,
+  narrow straight nose bridge with small refined nose tip,
+  full soft lips with natural pink tint, seductive gentle smile,
+  see-through bangs, long straight dark brown hair flowing over shoulders,
+  light natural makeup, healthy glowing skin, slight blush,
+  very slim body, extremely thin waist, large natural breasts, deep cleavage visible,
+  wearing loose silk camisole nightwear with thin straps showing shoulders and chest,
+  sitting on edge of bed facing camera, legs crossed, leaning forward slightly,
+  warm dim bedside lamp light, white sheets, bedroom night atmosphere,
+  front view, full body sitting shot, eye contact, intimate seductive mood,
+  photorealistic, 8k, film grain, natural color grading
 negative_prompt: >
-  ugly, deformed, bad anatomy, bad hands, blurry, watermark, text, back view
+  ugly, deformed, bad anatomy, blurry, watermark, text
 image_size: portrait_4_3
 num_inference_steps: 40
 guidance_scale: 3.5
