@@ -1,0 +1,13 @@
+# LoRA Realism エンジン — フォトリアリスティック美女生成
+name: lora-realism
+description: "FLUX 2 LoRA Realism — フォトリアルな人物生成に特化"
+# fal.ai エンドポイント
+endpoint: "fal-ai/flux-2-lora-gallery/realism"
+# フォールバック: FLUX.1 LoRA
+fallback_endpoint: "fal-ai/flux-lora"
+# デフォルトパラメータ
+defaults:
+  num_inference_steps: 40
+  guidance_scale: 7.5
+  image_size: portrait_4_3
+  num_images: 1

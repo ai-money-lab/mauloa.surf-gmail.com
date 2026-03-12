@@ -1,0 +1,15 @@
+# 夜景シーン — ネオンライトの都市背景
+name: night_1
+description: "ネオンが光る夜の都市を背景にした美女ポートレート"
+prompt_template: >
+  professional portrait photography of a beautiful young woman,
+  standing in a neon-lit city street at night,
+  cinematic lighting, bokeh background with colorful neon signs,
+  shallow depth of field, high fashion editorial style,
+  8k uhd, sharp focus, natural skin texture
+negative_prompt: >
+  ugly, deformed, noisy, blurry, low quality, cartoon, anime,
+  painting, drawing, illustration, text, watermark
+image_size: portrait_4_3
+num_inference_steps: 40
+guidance_scale: 7.5

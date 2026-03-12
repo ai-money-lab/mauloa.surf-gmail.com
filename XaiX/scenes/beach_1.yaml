@@ -1,0 +1,15 @@
+# ビーチシーン — ゴールデンアワー
+name: beach_1
+description: "夕暮れのビーチでのゴールデンアワーポートレート"
+prompt_template: >
+  professional portrait photography of a beautiful young woman,
+  walking on a tropical beach at golden hour sunset,
+  warm golden light, ocean waves in background,
+  wind in hair, editorial fashion photography,
+  8k uhd, sharp focus, natural skin texture
+negative_prompt: >
+  ugly, deformed, noisy, blurry, low quality, cartoon, anime,
+  painting, drawing, illustration, text, watermark
+image_size: portrait_4_3
+num_inference_steps: 40
+guidance_scale: 7.5

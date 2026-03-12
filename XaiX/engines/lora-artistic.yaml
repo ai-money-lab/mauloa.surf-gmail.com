@@ -1,0 +1,9 @@
+# LoRA Artistic エンジン — アーティスティックスタイル
+name: lora-artistic
+description: "FLUX LoRA — スタイリッシュなアート風生成"
+endpoint: "fal-ai/flux-lora"
+defaults:
+  num_inference_steps: 30
+  guidance_scale: 5.0
+  image_size: portrait_4_3
+  num_images: 1
