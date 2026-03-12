@@ -165,7 +165,7 @@ export async function POST(req: NextRequest) {
     ? extractNearestFeature(reinfolibData.schoolDistrictJr as Record<string, unknown> | null, lat, lng, 3000)
     : null;
   const landPriceProps = reinfolibData
-    ? extractNearestFeature(reinfolibData.landPrice as Record<string, unknown> | null, lat, lng, 5000)
+    ? extractNearestFeature(reinfolibData.landPrice as Record<string, unknown> | null, lat, lng, 8000)
     : null;
   const futurePopProps = reinfolibData
     ? extractNearestFeature(reinfolibData.futurePop as Record<string, unknown> | null, lat, lng, 5000)
@@ -205,14 +205,15 @@ export async function POST(req: NextRequest) {
     ));
   }
 
-  // Fallback: derive BCR/FAR hint from zoning name
+  // Fallback: derive BCR/FAR from zoning name (法定デフォルト)
   let bcrFarSource: string | null = null;
+  let farRange: string | null = null;
   if (zoning && (bcr === null || far === null)) {
     const defaults = ZONING_DEFAULTS[zoning as string];
     if (defaults) {
       if (bcr === null) bcr = defaults.bcr;
-      if (far === null) far = null; // Don't guess FAR (it's a range)
-      bcrFarSource = "用途地域から推定";
+      if (far === null) farRange = defaults.far; // Range string like "200〜1300"
+      bcrFarSource = "用途地域から推定（要確認）";
     }
   }
 
@@ -262,6 +263,7 @@ export async function POST(req: NextRequest) {
     zoning,
     building_coverage_ratio: bcr,
     floor_area_ratio: far,
+    floor_area_ratio_range: farRange,
     bcr_far_source: bcrFarSource,
     fire_zone: fireZone,
     height_district: heightDistrict,

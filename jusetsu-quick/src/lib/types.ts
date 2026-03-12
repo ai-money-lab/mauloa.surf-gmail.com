@@ -81,6 +81,7 @@ export interface SearchResult {
   zoning?: string;
   building_coverage_ratio?: number;
   floor_area_ratio?: number;
+  floor_area_ratio_range?: string;
   bcr_far_source?: string;
   fire_zone?: string;
   height_district?: string;

@@ -43,7 +43,7 @@ async function fetchLandPriceWithYearFallback(lat: number, lng: number, apiKey: 
   const currentYear = new Date().getFullYear();
   // Try current year, then go back up to 3 years
   for (const y of [currentYear, currentYear - 1, currentYear - 2, currentYear - 3]) {
-    const result = await fetchTileWithFallback("XPT002", lat, lng, [15, 14, 13], apiKey, { year: String(y) });
+    const result = await fetchTileWithFallback("XPT002", lat, lng, [15, 14, 13, 12], apiKey, { year: String(y) });
     if (result?.features?.length > 0) return result;
   }
   return null;

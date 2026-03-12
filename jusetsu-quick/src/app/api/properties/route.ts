@@ -47,11 +47,22 @@ export async function POST(req: NextRequest) {
     (typeof data.id === "string" && data.id) ||
     crypto.randomUUID().replace(/-/g, "").slice(0, 16);
 
+  const companyId = (data.company_id as string) || "demo";
+  const createdBy = (data.created_by as string) || "demo";
+
+  // Ensure demo company/user exist (satisfies FOREIGN KEY constraints)
+  try {
+    await db.prepare("INSERT OR IGNORE INTO companies (id, name) VALUES (?, ?)").bind(companyId, "デモ会社").run();
+    await db.prepare("INSERT OR IGNORE INTO users (id, company_id, email, name, role) VALUES (?, ?, ?, ?, ?)").bind(createdBy, companyId, `${createdBy}@example.com`, "ユーザー", "admin").run();
+  } catch {
+    // Ignore - tables might not have these constraints in some envs
+  }
+
   const property = {
     ...data,
     id,
-    company_id: (data.company_id as string) || "demo",
-    created_by: (data.created_by as string) || "demo",
+    company_id: companyId,
+    created_by: createdBy,
     address: data.address as string,
     property_type: (data.property_type as string) || "condo",
     status: (data.status as string) || "draft",

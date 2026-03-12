@@ -40,7 +40,7 @@ function computeCompletion(
     // API fields
     !!apiData?.zoning,
     !!apiData?.building_coverage_ratio,
-    !!apiData?.floor_area_ratio,
+    !!(apiData?.floor_area_ratio || apiData?.floor_area_ratio_range),
     !!apiData?.fire_zone,
     !!apiData?.flood_text,
     !!apiData?.tsunami_text,
@@ -311,7 +311,7 @@ export default function NewPropertyPage() {
       // 都市計画
       ["都市計画", "用途地域", ad?.zoning || "", "自動取得"],
       ["都市計画", "建ぺい率", ad?.building_coverage_ratio ? `${ad.building_coverage_ratio}%` : "", "自動取得"],
-      ["都市計画", "容積率", ad?.floor_area_ratio ? `${ad.floor_area_ratio}%` : "", "自動取得"],
+      ["都市計画", "容積率", ad?.floor_area_ratio ? `${ad.floor_area_ratio}%` : ad?.floor_area_ratio_range ? `${ad.floor_area_ratio_range}%（推定）` : "", "自動取得"],
       ["都市計画", "防火地域", ad?.fire_zone || "", "自動取得"],
       ["都市計画", "高度地区", ad?.height_district || "", "自動取得"],
       ["都市計画", "都市計画区域区分", ad?.urban_plan_zone || "", "自動取得"],
@@ -394,7 +394,7 @@ export default function NewPropertyPage() {
     // API auto
     { k: "用途地域", v: ad?.zoning || "—", t: ad?.zoning ? "auto" : "missing" },
     { k: "建ぺい率", v: ad?.building_coverage_ratio ? `${ad.building_coverage_ratio}%` : "—", t: ad?.building_coverage_ratio ? "auto" : "missing" },
-    { k: "容積率", v: ad?.floor_area_ratio ? `${ad.floor_area_ratio}%` : "—", t: ad?.floor_area_ratio ? "auto" : "missing" },
+    { k: "容積率", v: ad?.floor_area_ratio ? `${ad.floor_area_ratio}%` : ad?.floor_area_ratio_range ? `${ad.floor_area_ratio_range}%` : "—", t: (ad?.floor_area_ratio || ad?.floor_area_ratio_range) ? "auto" : "missing" },
     { k: "防火地域", v: ad?.fire_zone || "—", t: ad?.fire_zone ? "auto" : "missing" },
     { k: "洪水浸水想定", v: ad?.flood_text || "—", t: ad?.flood_text ? "auto" : "missing" },
     { k: "津波浸水想定", v: ad?.tsunami_text || "—", t: ad?.tsunami_text ? "auto" : "missing" },
@@ -693,7 +693,7 @@ export default function NewPropertyPage() {
                 />
                 <AutoRow
                   label="容積率"
-                  value={ad?.floor_area_ratio ? `${ad.floor_area_ratio}%` : "該当データなし"}
+                  value={ad?.floor_area_ratio ? `${ad.floor_area_ratio}%` : ad?.floor_area_ratio_range ? `${ad.floor_area_ratio_range}%` : "該当データなし"}
                   sub={ad?.bcr_far_source}
                 />
                 <AutoRow label="高度地区" value={ad?.height_district || "該当データなし"} />
