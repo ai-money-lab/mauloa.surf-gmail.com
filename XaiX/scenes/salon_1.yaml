@@ -1,0 +1,27 @@
+# サロン施術 — メンズエステ風の施術着姿
+name: salon_1
+description: "メンズエステ風、施術着ミニワンピの彼女"
+prompt_template: >
+  RAW photo, shot on Sony A7III 50mm f/1.8, warm soft diffused salon lighting,
+  1japanese girl, 24 years old, 170cm tall, solo,
+  looking at camera with chin slightly down, shot from slightly above at 45 degrees,
+  sharp slim jawline, oval face shape, small pointed chin,
+  large double-lidded brown eyes with wide crease, long natural eyelashes,
+  narrow straight nose bridge with small refined nose tip,
+  full soft lips with natural pink tint, shy gentle smile with slight head tilt,
+  see-through bangs, long dark brown hair in loose messy updo with loose strands framing face,
+  light natural makeup, dewy glowing skin, realistic skin texture,
+  tall slender model body, long torso, very narrow waist, wide hip bones,
+  large natural breasts on thin frame, visible collarbone and shoulder line,
+  long slim legs, thin arms, delicate wrists,
+  wearing short tight black mini dress uniform with deep V-neck showing cleavage,
+  dress ending high on thigh showing long bare legs,
+  standing in dimly lit luxury spa treatment room, one hand on massage table,
+  candles and warm ambient light in background, dark elegant interior,
+  full body shot head to toe showing tall slender figure and long bare legs,
+  photorealistic, warm moody lighting, ISO 1600, color temperature 3200K warm
+negative_prompt: >
+  ugly, deformed, bad anatomy, blurry, watermark, airbrushed skin, smooth plastic skin
+image_size: portrait_4_3
+num_inference_steps: 40
+guidance_scale: 3.5

@@ -1,24 +1,26 @@
-# 通勤 — 朝の駅で電車待ちの彼女
+# 通勤 — 朝の駅ホームでの通勤姿
 name: commute_1
-description: "朝の駅ホームで電車を待つ通勤姿の彼女"
+description: "朝の駅ホーム、トレンチコートの通勤姿の彼女"
 prompt_template: >
-  RAW photo, shot on Sony A7III 85mm f/1.8, natural morning outdoor light,
-  1japanese girl, 24 years old, 170cm tall, solo, looking at viewer,
+  RAW photo, shot on Sony A7III 85mm f/1.8, natural morning golden hour light,
+  1japanese girl, 24 years old, 170cm tall, solo,
+  looking at camera over shoulder, shot from slightly behind at angle,
   sharp slim jawline, oval face shape, small pointed chin,
   large double-lidded brown eyes with wide crease, long natural eyelashes,
   narrow straight nose bridge with small refined nose tip,
-  full soft lips with natural pink tint, calm gentle expression,
-  see-through bangs, long dark brown hair slightly wind-blown,
-  light natural makeup, realistic skin with slight redness on nose from cold air,
+  full soft lips with natural pink tint, calm mysterious expression,
+  see-through bangs, long dark brown hair slightly blown by wind,
+  light natural makeup, realistic skin with slight pink from cold morning air,
   tall slender model body, long torso, very narrow waist, wide hip bones,
   large natural breasts on thin frame, prominent collarbones,
-  long slim legs in sheer black stockings, thin arms holding tote bag,
-  wearing beige trench coat slightly open over fitted knit dress,
-  knit dress clinging to body showing waist curves and bust line,
-  nude heels, standing on train platform with earbuds in,
-  morning golden hour light from behind, Japanese train station background,
-  full body shot head to toe showing tall slender figure,
-  photorealistic, shallow depth of field, ISO 400, color temperature 5500K
+  long slim legs in sheer black stockings, thin arms holding leather tote bag,
+  wearing beige trench coat open over tight ribbed knit dress clinging to body,
+  dress showing waist curve and bust line through open coat,
+  black pointed heels, small earrings,
+  standing on Japanese train station platform, morning commuters in background blur,
+  golden morning backlight creating warm rim light on hair,
+  full body shot head to toe showing tall slender figure with wind in coat,
+  photorealistic, cinematic shallow depth of field, ISO 400, color temperature 5500K
 negative_prompt: >
   ugly, deformed, bad anatomy, blurry, watermark, airbrushed skin, smooth plastic skin
 image_size: portrait_4_3

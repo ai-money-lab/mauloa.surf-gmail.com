@@ -1,24 +1,26 @@
-# カフェ仕事 — ノートPC広げてカフェで仕事中の彼女
+# カフェ仕事 — ノートPC広げてカフェで仕事中
 name: cafe_work_1
-description: "カフェでノートPCを開いて仕事中の彼女"
+description: "カフェの窓際席でMacBookを開いて仕事中の彼女"
 prompt_template: >
-  RAW photo, shot on Sony A7III 50mm f/1.8, natural cafe window light,
-  1japanese girl, 24 years old, 170cm tall, solo, looking at viewer,
+  RAW photo, shot on Sony A7III 85mm f/1.8, warm natural cafe window light,
+  1japanese girl, 24 years old, 170cm tall, solo,
+  looking up at camera from laptop with gentle smile, shot from slightly above,
   sharp slim jawline, oval face shape, small pointed chin,
   large double-lidded brown eyes with wide crease, long natural eyelashes,
   narrow straight nose bridge with small refined nose tip,
-  full soft lips with natural pink tint, relaxed friendly smile,
-  see-through bangs, long dark brown hair loosely draped over one shoulder,
-  light natural makeup, realistic uneven skin tone,
+  full soft lips with natural pink tint, soft approachable expression,
+  see-through bangs, long dark brown hair tucked behind one ear,
+  light natural makeup, dewy glowing skin, realistic skin texture,
   tall slender model body, long torso, very narrow waist,
   large natural breasts on thin frame visible through tight top,
-  long slim legs crossed, thin arms, prominent collarbones,
-  wearing cropped knit cardigan over thin camisole showing cleavage and midriff,
-  high-waist fitted jeans showing long slim legs and narrow waist,
-  white sneakers, sitting at cafe window seat with MacBook open,
-  latte and pastry on wooden table, warm afternoon sunlight from window,
-  full body shot showing entire seated figure from head to feet,
-  photorealistic, bokeh background, ISO 800, color temperature 5500K daylight
+  long slim legs crossed showing thigh, thin arms, prominent collarbones,
+  wearing thin ribbed knit top with low scoop neck showing collarbone and upper chest,
+  fitted mini skirt showing long bare legs crossed at thigh,
+  sitting at wooden cafe table with MacBook and iced latte,
+  warm afternoon sunlight creating golden rim light on hair and skin,
+  full body shot showing entire seated figure including crossed legs and heels,
+  cozy trendy cafe interior with plants in background bokeh,
+  photorealistic, shallow depth of field bokeh, ISO 800, color temperature 5500K
 negative_prompt: >
   ugly, deformed, bad anatomy, blurry, watermark, airbrushed skin, smooth plastic skin
 image_size: portrait_4_3

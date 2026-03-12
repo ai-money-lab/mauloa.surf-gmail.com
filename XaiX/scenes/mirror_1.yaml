@@ -1,0 +1,28 @@
+# ミラー — 全身鏡の前でポーズ
+name: mirror_1
+description: "全身鏡の前で振り返る、白シャツ一枚の彼女"
+prompt_template: >
+  RAW photo, shot on Sony A7III 35mm f/1.8, soft natural light from window,
+  1japanese girl, 24 years old, 170cm tall, solo,
+  looking at camera over bare shoulder, turning back toward camera,
+  sharp slim jawline, oval face shape, small pointed chin,
+  large double-lidded brown eyes with wide crease, long natural eyelashes,
+  narrow straight nose bridge with small refined nose tip,
+  full soft lips with natural pink tint, playful seductive expression,
+  see-through bangs, long dark brown hair cascading down bare back,
+  bare face natural no makeup look, realistic skin with visible shoulder blades,
+  tall slender model body, long torso, very narrow waist, wide hip bones,
+  large natural breasts on thin frame, visible spine and back muscles,
+  long slim legs, thin arms,
+  wearing only oversized white mens dress shirt barely covering hips,
+  shirt collar sliding off one bare shoulder, buttons half undone,
+  bare long legs from behind, standing barefoot in front of full length mirror,
+  bright airy bedroom with white walls and natural morning light,
+  reflection visible in mirror showing front view,
+  full body shot head to toe showing tall slender back and long bare legs,
+  photorealistic, natural exposure, ISO 800, color temperature 5500K daylight
+negative_prompt: >
+  ugly, deformed, bad anatomy, blurry, watermark, airbrushed skin, smooth plastic skin
+image_size: portrait_4_3
+num_inference_steps: 40
+guidance_scale: 3.5

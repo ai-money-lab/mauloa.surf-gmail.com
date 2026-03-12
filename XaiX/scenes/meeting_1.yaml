@@ -1,24 +1,26 @@
-# 会議室 — プレゼン中の彼女
+# 受付 — 高級サロン受付で立つ彼女
 name: meeting_1
-description: "会議室でプレゼン中、立ち姿の彼女"
+description: "高級サロンの受付で微笑む白ワンピースの彼女"
 prompt_template: >
-  RAW photo, shot on Sony A7III 35mm f/2.8, available office light,
-  1japanese girl, 24 years old, 170cm tall, solo, looking at viewer,
+  RAW photo, shot on Sony A7III 50mm f/1.8, soft warm interior lighting,
+  1japanese girl, 24 years old, 170cm tall, solo,
+  looking at camera with chin slightly tilted, shot from eye level,
   sharp slim jawline, oval face shape, small pointed chin,
   large double-lidded brown eyes with wide crease, long natural eyelashes,
   narrow straight nose bridge with small refined nose tip,
-  full soft lips with natural pink tint, serious focused expression,
-  see-through bangs, long dark brown hair flowing down past shoulders,
-  light natural makeup, realistic skin with slight flush on cheeks,
+  full soft lips with natural pink tint, warm welcoming smile,
+  see-through bangs, long dark brown hair in loose low ponytail with face-framing strands,
+  light natural makeup, dewy healthy skin, realistic skin texture,
   tall slender model body, long torso, very narrow waist, wide hip bones,
-  large natural breasts on thin frame, visible collarbone,
-  long slim legs, thin arms holding tablet,
-  wearing tailored black blazer over low-cut white camisole showing deep cleavage,
-  black fitted trousers showing long slim legs and narrow waist,
-  black pointed heels, standing in front of whiteboard mid-presentation,
-  glass conference room with city view, modern office interior,
-  full body shot head to toe from slightly below eye level,
-  photorealistic, natural exposure, ISO 640, color temperature 4500K
+  large natural breasts on thin frame, prominent collarbones and shoulder blades,
+  long slim legs, thin arms, one hand resting on reception counter,
+  wearing fitted white mini dress with V-neck showing collarbone and cleavage line,
+  dress hugging narrow waist and hips ending mid-thigh showing long bare legs,
+  nude pointed heels, small gold necklace,
+  standing behind elegant reception counter in luxury spa salon,
+  warm soft diffused lighting, marble counter, orchid arrangement,
+  full body shot head to toe showing tall slender figure,
+  photorealistic, elegant atmosphere, ISO 640, color temperature 4000K warm
 negative_prompt: >
   ugly, deformed, bad anatomy, blurry, watermark, airbrushed skin, smooth plastic skin
 image_size: portrait_4_3
