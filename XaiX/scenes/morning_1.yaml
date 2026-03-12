@@ -2,20 +2,18 @@
 name: morning_1
 description: "朝起きたばかりの彼女、ベッドの上で"
 prompt_template: >
-  candid snapshot of a slender young Japanese girlfriend age 24,
-  very thin waist, large bust visible under thin fabric, delicate shoulders,
-  irresistible idol-tier face, large sparkling double-lidded eyes half-open with long lashes, small upturned nose, glossy pouty lips slightly parted, seductive sleepy expression, face that makes you fall in love instantly, bed hair,
-  long black hair spread on white pillow, bare face no makeup, natural skin with pillow marks,
-  wearing an oversized white boyfriend shirt with only top buttons done showing cleavage,
-  lying on white bed sheets in morning sunlight from window,
-  soft warm morning golden light streaming through curtains,
-  candid boyfriend POV photo from beside her in bed, intimate close distance,
-  shot on iPhone 15 Pro, realistic casual snapshot, no retouching,
-  skin pores visible, messy hair, sleepy expression, photojournalistic style
+  RAW photo, shot on Canon EOS R5 50mm f/1.8, natural light,
+  1japanese girl, 24 years old, solo,
+  beautiful detailed face, soft features, round face shape,
+  big brown eyes half-open, see-through bangs, long black hair spread on pillow,
+  small nose, glossy lips slightly parted, bare face no makeup, dewy skin, sleepy cute expression,
+  slim body, thin waist, large chest visible under thin fabric, delicate shoulders,
+  wearing oversized white boyfriend shirt with top buttons undone,
+  lying on white bed sheets, morning sunlight streaming through curtains,
+  boyfriend POV from beside her in bed, intimate close distance,
+  best quality, masterpiece, photorealistic, 8k, ultra detailed skin texture
 negative_prompt: >
-  ugly, deformed, noisy, blurry, low quality, cartoon, anime, 3d render,
-  painting, drawing, illustration, text, watermark, airbrushed, plastic skin,
-  overly perfect, CGI, doll-like, symmetrical face, studio lighting
+  ugly, deformed, bad anatomy, bad hands, extra fingers, blurry, watermark, text
 image_size: portrait_4_3
 num_inference_steps: 40
-guidance_scale: 7.5
+guidance_scale: 3.5

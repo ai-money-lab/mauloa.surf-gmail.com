@@ -2,20 +2,19 @@
 name: beach_1
 description: "海デートで彼女が振り返って笑う瞬間"
 prompt_template: >
-  candid snapshot of a slender young Japanese girlfriend age 24,
-  very thin waist, large bust, flat toned stomach, slim long legs,
-  irresistible idol-tier face, large sparkling double-lidded eyes with long lashes, small upturned nose, glossy pouty lips slightly parted, seductive yet playful expression, bright laughing expression, face that makes you fall in love instantly,
-  long black hair blowing messily in ocean wind, sun-kissed natural skin,
-  wearing a simple bikini that shows her tiny waist and full chest naturally,
-  turning back toward camera while walking into the shallow waves,
-  golden hour sunset light from behind, lens flare, ocean spray,
-  candid boyfriend POV photo, warm natural sunlight, handheld feel,
-  shot on iPhone 15 Pro, realistic casual snapshot, no retouching,
-  tan lines visible, sand on skin, goosebumps, photojournalistic style
+  RAW photo, shot on Canon EOS R5 85mm f/1.4, shallow depth of field,
+  1japanese girl, 24 years old, solo,
+  beautiful detailed face, soft features, round face shape,
+  big brown eyes with light reflection, long black hair blowing in wind,
+  small nose, glossy lips, natural blush, sun-kissed dewy skin, bright laughing smile,
+  slim body, thin waist, large chest, flat stomach, slim long legs,
+  wearing simple white bikini,
+  turning back toward camera while walking in shallow waves,
+  golden hour sunset backlight, lens flare, ocean spray,
+  boyfriend POV, warm natural sunlight, handheld feel,
+  best quality, masterpiece, photorealistic, 8k, ultra detailed skin texture
 negative_prompt: >
-  ugly, deformed, noisy, blurry, low quality, cartoon, anime, 3d render,
-  painting, drawing, illustration, text, watermark, airbrushed, plastic skin,
-  overly perfect, CGI, doll-like, symmetrical face, studio lighting
+  ugly, deformed, bad anatomy, bad hands, extra fingers, blurry, watermark, text
 image_size: portrait_4_3
 num_inference_steps: 40
-guidance_scale: 7.5
+guidance_scale: 3.5

@@ -2,20 +2,19 @@
 name: onsen_1
 description: "温泉旅行で浴衣を着た彼女"
 prompt_template: >
-  candid snapshot of a slender young Japanese girlfriend age 24,
-  very thin waist, large bust straining against thin yukata fabric, slim figure,
-  irresistible idol-tier face, large sparkling double-lidded eyes with long lashes, small upturned nose, glossy pouty lips slightly parted, seductive yet cute relaxed smile, flushed cheeks from bath, face that makes you fall in love instantly,
-  long black hair loosely tied up with some strands falling down, damp skin glistening,
-  wearing a loosely tied ryokan yukata slightly open at the chest showing cleavage,
-  sitting on tatami floor in a traditional Japanese inn room,
-  warm indoor lighting, futon visible in background, tea set on low table,
-  candid boyfriend POV photo, intimate relaxed atmosphere,
-  shot on iPhone 15 Pro, realistic casual snapshot, no retouching,
-  natural flushed skin from hot spring, photojournalistic style
+  RAW photo, shot on Canon EOS R5 50mm f/1.8, warm indoor light,
+  1japanese girl, 24 years old, solo,
+  beautiful detailed face, soft features, round face shape,
+  big brown eyes with light reflection, long black hair loosely tied up with strands falling,
+  small nose, glossy lips, flushed pink cheeks from hot spring, dewy damp skin, relaxed cute smile,
+  slim body, thin waist, large chest straining against thin fabric,
+  wearing loosely tied ryokan yukata slightly open showing collarbones,
+  sitting on tatami floor in traditional Japanese inn room,
+  warm indoor lighting, futon in background, tea set on low table,
+  boyfriend POV, intimate relaxed atmosphere,
+  best quality, masterpiece, photorealistic, 8k, ultra detailed skin texture
 negative_prompt: >
-  ugly, deformed, noisy, blurry, low quality, cartoon, anime, 3d render,
-  painting, drawing, illustration, text, watermark, airbrushed, plastic skin,
-  overly perfect, CGI, doll-like, symmetrical face, studio lighting
+  ugly, deformed, bad anatomy, bad hands, extra fingers, blurry, watermark, text
 image_size: portrait_4_3
 num_inference_steps: 40
-guidance_scale: 7.5
+guidance_scale: 3.5

@@ -2,20 +2,19 @@
 name: night_1
 description: "デート帰りの夜道、彼女が振り返る瞬間"
 prompt_template: >
-  candid snapshot of a slender young Japanese girlfriend age 24,
-  very thin waist, large bust straining against her clothes, slim long legs,
-  irresistible idol-tier face, large sparkling double-lidded eyes with long lashes, small upturned nose, glossy pouty lips slightly parted, seductive yet innocent expression, shy smile looking back at camera, face that makes you fall in love instantly,
-  long black hair slightly messy from the date, natural bare skin with slight flush on cheeks,
-  wearing a tight ribbed knit dress that hugs her tiny waist and accentuates her chest,
+  RAW photo, shot on Canon EOS R5 85mm f/1.4, shallow depth of field,
+  1japanese girl, 24 years old, solo,
+  beautiful detailed face, soft features, round face shape,
+  big brown eyes with light reflection, see-through bangs, long black hair slightly messy,
+  small nose, glossy lips, natural blush, dewy skin, gentle shy smile,
+  slim body, thin waist, large chest, long legs,
+  wearing tight ribbed knit mini dress,
   looking back over her shoulder on a Tokyo street at night,
   warm streetlights and blurred city lights behind her,
-  candid boyfriend POV photo, natural ambient lighting, slight motion blur,
-  shot on iPhone 15 Pro, realistic casual snapshot, no retouching,
-  skin imperfections visible, natural body proportions, photojournalistic style
+  boyfriend POV, natural ambient lighting, slight motion blur,
+  best quality, masterpiece, photorealistic, 8k, ultra detailed skin texture
 negative_prompt: >
-  ugly, deformed, noisy, blurry, low quality, cartoon, anime, 3d render,
-  painting, drawing, illustration, text, watermark, airbrushed, plastic skin,
-  overly perfect, CGI, doll-like, symmetrical face, studio lighting
+  ugly, deformed, bad anatomy, bad hands, extra fingers, blurry, watermark, text
 image_size: portrait_4_3
 num_inference_steps: 40
-guidance_scale: 7.5
+guidance_scale: 3.5
