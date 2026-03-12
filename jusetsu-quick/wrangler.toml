@@ -7,7 +7,7 @@ pages_build_output_dir = ".vercel/output/static"
 [[d1_databases]]
 binding = "DB"
 database_name = "jusetsu-quick-db"
-database_id = "TO_BE_FILLED"
+database_id = "c038eb89-5fe6-4931-a8ad-5ab926b77118"
 
 [vars]
 # REINFOLIB_API_KEY should be set via: npx wrangler secret put REINFOLIB_API_KEY
