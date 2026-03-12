@@ -1,37 +1,86 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useEffect, useState, useCallback } from "react";
+import { useParams, useRouter } from "next/navigation";
 import Header from "@/components/Header";
 import Section from "@/components/ui/Section";
 import AutoRow from "@/components/ui/AutoRow";
 import Btn from "@/components/ui/Btn";
 import Tag from "@/components/ui/Tag";
+import Field from "@/components/ui/Field";
 import {
   FileText, ChevronLeft, Download, RefreshCw,
   Shield, Droplets, Plug, Route, Building2,
-  TriangleAlert, Scale, Loader2,
+  TriangleAlert, Scale, Loader2, Trash2, Pencil,
+  Eye, Printer, X, AlertTriangle,
 } from "lucide-react";
 import Link from "next/link";
-import type { PropertyData } from "@/lib/types";
+import type { PropertyData, SearchResult } from "@/lib/types";
 
-type DetailRow = { label: string; value: string; category?: string };
+type DetailRow = { label: string; value: string; field?: string; category?: string };
+
+function computeCompletionForProperty(p: Record<string, unknown>): { filled: number; total: number; percent: number } {
+  const fields: boolean[] = [
+    !!p.zoning, !!p.building_coverage_ratio, !!p.floor_area_ratio, !!p.fire_zone,
+    !!p.flood_text, !!p.tsunami_text, !!p.hightide_text, !!p.landslide_text, !!p.land_price,
+    !!p.water_supply, !!p.sewage, !!p.gas_type, !!p.electricity,
+    !!p.road_type, !!p.road_width, !!p.owner_name, !!p.land_area,
+    !!p.mortgage, !!p.price, !!p.transaction_type, !!p.asbestos, !!p.earthquake_resistance,
+  ];
+  if (p.property_type === "mansion") {
+    fields.push(!!p.mgmt_fee, !!p.repair_reserve, !!p.mgmt_form);
+  }
+  const filled = fields.filter(Boolean).length;
+  const total = fields.length;
+  return { filled, total, percent: total > 0 ? Math.round((filled / total) * 100) : 0 };
+}
+
+function ProgressBar({ percent }: { percent: number }) {
+  const color = percent >= 80 ? "#166534" : percent >= 50 ? "#854D0E" : "#B91C1C";
+  return (
+    <div style={{ marginBottom: 16 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+        <span style={{ fontSize: 12, fontWeight: 700, color }}>入力完了率</span>
+        <span style={{ fontSize: 13, fontWeight: 800, color }}>{percent}%</span>
+      </div>
+      <div style={{ background: "#E2E8F0", borderRadius: 6, height: 8, overflow: "hidden" }}>
+        <div style={{ height: "100%", background: color, borderRadius: 6, width: `${percent}%`, transition: "width 0.4s" }} />
+      </div>
+    </div>
+  );
+}
+
+function MissingFieldIndicator({ value, label }: { value: string; label: string }) {
+  if (value !== "\u2014") return null;
+  return (
+    <span style={{ fontSize: 10, color: "#B91C1C", fontWeight: 600, marginLeft: 6 }}>
+      ({label}未入力)
+    </span>
+  );
+}
 
 export default function PropertyDetailPage() {
   const params = useParams();
+  const router = useRouter();
   const id = params.id as string;
   const [property, setProperty] = useState<PropertyData | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [toast, setToast] = useState("");
   const [fetchError, setFetchError] = useState("");
+  const [editMode, setEditMode] = useState(false);
+  const [editData, setEditData] = useState<Partial<PropertyData>>({});
+  const [saving, setSaving] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [diffData, setDiffData] = useState<Record<string, { old: string; new: string }> | null>(null);
 
   const showToast = (msg: string) => {
     setToast(msg);
     setTimeout(() => setToast(""), 3000);
   };
 
-  const loadProperty = () => {
+  const loadProperty = useCallback(() => {
     fetch(`/api/properties/${id}`)
       .then((r) => {
         if (!r.ok) throw new Error("not found");
@@ -43,6 +92,7 @@ export default function PropertyDetailPage() {
           setFetchError(data.error);
         } else {
           setProperty(data);
+          setEditData(data);
         }
         setLoading(false);
       })
@@ -50,13 +100,53 @@ export default function PropertyDetailPage() {
         setFetchError("読み込みに失敗しました");
         setLoading(false);
       });
+  }, [id]);
+
+  useEffect(() => { loadProperty(); }, [loadProperty]);
+
+  const handleSaveEdit = async () => {
+    setSaving(true);
+    try {
+      const res = await fetch(`/api/properties/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(editData),
+      });
+      if (res.ok) {
+        const updated = await res.json();
+        setProperty(updated);
+        setEditMode(false);
+        showToast("保存しました");
+      } else {
+        showToast("保存に失敗しました");
+      }
+    } catch {
+      showToast("ネットワークエラー");
+    }
+    setSaving(false);
   };
 
-  useEffect(() => { loadProperty(); }, [id]);
+  const handleDelete = async () => {
+    setDeleting(true);
+    try {
+      const res = await fetch(`/api/properties/${id}`, { method: "DELETE" });
+      if (res.ok) {
+        showToast("物件を削除しました");
+        setTimeout(() => router.push("/dashboard"), 500);
+      } else {
+        showToast("削除に失敗しました");
+        setDeleting(false);
+      }
+    } catch {
+      showToast("ネットワークエラー");
+      setDeleting(false);
+    }
+  };
 
   const refreshApi = async () => {
     if (!property?.address) return;
     setRefreshing(true);
+    setDiffData(null);
     try {
       const res = await fetch("/api/search", {
         method: "POST",
@@ -64,7 +154,31 @@ export default function PropertyDetailPage() {
         body: JSON.stringify({ address: property.address }),
       });
       if (res.ok) {
-        const apiData = await res.json();
+        const apiData: SearchResult = await res.json();
+
+        // Check for differences
+        const diffFields: Record<string, { old: string; new: string }> = {};
+        const checkDiff = (key: string, oldVal: unknown, newVal: unknown) => {
+          const o = oldVal != null ? String(oldVal) : "";
+          const n = newVal != null ? String(newVal) : "";
+          if (o !== n && (o || n)) {
+            diffFields[key] = { old: o || "(なし)", new: n || "(なし)" };
+          }
+        };
+        checkDiff("用途地域", property.zoning, apiData.zoning);
+        checkDiff("建ぺい率", property.building_coverage_ratio, apiData.building_coverage_ratio);
+        checkDiff("容積率", property.floor_area_ratio, apiData.floor_area_ratio);
+        checkDiff("防火地域", property.fire_zone, apiData.fire_zone);
+        checkDiff("洪水浸水", property.flood_text, apiData.flood_text);
+        checkDiff("津波浸水", property.tsunami_text, apiData.tsunami_text);
+        checkDiff("高潮浸水", property.hightide_text, apiData.hightide_text);
+        checkDiff("土砂災害", property.landslide_text, apiData.landslide_text);
+        checkDiff("公示地価", property.land_price, apiData.land_price);
+
+        if (Object.keys(diffFields).length > 0) {
+          setDiffData(diffFields);
+        }
+
         const updateRes = await fetch(`/api/properties/${id}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
@@ -97,7 +211,11 @@ export default function PropertyDetailPage() {
         if (updateRes.ok) {
           const updated = await updateRes.json();
           setProperty(updated);
-          showToast("API情報を再取得しました");
+          setEditData(updated);
+          showToast(Object.keys(diffFields).length > 0
+            ? `API情報を再取得しました（${Object.keys(diffFields).length}件の変更あり）`
+            : "API情報を再取得しました（変更なし）"
+          );
         }
       } else {
         showToast("API取得に失敗しました");
@@ -212,69 +330,91 @@ export default function PropertyDetailPage() {
   }
 
   const p = property;
-  const str = (v: unknown) => (v != null && v !== "" ? String(v) : "—");
+  const str = (v: unknown) => (v != null && v !== "" ? String(v) : "\u2014");
   const pTypeLabel = p.property_type === "mansion" ? "区分マンション" : p.property_type === "land" ? "土地" : p.property_type === "house" ? "一戸建て" : "一棟";
 
+  const completion = computeCompletionForProperty(p as unknown as Record<string, unknown>);
+
+  const updateEdit = (key: string, val: string) => {
+    setEditData((prev) => ({ ...prev, [key]: val }));
+  };
+
   const autoRows: DetailRow[] = [
-    { label: "用途地域", value: str(p.zoning) },
-    { label: "建ぺい率", value: p.building_coverage_ratio ? `${p.building_coverage_ratio}%` : "—" },
-    { label: "容積率", value: p.floor_area_ratio ? `${p.floor_area_ratio}%` : "—" },
-    { label: "防火地域", value: str(p.fire_zone) },
-    { label: "高度地区", value: str(p.height_district) },
-    { label: "都市計画区域", value: str(p.urban_plan_zone) },
+    { label: "用途地域", value: str(p.zoning), field: "zoning" },
+    { label: "建ぺい率", value: p.building_coverage_ratio ? `${p.building_coverage_ratio}%` : "\u2014", field: "building_coverage_ratio" },
+    { label: "容積率", value: p.floor_area_ratio ? `${p.floor_area_ratio}%` : "\u2014", field: "floor_area_ratio" },
+    { label: "防火地域", value: str(p.fire_zone), field: "fire_zone" },
+    { label: "高度地区", value: str(p.height_district), field: "height_district" },
+    { label: "都市計画区域", value: str(p.urban_plan_zone), field: "urban_plan_zone" },
   ];
 
   const hazardRows: DetailRow[] = [
-    { label: "洪水浸水想定", value: str(p.flood_text) },
-    { label: "津波浸水想定", value: str(p.tsunami_text) },
-    { label: "高潮浸水想定", value: str(p.hightide_text) },
-    { label: "土砂災害警戒", value: str(p.landslide_text) },
+    { label: "洪水浸水想定", value: str(p.flood_text), field: "flood_text" },
+    { label: "津波浸水想定", value: str(p.tsunami_text), field: "tsunami_text" },
+    { label: "高潮浸水想定", value: str(p.hightide_text), field: "hightide_text" },
+    { label: "土砂災害警戒", value: str(p.landslide_text), field: "landslide_text" },
   ];
 
   const infraRows: DetailRow[] = [
-    { label: "上水道", value: str(p.water_supply) },
-    { label: "下水道", value: str(p.sewage) },
-    { label: "ガス", value: str(p.gas_type) },
-    { label: "電気", value: str(p.electricity) },
-    { label: "接面道路", value: str(p.road_type) },
-    { label: "道路幅員", value: p.road_width ? `${p.road_width}m` : "—" },
-    { label: "私道負担", value: str(p.private_road) },
+    { label: "上水道", value: str(p.water_supply), field: "water_supply" },
+    { label: "下水道", value: str(p.sewage), field: "sewage" },
+    { label: "ガス", value: str(p.gas_type), field: "gas_type" },
+    { label: "電気", value: str(p.electricity), field: "electricity" },
+    { label: "接面道路", value: str(p.road_type), field: "road_type" },
+    { label: "道路幅員", value: p.road_width ? `${p.road_width}m` : "\u2014", field: "road_width" },
+    { label: "私道負担", value: str(p.private_road), field: "private_road" },
   ];
 
   const regRows: DetailRow[] = [
-    { label: "所有者名", value: str(p.owner_name) },
-    { label: "土地面積", value: p.land_area ? `${p.land_area}㎡` : "—" },
-    { label: "建物面積", value: p.building_area ? `${p.building_area}㎡` : "—" },
-    { label: "抵当権", value: str(p.mortgage) },
+    { label: "所有者名", value: str(p.owner_name), field: "owner_name" },
+    { label: "土地面積", value: p.land_area ? `${p.land_area}㎡` : "\u2014", field: "land_area" },
+    { label: "建物面積", value: p.building_area ? `${p.building_area}㎡` : "\u2014", field: "building_area" },
+    { label: "抵当権", value: str(p.mortgage), field: "mortgage" },
   ];
 
   const contractRows: DetailRow[] = [
-    { label: "取引価格", value: p.price ? `${Number(p.price).toLocaleString()}円` : "—" },
-    { label: "取引態様", value: str(p.transaction_type) },
-    { label: "手付金", value: p.earnest_money ? `${Number(p.earnest_money).toLocaleString()}円` : "—" },
-    { label: "引渡予定日", value: str(p.delivery_date) },
+    { label: "取引価格", value: p.price ? `${Number(p.price).toLocaleString()}円` : "\u2014", field: "price" },
+    { label: "取引態様", value: str(p.transaction_type), field: "transaction_type" },
+    { label: "手付金", value: p.earnest_money ? `${Number(p.earnest_money).toLocaleString()}円` : "\u2014", field: "earnest_money" },
+    { label: "引渡予定日", value: str(p.delivery_date), field: "delivery_date" },
   ];
 
   const renderRows = (rows: DetailRow[], isAuto: boolean) => (
     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-      {rows.map((r) =>
-        isAuto ? (
-          <AutoRow key={r.label} label={r.label} value={r.value} />
-        ) : (
+      {rows.map((r) => {
+        if (editMode && !isAuto && r.field) {
+          return (
+            <div key={r.label} style={{ padding: "8px 12px", background: "#FFF7ED", borderRadius: 8, border: "1.5px solid #FDE68A" }}>
+              <Field
+                label={r.label}
+                value={(editData as Record<string, string>)[r.field] || ""}
+                onChange={(v) => updateEdit(r.field!, v)}
+                half
+              />
+            </div>
+          );
+        }
+        if (isAuto) {
+          return <AutoRow key={r.label} label={r.label} value={r.value} />;
+        }
+        return (
           <div
             key={r.label}
             style={{
               padding: "12px 16px",
-              background: r.value !== "—" ? "#FEF9C3" : "#F8FAFC",
+              background: r.value !== "\u2014" ? "#FEF9C3" : "#F8FAFC",
               borderRadius: 8,
-              border: `1.5px solid ${r.value !== "—" ? "#FDE047" : "#E2E8F0"}`,
+              border: `1.5px solid ${r.value !== "\u2014" ? "#FDE047" : "#E2E8F0"}`,
             }}
           >
-            <div style={{ fontSize: 11, color: "#64748B", marginBottom: 3, fontWeight: 600 }}>{r.label}</div>
-            <div style={{ fontSize: 15, fontWeight: 700, color: r.value !== "—" ? "#854D0E" : "#94A3B8" }}>{r.value}</div>
+            <div style={{ fontSize: 11, color: "#64748B", marginBottom: 3, fontWeight: 600 }}>
+              {r.label}
+              <MissingFieldIndicator value={r.value} label={r.label} />
+            </div>
+            <div style={{ fontSize: 15, fontWeight: 700, color: r.value !== "\u2014" ? "#854D0E" : "#94A3B8" }}>{r.value}</div>
           </div>
-        )
-      )}
+        );
+      })}
     </div>
   );
 
@@ -293,9 +433,58 @@ export default function PropertyDetailPage() {
               <Tag variant={p.status === "completed" ? "auto" : "missing"}>
                 {p.status === "completed" ? "完了" : "下書き"}
               </Tag>
+              <span style={{ fontSize: 11, color: "#64748B", fontWeight: 600 }}>
+                完了率 {completion.percent}%
+              </span>
             </div>
           </div>
+          {/* Edit/View toggle */}
+          <button
+            onClick={() => {
+              if (editMode) {
+                setEditData(property);
+              }
+              setEditMode(!editMode);
+            }}
+            style={{
+              display: "flex", alignItems: "center", gap: 6, padding: "8px 14px",
+              borderRadius: 8, fontSize: 13, fontWeight: 700, cursor: "pointer",
+              border: `1.5px solid ${editMode ? "#2563EB" : "#CBD5E1"}`,
+              background: editMode ? "#DBEAFE" : "#FFFFFF",
+              color: editMode ? "#2563EB" : "#0F172A",
+              transition: "all 0.15s",
+            }}
+          >
+            {editMode ? <><Eye size={14} /> 表示</> : <><Pencil size={14} /> 編集</>}
+          </button>
         </div>
+
+        <ProgressBar percent={completion.percent} />
+
+        {/* Diff view */}
+        {diffData && (
+          <div style={{
+            padding: "14px 18px", background: "#FEF3C7", border: "1.5px solid #FDE68A",
+            borderRadius: 8, marginBottom: 16,
+          }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+              <div style={{ fontSize: 14, fontWeight: 700, color: "#854D0E", display: "flex", alignItems: "center", gap: 6 }}>
+                <AlertTriangle size={16} /> API再取得で変更があったデータ
+              </div>
+              <button onClick={() => setDiffData(null)} style={{ background: "none", border: "none", cursor: "pointer", padding: 4 }}>
+                <X size={16} color="#854D0E" />
+              </button>
+            </div>
+            {Object.entries(diffData).map(([key, { old: oldVal, new: newVal }]) => (
+              <div key={key} style={{ display: "flex", gap: 8, padding: "6px 0", borderBottom: "1px solid #FDE68A", fontSize: 13 }}>
+                <span style={{ fontWeight: 700, color: "#854D0E", minWidth: 80 }}>{key}</span>
+                <span style={{ color: "#B91C1C", textDecoration: "line-through" }}>{oldVal}</span>
+                <span style={{ color: "#64748B" }}>→</span>
+                <span style={{ color: "#166534", fontWeight: 600 }}>{newVal}</span>
+              </div>
+            ))}
+          </div>
+        )}
 
         <Section icon={Shield} title="都市計画情報">
           {renderRows(autoRows, true)}
@@ -315,18 +504,40 @@ export default function PropertyDetailPage() {
 
         {p.property_type === "mansion" && (
           <Section icon={Building2} title="マンション管理">
-            {renderRows([
-              { label: "管理費", value: p.mgmt_fee ? `${Number(p.mgmt_fee).toLocaleString()}円/月` : "—" },
-              { label: "修繕積立金", value: p.repair_reserve ? `${Number(p.repair_reserve).toLocaleString()}円/月` : "—" },
-              { label: "管理形態", value: str(p.mgmt_form) },
-              { label: "管理会社", value: str(p.mgmt_company) },
-              { label: "総戸数", value: p.total_units ? `${p.total_units}戸` : "—" },
-              { label: "大規模修繕", value: str(p.major_repair_plan) },
-            ], false)}
+            {editMode ? (
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                {[
+                  { label: "管理費（月額）", field: "mgmt_fee" },
+                  { label: "修繕積立金（月額）", field: "repair_reserve" },
+                  { label: "管理形態", field: "mgmt_form" },
+                  { label: "管理会社", field: "mgmt_company" },
+                  { label: "総戸数", field: "total_units" },
+                  { label: "大規模修繕", field: "major_repair_plan" },
+                ].map((item) => (
+                  <div key={item.field} style={{ padding: "8px 12px", background: "#FFF7ED", borderRadius: 8, border: "1.5px solid #FDE68A" }}>
+                    <Field
+                      label={item.label}
+                      value={(editData as Record<string, string>)[item.field] || ""}
+                      onChange={(v) => updateEdit(item.field, v)}
+                      half
+                    />
+                  </div>
+                ))}
+              </div>
+            ) : (
+              renderRows([
+                { label: "管理費", value: p.mgmt_fee ? `${Number(p.mgmt_fee).toLocaleString()}円/月` : "\u2014", field: "mgmt_fee" },
+                { label: "修繕積立金", value: p.repair_reserve ? `${Number(p.repair_reserve).toLocaleString()}円/月` : "\u2014", field: "repair_reserve" },
+                { label: "管理形態", value: str(p.mgmt_form), field: "mgmt_form" },
+                { label: "管理会社", value: str(p.mgmt_company), field: "mgmt_company" },
+                { label: "総戸数", value: p.total_units ? `${p.total_units}戸` : "\u2014", field: "total_units" },
+                { label: "大規模修繕", value: str(p.major_repair_plan), field: "major_repair_plan" },
+              ], false)
+            )}
           </Section>
         )}
 
-        {(p.is_incident || p.disclosure_notes || p.asbestos || p.earthquake_resistance) && (
+        {(p.is_incident || p.disclosure_notes || p.asbestos || p.earthquake_resistance || editMode) && (
           <Section icon={TriangleAlert} title="告知事項">
             <div style={{ display: "grid", gap: 10 }}>
               {p.is_incident && (
@@ -335,31 +546,132 @@ export default function PropertyDetailPage() {
                   <div style={{ fontSize: 14, fontWeight: 600, color: "#B91C1C" }}>{p.incident_detail || "詳細なし"}</div>
                 </div>
               )}
-              {renderRows([
-                { label: "その他告知", value: str(p.disclosure_notes) },
-                { label: "アスベスト", value: str(p.asbestos) },
-                { label: "耐震診断", value: str(p.earthquake_resistance) },
-              ], false)}
+              {editMode ? (
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                  {[
+                    { label: "その他告知", field: "disclosure_notes" },
+                    { label: "アスベスト", field: "asbestos" },
+                    { label: "耐震診断", field: "earthquake_resistance" },
+                  ].map((item) => (
+                    <div key={item.field} style={{ padding: "8px 12px", background: "#FFF7ED", borderRadius: 8, border: "1.5px solid #FDE68A" }}>
+                      <Field
+                        label={item.label}
+                        value={(editData as Record<string, string>)[item.field] || ""}
+                        onChange={(v) => updateEdit(item.field, v)}
+                        half
+                      />
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                renderRows([
+                  { label: "その他告知", value: str(p.disclosure_notes), field: "disclosure_notes" },
+                  { label: "アスベスト", value: str(p.asbestos), field: "asbestos" },
+                  { label: "耐震診断", value: str(p.earthquake_resistance), field: "earthquake_resistance" },
+                ], false)
+              )}
             </div>
           </Section>
         )}
 
         <Section icon={Scale} title="契約条件">
-          {renderRows(contractRows, false)}
-          {p.special_terms && (
-            <div style={{ marginTop: 10, padding: "12px 16px", background: "#FEF9C3", borderRadius: 8, border: "1.5px solid #FDE047" }}>
-              <div style={{ fontSize: 11, color: "#64748B", fontWeight: 600, marginBottom: 4 }}>特約事項</div>
-              <div style={{ fontSize: 14, fontWeight: 600, color: "#854D0E", whiteSpace: "pre-wrap" }}>{p.special_terms}</div>
+          {editMode ? (
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+              {[
+                { label: "取引価格（円）", field: "price" },
+                { label: "取引態様", field: "transaction_type" },
+                { label: "手付金（円）", field: "earnest_money" },
+                { label: "引渡予定日", field: "delivery_date" },
+              ].map((item) => (
+                <div key={item.field} style={{ padding: "8px 12px", background: "#FFF7ED", borderRadius: 8, border: "1.5px solid #FDE68A" }}>
+                  <Field
+                    label={item.label}
+                    value={(editData as Record<string, string>)[item.field] || ""}
+                    onChange={(v) => updateEdit(item.field, v)}
+                    half
+                  />
+                </div>
+              ))}
             </div>
+          ) : (
+            <>
+              {renderRows(contractRows, false)}
+              {p.special_terms && (
+                <div style={{ marginTop: 10, padding: "12px 16px", background: "#FEF9C3", borderRadius: 8, border: "1.5px solid #FDE047" }}>
+                  <div style={{ fontSize: 11, color: "#64748B", fontWeight: 600, marginBottom: 4 }}>特約事項</div>
+                  <div style={{ fontSize: 14, fontWeight: 600, color: "#854D0E", whiteSpace: "pre-wrap" }}>{p.special_terms}</div>
+                </div>
+              )}
+            </>
           )}
         </Section>
 
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-          <Btn variant="secondary" full icon={RefreshCw} onClick={refreshApi} disabled={refreshing}>
-            {refreshing ? "取得中..." : "API再取得"}
-          </Btn>
-          <Btn variant="success" full icon={Download} onClick={generateCSV}>CSV出力</Btn>
-        </div>
+        {/* Action buttons */}
+        {editMode ? (
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 10 }}>
+            <Btn variant="secondary" full icon={X} onClick={() => { setEditMode(false); setEditData(property); }}>
+              キャンセル
+            </Btn>
+            <Btn variant="success" full icon={FileText} onClick={handleSaveEdit} disabled={saving}>
+              {saving ? "保存中..." : "変更を保存"}
+            </Btn>
+          </div>
+        ) : (
+          <>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 10 }}>
+              <Btn variant="secondary" full icon={RefreshCw} onClick={refreshApi} disabled={refreshing}>
+                {refreshing ? "取得中..." : "API再取得"}
+              </Btn>
+              <Btn variant="success" full icon={Download} onClick={generateCSV}>CSV出力</Btn>
+            </div>
+            <div style={{ marginBottom: 10 }}>
+              <Link href={`/properties/${id}/print`} style={{ textDecoration: "none", display: "block" }}>
+                <Btn variant="primary" full icon={Printer}>重説を出力</Btn>
+              </Link>
+            </div>
+            <div style={{ display: "flex", justifyContent: "center", marginTop: 16 }}>
+              {deleteConfirm ? (
+                <div style={{
+                  display: "flex", alignItems: "center", gap: 10, padding: "12px 18px",
+                  background: "#FEE2E2", border: "1.5px solid #FCA5A5", borderRadius: 8,
+                }}>
+                  <span style={{ fontSize: 13, fontWeight: 600, color: "#B91C1C" }}>本当に削除しますか？</span>
+                  <button
+                    onClick={handleDelete}
+                    disabled={deleting}
+                    style={{
+                      padding: "6px 16px", borderRadius: 6, fontSize: 13, fontWeight: 700,
+                      background: "#B91C1C", color: "#FFF", border: "none", cursor: deleting ? "default" : "pointer",
+                    }}
+                  >
+                    {deleting ? "削除中..." : "削除する"}
+                  </button>
+                  <button
+                    onClick={() => setDeleteConfirm(false)}
+                    style={{
+                      padding: "6px 16px", borderRadius: 6, fontSize: 13, fontWeight: 700,
+                      background: "#FFF", color: "#0F172A", border: "1.5px solid #CBD5E1", cursor: "pointer",
+                    }}
+                  >
+                    キャンセル
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => setDeleteConfirm(true)}
+                  style={{
+                    display: "flex", alignItems: "center", gap: 6, padding: "8px 16px",
+                    borderRadius: 6, fontSize: 12, fontWeight: 600,
+                    background: "transparent", color: "#B91C1C", border: "1px solid #FCA5A5",
+                    cursor: "pointer", transition: "all 0.15s",
+                  }}
+                >
+                  <Trash2 size={14} /> この物件を削除
+                </button>
+              )}
+            </div>
+          </>
+        )}
       </main>
 
       {toast && (
