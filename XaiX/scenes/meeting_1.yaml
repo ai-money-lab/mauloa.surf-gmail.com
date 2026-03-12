@@ -1,0 +1,26 @@
+# 会議室 — プレゼン中の彼女
+name: meeting_1
+description: "会議室でプレゼン中、立ち姿の彼女"
+prompt_template: >
+  RAW photo, shot on Sony A7III 35mm f/2.8, available office light,
+  1japanese girl, 24 years old, 170cm tall, solo, looking at viewer,
+  sharp slim jawline, oval face shape, small pointed chin,
+  large double-lidded brown eyes with wide crease, long natural eyelashes,
+  narrow straight nose bridge with small refined nose tip,
+  full soft lips with natural pink tint, serious focused expression,
+  see-through bangs, long dark brown hair flowing down past shoulders,
+  light natural makeup, realistic skin with slight flush on cheeks,
+  tall slender model body, long torso, very narrow waist, wide hip bones,
+  large natural breasts on thin frame, visible collarbone,
+  long slim legs, thin arms holding tablet,
+  wearing tailored black blazer over low-cut white camisole showing deep cleavage,
+  black fitted trousers showing long slim legs and narrow waist,
+  black pointed heels, standing in front of whiteboard mid-presentation,
+  glass conference room with city view, modern office interior,
+  full body shot head to toe from slightly below eye level,
+  photorealistic, natural exposure, ISO 640, color temperature 4500K
+negative_prompt: >
+  ugly, deformed, bad anatomy, blurry, watermark, airbrushed skin, smooth plastic skin
+image_size: portrait_4_3
+num_inference_steps: 40
+guidance_scale: 3.5

@@ -1,0 +1,26 @@
+# カフェ仕事 — ノートPC広げてカフェで仕事中の彼女
+name: cafe_work_1
+description: "カフェでノートPCを開いて仕事中の彼女"
+prompt_template: >
+  RAW photo, shot on Sony A7III 50mm f/1.8, natural cafe window light,
+  1japanese girl, 24 years old, 170cm tall, solo, looking at viewer,
+  sharp slim jawline, oval face shape, small pointed chin,
+  large double-lidded brown eyes with wide crease, long natural eyelashes,
+  narrow straight nose bridge with small refined nose tip,
+  full soft lips with natural pink tint, relaxed friendly smile,
+  see-through bangs, long dark brown hair loosely draped over one shoulder,
+  light natural makeup, realistic uneven skin tone,
+  tall slender model body, long torso, very narrow waist,
+  large natural breasts on thin frame visible through tight top,
+  long slim legs crossed, thin arms, prominent collarbones,
+  wearing cropped knit cardigan over thin camisole showing cleavage and midriff,
+  high-waist fitted jeans showing long slim legs and narrow waist,
+  white sneakers, sitting at cafe window seat with MacBook open,
+  latte and pastry on wooden table, warm afternoon sunlight from window,
+  full body shot showing entire seated figure from head to feet,
+  photorealistic, bokeh background, ISO 800, color temperature 5500K daylight
+negative_prompt: >
+  ugly, deformed, bad anatomy, blurry, watermark, airbrushed skin, smooth plastic skin
+image_size: portrait_4_3
+num_inference_steps: 40
+guidance_scale: 3.5

@@ -1,0 +1,26 @@
+# オフィス — デスクワーク中の彼女
+name: office_1
+description: "タイトスカートでオフィスワーク中の彼女"
+prompt_template: >
+  RAW photo, shot on Sony A7III 35mm f/1.8, available fluorescent office light,
+  1japanese girl, 24 years old, 170cm tall, solo, looking at viewer over shoulder,
+  sharp slim jawline, oval face shape, small pointed chin,
+  large double-lidded brown eyes with wide crease, long natural eyelashes,
+  narrow straight nose bridge with small refined nose tip,
+  full soft lips with natural pink tint, gentle confident smile,
+  see-through bangs, long dark brown hair in low ponytail,
+  light natural makeup, realistic skin,
+  tall slender model body, long torso, very narrow waist, wide hip bones,
+  large natural breasts on thin frame, prominent collarbones,
+  long slim legs in nude stockings, thin arms,
+  wearing fitted white blouse slightly sheer with top button undone showing collarbone,
+  charcoal grey high-waist pencil skirt hugging narrow waist and hips,
+  nude high heels, standing next to desk leaning slightly forward,
+  laptop and coffee cup on desk, modern minimalist office background,
+  full body shot head to toe showing long legs and slim figure,
+  photorealistic, natural exposure, ISO 400, color temperature 5000K
+negative_prompt: >
+  ugly, deformed, bad anatomy, blurry, watermark, airbrushed skin, smooth plastic skin
+image_size: portrait_4_3
+num_inference_steps: 40
+guidance_scale: 3.5
