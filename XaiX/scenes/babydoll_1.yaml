@@ -1,0 +1,30 @@
+# ベビードール衣装 — オプション衣装チェンジ用、レース・シースルー
+name: babydoll_1
+description: "ベビードール衣装のメンエスセラピスト、衣装チェンジオプション"
+prompt_template: >
+  RAW photo, shot on Sony A7III 85mm f/1.4, warm dim ambient lighting,
+  1japanese girl, 24 years old, 167cm tall, solo,
+  looking at camera with chin slightly down, shot from slightly above at 45 degrees,
+  sharp slim jawline, oval face shape, small pointed chin,
+  large alluring double-lidded brown eyes with bedroom gaze, long curled eyelashes,
+  narrow straight nose bridge with small refined nose tip,
+  full soft lips with glossy pink tint, subtle seductive closed-mouth smile,
+  long dark brown hair falling loosely over shoulders with soft waves,
+  light glamorous makeup with subtle smoky eye, dewy glowing skin,
+  realistic skin texture,
+  tall slender model body, long torso, very narrow waist, wide hip bones,
+  large natural breasts on thin frame, visible collarbone and shoulder line,
+  long slim legs, thin arms, delicate wrists,
+  wearing black lace babydoll lingerie with sheer fabric and ribbon detail at chest,
+  short flared hem barely covering hips, thin spaghetti straps,
+  body line visible through semi-transparent fabric,
+  standing beside massage bed in dimly lit luxury room,
+  warm candlelight glow, dark walls with indirect amber lighting,
+  full body shot head to toe showing tall slender figure and long bare legs,
+  photorealistic, intimate warm lighting, ISO 2000, color temperature 2800K warm amber
+negative_prompt: >
+  ugly, deformed, bad anatomy, blurry, watermark, airbrushed skin, smooth plastic skin,
+  bright harsh lighting, explicit nudity, vulgar pose
+image_size: portrait_4_3
+num_inference_steps: 40
+guidance_scale: 3.5

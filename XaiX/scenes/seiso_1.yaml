@@ -1,0 +1,29 @@
+# 清楚系セラピスト — ナチュラルメイク・柔らかい雰囲気・白系衣装
+name: seiso_1
+description: "清楚系メンエスセラピスト、ナチュラルで上品な雰囲気"
+prompt_template: >
+  RAW photo, shot on Sony A7III 50mm f/1.8, soft warm natural lighting,
+  1japanese girl, 22 years old, 165cm tall, solo,
+  looking at camera with chin slightly down, shot from slightly above at 45 degrees,
+  soft round jawline, oval face shape, small chin,
+  large innocent double-lidded brown eyes with gentle gaze, long natural eyelashes,
+  small straight nose with soft rounded tip,
+  soft pink lips with natural color, warm gentle smile showing slight teeth,
+  dark brown hair in soft loose waves past shoulders with side-swept bangs,
+  bare natural makeup, soft matte skin with natural blush on cheeks,
+  realistic skin texture, healthy natural glow,
+  tall slender model body, long torso, very narrow waist, wide hip bones,
+  large natural breasts on thin frame, visible collarbone and shoulder line,
+  long slim legs, thin arms, delicate wrists,
+  wearing pastel pink short flare mini dress with thin shoulder straps showing shoulders,
+  dress ending above knee showing long bare legs,
+  sitting on edge of white sofa in clean bright treatment room,
+  soft daylight from window, simple elegant interior with plants,
+  full body shot head to toe showing slender figure and long bare legs,
+  photorealistic, soft dreamy lighting, ISO 800, color temperature 4500K natural warm
+negative_prompt: >
+  ugly, deformed, bad anatomy, blurry, watermark, airbrushed skin, smooth plastic skin,
+  heavy makeup, dark moody lighting, sexy aggressive expression
+image_size: portrait_4_3
+num_inference_steps: 40
+guidance_scale: 3.5

@@ -1,0 +1,29 @@
+# 韓国系セラピスト — 水光肌・ストレート黒髪・ミニマルメイク
+name: korean_1
+description: "韓国系メンエスセラピスト、水光肌ストレートヘア"
+prompt_template: >
+  RAW photo, shot on Sony A7III 85mm f/1.4, clean bright soft lighting,
+  1korean-style japanese girl, 23 years old, 168cm tall, solo,
+  looking at camera with chin slightly down, shot from slightly above at 45 degrees,
+  sharp slim V-line jawline, small face, small pointed chin,
+  large double-lidded brown eyes with natural crease, long straight eyelashes,
+  narrow straight nose bridge with small refined nose tip,
+  full soft gradient lips with MLBB tint, gentle closed-mouth smile,
+  long straight glossy black hair with see-through bangs and curtain framing,
+  dewy glass skin with lit-from-within glow, minimal korean makeup, straight brows,
+  realistic skin texture with subtle highlight on cheekbones,
+  tall slender model body, long torso, very narrow waist, wide hip bones,
+  large natural breasts on thin frame, visible collarbone and shoulder line,
+  long slim legs, thin arms, delicate wrists,
+  wearing white short tight ribbed knit mini dress with square neckline showing collarbone,
+  dress ending mid-thigh showing long bare legs,
+  standing in bright clean white treatment room with indirect LED lighting,
+  minimal modern interior, white massage bed visible behind,
+  full body shot head to toe showing tall slender figure and long bare legs,
+  photorealistic, bright clean lighting, ISO 400, color temperature 5500K neutral white
+negative_prompt: >
+  ugly, deformed, bad anatomy, blurry, watermark, airbrushed skin, smooth plastic skin,
+  heavy makeup, dark lighting, warm yellow tint
+image_size: portrait_4_3
+num_inference_steps: 40
+guidance_scale: 3.5
