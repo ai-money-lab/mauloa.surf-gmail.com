@@ -1,0 +1,21 @@
+# 朝の寝起きシーン — ベッドの上
+name: morning_1
+description: "朝起きたばかりの彼女、ベッドの上で"
+prompt_template: >
+  candid snapshot of a slender young Japanese girlfriend age 24,
+  very thin waist, large bust visible under thin fabric, delicate shoulders,
+  natural cute face with slightly childish features, sleepy half-open eyes, bed hair,
+  long black hair spread on white pillow, bare face no makeup, natural skin with pillow marks,
+  wearing an oversized white boyfriend shirt with only top buttons done showing cleavage,
+  lying on white bed sheets in morning sunlight from window,
+  soft warm morning golden light streaming through curtains,
+  candid boyfriend POV photo from beside her in bed, intimate close distance,
+  shot on iPhone 15 Pro, realistic casual snapshot, no retouching,
+  skin pores visible, messy hair, sleepy expression, photojournalistic style
+negative_prompt: >
+  ugly, deformed, noisy, blurry, low quality, cartoon, anime, 3d render,
+  painting, drawing, illustration, text, watermark, airbrushed, plastic skin,
+  overly perfect, CGI, doll-like, symmetrical face, studio lighting
+image_size: portrait_4_3
+num_inference_steps: 40
+guidance_scale: 7.5

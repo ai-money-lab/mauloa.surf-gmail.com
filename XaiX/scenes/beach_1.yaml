@@ -1,21 +1,21 @@
-# ビーチシーン — ゴールデンアワー
+# ビーチデートシーン — 彼女と海
 name: beach_1
-description: "夕暮れのビーチでのゴールデンアワーポートレート"
+description: "海デートで彼女が振り返って笑う瞬間"
 prompt_template: >
-  professional portrait photography of a gorgeous young Japanese woman age 25,
-  160cm petite but perfect 8-head-tall body proportions,
-  extremely slim waist like a ramune bottle, large natural bust, wide hips,
-  exaggerated hourglass figure, thin arms and legs contrasting with curves,
-  cute youthful baby face, big round eyes, small nose, plump lips, soft innocent smile,
-  long straight black hair blowing in the wind, fair porcelain glowing skin, flawless complexion,
-  wearing a string bikini showing extreme waist-to-bust ratio and toned abs,
-  walking on a tropical beach at golden hour sunset,
-  warm golden light, ocean waves in background, wet skin glistening,
-  Instagram influencer style, glamorous, shot on Sony A7R IV,
-  8k uhd, sharp focus, natural skin texture, full body shot from head to toe
+  candid snapshot of a slender young Japanese girlfriend age 24,
+  very thin waist, large bust, flat toned stomach, slim long legs,
+  natural cute face with slightly childish features, bright laughing expression,
+  long black hair blowing messily in ocean wind, sun-kissed natural skin,
+  wearing a simple bikini that shows her tiny waist and full chest naturally,
+  turning back toward camera while walking into the shallow waves,
+  golden hour sunset light from behind, lens flare, ocean spray,
+  candid boyfriend POV photo, warm natural sunlight, handheld feel,
+  shot on iPhone 15 Pro, realistic casual snapshot, no retouching,
+  tan lines visible, sand on skin, goosebumps, photojournalistic style
 negative_prompt: >
-  ugly, deformed, noisy, blurry, low quality, cartoon, anime,
-  painting, drawing, illustration, text, watermark
+  ugly, deformed, noisy, blurry, low quality, cartoon, anime, 3d render,
+  painting, drawing, illustration, text, watermark, airbrushed, plastic skin,
+  overly perfect, CGI, doll-like, symmetrical face, studio lighting
 image_size: portrait_4_3
 num_inference_steps: 40
 guidance_scale: 7.5

@@ -1,0 +1,21 @@
+# 温泉旅行シーン — 浴衣姿
+name: onsen_1
+description: "温泉旅行で浴衣を着た彼女"
+prompt_template: >
+  candid snapshot of a slender young Japanese girlfriend age 24,
+  very thin waist, large bust straining against thin yukata fabric, slim figure,
+  natural cute face with slightly childish features, relaxed happy smile, flushed cheeks from bath,
+  long black hair loosely tied up with some strands falling down, damp skin glistening,
+  wearing a loosely tied ryokan yukata slightly open at the chest showing cleavage,
+  sitting on tatami floor in a traditional Japanese inn room,
+  warm indoor lighting, futon visible in background, tea set on low table,
+  candid boyfriend POV photo, intimate relaxed atmosphere,
+  shot on iPhone 15 Pro, realistic casual snapshot, no retouching,
+  natural flushed skin from hot spring, photojournalistic style
+negative_prompt: >
+  ugly, deformed, noisy, blurry, low quality, cartoon, anime, 3d render,
+  painting, drawing, illustration, text, watermark, airbrushed, plastic skin,
+  overly perfect, CGI, doll-like, symmetrical face, studio lighting
+image_size: portrait_4_3
+num_inference_steps: 40
+guidance_scale: 7.5

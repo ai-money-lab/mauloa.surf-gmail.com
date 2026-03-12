@@ -1,21 +1,21 @@
-# カフェシーン — 暖かみのある室内
+# カフェデートシーン — 向かいの席から
 name: cafe_1
-description: "おしゃれなカフェでくつろぐ美女ポートレート"
+description: "カフェデートで向かいの席から撮った彼女"
 prompt_template: >
-  professional portrait photography of a gorgeous young Japanese woman age 25,
-  160cm petite but perfect 8-head-tall body proportions,
-  extremely slim waist like a ramune bottle, large natural bust, wide hips,
-  exaggerated hourglass figure, thin arms contrasting with curves,
-  cute youthful baby face, big round eyes, small nose, plump lips, soft innocent smile,
-  long straight black hair, fair porcelain glowing skin, flawless complexion,
-  wearing a tight off-shoulder knit top showing cleavage and waist curves,
-  sitting at a cozy Tokyo cafe with warm ambient lighting,
-  latte art on table, soft natural window light,
-  bokeh background, Instagram influencer style, glamorous, shot on Sony A7R IV,
-  8k uhd, sharp focus, natural skin texture, upper body shot
+  candid snapshot of a slender young Japanese girlfriend age 24,
+  very thin waist, large bust visible through her top, delicate collarbones,
+  natural cute face with slightly childish features, gentle smile while looking at phone,
+  long black hair tucked behind one ear, natural skin with no makeup foundation visible,
+  wearing a loose off-shoulder sweater that slips to reveal shoulder and emphasizes her chest,
+  sitting across the table at a small Tokyo cafe, coffee cup in hand,
+  warm afternoon window light on her face, shallow depth of field,
+  candid boyfriend POV photo from across the table, natural indoor lighting,
+  shot on iPhone 15 Pro, realistic casual snapshot, no retouching,
+  skin texture visible, slight under-eye circles, photojournalistic style
 negative_prompt: >
-  ugly, deformed, noisy, blurry, low quality, cartoon, anime,
-  painting, drawing, illustration, text, watermark
+  ugly, deformed, noisy, blurry, low quality, cartoon, anime, 3d render,
+  painting, drawing, illustration, text, watermark, airbrushed, plastic skin,
+  overly perfect, CGI, doll-like, symmetrical face, studio lighting
 image_size: portrait_4_3
 num_inference_steps: 40
 guidance_scale: 7.5

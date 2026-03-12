@@ -1,21 +1,21 @@
-# 夜景シーン — ネオンライトの都市背景
+# デート帰りシーン — 夜の渋谷
 name: night_1
-description: "ネオンが光る夜の都市を背景にした美女ポートレート"
+description: "デート帰りの夜道、彼女が振り返る瞬間"
 prompt_template: >
-  professional portrait photography of a gorgeous young Japanese woman age 25,
-  160cm petite but perfect 8-head-tall body proportions,
-  extremely slim waist like a ramune bottle, large natural bust, wide hips,
-  exaggerated hourglass figure, thin arms and legs contrasting with curves,
-  cute youthful baby face, big round eyes, small nose, plump lips, soft innocent smile,
-  long straight black hair, fair porcelain glowing skin, flawless complexion,
-  wearing a tight-fitting mini dress showing extreme waist-to-bust ratio,
-  standing in a neon-lit Tokyo Shibuya street at night,
-  cinematic lighting, bokeh background with colorful neon signs,
-  Instagram influencer style, glamorous, shot on Sony A7R IV,
-  8k uhd, sharp focus, natural skin texture, full body shot from head to toe
+  candid snapshot of a slender young Japanese girlfriend age 24,
+  very thin waist, large bust straining against her clothes, slim long legs,
+  natural cute face with slightly childish features, shy smile looking back at camera,
+  long black hair slightly messy from the date, natural bare skin with slight flush on cheeks,
+  wearing a tight ribbed knit dress that hugs her tiny waist and accentuates her chest,
+  looking back over her shoulder on a Tokyo street at night,
+  warm streetlights and blurred city lights behind her,
+  candid boyfriend POV photo, natural ambient lighting, slight motion blur,
+  shot on iPhone 15 Pro, realistic casual snapshot, no retouching,
+  skin imperfections visible, natural body proportions, photojournalistic style
 negative_prompt: >
-  ugly, deformed, noisy, blurry, low quality, cartoon, anime,
-  painting, drawing, illustration, text, watermark
+  ugly, deformed, noisy, blurry, low quality, cartoon, anime, 3d render,
+  painting, drawing, illustration, text, watermark, airbrushed, plastic skin,
+  overly perfect, CGI, doll-like, symmetrical face, studio lighting
 image_size: portrait_4_3
 num_inference_steps: 40
 guidance_scale: 7.5
