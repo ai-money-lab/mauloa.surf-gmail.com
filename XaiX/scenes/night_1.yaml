@@ -1,20 +1,20 @@
-# デート帰りシーン — 夜の渋谷
+# 夜の東京 — 正面セクシーショット
 name: night_1
-description: "デート帰りの夜道、彼女が振り返る瞬間"
+description: "夜の東京、正面からセクシーに微笑む彼女"
 prompt_template: >
   RAW photo, shot on Canon EOS R5 85mm f/1.4, shallow depth of field,
-  1japanese girl, 24 years old, solo,
-  beautiful detailed face, soft features, round face shape,
-  big brown eyes with light reflection, see-through bangs, long black hair slightly messy,
-  small nose, glossy lips, natural blush, dewy skin, gentle shy smile,
-  slim body, thin waist, large chest, long legs,
-  wearing tight ribbed knit mini dress,
-  looking back over her shoulder on a Tokyo street at night,
-  warm streetlights and blurred city lights behind her,
-  boyfriend POV, natural ambient lighting, slight motion blur,
+  1japanese girl, 24 years old, solo, looking at viewer, facing front,
+  beautiful detailed face, round jawline, big brown eyes with catchlight, long eyelashes,
+  see-through bangs, long straight black hair, small nose, full glossy lips,
+  natural blush cheeks, dewy glowing skin, seductive cute smile,
+  very slim body, extremely thin waist, large breasts, visible cleavage,
+  wearing low-cut tight camisole top showing deep cleavage and tiny waist,
+  standing facing camera on Tokyo night street,
+  neon lights bokeh background, warm street lighting,
+  front view, medium shot from waist up, eye contact with camera,
   best quality, masterpiece, photorealistic, 8k, ultra detailed skin texture
 negative_prompt: >
-  ugly, deformed, bad anatomy, bad hands, extra fingers, blurry, watermark, text
+  ugly, deformed, bad anatomy, bad hands, blurry, watermark, text, back view
 image_size: portrait_4_3
 num_inference_steps: 40
 guidance_scale: 3.5

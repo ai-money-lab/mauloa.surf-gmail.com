@@ -1,19 +1,19 @@
-# 朝の寝起きシーン — ベッドの上
+# 朝ベッド — 正面から見つめる彼女
 name: morning_1
-description: "朝起きたばかりの彼女、ベッドの上で"
+description: "朝のベッドで正面から甘えた目で見つめる彼女"
 prompt_template: >
-  RAW photo, shot on Canon EOS R5 50mm f/1.8, natural light,
-  1japanese girl, 24 years old, solo,
-  beautiful detailed face, soft features, round face shape,
-  big brown eyes half-open, see-through bangs, long black hair spread on pillow,
-  small nose, glossy lips slightly parted, bare face no makeup, dewy skin, sleepy cute expression,
-  slim body, thin waist, large chest visible under thin fabric, delicate shoulders,
-  wearing oversized white boyfriend shirt with top buttons undone,
-  lying on white bed sheets, morning sunlight streaming through curtains,
-  boyfriend POV from beside her in bed, intimate close distance,
+  RAW photo, shot on Canon EOS R5 50mm f/1.8, natural morning light,
+  1japanese girl, 24 years old, solo, looking at viewer, facing front,
+  beautiful detailed face, round jawline, big brown eyes with catchlight, long eyelashes,
+  see-through bangs, long black hair spread on pillow, small nose, full glossy lips slightly parted,
+  bare face no makeup, dewy skin, sleepy seductive expression, bedroom eyes,
+  very slim body, extremely thin waist, large breasts visible under thin fabric,
+  wearing thin white tank top with no bra showing curves and shape through fabric,
+  lying on white sheets facing camera, morning sunlight on her skin,
+  front view, close-up from above, eye contact with camera, intimate POV,
   best quality, masterpiece, photorealistic, 8k, ultra detailed skin texture
 negative_prompt: >
-  ugly, deformed, bad anatomy, bad hands, extra fingers, blurry, watermark, text
+  ugly, deformed, bad anatomy, bad hands, blurry, watermark, text, back view
 image_size: portrait_4_3
 num_inference_steps: 40
 guidance_scale: 3.5

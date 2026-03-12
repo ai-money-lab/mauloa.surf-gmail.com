@@ -1,20 +1,20 @@
-# 温泉旅行シーン — 浴衣姿
+# 温泉旅館 — 浴衣がはだけた彼女
 name: onsen_1
-description: "温泉旅行で浴衣を着た彼女"
+description: "温泉旅館で浴衣がはだけてセクシーな彼女"
 prompt_template: >
   RAW photo, shot on Canon EOS R5 50mm f/1.8, warm indoor light,
-  1japanese girl, 24 years old, solo,
-  beautiful detailed face, soft features, round face shape,
-  big brown eyes with light reflection, long black hair loosely tied up with strands falling,
-  small nose, glossy lips, flushed pink cheeks from hot spring, dewy damp skin, relaxed cute smile,
-  slim body, thin waist, large chest straining against thin fabric,
-  wearing loosely tied ryokan yukata slightly open showing collarbones,
-  sitting on tatami floor in traditional Japanese inn room,
-  warm indoor lighting, futon in background, tea set on low table,
-  boyfriend POV, intimate relaxed atmosphere,
+  1japanese girl, 24 years old, solo, looking at viewer, facing front,
+  beautiful detailed face, round jawline, big brown eyes with catchlight, long eyelashes,
+  long black hair loosely tied up with strands falling, small nose, full glossy lips,
+  flushed pink cheeks, dewy damp skin glistening, seductive inviting smile,
+  very slim body, extremely thin waist, large breasts, cleavage visible,
+  wearing loosely tied yukata wide open at chest showing deep cleavage and collarbones,
+  sitting on tatami facing camera, leaning back slightly on hands,
+  warm golden indoor lighting, futon in background,
+  front view, medium shot, eye contact with camera, intimate atmosphere,
   best quality, masterpiece, photorealistic, 8k, ultra detailed skin texture
 negative_prompt: >
-  ugly, deformed, bad anatomy, bad hands, extra fingers, blurry, watermark, text
+  ugly, deformed, bad anatomy, bad hands, blurry, watermark, text, back view
 image_size: portrait_4_3
 num_inference_steps: 40
 guidance_scale: 3.5
