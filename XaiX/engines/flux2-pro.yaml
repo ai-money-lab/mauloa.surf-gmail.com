@@ -1,0 +1,10 @@
+# FLUX 2 Pro — 最高品質フォトリアル（2026年最強）
+name: flux2-pro
+description: "FLUX 2 Pro (32B) — 肌質感・ライティング最高品質"
+endpoint: "fal-ai/flux-2-pro"
+fallback_endpoint: "fal-ai/flux-2"
+defaults:
+  num_inference_steps: 40
+  guidance_scale: 3.5
+  image_size: portrait_4_3
+  num_images: 1

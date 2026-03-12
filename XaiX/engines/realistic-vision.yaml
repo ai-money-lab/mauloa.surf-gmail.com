@@ -1,0 +1,9 @@
+# Realistic Vision V6 — 日本人美女の顔に強いSDモデル
+name: realistic-vision
+description: "Realistic Vision V6 — アジア人の顔が可愛く出やすいSD系モデル"
+endpoint: "fal-ai/realistic-vision"
+defaults:
+  num_inference_steps: 30
+  guidance_scale: 7.0
+  image_size: portrait_4_3
+  num_images: 1
