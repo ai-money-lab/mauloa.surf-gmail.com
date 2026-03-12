@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getStore } from "@/lib/store";
 
+export const runtime = "edge";
+
 export async function GET(
   _req: NextRequest,
   { params }: { params: Promise<{ id: string }> }

@@ -3,6 +3,8 @@ import { geocode } from "@/lib/api/geocode";
 import { fetchAllReinfolib, extractNearestFeature } from "@/lib/api/reinfolib";
 import { fetchHazard, floodLevelToText } from "@/lib/api/hazard";
 
+export const runtime = "edge";
+
 export async function POST(req: NextRequest) {
   const start = Date.now();
 
@@ -35,7 +37,6 @@ export async function POST(req: NextRequest) {
     console.error("REINFOLIB_API_KEY is not configured");
   }
 
-  // Step 2 & 3: Fetch reinfolib + hazard in parallel
   // Step 2 & 3: Fetch reinfolib + hazard in parallel (graceful degradation)
   let reinfolibData: Awaited<ReturnType<typeof fetchAllReinfolib>> | null = null;
   let hazardData: Awaited<ReturnType<typeof fetchHazard>> | null = null;

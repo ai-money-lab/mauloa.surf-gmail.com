@@ -8,10 +8,16 @@ export interface StoredProperty extends PropertyData {
   updated_at: string;
 }
 
-// Singleton in-memory store shared across all API routes
+// Use globalThis to persist across HMR in dev mode
 // In production, replace with D1 database
-const store = new Map<string, StoredProperty>();
+const globalRef = globalThis as unknown as {
+  __jusetsuStore?: Map<string, StoredProperty>;
+};
+
+if (!globalRef.__jusetsuStore) {
+  globalRef.__jusetsuStore = new Map<string, StoredProperty>();
+}
 
 export function getStore() {
-  return store;
+  return globalRef.__jusetsuStore!;
 }

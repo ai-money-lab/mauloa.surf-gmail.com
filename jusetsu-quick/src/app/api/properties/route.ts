@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { getStore } from "@/lib/store";
 import type { StoredProperty } from "@/lib/store";
 
+export const runtime = "edge";
+
 export async function GET() {
   const store = getStore();
   const results = Array.from(store.values()).sort(

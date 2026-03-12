@@ -1,5 +1,6 @@
 name = "jusetsu-quick"
-compatibility_date = "2024-01-01"
+compatibility_date = "2024-09-23"
+compatibility_flags = ["nodejs_compat"]
 pages_build_output_dir = ".vercel/output/static"
 
 # D1 Database binding (update database_id after running: wrangler d1 create jusetsu-quick-db)

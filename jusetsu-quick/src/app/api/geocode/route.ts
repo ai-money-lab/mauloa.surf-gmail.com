@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { geocode } from "@/lib/api/geocode";
 
+export const runtime = "edge";
+
 export async function POST(req: NextRequest) {
   const { address } = await req.json();
   if (!address) {
