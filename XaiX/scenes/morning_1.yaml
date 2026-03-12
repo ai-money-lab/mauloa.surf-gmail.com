@@ -2,24 +2,25 @@
 name: morning_1
 description: "朝のベッドでシーツに包まれた彼女"
 prompt_template: >
-  RAW photo, candid snapshot, soft golden morning light,
-  1japanese girl, 24 years old, solo, looking at viewer,
+  RAW photo, shot on Sony A7III 50mm f/1.8, natural window light only,
+  1japanese girl, 24 years old, 170cm tall, solo, looking at viewer,
   sharp slim jawline, oval face shape, small pointed chin,
   large double-lidded brown eyes half-open with wide crease, long natural eyelashes,
-  thin straight eyebrows slightly arched,
   narrow straight nose bridge with small refined nose tip,
-  full soft lips with natural pink tint slightly parted, sleepy seductive invitation,
+  full soft lips slightly parted, sleepy seductive expression,
   see-through bangs messy, long dark brown hair spread wildly on pillow,
-  bare face no makeup, natural skin with slight pillow marks,
-  very slim body, extremely thin waist, large natural breasts,
+  bare face no makeup, realistic skin with slight pillow marks on cheek,
+  tall slender model body, long torso, very narrow waist,
+  large natural breasts on thin frame, bare shoulders and arms,
+  long slim legs under sheet, visible collarbone and shoulder bones,
   wearing only white bed sheet loosely draped over lower body,
-  bare shoulders and upper chest exposed, sheet barely covering breasts,
-  lying in bed facing camera, one arm stretched toward camera inviting,
-  warm golden morning sunlight through sheer curtains on her bare skin,
-  front view, close-up from above, intimate after-sleep atmosphere,
-  photorealistic, 8k, film grain, natural color grading
+  bare shoulders and upper chest exposed, sheet barely covering,
+  lying in bed facing camera, one long arm stretched toward camera,
+  golden morning sunlight on her skin creating natural shadow and highlight,
+  full body shot from slightly above, natural skin with visible veins on wrist,
+  photorealistic, natural exposure, ISO 800, color temperature 5500K daylight
 negative_prompt: >
-  ugly, deformed, bad anatomy, blurry, watermark, text
+  ugly, deformed, bad anatomy, blurry, watermark, airbrushed skin, smooth plastic skin
 image_size: portrait_4_3
 num_inference_steps: 40
 guidance_scale: 3.5

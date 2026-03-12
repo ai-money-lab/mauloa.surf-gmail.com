@@ -2,23 +2,25 @@
 name: night_1
 description: "夜のリビング、ソファで誘惑する彼女"
 prompt_template: >
-  RAW photo, candid snapshot, warm dim indoor lighting,
-  1japanese girl, 24 years old, solo, looking at viewer,
+  RAW photo, shot on Sony A7III 35mm f/1.8, available light only, no flash,
+  1japanese girl, 24 years old, 170cm tall, solo, looking at viewer,
   sharp slim jawline, oval face shape, small pointed chin,
   large double-lidded brown eyes with wide crease, long natural eyelashes,
   thin straight eyebrows slightly arched, subtle brown eyeshadow,
   narrow straight nose bridge with small refined nose tip,
   full soft lips with natural pink tint slightly parted, provocative inviting gaze,
   see-through bangs, long straight dark brown hair over shoulders,
-  natural makeup, healthy glowing skin, light blush,
-  very slim body, extremely thin waist, large natural breasts,
-  wearing only oversized knit cardigan with nothing underneath half open showing bare chest and cleavage,
-  lying on sofa on her side facing camera, one leg bent up, cardigan sliding off shoulder,
-  warm dim living room lamp light, cozy night atmosphere,
-  front view, full body shot, bedroom eyes, seductive mood,
-  photorealistic, 8k, film grain, natural color grading
+  natural makeup, realistic uneven skin tone with slight redness on nose and cheeks,
+  tall slender model body, long torso, very narrow waist, wide hip bones,
+  large natural breasts on thin frame, visible rib cage below chest,
+  long slim legs, thin arms, prominent collarbones,
+  wearing only oversized knit cardigan with nothing underneath half open showing bare chest,
+  lying on sofa on her side facing camera, one long leg bent up,
+  warm dim living room lamp light, realistic shadow and highlight on skin,
+  full body shot head to toe, natural skin color with warm undertone,
+  photorealistic, slightly underexposed, ISO 3200 noise, color temperature 3200K warm
 negative_prompt: >
-  ugly, deformed, bad anatomy, blurry, watermark, text
+  ugly, deformed, bad anatomy, blurry, watermark, airbrushed skin, smooth plastic skin
 image_size: portrait_4_3
 num_inference_steps: 40
 guidance_scale: 3.5

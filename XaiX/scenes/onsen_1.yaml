@@ -2,23 +2,25 @@
 name: onsen_1
 description: "夜のベッドルームでランジェリー姿の彼女"
 prompt_template: >
-  RAW photo, candid snapshot, warm dim bedside lamp,
-  1japanese girl, 24 years old, solo, looking at viewer,
+  RAW photo, shot on Sony A7III 85mm f/1.4, available light only,
+  1japanese girl, 24 years old, 170cm tall, solo, looking at viewer,
   sharp slim jawline, oval face shape, small pointed chin,
   large double-lidded brown eyes with wide crease, long natural eyelashes,
   thin straight eyebrows slightly arched, subtle brown eyeshadow,
   narrow straight nose bridge with small refined nose tip,
-  full soft lips with natural pink tint, seductive smile biting lower lip,
-  see-through bangs, long straight dark brown hair flowing over bare shoulders,
-  light natural makeup, healthy glowing skin, subtle blush,
-  very slim body, extremely thin waist, large natural breasts with deep cleavage,
+  full soft lips, seductive smile biting lower lip,
+  see-through bangs, long straight dark brown hair over bare shoulders,
+  light natural makeup, realistic skin with slight unevenness,
+  tall slender model body, long torso, very narrow waist, wide hip bones,
+  large natural breasts with deep cleavage, visible rib cage,
+  long slim legs, thin arms, prominent collarbones and shoulder blades,
   wearing black lace lingerie bra and matching underwear only,
-  sitting on edge of bed facing camera, knees together, leaning forward showing cleavage,
-  warm golden bedside lamp light, white sheets, dark bedroom background,
-  front view, full body sitting shot, eye contact, seductive intimate mood,
-  photorealistic, 8k, film grain, natural color grading
+  standing in bedroom facing camera, one hand on hip, weight on one leg,
+  warm golden bedside lamp creating shadow on waist curves,
+  full body shot head to toe, natural skin tone with realistic shadow,
+  photorealistic, slightly underexposed, ISO 2500 noise, color temperature 3000K warm
 negative_prompt: >
-  ugly, deformed, bad anatomy, blurry, watermark, text
+  ugly, deformed, bad anatomy, blurry, watermark, airbrushed skin, smooth plastic skin
 image_size: portrait_4_3
 num_inference_steps: 40
 guidance_scale: 3.5

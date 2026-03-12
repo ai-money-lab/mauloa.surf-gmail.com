@@ -2,24 +2,24 @@
 name: beach_1
 description: "お風呂上がり、タオルが落ちそうな彼女"
 prompt_template: >
-  RAW photo, candid snapshot, warm steamy bathroom lighting,
-  1japanese girl, 24 years old, solo, looking at viewer,
+  RAW photo, shot on Sony A7III 50mm f/1.8, available light only, no flash,
+  1japanese girl, 24 years old, 170cm tall, solo, looking at viewer,
   sharp slim jawline, oval face shape, small pointed chin,
   large double-lidded brown eyes with wide crease, long natural eyelashes,
-  thin straight eyebrows slightly arched,
   narrow straight nose bridge with small refined nose tip,
-  full soft lips with natural pink tint slightly parted, embarrassed sexy expression,
+  full soft lips slightly parted, embarrassed sexy expression,
   wet dark brown hair slicked back, completely bare face no makeup,
-  flushed red cheeks and ears from hot bath, wet dewy skin glistening all over body,
-  very slim body, extremely thin waist, large natural breasts,
+  flushed red cheeks and ears from hot bath, realistic wet skin with water droplets,
+  tall slender model body, long torso, very narrow waist, wide hip bones,
+  large natural breasts on thin frame, water drops on collarbones,
+  long slim legs, thin arms, visible hip bones above towel,
   wearing only small white towel loosely wrapped barely covering chest about to fall,
-  water droplets on collarbones and shoulders, cleavage visible above towel,
-  standing in steamy bathroom facing camera, one hand barely holding towel,
-  warm soft backlight through steam, mirror behind her,
-  front view, medium shot from thighs up, vulnerable intimate moment,
-  photorealistic, 8k, film grain, natural color grading
+  standing in steamy bathroom doorway facing camera, one hand barely holding towel,
+  warm soft backlight through steam, realistic skin with goosebumps,
+  full body shot head to toe, natural skin color slightly pink from bath,
+  photorealistic, slightly underexposed, ISO 1600 noise, color temperature 3500K warm
 negative_prompt: >
-  ugly, deformed, bad anatomy, blurry, watermark, text
+  ugly, deformed, bad anatomy, blurry, watermark, airbrushed skin, smooth plastic skin
 image_size: portrait_4_3
 num_inference_steps: 40
 guidance_scale: 3.5

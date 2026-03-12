@@ -2,24 +2,26 @@
 name: cafe_1
 description: "キッチンで裸エプロン風の彼女"
 prompt_template: >
-  RAW photo, candid snapshot, warm kitchen lighting,
-  1japanese girl, 24 years old, solo, looking at viewer,
+  RAW photo, shot on Sony A7III 35mm f/1.8, available light only, no flash,
+  1japanese girl, 24 years old, 170cm tall, solo, looking at viewer,
   sharp slim jawline, oval face shape, small pointed chin,
   large double-lidded brown eyes with wide crease, long natural eyelashes,
   thin straight eyebrows slightly arched, subtle brown eyeshadow,
   narrow straight nose bridge with small refined nose tip,
   full soft lips with natural pink tint, shy naughty smile,
   see-through bangs, long dark brown hair tied in loose messy bun,
-  natural makeup, healthy glowing skin, slight sweat on neck,
-  very slim body, extremely thin waist, large natural breasts,
-  wearing only a short cooking apron with bare shoulders and bare back visible from side,
-  side cleavage visible, thin waist exposed,
+  natural makeup, realistic uneven skin tone with slight redness on elbows and knees,
+  tall slender model body, long torso, very narrow waist, wide hip bones,
+  large natural breasts on thin frame, visible spine when turning,
+  long slim legs, thin arms, prominent collarbones and shoulder blades,
+  wearing only a short cooking apron with bare shoulders and bare back visible,
+  side cleavage visible, thin waist fully exposed from side,
   standing in kitchen turning toward camera, holding spatula,
-  warm overhead kitchen light, steam rising, homey atmosphere,
-  front three-quarter view, medium shot, playful teasing expression,
-  photorealistic, 8k, film grain, natural color grading
+  warm overhead kitchen light, realistic shadow under chin and arms,
+  full body shot head to toe, natural skin color with warm undertone,
+  photorealistic, slightly underexposed, ISO 2000 noise, color temperature 4000K
 negative_prompt: >
-  ugly, deformed, bad anatomy, blurry, watermark, text
+  ugly, deformed, bad anatomy, blurry, watermark, airbrushed skin, smooth plastic skin
 image_size: portrait_4_3
 num_inference_steps: 40
 guidance_scale: 3.5
