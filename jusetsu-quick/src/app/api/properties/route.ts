@@ -1,19 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getStore } from "@/lib/store";
-import type { StoredProperty } from "@/lib/store";
+import { getRequestContext } from "@cloudflare/next-on-pages";
+import { createProperty, listProperties } from "@/lib/db/queries";
 
 export const runtime = "edge";
 
 export async function GET() {
-  const store = getStore();
-  const results = Array.from(store.values()).sort(
-    (a, b) => (b.updated_at || "").localeCompare(a.updated_at || "")
-  );
+  const { env } = getRequestContext();
+  const db = env.DB;
+
+  const { results } = await listProperties(db);
   return NextResponse.json({ results });
 }
 
 export async function POST(req: NextRequest) {
-  const store = getStore();
+  const { env } = getRequestContext();
+  const db = env.DB;
 
   let data: Record<string, unknown>;
   try {
@@ -29,41 +30,29 @@ export async function POST(req: NextRequest) {
   const id =
     (typeof data.id === "string" && data.id) ||
     crypto.randomUUID().replace(/-/g, "").slice(0, 16);
-  const now = new Date().toISOString();
 
-  const property: StoredProperty = {
+  const property = {
+    ...data,
     id,
     company_id: (data.company_id as string) || "demo",
     created_by: (data.created_by as string) || "demo",
     address: data.address as string,
     property_type: (data.property_type as string) || "condo",
     status: (data.status as string) || "draft",
-    created_at: now,
-    updated_at: now,
   };
 
-  // Copy all known PropertyData fields
-  const knownFields = [
-    "latitude", "longitude", "zoning", "building_coverage_ratio", "floor_area_ratio",
-    "fire_zone", "urban_plan_zone", "height_district", "flood_level", "flood_text",
-    "flood_river", "tsunami_level", "tsunami_text", "hightide_level", "hightide_text",
-    "sediment_risk", "landslide_text", "school_district", "school_district_jr",
-    "land_price", "land_price_year", "land_price_point", "future_pop", "future_pop_2050",
-    "future_pop_change", "api_fetched_at", "water_supply", "sewage", "gas_type",
-    "electricity", "road_type", "road_width", "road_frontage", "private_road",
-    "owner_name", "land_area", "building_area", "mortgage", "mgmt_fee", "repair_reserve",
-    "parking_fee", "mgmt_form", "mgmt_company", "total_units", "major_repair_plan",
-    "is_incident", "incident_detail", "disclosure_notes", "asbestos",
-    "earthquake_resistance", "price", "transaction_type", "earnest_money",
-    "delivery_date", "special_terms",
-  ];
+  await createProperty(db, property as Record<string, unknown> & {
+    id: string;
+    company_id: string;
+    created_by: string;
+    address: string;
+  });
 
-  for (const key of knownFields) {
-    if (data[key] !== undefined) {
-      (property as unknown as Record<string, unknown>)[key] = data[key];
-    }
-  }
+  // Return the created property with timestamps
+  const created = await db
+    .prepare("SELECT * FROM properties WHERE id = ?")
+    .bind(id)
+    .first();
 
-  store.set(id, property);
-  return NextResponse.json(property, { status: 201 });
+  return NextResponse.json(created, { status: 201 });
 }

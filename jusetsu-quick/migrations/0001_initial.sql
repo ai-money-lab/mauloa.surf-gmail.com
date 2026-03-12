@@ -40,51 +40,66 @@ CREATE TABLE IF NOT EXISTS properties (
   floor_area_ratio REAL,
   fire_zone TEXT,
   urban_plan_zone TEXT,
+  height_district TEXT,
   flood_level INTEGER DEFAULT 0,
+  flood_text TEXT,
+  flood_river TEXT,
   tsunami_level INTEGER DEFAULT 0,
+  tsunami_text TEXT,
   hightide_level INTEGER DEFAULT 0,
+  hightide_text TEXT,
   sediment_risk INTEGER DEFAULT 0,
+  landslide_text TEXT,
   school_district TEXT,
+  school_district_jr TEXT,
   land_price INTEGER,
-  future_pop_trend REAL,
+  land_price_year INTEGER,
+  land_price_point TEXT,
+  future_pop REAL,
+  future_pop_2050 REAL,
+  future_pop_change REAL,
   api_raw_json TEXT,
 
-  -- 手入力項目 - 登記情報
-  owner_name TEXT,
-  registry_area REAL,
-  rights_type TEXT,
-  mortgage_holder TEXT,
-  mortgage_amount INTEGER,
-
-  -- インフラ
+  -- 手入力項目 - インフラ
   water_supply TEXT,
   sewage TEXT,
   gas_type TEXT,
-  water_pipe_mm INTEGER,
+  electricity TEXT,
 
   -- 道路
   road_type TEXT,
-  road_width REAL,
-  road_direction TEXT,
+  road_width TEXT,
+  road_frontage TEXT,
+  private_road TEXT,
+
+  -- 登記情報
+  owner_name TEXT,
+  land_area TEXT,
+  building_area TEXT,
+  mortgage TEXT,
 
   -- マンション固有
-  mgmt_fee INTEGER,
-  repair_reserve INTEGER,
+  mgmt_fee TEXT,
+  repair_reserve TEXT,
+  parking_fee TEXT,
+  mgmt_form TEXT,
   mgmt_company TEXT,
-  total_units INTEGER,
-  building_age INTEGER,
-  floor_number TEXT,
+  total_units TEXT,
+  major_repair_plan TEXT,
 
   -- 告知事項
-  disclosure_notes TEXT,
   is_incident INTEGER DEFAULT 0,
+  incident_detail TEXT,
+  disclosure_notes TEXT,
   asbestos TEXT,
   earthquake_resistance TEXT,
 
   -- 契約条件
-  price INTEGER,
+  price TEXT,
   transaction_type TEXT,
-  earnest_money INTEGER,
+  earnest_money TEXT,
+  delivery_date TEXT,
+  special_terms TEXT,
 
   -- ステータス
   status TEXT DEFAULT 'draft',

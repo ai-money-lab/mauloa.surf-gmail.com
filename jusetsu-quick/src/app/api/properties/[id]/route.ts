@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getStore } from "@/lib/store";
+import { getRequestContext } from "@cloudflare/next-on-pages";
+import { getProperty, updatePropertyManual } from "@/lib/db/queries";
 
 export const runtime = "edge";
 
@@ -8,8 +9,10 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
-  const store = getStore();
-  const property = store.get(id);
+  const { env } = getRequestContext();
+  const db = env.DB;
+
+  const property = await getProperty(db, id);
   if (!property) {
     return NextResponse.json({ error: "not found" }, { status: 404 });
   }
@@ -21,8 +24,10 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
-  const store = getStore();
-  const existing = store.get(id);
+  const { env } = getRequestContext();
+  const db = env.DB;
+
+  const existing = await getProperty(db, id);
   if (!existing) {
     return NextResponse.json({ error: "not found" }, { status: 404 });
   }
@@ -34,13 +39,12 @@ export async function PUT(
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
-  const updated = {
-    ...existing,
-    ...data,
-    id: existing.id,
-    created_at: existing.created_at,
-    updated_at: new Date().toISOString(),
-  };
-  store.set(id, updated);
+  // Remove fields that should not be updated directly
+  delete data.id;
+  delete data.created_at;
+
+  await updatePropertyManual(db, id, data);
+
+  const updated = await getProperty(db, id);
   return NextResponse.json(updated);
 }

@@ -17,60 +17,56 @@ interface D1PreparedStatement {
   all(): Promise<{ results: Record<string, unknown>[] }>;
 }
 
+// All property columns (excluding id, company_id, created_by, created_at, updated_at)
+const PROPERTY_COLUMNS = [
+  "address", "latitude", "longitude", "property_type",
+  "api_fetched_at", "zoning", "building_coverage_ratio", "floor_area_ratio",
+  "fire_zone", "urban_plan_zone", "height_district",
+  "flood_level", "flood_text", "flood_river",
+  "tsunami_level", "tsunami_text",
+  "hightide_level", "hightide_text",
+  "sediment_risk", "landslide_text",
+  "school_district", "school_district_jr",
+  "land_price", "land_price_year", "land_price_point",
+  "future_pop", "future_pop_2050", "future_pop_change",
+  "api_raw_json",
+  "water_supply", "sewage", "gas_type", "electricity",
+  "road_type", "road_width", "road_frontage", "private_road",
+  "owner_name", "land_area", "building_area", "mortgage",
+  "mgmt_fee", "repair_reserve", "parking_fee", "mgmt_form",
+  "mgmt_company", "total_units", "major_repair_plan",
+  "is_incident", "incident_detail", "disclosure_notes",
+  "asbestos", "earthquake_resistance",
+  "price", "transaction_type", "earnest_money",
+  "delivery_date", "special_terms",
+  "status",
+] as const;
+
 export async function createProperty(
   db: D1Database,
-  data: {
+  data: Record<string, unknown> & {
     id: string;
     company_id: string;
     created_by: string;
     address: string;
-    latitude: number;
-    longitude: number;
-    property_type: string;
-    zoning?: string;
-    building_coverage_ratio?: number;
-    floor_area_ratio?: number;
-    fire_zone?: string;
-    urban_plan_zone?: string;
-    flood_level?: number;
-    tsunami_level?: number;
-    hightide_level?: number;
-    sediment_risk?: number;
-    school_district?: string;
-    land_price?: number;
-    api_raw_json?: string;
   }
 ) {
+  const columns = ["id", "company_id", "created_by"];
+  const values: unknown[] = [data.id, data.company_id, data.created_by];
+
+  for (const col of PROPERTY_COLUMNS) {
+    if (data[col] !== undefined) {
+      columns.push(col);
+      values.push(data[col]);
+    }
+  }
+
+  const placeholders = columns.map(() => "?").join(", ");
   return db
     .prepare(
-      `INSERT INTO properties (
-      id, company_id, created_by, address, latitude, longitude, property_type,
-      api_fetched_at, zoning, building_coverage_ratio, floor_area_ratio,
-      fire_zone, urban_plan_zone, flood_level, tsunami_level, hightide_level,
-      sediment_risk, school_district, land_price, api_raw_json
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now'), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+      `INSERT INTO properties (${columns.join(", ")}) VALUES (${placeholders})`
     )
-    .bind(
-      data.id,
-      data.company_id,
-      data.created_by,
-      data.address,
-      data.latitude,
-      data.longitude,
-      data.property_type,
-      data.zoning || null,
-      data.building_coverage_ratio || null,
-      data.floor_area_ratio || null,
-      data.fire_zone || null,
-      data.urban_plan_zone || null,
-      data.flood_level || 0,
-      data.tsunami_level || 0,
-      data.hightide_level || 0,
-      data.sediment_risk || 0,
-      data.school_district || null,
-      data.land_price || null,
-      data.api_raw_json || null
-    )
+    .bind(...values)
     .run();
 }
 
@@ -97,14 +93,20 @@ export async function getProperty(db: D1Database, id: string) {
 
 export async function listProperties(
   db: D1Database,
-  companyId: string,
+  companyId?: string,
   limit = 50
 ) {
+  if (companyId) {
+    return db
+      .prepare(
+        "SELECT * FROM properties WHERE company_id = ? ORDER BY updated_at DESC LIMIT ?"
+      )
+      .bind(companyId, limit)
+      .all();
+  }
   return db
-    .prepare(
-      "SELECT id, address, property_type, status, created_at, updated_at FROM properties WHERE company_id = ? ORDER BY updated_at DESC LIMIT ?"
-    )
-    .bind(companyId, limit)
+    .prepare("SELECT * FROM properties ORDER BY updated_at DESC LIMIT ?")
+    .bind(limit)
     .all();
 }
 

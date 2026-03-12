@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getRequestContext } from "@cloudflare/next-on-pages";
+import { findSameBuilding } from "@/lib/db/queries";
 
 export const runtime = "edge";
 
@@ -8,6 +10,11 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "address is required" }, { status: 400 });
   }
 
-  // MVP: return empty results (would use D1 findSameBuilding in production)
-  return NextResponse.json({ results: [] });
+  const { env } = getRequestContext();
+  const db = env.DB;
+
+  const excludeId = req.nextUrl.searchParams.get("exclude") || undefined;
+  const { results } = await findSameBuilding(db, address, excludeId);
+
+  return NextResponse.json({ results });
 }

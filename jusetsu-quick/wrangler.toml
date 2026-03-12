@@ -4,10 +4,10 @@ compatibility_flags = ["nodejs_compat"]
 pages_build_output_dir = ".vercel/output/static"
 
 # D1 Database binding (update database_id after running: wrangler d1 create jusetsu-quick-db)
-# [[d1_databases]]
-# binding = "DB"
-# database_name = "jusetsu-quick-db"
-# database_id = "<YOUR_DATABASE_ID>"
+[[d1_databases]]
+binding = "DB"
+database_name = "jusetsu-quick-db"
+database_id = "TO_BE_FILLED"
 
 [vars]
 # REINFOLIB_API_KEY should be set via: npx wrangler secret put REINFOLIB_API_KEY
