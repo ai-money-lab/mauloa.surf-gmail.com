@@ -7,10 +7,16 @@ async function fetchTile(
   lat: number,
   lng: number,
   zoom: number,
-  apiKey: string
+  apiKey: string,
+  extraParams?: Record<string, string>
 ) {
   const { x, y, z } = latLngToTile(lat, lng, zoom);
-  const url = `${BASE}/${endpoint}?response_format=geojson&z=${z}&x=${x}&y=${y}`;
+  let url = `${BASE}/${endpoint}?response_format=geojson&z=${z}&x=${x}&y=${y}`;
+  if (extraParams) {
+    for (const [k, v] of Object.entries(extraParams)) {
+      url += `&${k}=${encodeURIComponent(v)}`;
+    }
+  }
   const res = await fetch(url, {
     headers: { "Ocp-Apim-Subscription-Key": apiKey },
   });
@@ -23,10 +29,11 @@ async function fetchTileWithFallback(
   lat: number,
   lng: number,
   zooms: number[],
-  apiKey: string
+  apiKey: string,
+  extraParams?: Record<string, string>
 ) {
   for (const z of zooms) {
-    const result = await fetchTile(endpoint, lat, lng, z, apiKey);
+    const result = await fetchTile(endpoint, lat, lng, z, apiKey, extraParams);
     if (result?.features?.length > 0) return result;
   }
   return null;
@@ -39,13 +46,14 @@ export async function fetchAllReinfolib(
 ) {
   const fallbackZooms = [15, 14, 13, 12];
 
-  const [zoning, fireZone, urbanPlan, schoolDistrict, landPrice, futurePop] =
+  const [zoning, fireZone, urbanPlan, schoolDistrict, schoolDistrictJr, landPrice, futurePop] =
     await Promise.allSettled([
       fetchTileWithFallback("XKT002", lat, lng, fallbackZooms, apiKey),
       fetchTileWithFallback("XKT014", lat, lng, fallbackZooms, apiKey),
       fetchTileWithFallback("XKT001", lat, lng, [15, 14, 13, 12, 11], apiKey),
       fetchTileWithFallback("XKT004", lat, lng, fallbackZooms, apiKey),
-      fetchTileWithFallback("XPT002", lat, lng, fallbackZooms, apiKey),
+      fetchTileWithFallback("XKT005", lat, lng, fallbackZooms, apiKey),
+      fetchTileWithFallback("XPT002", lat, lng, [15, 14, 13], apiKey, { year: String(new Date().getFullYear() - 1) }),
       fetchTileWithFallback("XKT013", lat, lng, [15, 14, 13, 12, 11], apiKey),
     ]);
 
@@ -55,6 +63,8 @@ export async function fetchAllReinfolib(
     urbanPlan: urbanPlan.status === "fulfilled" ? urbanPlan.value : null,
     schoolDistrict:
       schoolDistrict.status === "fulfilled" ? schoolDistrict.value : null,
+    schoolDistrictJr:
+      schoolDistrictJr.status === "fulfilled" ? schoolDistrictJr.value : null,
     landPrice: landPrice.status === "fulfilled" ? landPrice.value : null,
     futurePop: futurePop.status === "fulfilled" ? futurePop.value : null,
   };

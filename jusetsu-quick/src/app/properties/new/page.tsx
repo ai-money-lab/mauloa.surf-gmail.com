@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import {
   Search, MapPin, Shield, Droplets, Building2,
   ChevronLeft, Download, Save,
@@ -8,6 +8,7 @@ import {
   CheckCircle2, ArrowRight, Database,
   DollarSign, Route, Plug, FileText,
   ClipboardCheck, TriangleAlert, Scale, Check, AlertTriangle,
+  Info,
 } from "lucide-react";
 import Header from "@/components/Header";
 import StepNav from "@/components/StepNav";
@@ -26,6 +27,96 @@ const PROPERTY_TYPES = [
   { v: "building", label: "一棟", Icon: Warehouse },
 ];
 
+const LOCAL_STORAGE_KEY = "jusetsu_new_property_draft";
+
+function computeCompletion(
+  formData: Partial<PropertyData>,
+  apiData: SearchResult | null,
+  pType: string,
+  incident: boolean
+): { filled: number; total: number; percent: number } {
+  const fields: boolean[] = [
+    // API fields
+    !!apiData?.zoning,
+    !!apiData?.building_coverage_ratio,
+    !!apiData?.floor_area_ratio,
+    !!apiData?.fire_zone,
+    !!apiData?.flood_text,
+    !!apiData?.tsunami_text,
+    !!apiData?.hightide_text,
+    !!apiData?.landslide_text,
+    !!apiData?.land_price,
+    // Manual fields
+    !!formData.water_supply,
+    !!formData.sewage,
+    !!formData.gas_type,
+    !!formData.electricity,
+    !!formData.road_type,
+    !!formData.road_width,
+    !!formData.owner_name,
+    !!formData.land_area,
+    !!formData.mortgage,
+    !!formData.price,
+    !!formData.transaction_type,
+    !!formData.asbestos,
+    !!formData.earthquake_resistance,
+  ];
+  if (pType === "mansion") {
+    fields.push(!!formData.mgmt_fee, !!formData.repair_reserve, !!formData.mgmt_form);
+  }
+  if (incident) {
+    fields.push(!!formData.incident_detail);
+  }
+  const filled = fields.filter(Boolean).length;
+  const total = fields.length;
+  return { filled, total, percent: total > 0 ? Math.round((filled / total) * 100) : 0 };
+}
+
+function isValidNumber(val: string | undefined): boolean {
+  if (!val || val === "") return true; // empty is ok
+  return !isNaN(Number(val)) && val.trim() !== "";
+}
+
+function ProgressBar({ percent }: { percent: number }) {
+  const color = percent >= 80 ? "#166534" : percent >= 50 ? "#854D0E" : "#B91C1C";
+  const bg = percent >= 80 ? "#DCFCE7" : percent >= 50 ? "#FEF9C3" : "#FEE2E2";
+  return (
+    <div style={{ marginBottom: 16 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+        <span style={{ fontSize: 12, fontWeight: 700, color }}>入力進捗</span>
+        <span style={{ fontSize: 13, fontWeight: 800, color }}>{percent}%</span>
+      </div>
+      <div style={{ background: "#E2E8F0", borderRadius: 6, height: 8, overflow: "hidden" }}>
+        <div style={{ height: "100%", background: color, borderRadius: 6, width: `${percent}%`, transition: "width 0.4s" }} />
+      </div>
+    </div>
+  );
+}
+
+function DataSourceBadge({ source, official }: { source: string; official: boolean }) {
+  return (
+    <div style={{
+      display: "inline-flex", alignItems: "center", gap: 4,
+      fontSize: 10, fontWeight: 600, padding: "2px 6px", borderRadius: 4,
+      background: official ? "#DBEAFE" : "#F1F5F9",
+      color: official ? "#1D4ED8" : "#64748B",
+      border: `1px solid ${official ? "#93C5FD" : "#CBD5E1"}`,
+    }}>
+      {official ? <Shield size={10} /> : <Info size={10} />}
+      {source}
+    </div>
+  );
+}
+
+function NumericValidation({ value }: { value: string | undefined }) {
+  if (!value || value === "" || isValidNumber(value)) return null;
+  return (
+    <div style={{ fontSize: 11, color: "#B91C1C", fontWeight: 600, marginTop: 4 }}>
+      数値を入力してください
+    </div>
+  );
+}
+
 export default function NewPropertyPage() {
   const [step, setStep] = useState(1);
   const [address, setAddress] = useState("");
@@ -41,8 +132,45 @@ export default function NewPropertyPage() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
+  // Auto-save to localStorage
+  const saveToLocalStorage = useCallback(() => {
+    try {
+      const draft = { address, pType, incident, formData, apiData, step };
+      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(draft));
+    } catch { /* ignore */ }
+  }, [address, pType, incident, formData, apiData, step]);
+
+  const autoSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   const updateForm = (key: string, val: string) => {
     setFormData((prev) => ({ ...prev, [key]: val }));
+  };
+
+  // Debounced auto-save
+  useEffect(() => {
+    if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
+    autoSaveTimer.current = setTimeout(saveToLocalStorage, 500);
+    return () => { if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current); };
+  }, [saveToLocalStorage]);
+
+  // Restore from localStorage on mount
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
+      if (saved) {
+        const draft = JSON.parse(saved);
+        if (draft.address) setAddress(draft.address);
+        if (draft.pType) setPType(draft.pType);
+        if (draft.incident) setIncident(draft.incident);
+        if (draft.formData) setFormData(draft.formData);
+        if (draft.apiData) setApiData(draft.apiData);
+        if (draft.step && draft.step > 1 && draft.apiData) setStep(draft.step);
+      }
+    } catch { /* ignore */ }
+  }, []);
+
+  const clearDraft = () => {
+    try { localStorage.removeItem(LOCAL_STORAGE_KEY); } catch { /* ignore */ }
   };
 
   const [error, setError] = useState("");
@@ -93,6 +221,8 @@ export default function NewPropertyPage() {
 
   const ad = apiData;
   const pTypeLabel = pType === "mansion" ? "区分マンション" : pType === "land" ? "土地" : pType === "house" ? "一戸建て" : "一棟";
+
+  const completion = computeCompletion(formData, apiData, pType, incident);
 
   // CSV injection safe escape
   const csvEscape = (s: string) => `"${s.replace(/"/g, '""')}"`;
@@ -146,6 +276,7 @@ export default function NewPropertyPage() {
       if (res.ok) {
         const data = await res.json();
         if (!savedId) setSavedId(data.id);
+        clearDraft();
         showToast("下書きを保存しました");
       } else {
         showToast("保存に失敗しました");
@@ -293,6 +424,17 @@ export default function NewPropertyPage() {
       <StepNav current={step} onGo={go} canNavigate={step >= 2} />
 
       <main style={{ maxWidth: 740, margin: "0 auto", padding: "22px 18px 100px" }}>
+        {/* Auto-save indicator */}
+        {step >= 2 && (
+          <div style={{
+            display: "flex", justifyContent: "flex-end", alignItems: "center", gap: 6,
+            marginBottom: 8, fontSize: 11, color: "#64748B", fontWeight: 500,
+          }}>
+            <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#86EFAC" }} />
+            自動保存中（ブラウザ）
+          </div>
+        )}
+
         {/* STEP 1 */}
         {step === 1 && !loading && (
           <div className="animate-fade-in">
@@ -302,8 +444,9 @@ export default function NewPropertyPage() {
               sub="住所を入力すると、都市計画・ハザード・地価情報を自動で取得します"
             >
               <div style={{ marginBottom: 18 }}>
-                <label style={{ fontSize: 13, fontWeight: 700, color: "#0F172A", display: "block", marginBottom: 8 }}>
+                <label style={{ fontSize: 13, fontWeight: 700, color: "#0F172A", display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
                   物件種別
+                  <span style={{ color: "#B91C1C", fontSize: 14, fontWeight: 800 }}>*</span>
                 </label>
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(80px, 1fr))", gap: 8 }}>
                   {PROPERTY_TYPES.map((t) => (
@@ -341,8 +484,9 @@ export default function NewPropertyPage() {
               </div>
 
               <div style={{ marginBottom: 20 }}>
-                <label style={{ fontSize: 13, fontWeight: 700, color: "#0F172A", display: "block", marginBottom: 8 }}>
+                <label style={{ fontSize: 13, fontWeight: 700, color: "#0F172A", display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
                   所在地
+                  <span style={{ color: "#B91C1C", fontSize: 14, fontWeight: 800 }}>*</span>
                 </label>
                 <div style={{ position: "relative" }}>
                   <MapPin size={16} color="#64748B" style={{ position: "absolute", left: 12, top: 12 }} />
@@ -372,6 +516,16 @@ export default function NewPropertyPage() {
               <Btn onClick={startLoad} disabled={!address.trim()} full icon={Search}>
                 物件情報を自動取得
               </Btn>
+
+              {/* Restore draft notice */}
+              {apiData && step === 1 && (
+                <div style={{
+                  marginTop: 12, padding: "10px 14px", background: "#DBEAFE",
+                  border: "1.5px solid #93C5FD", borderRadius: 8, fontSize: 12, color: "#1D4ED8", fontWeight: 600,
+                }}>
+                  前回の入力データが復元されました。「取得結果」ステップから続行できます。
+                </div>
+              )}
             </Section>
 
             <div
@@ -387,9 +541,9 @@ export default function NewPropertyPage() {
               }}
             >
               {[
-                { Icon: Shield, label: "都市計画", src: "不動産情報ライブラリ" },
-                { Icon: Droplets, label: "ハザード", src: "ハザードAPI" },
-                { Icon: DollarSign, label: "地価情報", src: "国土交通省" },
+                { Icon: Shield, label: "都市計画", src: "不動産情報ライブラリ", official: true },
+                { Icon: Droplets, label: "ハザード", src: "ハザードAPI", official: false },
+                { Icon: DollarSign, label: "地価情報", src: "国土交通省", official: true },
               ].map((s) => (
                 <div
                   key={s.label}
@@ -410,7 +564,9 @@ export default function NewPropertyPage() {
                     <s.Icon size={18} color="#FFF" strokeWidth={2} />
                   </div>
                   <div style={{ fontSize: 13, fontWeight: 700, color: "#0F172A" }}>{s.label}</div>
-                  <div style={{ fontSize: 10, color: "#64748B", fontWeight: 500, marginTop: 2 }}>{s.src}</div>
+                  <div style={{ marginTop: 4 }}>
+                    <DataSourceBadge source={s.src} official={s.official} />
+                  </div>
                 </div>
               ))}
             </div>
@@ -453,11 +609,13 @@ export default function NewPropertyPage() {
         {/* STEP 2 */}
         {step === 2 && (
           <div className="animate-fade-in">
+            <ProgressBar percent={completion.percent} />
+
             {error ? (
               <div
                 style={{
                   display: "flex",
-                  alignItems: "center",
+                  alignItems: "flex-start",
                   gap: 12,
                   padding: "14px 18px",
                   background: "#FEE2E2",
@@ -466,13 +624,19 @@ export default function NewPropertyPage() {
                   marginBottom: 16,
                 }}
               >
-                <AlertTriangle size={20} color="#B91C1C" strokeWidth={2.5} />
+                <AlertTriangle size={20} color="#B91C1C" strokeWidth={2.5} style={{ flexShrink: 0, marginTop: 2 }} />
                 <div>
                   <div style={{ fontSize: 14, fontWeight: 700, color: "#B91C1C" }}>
-                    取得エラー
+                    API取得エラー
                   </div>
                   <div style={{ fontSize: 12, color: "#B91C1C", marginTop: 2, fontWeight: 500 }}>
                     {error}
+                  </div>
+                  <div style={{ fontSize: 11, color: "#991B1B", marginTop: 6, fontWeight: 500 }}>
+                    住所の表記を確認するか、しばらく時間をおいて再取得してください。手動入力で続行することも可能です。
+                  </div>
+                  <div style={{ marginTop: 8 }}>
+                    <Btn variant="secondary" onClick={() => go(1)} icon={ChevronLeft}>住所を修正して再取得</Btn>
                   </div>
                 </div>
               </div>
@@ -502,35 +666,44 @@ export default function NewPropertyPage() {
             )}
 
             <Section icon={Shield} title="都市計画情報" sub="不動産情報ライブラリ API">
+              <div style={{ marginBottom: 8 }}>
+                <DataSourceBadge source="不動産情報ライブラリ（国土交通省）" official={true} />
+              </div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-                <AutoRow label="用途地域" value={ad?.zoning || "取得なし"} />
-                <AutoRow label="防火地域" value={ad?.fire_zone || "取得なし"} />
-                <AutoRow label="建ぺい率" value={ad?.building_coverage_ratio ? `${ad.building_coverage_ratio}%` : "取得なし"} />
-                <AutoRow label="容積率" value={ad?.floor_area_ratio ? `${ad.floor_area_ratio}%` : "取得なし"} />
-                <AutoRow label="高度地区" value={ad?.height_district || "取得なし"} />
-                <AutoRow label="学区（小学校）" value={ad?.school_district || "取得なし"} />
+                <AutoRow label="用途地域" value={ad?.zoning || "該当データなし"} />
+                <AutoRow label="防火地域" value={ad?.fire_zone || "該当データなし"} />
+                <AutoRow label="建ぺい率" value={ad?.building_coverage_ratio ? `${ad.building_coverage_ratio}%` : "該当データなし"} />
+                <AutoRow label="容積率" value={ad?.floor_area_ratio ? `${ad.floor_area_ratio}%` : "該当データなし"} />
+                <AutoRow label="高度地区" value={ad?.height_district || "該当データなし"} />
+                <AutoRow label="学区（小学校）" value={ad?.school_district || "該当データなし"} />
               </div>
             </Section>
 
             <Section icon={Droplets} title="ハザード情報" sub="ハザードAPI（東海大学）">
+              <div style={{ marginBottom: 8 }}>
+                <DataSourceBadge source="ハザードマップAPI（サードパーティ）" official={false} />
+              </div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-                <AutoRow label="洪水浸水想定" value={ad?.flood_text || "取得なし"} sub={ad?.flood_river ? `対象河川: ${ad.flood_river}` : undefined} />
-                <AutoRow label="土砂災害警戒" value={ad?.landslide_text || "取得なし"} />
-                <AutoRow label="津波浸水想定" value={ad?.tsunami_text || "取得なし"} />
-                <AutoRow label="高潮浸水想定" value={ad?.hightide_text || "取得なし"} />
+                <AutoRow label="洪水浸水想定" value={ad?.flood_text || "該当データなし"} sub={ad?.flood_river ? `対象河川: ${ad.flood_river}` : undefined} />
+                <AutoRow label="土砂災害警戒" value={ad?.landslide_text || "該当データなし"} />
+                <AutoRow label="津波浸水想定" value={ad?.tsunami_text || "該当データなし"} />
+                <AutoRow label="高潮浸水想定" value={ad?.hightide_text || "該当データなし"} />
               </div>
             </Section>
 
             <Section icon={DollarSign} title="地価・人口">
+              <div style={{ marginBottom: 8 }}>
+                <DataSourceBadge source="国土交通省 地価公示" official={true} />
+              </div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
                 <AutoRow
                   label="公示地価（最寄地点）"
-                  value={ad?.land_price ? `${ad.land_price.toLocaleString()}円/㎡` : "取得なし"}
+                  value={ad?.land_price ? `${ad.land_price.toLocaleString()}円/㎡` : "該当データなし"}
                   sub={ad?.land_price_year ? `${ad.land_price_year}年 ${ad.land_price_point || ""}` : undefined}
                 />
                 <AutoRow
                   label="将来人口推計"
-                  value={ad?.future_pop_change != null ? `${ad.future_pop_change}%（2050年）` : "取得なし"}
+                  value={ad?.future_pop_change != null ? `${ad.future_pop_change}%（2050年）` : "該当データなし"}
                   sub={
                     ad?.future_pop && ad?.future_pop_2050
                       ? `${ad.future_pop.toLocaleString()}人 → ${ad.future_pop_2050.toLocaleString()}人`
@@ -552,11 +725,13 @@ export default function NewPropertyPage() {
         {/* STEP 3 */}
         {step === 3 && (
           <div className="animate-fade-in">
+            <ProgressBar percent={completion.percent} />
+
             <Section icon={Plug} title="インフラ設備" sub="手動入力が必要な項目です">
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                <Field label="上水道" options={["公営水道", "井戸水", "受水槽", "その他"]} half value={formData.water_supply} onChange={(v) => updateForm("water_supply", v)} />
-                <Field label="下水道" options={["公共下水", "浄化槽（個別）", "浄化槽（集中）", "汲み取り"]} half value={formData.sewage} onChange={(v) => updateForm("sewage", v)} />
-                <Field label="ガス" options={["都市ガス", "プロパン（個別）", "プロパン（集中）", "オール電化"]} half value={formData.gas_type} onChange={(v) => updateForm("gas_type", v)} />
+                <Field label="上水道" options={["公営水道", "井戸水", "受水槽", "その他"]} half value={formData.water_supply} onChange={(v) => updateForm("water_supply", v)} required />
+                <Field label="下水道" options={["公共下水", "浄化槽（個別）", "浄化槽（集中）", "汲み取り"]} half value={formData.sewage} onChange={(v) => updateForm("sewage", v)} required />
+                <Field label="ガス" options={["都市ガス", "プロパン（個別）", "プロパン（集中）", "オール電化"]} half value={formData.gas_type} onChange={(v) => updateForm("gas_type", v)} required />
                 <Field label="電気" placeholder="例：東京電力EP 40A" half value={formData.electricity} onChange={(v) => updateForm("electricity", v)} />
               </div>
             </Section>
@@ -570,8 +745,14 @@ export default function NewPropertyPage() {
                   value={formData.road_type}
                   onChange={(v) => updateForm("road_type", v)}
                 />
-                <Field label="道路幅員（m）" placeholder="例：6.0" type="number" half value={formData.road_width} onChange={(v) => updateForm("road_width", v)} />
-                <Field label="接道間口（m）" placeholder="例：8.5" type="number" half value={formData.road_frontage} onChange={(v) => updateForm("road_frontage", v)} />
+                <div>
+                  <Field label="道路幅員（m）" placeholder="例：6.0" type="number" half value={formData.road_width} onChange={(v) => updateForm("road_width", v)} required />
+                  <NumericValidation value={formData.road_width} />
+                </div>
+                <div>
+                  <Field label="接道間口（m）" placeholder="例：8.5" type="number" half value={formData.road_frontage} onChange={(v) => updateForm("road_frontage", v)} />
+                  <NumericValidation value={formData.road_frontage} />
+                </div>
                 <Field label="私道負担" options={["なし", "あり"]} half value={formData.private_road} onChange={(v) => updateForm("private_road", v)} />
               </div>
             </Section>
@@ -579,8 +760,14 @@ export default function NewPropertyPage() {
             <Section icon={FileText} title="登記情報">
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                 <Field label="所有者名" placeholder="例：山田太郎" required value={formData.owner_name} onChange={(v) => updateForm("owner_name", v)} />
-                <Field label="土地面積（㎡）" placeholder="例：120.50" type="number" half value={formData.land_area} onChange={(v) => updateForm("land_area", v)} />
-                <Field label="建物面積（㎡）" placeholder="例：98.76" type="number" half value={formData.building_area} onChange={(v) => updateForm("building_area", v)} />
+                <div>
+                  <Field label="土地面積（㎡）" placeholder="例：120.50" type="number" half value={formData.land_area} onChange={(v) => updateForm("land_area", v)} />
+                  <NumericValidation value={formData.land_area} />
+                </div>
+                <div>
+                  <Field label="建物面積（㎡）" placeholder="例：98.76" type="number" half value={formData.building_area} onChange={(v) => updateForm("building_area", v)} />
+                  <NumericValidation value={formData.building_area} />
+                </div>
                 <Field label="抵当権" required options={["なし", "あり（抹消予定）", "あり（残置）"]} value={formData.mortgage} onChange={(v) => updateForm("mortgage", v)} />
               </div>
             </Section>
@@ -588,14 +775,26 @@ export default function NewPropertyPage() {
             {pType === "mansion" && (
               <Section icon={Building2} title="マンション固有情報" sub="区分マンションの場合のみ表示">
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
-                  <Field label="管理費（月額）" placeholder="15,000" type="number" required half value={formData.mgmt_fee} onChange={(v) => updateForm("mgmt_fee", v)} />
-                  <Field label="修繕積立金（月額）" placeholder="12,000" type="number" required half value={formData.repair_reserve} onChange={(v) => updateForm("repair_reserve", v)} />
-                  <Field label="駐車場（月額）" placeholder="20,000" type="number" half value={formData.parking_fee} onChange={(v) => updateForm("parking_fee", v)} />
+                  <div>
+                    <Field label="管理費（月額）" placeholder="15,000" type="number" required half value={formData.mgmt_fee} onChange={(v) => updateForm("mgmt_fee", v)} />
+                    <NumericValidation value={formData.mgmt_fee} />
+                  </div>
+                  <div>
+                    <Field label="修繕積立金（月額）" placeholder="12,000" type="number" required half value={formData.repair_reserve} onChange={(v) => updateForm("repair_reserve", v)} />
+                    <NumericValidation value={formData.repair_reserve} />
+                  </div>
+                  <div>
+                    <Field label="駐車場（月額）" placeholder="20,000" type="number" half value={formData.parking_fee} onChange={(v) => updateForm("parking_fee", v)} />
+                    <NumericValidation value={formData.parking_fee} />
+                  </div>
                 </div>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginTop: 12 }}>
-                  <Field label="管理形態" options={["全部委託", "一部委託", "自主管理"]} half value={formData.mgmt_form} onChange={(v) => updateForm("mgmt_form", v)} />
+                  <Field label="管理形態" options={["全部委託", "一部委託", "自主管理"]} half value={formData.mgmt_form} onChange={(v) => updateForm("mgmt_form", v)} required />
                   <Field label="管理会社名" placeholder="例：三井不動産レジデンシャル" half value={formData.mgmt_company} onChange={(v) => updateForm("mgmt_company", v)} />
-                  <Field label="総戸数" placeholder="例：120" type="number" half value={formData.total_units} onChange={(v) => updateForm("total_units", v)} />
+                  <div>
+                    <Field label="総戸数" placeholder="例：120" type="number" half value={formData.total_units} onChange={(v) => updateForm("total_units", v)} />
+                    <NumericValidation value={formData.total_units} />
+                  </div>
                   <Field label="大規模修繕予定" placeholder="例：2026年外壁改修" half value={formData.major_repair_plan} onChange={(v) => updateForm("major_repair_plan", v)} />
                 </div>
               </Section>
@@ -613,6 +812,8 @@ export default function NewPropertyPage() {
         {/* STEP 4 */}
         {step === 4 && (
           <div className="animate-fade-in">
+            <ProgressBar percent={completion.percent} />
+
             <Section icon={TriangleAlert} title="物件告知事項" sub="売主からの告知内容">
               <div
                 onClick={() => setIncident(!incident)}
@@ -677,6 +878,7 @@ export default function NewPropertyPage() {
                     }}
                   >
                     <AlertTriangle size={14} /> 告知事項の詳細
+                    <span style={{ color: "#B91C1C", fontSize: 14, fontWeight: 800 }}>*</span>
                   </label>
                   <textarea
                     placeholder="例：2020年○月、前所有者が室内で病死。発見まで約1週間。特殊清掃済み。"
@@ -700,16 +902,22 @@ export default function NewPropertyPage() {
 
               <div style={{ display: "grid", gap: 12 }}>
                 <Field label="その他の告知事項" type="textarea" placeholder="例：近隣に墓地あり（南側約50m）" value={formData.disclosure_notes} onChange={(v) => updateForm("disclosure_notes", v)} />
-                <Field label="アスベスト調査" options={["調査済み（使用なし）", "調査済み（使用あり）", "未調査"]} value={formData.asbestos} onChange={(v) => updateForm("asbestos", v)} />
-                <Field label="耐震診断" options={["実施済み（適合）", "実施済み（不適合）", "未実施"]} value={formData.earthquake_resistance} onChange={(v) => updateForm("earthquake_resistance", v)} />
+                <Field label="アスベスト調査" required options={["調査済み（使用なし）", "調査済み（使用あり）", "未調査"]} value={formData.asbestos} onChange={(v) => updateForm("asbestos", v)} />
+                <Field label="耐震診断" required options={["実施済み（適合）", "実施済み（不適合）", "未実施"]} value={formData.earthquake_resistance} onChange={(v) => updateForm("earthquake_resistance", v)} />
               </div>
             </Section>
 
             <Section icon={Scale} title="取引・契約条件">
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                <Field label="取引価格（円）" placeholder="例：45,000,000" type="number" required value={formData.price} onChange={(v) => updateForm("price", v)} />
+                <div>
+                  <Field label="取引価格（円）" placeholder="例：45000000" type="number" required value={formData.price} onChange={(v) => updateForm("price", v)} />
+                  <NumericValidation value={formData.price} />
+                </div>
                 <Field label="取引態様" required options={["売主", "代理", "媒介（専属専任）", "媒介（専任）", "媒介（一般）"]} value={formData.transaction_type} onChange={(v) => updateForm("transaction_type", v)} />
-                <Field label="手付金（円）" placeholder="例：4,500,000" type="number" half value={formData.earnest_money} onChange={(v) => updateForm("earnest_money", v)} />
+                <div>
+                  <Field label="手付金（円）" placeholder="例：4500000" type="number" half value={formData.earnest_money} onChange={(v) => updateForm("earnest_money", v)} />
+                  <NumericValidation value={formData.earnest_money} />
+                </div>
                 <Field label="引渡予定日" type="date" half value={formData.delivery_date} onChange={(v) => updateForm("delivery_date", v)} />
                 <Field label="特約事項" type="textarea" placeholder="例：ローン特約あり（2026年3月15日まで）" value={formData.special_terms} onChange={(v) => updateForm("special_terms", v)} />
               </div>
@@ -727,6 +935,8 @@ export default function NewPropertyPage() {
         {/* STEP 5 */}
         {step === 5 && (
           <div className="animate-fade-in">
+            <ProgressBar percent={completion.percent} />
+
             <Section icon={ClipboardCheck} title="入力内容の確認">
               <div
                 style={{

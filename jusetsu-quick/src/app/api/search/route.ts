@@ -105,6 +105,9 @@ export async function POST(req: NextRequest) {
   const schoolProps = reinfolibData
     ? extractNearestFeature(reinfolibData.schoolDistrict as Record<string, unknown> | null, lat, lng, 3000)
     : null;
+  const schoolJrProps = reinfolibData
+    ? extractNearestFeature(reinfolibData.schoolDistrictJr as Record<string, unknown> | null, lat, lng, 3000)
+    : null;
   const landPriceProps = reinfolibData
     ? extractNearestFeature(reinfolibData.landPrice as Record<string, unknown> | null, lat, lng, 5000)
     : null;
@@ -115,11 +118,11 @@ export async function POST(req: NextRequest) {
   // Build sediment risk with detail
   const sediment = parseSedimentRisk(hazardData);
 
-  // Extract zoning fields trying multiple possible field names
-  const zoningValue = tryFields(zoningProps, "用途地域", "youto", "A29_004", "A09_004");
-  const bcrRaw = tryFields(zoningProps, "建ぺい率", "kenpei", "A29_005", "A09_006");
-  const farRaw = tryFields(zoningProps, "容積率", "youseki", "A29_006", "A09_007");
-  const fireZoneValue = tryFields(fireProps, "防火地域", "A09_005", "bouka");
+  // Extract zoning fields - official reinfolib field names from API docs
+  const zoningValue = tryFields(zoningProps, "use_area_ja", "用途地域", "youto", "A29_004", "A09_004");
+  const bcrRaw = tryFields(zoningProps, "u_building_coverage_ratio_ja", "建ぺい率", "建蔽率", "kenpei", "A29_005", "A09_006");
+  const farRaw = tryFields(zoningProps, "u_floor_area_ratio_ja", "容積率", "youseki", "A29_006", "A09_007");
+  const fireZoneValue = tryFields(fireProps, "fire_prevention_ja", "防火地域", "防火・準防火地域", "A09_005", "bouka", "kubun_id");
 
   const result = {
     lat,
@@ -148,17 +151,23 @@ export async function POST(req: NextRequest) {
       steep_slope: sediment.steepSlope,
       landslide: sediment.landslide,
     },
-    // School
-    school_district: (tryFields(schoolProps, "小学校名", "A27_005") as string) ?? null,
-    school_district_jr: (tryFields(schoolProps, "中学校名", "A27_006") as string) ?? null,
-    // Land price
-    land_price: (tryFields(landPriceProps, "価格", "L01_006") as number) ?? null,
-    land_price_year: (tryFields(landPriceProps, "年度", "L01_003") as number) ?? null,
-    land_price_point: (tryFields(landPriceProps, "所在", "L01_025") as string) ?? null,
-    // Future pop
-    future_pop: (tryFields(futurePopProps, "現在人口") as number) ?? null,
-    future_pop_2050: (tryFields(futurePopProps, "2050年人口") as number) ?? null,
-    future_pop_change: (tryFields(futurePopProps, "変化率") as number) ?? null,
+    // School (XKT004 returns A27_005/school_name fields)
+    school_district: (tryFields(schoolProps, "A27_005", "小学校名", "school_name") as string) ?? null,
+    school_district_jr: (tryFields(schoolJrProps, "A32_005", "中学校名", "school_name") ??
+      tryFields(schoolProps, "A27_006", "中学校名")) as string ?? null,
+    // Land price (XPT002 - 地価公示ポイントAPI)
+    land_price: (tryFields(landPriceProps, "L01_006", "current_price", "価格", "標準価格") as number) ?? null,
+    land_price_year: (tryFields(landPriceProps, "L01_003", "survey_year", "年度", "調査年") as number) ?? null,
+    land_price_point: (tryFields(landPriceProps, "L01_025", "address", "所在", "所在及び地番") as string) ?? null,
+    // Future pop (XKT013 - 将来推計人口500mメッシュ)
+    future_pop: (tryFields(futurePopProps, "PTN_2020", "現在人口", "population") as number) ?? null,
+    future_pop_2050: (tryFields(futurePopProps, "PTN_2050", "2050年人口") as number) ?? null,
+    future_pop_change: (() => {
+      const pop2020 = tryFields(futurePopProps, "PTN_2020", "現在人口") as number | null;
+      const pop2050 = tryFields(futurePopProps, "PTN_2050", "2050年人口") as number | null;
+      if (pop2020 && pop2050 && pop2020 > 0) return Math.round((pop2050 / pop2020) * 100 - 100);
+      return (tryFields(futurePopProps, "変化率") as number) ?? null;
+    })(),
     // Diagnostics
     api_errors: Object.keys(apiErrors).length > 0 ? apiErrors : undefined,
     data_sources: {
