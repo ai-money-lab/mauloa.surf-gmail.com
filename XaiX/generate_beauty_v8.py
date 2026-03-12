@@ -74,37 +74,58 @@ def generate_image(
 
     endpoint = engine["endpoint"]
     defaults = engine.get("defaults", {})
+    api_type = engine.get("api_type", "standard")
 
     # プロンプト構築
     prompt = custom_prompt or scene["prompt_template"]
 
-    # APIパラメータ
-    arguments = {
-        "prompt": prompt,
-        "image_size": scene.get("image_size", defaults.get("image_size", "portrait_4_3")),
-        "num_inference_steps": scene.get(
-            "num_inference_steps", defaults.get("num_inference_steps", 40)
-        ),
-        "guidance_scale": scene.get("guidance_scale", defaults.get("guidance_scale", 7.5)),
-        "num_images": num_images,
-    }
+    # APIタイプ別にパラメータを構築
+    if api_type == "flux-pro":
+        # FLUX Pro / Ultra 系: aspect_ratio ベース、num_inference_steps なし
+        aspect_map = {
+            "portrait_4_3": "3:4",
+            "landscape_4_3": "4:3",
+            "square": "1:1",
+            "portrait_3_2": "2:3",
+            "landscape_3_2": "3:2",
+        }
+        img_size = scene.get("image_size", defaults.get("image_size", "portrait_4_3"))
+        arguments = {
+            "prompt": prompt,
+            "aspect_ratio": aspect_map.get(img_size, "3:4"),
+            "num_images": num_images,
+            "safety_tolerance": defaults.get("safety_tolerance", "5"),
+            "output_format": "png",
+        }
+        # raw mode（Ultra Raw用）
+        if defaults.get("raw"):
+            arguments["raw"] = True
+    else:
+        # 標準API: image_size, num_inference_steps, guidance_scale 等
+        arguments = {
+            "prompt": prompt,
+            "image_size": scene.get("image_size", defaults.get("image_size", "portrait_4_3")),
+            "num_inference_steps": scene.get(
+                "num_inference_steps", defaults.get("num_inference_steps", 40)
+            ),
+            "guidance_scale": scene.get("guidance_scale", defaults.get("guidance_scale", 7.5)),
+            "num_images": num_images,
+        }
+        # ネガティブプロンプト
+        if scene.get("negative_prompt"):
+            arguments["negative_prompt"] = scene["negative_prompt"]
+        # エンジン固有パラメータ
+        for key in ["raw", "enable_safety_checker", "safety_tolerance"]:
+            if key in defaults:
+                arguments[key] = defaults[key]
 
-    # シードが指定されていれば追加
+    # シード
     if seed is not None:
         arguments["seed"] = seed
 
-    # ネガティブプロンプト
-    if scene.get("negative_prompt"):
-        arguments["negative_prompt"] = scene["negative_prompt"]
-
-    # エンジン固有のパラメータ（raw mode等）
-    for key in ["raw", "enable_safety_checker"]:
-        if key in defaults:
-            arguments[key] = defaults[key]
-
     print(f"生成中... エンジン: {engine['name']}, シーン: {scene['name']}")
     print(f"  エンドポイント: {endpoint}")
-    print(f"  ステップ数: {arguments['num_inference_steps']}")
+    print(f"  APIタイプ: {api_type}")
     if seed is not None:
         print(f"  シード: {seed}")
 
