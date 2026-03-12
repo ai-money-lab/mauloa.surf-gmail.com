@@ -2,15 +2,17 @@
 name: beach_1
 description: "夕暮れのビーチでのゴールデンアワーポートレート"
 prompt_template: >
-  professional portrait photography of a gorgeous young Japanese woman,
-  petite slim body with hourglass figure, narrow waist, large bust, perfect body proportions,
-  cute youthful baby face, big round eyes, small nose, soft smile,
-  long black hair blowing in the wind, fair glowing skin,
-  wearing a bikini showing slim waist and curves,
+  professional portrait photography of a gorgeous young Japanese woman age 25,
+  160cm petite but perfect 8-head-tall body proportions,
+  extremely slim waist like a ramune bottle, large natural bust, wide hips,
+  exaggerated hourglass figure, thin arms and legs contrasting with curves,
+  cute youthful baby face, big round eyes, small nose, plump lips, soft innocent smile,
+  long straight black hair blowing in the wind, fair porcelain glowing skin, flawless complexion,
+  wearing a string bikini showing extreme waist-to-bust ratio and toned abs,
   walking on a tropical beach at golden hour sunset,
-  warm golden light, ocean waves in background,
-  Instagram style photography,
-  8k uhd, sharp focus, natural skin texture, full body shot
+  warm golden light, ocean waves in background, wet skin glistening,
+  Instagram influencer style, glamorous, shot on Sony A7R IV,
+  8k uhd, sharp focus, natural skin texture, full body shot from head to toe
 negative_prompt: >
   ugly, deformed, noisy, blurry, low quality, cartoon, anime,
   painting, drawing, illustration, text, watermark
