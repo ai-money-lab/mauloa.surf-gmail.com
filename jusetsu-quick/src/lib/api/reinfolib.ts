@@ -85,8 +85,8 @@ function getCentroid(feature: { geometry?: { type?: string; coordinates?: unknow
       : null;
   if (!coords?.length) return null;
   const sum = coords.reduce(
-    (acc: [number, number], c: number[]) => [acc[0] + c[1], acc[1] + c[0]],
-    [0, 0]
+    (acc: [number, number], c: number[]): [number, number] => [acc[0] + c[1], acc[1] + c[0]],
+    [0, 0] as [number, number]
   );
   return [sum[0] / coords.length, sum[1] / coords.length];
 }
