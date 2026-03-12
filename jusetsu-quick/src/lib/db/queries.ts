@@ -42,6 +42,22 @@ const PROPERTY_COLUMNS = [
   "status",
 ] as const;
 
+const ALLOWED_COLS = new Set<string>(PROPERTY_COLUMNS);
+
+/**
+ * Sanitize a value for D1/SQLite binding.
+ * D1 only accepts: string, number, null, ArrayBuffer.
+ * Booleans → 0/1, objects → JSON string, undefined → null.
+ */
+function sanitizeValue(val: unknown): string | number | null {
+  if (val === null || val === undefined) return null;
+  if (typeof val === "boolean") return val ? 1 : 0;
+  if (typeof val === "number") return isFinite(val) ? val : null;
+  if (typeof val === "string") return val;
+  // Objects/arrays → JSON string
+  try { return JSON.stringify(val); } catch { return null; }
+}
+
 export async function createProperty(
   db: D1Database,
   data: Record<string, unknown> & {
@@ -52,14 +68,12 @@ export async function createProperty(
   }
 ) {
   const columns = ["id", "company_id", "created_by"];
-  const values: unknown[] = [data.id, data.company_id, data.created_by];
+  const values: (string | number | null)[] = [data.id, data.company_id, data.created_by];
 
   for (const col of PROPERTY_COLUMNS) {
     if (data[col] !== undefined) {
       columns.push(col);
-      // Convert booleans to integers for SQLite
-      const val = data[col];
-      values.push(typeof val === "boolean" ? (val ? 1 : 0) : val);
+      values.push(sanitizeValue(data[col]));
     }
   }
 
@@ -77,16 +91,14 @@ export async function updatePropertyManual(
   id: string,
   data: Record<string, unknown>
 ) {
-  const allowedCols = new Set<string>(PROPERTY_COLUMNS);
   const fields = Object.keys(data).filter(
-    (k) => data[k] !== undefined && allowedCols.has(k)
+    (k) => data[k] !== undefined && ALLOWED_COLS.has(k)
   );
   if (fields.length === 0) return;
+
   const setClauses = fields.map((f) => `${f} = ?`).join(", ");
-  const values = fields.map((f) => {
-    const val = data[f];
-    return typeof val === "boolean" ? (val ? 1 : 0) : val;
-  });
+  const values = fields.map((f) => sanitizeValue(data[f]));
+
   return db
     .prepare(
       `UPDATE properties SET ${setClauses}, updated_at = datetime('now') WHERE id = ?`

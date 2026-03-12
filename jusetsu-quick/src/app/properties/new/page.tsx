@@ -686,8 +686,16 @@ export default function NewPropertyPage() {
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
                 <AutoRow label="用途地域" value={ad?.zoning || "該当データなし"} />
                 <AutoRow label="防火地域" value={ad?.fire_zone || "該当データなし"} />
-                <AutoRow label="建ぺい率" value={ad?.building_coverage_ratio ? `${ad.building_coverage_ratio}%` : "該当データなし"} />
-                <AutoRow label="容積率" value={ad?.floor_area_ratio ? `${ad.floor_area_ratio}%` : "該当データなし"} />
+                <AutoRow
+                  label="建ぺい率"
+                  value={ad?.building_coverage_ratio ? `${ad.building_coverage_ratio}%` : "該当データなし"}
+                  sub={ad?.bcr_far_source}
+                />
+                <AutoRow
+                  label="容積率"
+                  value={ad?.floor_area_ratio ? `${ad.floor_area_ratio}%` : "該当データなし"}
+                  sub={ad?.bcr_far_source}
+                />
                 <AutoRow label="高度地区" value={ad?.height_district || "該当データなし"} />
                 <AutoRow label="学区（小学校）" value={ad?.school_district || "該当データなし"} />
               </div>

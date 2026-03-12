@@ -5,17 +5,19 @@ import { createProperty, listProperties } from "@/lib/db/queries";
 export const runtime = "edge";
 
 export async function GET() {
-  const { env } = getRequestContext();
-  const db = env.DB;
-
-  const { results } = await listProperties(db);
-  return NextResponse.json({ results });
+  try {
+    const { env } = getRequestContext();
+    const db = env.DB;
+    const { results } = await listProperties(db);
+    return NextResponse.json({ results });
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : String(e);
+    console.error("GET /api/properties failed:", msg);
+    return NextResponse.json({ error: msg }, { status: 500 });
+  }
 }
 
 export async function POST(req: NextRequest) {
-  const { env } = getRequestContext();
-  const db = env.DB;
-
   let data: Record<string, unknown>;
   try {
     data = await req.json();
@@ -25,6 +27,20 @@ export async function POST(req: NextRequest) {
 
   if (!data.address || typeof data.address !== "string") {
     return NextResponse.json({ error: "address is required" }, { status: 400 });
+  }
+
+  let env;
+  try {
+    env = getRequestContext().env;
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : String(e);
+    console.error("getRequestContext failed:", msg);
+    return NextResponse.json({ error: `Runtime error: ${msg}` }, { status: 500 });
+  }
+
+  const db = env.DB;
+  if (!db) {
+    return NextResponse.json({ error: "Database not configured (DB binding missing)" }, { status: 500 });
   }
 
   const id =
@@ -50,15 +66,18 @@ export async function POST(req: NextRequest) {
     });
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : String(e);
-    console.error("createProperty failed:", msg);
+    console.error("createProperty failed:", msg, JSON.stringify(data).slice(0, 500));
     return NextResponse.json({ error: `DB保存エラー: ${msg}` }, { status: 500 });
   }
 
-  // Return the created property with timestamps
-  const created = await db
-    .prepare("SELECT * FROM properties WHERE id = ?")
-    .bind(id)
-    .first();
-
-  return NextResponse.json(created, { status: 201 });
+  try {
+    const created = await db
+      .prepare("SELECT * FROM properties WHERE id = ?")
+      .bind(id)
+      .first();
+    return NextResponse.json(created, { status: 201 });
+  } catch {
+    // Insert succeeded but SELECT failed - still return success
+    return NextResponse.json({ id }, { status: 201 });
+  }
 }

@@ -11,8 +11,10 @@ import {
 
 export const runtime = "edge";
 
-/** Try multiple possible field names, return first non-nullish value */
-function tryFields(
+// ── helpers ────────────────────────────────────────────────
+
+/** Return first non-nullish value from props for given keys */
+function pick(
   props: Record<string, unknown> | null,
   ...keys: string[]
 ): unknown | null {
@@ -23,18 +25,74 @@ function tryFields(
   return null;
 }
 
-/**
- * Normalize a ratio value: if it looks like a decimal (<=1), multiply by 100.
- * Returns a percentage number or null.
- */
-function normalizeRatio(value: unknown): number | null {
-  if (value === null || value === undefined) return null;
-  const n = typeof value === "number" ? value : Number(value);
+/** Search all props keys for partial matches (case-insensitive) */
+function pickByPartial(
+  props: Record<string, unknown> | null,
+  ...needles: string[]
+): unknown | null {
+  if (!props) return null;
+  for (const [k, v] of Object.entries(props)) {
+    if (v === null || v === undefined) continue;
+    const kl = k.toLowerCase();
+    for (const needle of needles) {
+      if (kl.includes(needle.toLowerCase())) return v;
+    }
+  }
+  return null;
+}
+
+/** Pick a numeric value: first tries exact keys, then partial, returns number|null */
+function pickNumber(
+  props: Record<string, unknown> | null,
+  exactKeys: string[],
+  partialKeys: string[]
+): number | null {
+  const raw = pick(props, ...exactKeys) ?? pickByPartial(props, ...partialKeys);
+  if (raw === null || raw === undefined) return null;
+  const n = typeof raw === "number" ? raw : Number(raw);
   if (isNaN(n)) return null;
-  // If value is a decimal like 0.6, convert to 60
-  if (n > 0 && n <= 1) return Math.round(n * 100);
   return n;
 }
+
+/** Pick a string value: first tries exact keys, then partial */
+function pickString(
+  props: Record<string, unknown> | null,
+  exactKeys: string[],
+  partialKeys: string[] = []
+): string | null {
+  const raw = pick(props, ...exactKeys) ?? (partialKeys.length ? pickByPartial(props, ...partialKeys) : null);
+  if (raw === null || raw === undefined) return null;
+  return String(raw);
+}
+
+/**
+ * Normalize a ratio value: if decimal (<=1), multiply by 100.
+ */
+function normalizeRatio(value: number | null): number | null {
+  if (value === null) return null;
+  if (value > 0 && value <= 1) return Math.round(value * 100);
+  return value;
+}
+
+// ── Zoning → BCR/FAR lookup table (法定上限) ────────────────
+// 用途地域が取れたが建ぺい率・容積率がAPIから取れない場合のフォールバック
+const ZONING_DEFAULTS: Record<string, { bcr: number; far: string }> = {
+  "第一種低層住居専用地域": { bcr: 50, far: "50〜200" },
+  "第二種低層住居専用地域": { bcr: 50, far: "50〜200" },
+  "第一種中高層住居専用地域": { bcr: 60, far: "100〜500" },
+  "第二種中高層住居専用地域": { bcr: 60, far: "100〜500" },
+  "第一種住居地域": { bcr: 60, far: "100〜500" },
+  "第二種住居地域": { bcr: 60, far: "100〜500" },
+  "準住居地域": { bcr: 60, far: "100〜500" },
+  "田園住居地域": { bcr: 50, far: "50〜200" },
+  "近隣商業地域": { bcr: 80, far: "100〜500" },
+  "商業地域": { bcr: 80, far: "200〜1300" },
+  "準工業地域": { bcr: 60, far: "100〜500" },
+  "工業地域": { bcr: 60, far: "100〜400" },
+  "工業専用地域": { bcr: 60, far: "100〜400" },
+};
+
+// ── Main handler ────────────────────────────────────────────
 
 export async function POST(req: NextRequest) {
   const start = Date.now();
@@ -68,11 +126,9 @@ export async function POST(req: NextRequest) {
     console.error("REINFOLIB_API_KEY is not configured");
   }
 
-  // Step 2 & 3: Fetch reinfolib + hazard in parallel (graceful degradation)
+  // Step 2 & 3: Fetch reinfolib + hazard in parallel
   let reinfolibData: Awaited<ReturnType<typeof fetchAllReinfolib>> | null = null;
   let hazardData: Awaited<ReturnType<typeof fetchHazard>> | null = null;
-
-  // Track API errors for diagnostics
   const apiErrors: Record<string, string> = {};
 
   const [reinfolibResult, hazardResult] = await Promise.allSettled([
@@ -92,7 +148,7 @@ export async function POST(req: NextRequest) {
     apiErrors.hazard = hazardResult.reason?.message ?? "Unknown error";
   }
 
-  // Extract properties from GeoJSON with appropriate max distances
+  // Extract nearest features from GeoJSON
   const zoningProps = reinfolibData
     ? extractNearestFeature(reinfolibData.zoning as Record<string, unknown> | null, lat, lng, 500)
     : null;
@@ -115,92 +171,105 @@ export async function POST(req: NextRequest) {
     ? extractNearestFeature(reinfolibData.futurePop as Record<string, unknown> | null, lat, lng, 5000)
     : null;
 
-  // Build sediment risk with detail
+  // ── Extract values ──
+
+  // Zoning name (用途地域名)
+  // 国土数値情報 A29: A29_005=用途地域名, Reinfolib may use _ja suffix or different names
+  const zoning = pickString(zoningProps,
+    ["A29_005", "A29_005_ja", "A29_004_ja", "use_area_ja", "用途地域", "youto", "A29_004", "A09_004"],
+    ["用途", "zoning", "use_area"]
+  );
+
+  // Building Coverage Ratio (建蔽率): A29_006, or scan for "coverage/kenpei/建蔽"
+  let bcr = normalizeRatio(pickNumber(zoningProps,
+    ["A29_006", "A29_006_ja", "建ぺい率", "建蔽率", "kenpei", "A09_006"],
+    ["building_coverage", "kenpei", "建ぺい", "建蔽", "coverage"]
+  ));
+  // Also check fireProps
+  if (bcr === null) {
+    bcr = normalizeRatio(pickNumber(fireProps,
+      ["建ぺい率", "建蔽率", "kenpei", "building_coverage"],
+      ["kenpei", "建蔽", "coverage"]
+    ));
+  }
+
+  // Floor Area Ratio (容積率): A29_007, or scan for "floor_area/youseki/容積"
+  let far = normalizeRatio(pickNumber(zoningProps,
+    ["A29_007", "A29_007_ja", "容積率", "youseki", "A09_007"],
+    ["floor_area", "youseki", "容積"]
+  ));
+  if (far === null) {
+    far = normalizeRatio(pickNumber(fireProps,
+      ["容積率", "youseki", "floor_area"],
+      ["youseki", "容積"]
+    ));
+  }
+
+  // Fallback: derive BCR/FAR hint from zoning name
+  let bcrFarSource: string | null = null;
+  if (zoning && (bcr === null || far === null)) {
+    const defaults = ZONING_DEFAULTS[zoning as string];
+    if (defaults) {
+      if (bcr === null) bcr = defaults.bcr;
+      if (far === null) far = null; // Don't guess FAR (it's a range)
+      bcrFarSource = "用途地域から推定";
+    }
+  }
+
+  // Fire zone
+  const fireZone = pickString(fireProps,
+    ["fire_prevention_ja", "防火地域", "防火・準防火地域", "A09_005", "bouka", "kubun_id"],
+    ["fire", "防火", "bouka"]
+  );
+
+  // Height district
+  const heightDistrict =
+    pickString(zoningProps, ["高度地区", "height_district", "koudo"]) ??
+    pickString(fireProps, ["高度地区", "height_district"]) ??
+    pickString(urbanProps, ["高度地区", "height_district"]);
+
+  // Land price
+  const landPrice = pickNumber(landPriceProps,
+    ["L01_006", "current_price", "価格", "標準価格"],
+    ["price", "価格", "kakaku"]
+  );
+
+  // School districts
+  const schoolDistrict = pickString(schoolProps,
+    ["A27_005", "A27_005_ja", "小学校名", "school_name"],
+    ["小学校", "school"]
+  );
+  const schoolDistrictJr =
+    pickString(schoolJrProps, ["A32_005", "A32_005_ja", "中学校名", "school_name"]) ??
+    pickString(schoolProps, ["A27_006", "中学校名"]);
+
+  // Future population
+  const futurePop = pickNumber(futurePopProps, ["PTN_2020", "現在人口", "population"], []);
+  const futurePop2050 = pickNumber(futurePopProps, ["PTN_2050", "2050年人口"], []);
+  const futurePopChange = (() => {
+    if (futurePop && futurePop2050 && futurePop > 0) {
+      return Math.round((futurePop2050 / futurePop) * 100 - 100);
+    }
+    return pickNumber(futurePopProps, ["変化率"], []);
+  })();
+
+  // Hazard
   const sediment = parseSedimentRisk(hazardData);
-
-  // Extract zoning fields - try all possible reinfolib field names, then smart-match
-  // 国土数値情報 A29: A29_004=コード, A29_005=用途地域名, A29_006=建蔽率, A29_007=容積率
-  const zoningValue = tryFields(zoningProps,
-    "A29_005", "A29_005_ja", "A29_004_ja",  // A29_005=用途地域名, A29_004_ja=コードの日本語
-    "use_area_ja", "用途地域", "youto", "A29_004", "A09_004"
-  );
-
-  // For BCR/FAR, try known field names first, then scan all properties
-  // A29_006=建蔽率, A29_007=容積率 (NOT A29_005/A29_006 which are zone name/BCR)
-  let bcrRaw = tryFields(zoningProps,
-    "A29_006", "A29_006_ja",  // 国土数値情報 正式フィールド
-    "u_building_coverage_ratio_ja", "建ぺい率", "建蔽率", "kenpei", "A09_006"
-  );
-  let farRaw = tryFields(zoningProps,
-    "A29_007", "A29_007_ja",  // 国土数値情報 正式フィールド
-    "u_floor_area_ratio_ja", "容積率", "youseki", "A09_007"
-  );
-
-  // Smart scan: if BCR/FAR still null, search zoningProps keys for partial matches
-  if (zoningProps && (bcrRaw === null || farRaw === null)) {
-    for (const [k, v] of Object.entries(zoningProps)) {
-      if (v === null || v === undefined) continue;
-      const kl = k.toLowerCase();
-      if (bcrRaw === null && (kl.includes("building_coverage") || kl.includes("kenpei") || kl.includes("建ぺい") || kl.includes("建蔽"))) {
-        bcrRaw = v;
-      }
-      if (farRaw === null && (kl.includes("floor_area") || kl.includes("youseki") || kl.includes("容積"))) {
-        farRaw = v;
-      }
-    }
-  }
-
-  // Also try from fireProps (some datasets bundle ratios there)
-  if (bcrRaw === null) bcrRaw = tryFields(fireProps, "建ぺい率", "建蔽率", "kenpei", "building_coverage");
-  if (farRaw === null) farRaw = tryFields(fireProps, "容積率", "youseki", "floor_area");
-
-  // Height district: try multiple sources
-  const heightDistrict = tryFields(zoningProps, "高度地区", "height_district", "koudo")
-    ?? tryFields(fireProps, "高度地区", "height_district")
-    ?? tryFields(urbanProps, "高度地区", "height_district");
-
-  // Fire zone: also smart-match
-  let fireZoneValue = tryFields(fireProps, "fire_prevention_ja", "防火地域", "防火・準防火地域", "A09_005", "bouka", "kubun_id");
-  if (fireProps && fireZoneValue === null) {
-    for (const [k, v] of Object.entries(fireProps)) {
-      if (v === null || v === undefined) continue;
-      const kl = k.toLowerCase();
-      if (kl.includes("fire") || kl.includes("防火") || kl.includes("bouka")) {
-        fireZoneValue = v;
-        break;
-      }
-    }
-  }
-
-  // Land price: also try smart match
-  let landPriceValue = tryFields(landPriceProps, "L01_006", "current_price", "価格", "標準価格") as number | null;
-  if (landPriceProps && landPriceValue === null) {
-    for (const [k, v] of Object.entries(landPriceProps)) {
-      if (v === null || v === undefined) continue;
-      const kl = k.toLowerCase();
-      if (kl.includes("price") || kl.includes("価格") || kl.includes("kakaku")) {
-        const n = Number(v);
-        if (!isNaN(n) && n > 0) { landPriceValue = n; break; }
-      }
-    }
-  }
 
   const result = {
     lat,
     lng,
-    // Zoning
-    zoning: (zoningValue as string) ?? null,
-    building_coverage_ratio: normalizeRatio(bcrRaw),
-    floor_area_ratio: normalizeRatio(farRaw),
-    // Fire zone
-    fire_zone: (fireZoneValue as string) ?? null,
-    height_district: (heightDistrict as string) ?? null,
-    // Urban plan
-    urban_plan_zone: (tryFields(urbanProps, "区域区分") as string) ?? null,
-    // Hazard - default to "想定区域外" when API unavailable (not "null")
+    zoning,
+    building_coverage_ratio: bcr,
+    floor_area_ratio: far,
+    bcr_far_source: bcrFarSource,
+    fire_zone: fireZone,
+    height_district: heightDistrict,
+    urban_plan_zone: pickString(urbanProps, ["区域区分", "urban_plan"], ["区域"]),
+    // Hazard - default to "想定区域外" when API returns null/0
     flood_level: hazardData?.flood_l2 ?? 0,
     flood_text: hazardData ? floodLevelToText(hazardData.flood_l2) : "想定区域外",
-    flood_river: null,
+    flood_river: null as string | null,
     tsunami_level: hazardData?.tsunami_newlegend ?? 0,
     tsunami_text: hazardData ? tsunamiLevelToText(hazardData.tsunami_newlegend) : "想定区域外",
     hightide_level: hazardData?.hightide ?? 0,
@@ -212,44 +281,26 @@ export async function POST(req: NextRequest) {
       steep_slope: sediment.steepSlope,
       landslide: sediment.landslide,
     },
-    // School (XKT004 returns A27_005/school_name fields)
-    school_district: (tryFields(schoolProps, "A27_005", "小学校名", "school_name") as string) ?? null,
-    school_district_jr: (tryFields(schoolJrProps, "A32_005", "中学校名", "school_name") ??
-      tryFields(schoolProps, "A27_006", "中学校名")) as string ?? null,
-    // Land price (XPT002 - 地価公示ポイントAPI)
-    land_price: landPriceValue,
-    land_price_year: (tryFields(landPriceProps, "L01_003", "survey_year", "年度", "調査年") as number) ?? null,
-    land_price_point: (tryFields(landPriceProps, "L01_025", "address", "所在", "所在及び地番") as string) ?? null,
-    // Future pop (XKT013 - 将来推計人口500mメッシュ)
-    future_pop: (tryFields(futurePopProps, "PTN_2020", "現在人口", "population") as number) ?? null,
-    future_pop_2050: (tryFields(futurePopProps, "PTN_2050", "2050年人口") as number) ?? null,
-    future_pop_change: (() => {
-      const pop2020 = tryFields(futurePopProps, "PTN_2020", "現在人口") as number | null;
-      const pop2050 = tryFields(futurePopProps, "PTN_2050", "2050年人口") as number | null;
-      if (pop2020 && pop2050 && pop2020 > 0) return Math.round((pop2050 / pop2020) * 100 - 100);
-      return (tryFields(futurePopProps, "変化率") as number) ?? null;
-    })(),
-    // Diagnostics
+    school_district: schoolDistrict,
+    school_district_jr: schoolDistrictJr,
+    land_price: landPrice,
+    land_price_year: pickNumber(landPriceProps, ["L01_003", "survey_year", "年度", "調査年"], []),
+    land_price_point: pickString(landPriceProps, ["L01_025", "address", "所在", "所在及び地番"]),
+    future_pop: futurePop,
+    future_pop_2050: futurePop2050,
+    future_pop_change: futurePopChange,
+    // Diagnostics (will be stripped before DB save)
     api_errors: Object.keys(apiErrors).length > 0 ? apiErrors : undefined,
     data_sources: {
       reinfolib: reinfolibData !== null,
       hazard: hazardData !== null,
     },
-    // Debug: raw property keys from each API (helps diagnose field name mismatches)
     _debug_fields: {
       zoning: zoningProps ? Object.keys(zoningProps) : null,
       fire: fireProps ? Object.keys(fireProps) : null,
-      urban: urbanProps ? Object.keys(urbanProps) : null,
       landPrice: landPriceProps ? Object.keys(landPriceProps) : null,
-      futurePop: futurePopProps ? Object.keys(futurePopProps) : null,
-      school: schoolProps ? Object.keys(schoolProps) : null,
     },
-    _debug_raw: {
-      zoning: zoningProps,
-      fire: fireProps,
-      landPrice: landPriceProps,
-    },
-    // Timing
+    _debug_raw_zoning: zoningProps,
     elapsed_ms: Date.now() - start,
   };
 
