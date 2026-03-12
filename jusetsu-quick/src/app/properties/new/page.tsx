@@ -1,9 +1,10 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
+import { useRouter } from "next/navigation";
 import {
   Search, MapPin, Shield, Droplets, Building2,
-  ChevronLeft, Download, Save,
+  ChevronLeft, Download, Save, Printer,
   Home, LandPlot, Warehouse,
   CheckCircle2, ArrowRight, Database,
   DollarSign, Route, Plug, FileText,
@@ -118,6 +119,7 @@ function NumericValidation({ value }: { value: string | undefined }) {
 }
 
 export default function NewPropertyPage() {
+  const router = useRouter();
   const [step, setStep] = useState(1);
   const [address, setAddress] = useState("");
   const [pType, setPType] = useState("mansion");
@@ -275,9 +277,11 @@ export default function NewPropertyPage() {
       });
       if (res.ok) {
         const data = await res.json();
-        if (!savedId) setSavedId(data.id);
+        const newId = savedId || data.id;
+        if (!savedId) setSavedId(newId);
         clearDraft();
-        showToast("下書きを保存しました");
+        showToast("保存しました。物件詳細に移動します...");
+        setTimeout(() => router.push(`/properties/${newId}`), 800);
       } else {
         showToast("保存に失敗しました");
       }
@@ -1031,13 +1035,22 @@ export default function NewPropertyPage() {
               </div>
             </Section>
 
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 10 }}>
-              <Btn variant="secondary" full icon={Save} onClick={saveDraft} disabled={saving}>
-                {saving ? "保存中..." : savedId ? "上書き保存" : "ドラフト保存"}
+            <div style={{ marginBottom: 10 }}>
+              <Btn variant="primary" full icon={Save} onClick={saveDraft} disabled={saving}>
+                {saving ? "保存中..." : savedId ? "上書き保存" : "保存して重説を作成"}
               </Btn>
-              <Btn variant="success" full icon={Download} onClick={generateCSV}>CSV出力</Btn>
             </div>
-            <Btn variant="secondary" full onClick={() => go(4)} icon={ChevronLeft}>入力に戻る</Btn>
+            {savedId && (
+              <div style={{ marginBottom: 10 }}>
+                <Btn variant="success" full icon={Printer} onClick={() => router.push(`/properties/${savedId}/print`)}>
+                  重説を出力（印刷/PDF）
+                </Btn>
+              </div>
+            )}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 10 }}>
+              <Btn variant="secondary" full icon={Download} onClick={generateCSV}>CSV出力</Btn>
+              <Btn variant="secondary" full onClick={() => go(4)} icon={ChevronLeft}>入力に戻る</Btn>
+            </div>
           </div>
         )}
       </main>
