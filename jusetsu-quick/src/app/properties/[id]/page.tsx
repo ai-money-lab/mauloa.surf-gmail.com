@@ -379,6 +379,26 @@ export default function PropertyDetailPage() {
     { label: "引渡予定日", value: str(p.delivery_date), field: "delivery_date" },
   ];
 
+  const rentalRows: DetailRow[] = [
+    { label: "賃料（月額）", value: p.rent ? `${Number(p.rent).toLocaleString()}円` : "\u2014", field: "rent" },
+    { label: "共益費（月額）", value: p.common_area_fee ? `${Number(p.common_area_fee).toLocaleString()}円` : "\u2014", field: "common_area_fee" },
+    { label: "敷金", value: p.deposit_months ? `${p.deposit_months}ヶ月` : "\u2014", field: "deposit_months" },
+    { label: "礼金", value: p.key_money_months ? `${p.key_money_months}ヶ月` : "\u2014", field: "key_money_months" },
+    { label: "契約期間", value: p.lease_term_years ? `${p.lease_term_years}年` : "\u2014", field: "lease_term_years" },
+    { label: "契約形態", value: str(p.lease_type), field: "lease_type" },
+    { label: "支払方法", value: str(p.rent_payment_method), field: "rent_payment_method" },
+    { label: "支払期日", value: str(p.rent_payment_due), field: "rent_payment_due" },
+    { label: "更新料", value: str(p.renewal_fee), field: "renewal_fee" },
+    { label: "使用目的", value: str(p.purpose_of_use), field: "purpose_of_use" },
+    { label: "ペット", value: str(p.pet_allowed), field: "pet_allowed" },
+    { label: "喫煙", value: str(p.smoking_allowed), field: "smoking_allowed" },
+    { label: "転貸", value: str(p.sublease_allowed), field: "sublease_allowed" },
+    { label: "解約予告", value: str(p.cancellation_notice), field: "cancellation_notice" },
+    { label: "保証人", value: str(p.guarantor_required), field: "guarantor_required" },
+    { label: "保証会社", value: str(p.guarantee_company), field: "guarantee_company" },
+    { label: "火災保険", value: str(p.fire_insurance), field: "fire_insurance" },
+  ];
+
   const renderRows = (rows: DetailRow[], isAuto: boolean) => (
     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
       {rows.map((r) => {
@@ -574,7 +594,7 @@ export default function PropertyDetailPage() {
           </Section>
         )}
 
-        <Section icon={Scale} title="契約条件">
+        <Section icon={Scale} title="契約条件（売買）">
           {editMode ? (
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
               {[
@@ -606,6 +626,43 @@ export default function PropertyDetailPage() {
           )}
         </Section>
 
+        <Section icon={FileText} title="賃貸借条件">
+          {editMode ? (
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+              {[
+                { label: "賃料（月額・円）", field: "rent" },
+                { label: "共益費（月額・円）", field: "common_area_fee" },
+                { label: "敷金（ヶ月）", field: "deposit_months" },
+                { label: "礼金（ヶ月）", field: "key_money_months" },
+                { label: "契約期間（年）", field: "lease_term_years" },
+                { label: "契約形態", field: "lease_type" },
+                { label: "支払方法", field: "rent_payment_method" },
+                { label: "支払期日", field: "rent_payment_due" },
+                { label: "更新料", field: "renewal_fee" },
+                { label: "使用目的", field: "purpose_of_use" },
+                { label: "ペット", field: "pet_allowed" },
+                { label: "喫煙", field: "smoking_allowed" },
+                { label: "転貸", field: "sublease_allowed" },
+                { label: "解約予告期間", field: "cancellation_notice" },
+                { label: "保証人", field: "guarantor_required" },
+                { label: "保証会社", field: "guarantee_company" },
+                { label: "火災保険", field: "fire_insurance" },
+              ].map((item) => (
+                <div key={item.field} style={{ padding: "8px 12px", background: "#EFF6FF", borderRadius: 8, border: "1.5px solid #93C5FD" }}>
+                  <Field
+                    label={item.label}
+                    value={(editData as Record<string, string>)[item.field] || ""}
+                    onChange={(v) => updateEdit(item.field, v)}
+                    half
+                  />
+                </div>
+              ))}
+            </div>
+          ) : (
+            renderRows(rentalRows, false)
+          )}
+        </Section>
+
         {/* Action buttons */}
         {editMode ? (
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 10 }}>
@@ -626,7 +683,7 @@ export default function PropertyDetailPage() {
             </div>
             <div style={{ marginBottom: 10 }}>
               <Link href={`/properties/${id}/print`} style={{ textDecoration: "none", display: "block" }}>
-                <Btn variant="primary" full icon={Printer}>重説を出力</Btn>
+                <Btn variant="primary" full icon={Printer}>重説・契約書を出力</Btn>
               </Link>
             </div>
             <div style={{ display: "flex", justifyContent: "center", marginTop: 16 }}>

@@ -65,12 +65,34 @@ export interface PropertyData {
   asbestos?: string;
   earthquake_resistance?: string;
 
-  // 契約
+  // 契約（売買）
   price?: string;
   transaction_type?: string;
   earnest_money?: string;
   delivery_date?: string;
   special_terms?: string;
+
+  // 賃貸借契約
+  rent?: string;
+  common_area_fee?: string;
+  deposit_months?: string;
+  key_money_months?: string;
+  lease_start?: string;
+  lease_end?: string;
+  lease_term_years?: string;
+  lease_type?: string;          // 普通借家 / 定期借家
+  rent_payment_method?: string; // 口座振替 / 振込 等
+  rent_payment_due?: string;    // 毎月末日 / 翌月分前払い 等
+  renewal_fee?: string;
+  purpose_of_use?: string;      // 居住用 / 事業用
+  pet_allowed?: string;
+  smoking_allowed?: string;
+  sublease_allowed?: string;
+  restoration_terms?: string;   // 原状回復条件
+  cancellation_notice?: string; // 解約予告期間
+  guarantor_required?: string;
+  guarantee_company?: string;
+  fire_insurance?: string;
 
   status?: string;
 }

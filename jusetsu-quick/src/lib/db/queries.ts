@@ -39,6 +39,12 @@ const PROPERTY_COLUMNS = [
   "asbestos", "earthquake_resistance",
   "price", "transaction_type", "earnest_money",
   "delivery_date", "special_terms",
+  "rent", "common_area_fee", "deposit_months", "key_money_months",
+  "lease_start", "lease_end", "lease_term_years", "lease_type",
+  "rent_payment_method", "rent_payment_due", "renewal_fee",
+  "purpose_of_use", "pet_allowed", "smoking_allowed", "sublease_allowed",
+  "restoration_terms", "cancellation_notice",
+  "guarantor_required", "guarantee_company", "fire_insurance",
   "status",
 ] as const;
 
