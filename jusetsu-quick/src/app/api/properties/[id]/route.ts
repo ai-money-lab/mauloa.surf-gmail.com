@@ -19,6 +19,23 @@ export async function GET(
   return NextResponse.json(property);
 }
 
+export async function DELETE(
+  _req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id } = await params;
+  const { env } = getRequestContext();
+  const db = env.DB;
+
+  const property = await getProperty(db, id);
+  if (!property) {
+    return NextResponse.json({ error: "not found" }, { status: 404 });
+  }
+
+  await db.prepare("DELETE FROM properties WHERE id = ?").bind(id).run();
+  return NextResponse.json({ ok: true });
+}
+
 export async function PUT(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }

@@ -37,3 +37,21 @@ textarea:focus {
 ::placeholder {
   color: #94a3b8;
 }
+
+/* Print styles for 重要事項説明書 */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 15mm 15mm 20mm 15mm;
+  }
+  body {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .no-print {
+    display: none !important;
+  }
+  .print-page-break {
+    page-break-before: always;
+  }
+}
