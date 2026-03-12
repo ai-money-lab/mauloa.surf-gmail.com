@@ -2,8 +2,9 @@
 name: night_1
 description: "ネオンが光る夜の都市を背景にした美女ポートレート"
 prompt_template: >
-  professional portrait photography of a beautiful young woman,
-  standing in a neon-lit city street at night,
+  professional portrait photography of a beautiful young Japanese woman,
+  straight black hair, fair skin, delicate facial features,
+  standing in a neon-lit Tokyo city street at night,
   cinematic lighting, bokeh background with colorful neon signs,
   shallow depth of field, high fashion editorial style,
   8k uhd, sharp focus, natural skin texture

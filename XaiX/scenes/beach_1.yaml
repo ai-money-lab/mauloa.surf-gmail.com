@@ -2,10 +2,11 @@
 name: beach_1
 description: "夕暮れのビーチでのゴールデンアワーポートレート"
 prompt_template: >
-  professional portrait photography of a beautiful young woman,
+  professional portrait photography of a beautiful young Japanese woman,
+  long black hair blowing in the wind, fair skin, delicate facial features,
   walking on a tropical beach at golden hour sunset,
   warm golden light, ocean waves in background,
-  wind in hair, editorial fashion photography,
+  editorial fashion photography,
   8k uhd, sharp focus, natural skin texture
 negative_prompt: >
   ugly, deformed, noisy, blurry, low quality, cartoon, anime,
