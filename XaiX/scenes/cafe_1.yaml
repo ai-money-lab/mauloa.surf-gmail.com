@@ -2,11 +2,14 @@
 name: cafe_1
 description: "おしゃれなカフェでくつろぐ美女ポートレート"
 prompt_template: >
-  professional portrait photography of a beautiful young Japanese woman,
-  straight black hair, fair skin, delicate facial features,
+  professional portrait photography of a gorgeous young Japanese woman,
+  petite slim body with hourglass figure, narrow waist, large bust, perfect body proportions,
+  cute youthful baby face, big round eyes, small nose, soft smile,
+  straight black hair, fair glowing skin,
+  wearing a knit top showing body curves,
   sitting at a cozy Tokyo cafe with warm ambient lighting,
   latte art on table, soft natural window light,
-  bokeh background, editorial fashion photography,
+  bokeh background, Instagram style photography,
   8k uhd, sharp focus, natural skin texture
 negative_prompt: >
   ugly, deformed, noisy, blurry, low quality, cartoon, anime,

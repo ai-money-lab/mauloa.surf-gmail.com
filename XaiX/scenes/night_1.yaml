@@ -2,12 +2,15 @@
 name: night_1
 description: "ネオンが光る夜の都市を背景にした美女ポートレート"
 prompt_template: >
-  professional portrait photography of a beautiful young Japanese woman,
-  straight black hair, fair skin, delicate facial features,
+  professional portrait photography of a gorgeous young Japanese woman,
+  petite slim body with hourglass figure, narrow waist, large bust, perfect body proportions,
+  cute youthful baby face, big round eyes, small nose, soft smile,
+  straight black hair, fair glowing skin,
+  wearing a fitted dress showing body line,
   standing in a neon-lit Tokyo city street at night,
   cinematic lighting, bokeh background with colorful neon signs,
-  shallow depth of field, high fashion editorial style,
-  8k uhd, sharp focus, natural skin texture
+  shallow depth of field, Instagram style photography,
+  8k uhd, sharp focus, natural skin texture, full body shot
 negative_prompt: >
   ugly, deformed, noisy, blurry, low quality, cartoon, anime,
   painting, drawing, illustration, text, watermark
