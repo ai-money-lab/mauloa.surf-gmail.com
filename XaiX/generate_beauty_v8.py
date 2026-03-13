@@ -30,7 +30,7 @@ ENGINES_DIR = Path(__file__).parent / "engines"
 
 def load_yaml(path: Path) -> dict:
     """YAMLファイルを読み込む"""
-    with open(path) as f:
+    with open(path, encoding="utf-8") as f:
         return yaml.safe_load(f)
 
 
@@ -208,7 +208,7 @@ def save_metadata(
             "file": path,
             "prompt": scene["prompt_template"],
         }
-        with open(log_path, "a") as f:
+        with open(log_path, "a", encoding="utf-8") as f:
             f.write(json.dumps(entry, ensure_ascii=False) + "\n")
 
     return str(log_path)
