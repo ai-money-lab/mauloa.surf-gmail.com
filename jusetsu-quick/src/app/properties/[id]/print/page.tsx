@@ -41,10 +41,10 @@ function JusetsuDocument({ p, today }: { p: PropertyData; today: string }) {
 
         <table className="t w"><tbody>
           <tr>
-            <td style={{ textAlign: "right", border: "none", padding: "1mm 0" }}>{today}</td>
+            <td style={{ textAlign: "right", border: "none", padding: "0.5mm 0", fontSize: "8pt" }}>{today}</td>
           </tr>
           <tr>
-            <td style={{ border: "none", padding: "1mm 0" }}>
+            <td style={{ border: "none", padding: "0.5mm 0", fontSize: "8pt" }}>
               {isRental ? "賃借人" : "買主"}　{B}　殿
             </td>
           </tr>
@@ -79,7 +79,7 @@ function JusetsuDocument({ p, today }: { p: PropertyData; today: string }) {
           <thead><tr><th colSpan={2} className="hd">供託所等に関する事項（法第35条の2）</th></tr></thead>
           <tbody>
             <tr>
-              <td style={{ width: "50%", minHeight: "8mm" }}>{chk(false)} 営業保証金（供託所：{BS}）</td>
+              <td style={{ width: "50%", minHeight: "5mm" }}>{chk(false)} 営業保証金（供託所：{BS}）</td>
               <td>{chk(false)} 弁済業務保証金（保証協会：{BS}）</td>
             </tr>
           </tbody>
@@ -611,7 +611,7 @@ function JusetsuDocument({ p, today }: { p: PropertyData; today: string }) {
 
         {/* 特約 */}
         <div className="item">特約事項</div>
-        <div style={{ border: "1px solid #333", padding: "2mm 3mm", minHeight: "25mm", fontSize: "10pt", whiteSpace: "pre-wrap", lineHeight: 1.8 }}>
+        <div style={{ border: "0.5pt solid #000", padding: "1.5mm 2mm", minHeight: "18mm", fontSize: "8pt", whiteSpace: "pre-wrap", lineHeight: 1.5 }}>
           {s(p.special_terms)}
         </div>
 
@@ -639,10 +639,10 @@ function JusetsuDocument({ p, today }: { p: PropertyData; today: string }) {
         </table>
 
         {/* 署名 */}
-        <div style={{ marginTop: "6mm", fontSize: "10pt", fontWeight: 700 }}>
+        <div style={{ marginTop: "3mm", fontSize: "8pt", fontWeight: 700 }}>
           上記の内容について、宅地建物取引士より説明を受け、重要事項説明書の交付を受けました。
         </div>
-        <table className="t w" style={{ marginTop: "3mm" }}>
+        <table className="t w" style={{ marginTop: "2mm" }}>
           <tbody>
             <tr>
               <th className="cat">{isRental ? "賃借人" : "買主"}</th>
@@ -690,7 +690,7 @@ function RentalContractDocument({ p, today }: { p: PropertyData; today: string }
         <div className="j-sub">
           {isTeiki ? "（借地借家法第38条に基づく定期建物賃貸借契約）" : "（全宅連標準書式準拠）"}
         </div>
-        <div style={{ textAlign: "right", fontSize: "10pt", marginBottom: "3mm" }}>契約日：{today}</div>
+        <div style={{ textAlign: "right", fontSize: "8pt", marginBottom: "1.5mm" }}>契約日：{today}</div>
 
         <div className="j-text">
           賃貸人（以下「甲」という。）と賃借人（以下「乙」という。）とは、甲の所有する下記建物について、以下のとおり{isTeiki ? "定期" : ""}建物賃貸借契約を締結した。
@@ -814,31 +814,31 @@ function RentalContractDocument({ p, today }: { p: PropertyData; today: string }
         <table className="t w">
           <tbody>
             <tr>
-              <td style={{ lineHeight: 1.7 }}>
+              <td style={{ lineHeight: 1.4 }}>
                 {p.restoration_terms || "通常の使用に伴い生じた損耗及び経年変化を除き、原状に回復して明け渡す。（民法第621条）"}
               </td>
             </tr>
           </tbody>
         </table>
-        <table className="t w" style={{ marginTop: "1mm" }}>
+        <table className="t w" style={{ marginTop: "0.5mm" }}>
           <thead>
             <tr>
-              <th style={{ width: "50%", textAlign: "center", fontSize: "9pt" }}>賃借人の負担とならないもの（通常損耗）</th>
-              <th style={{ width: "50%", textAlign: "center", fontSize: "9pt" }}>賃借人の負担となるもの</th>
+              <th style={{ width: "50%", textAlign: "center", fontSize: "7.5pt" }}>賃借人の負担とならないもの（通常損耗）</th>
+              <th style={{ width: "50%", textAlign: "center", fontSize: "7.5pt" }}>賃借人の負担となるもの</th>
             </tr>
           </thead>
           <tbody>
             <tr>
-              <td style={{ fontSize: "9pt", lineHeight: 1.6 }}>
+              <td style={{ fontSize: "7pt", lineHeight: 1.4 }}>
                 ・壁紙の日焼け、画鋲の穴<br/>・家具設置による床の凹み<br/>・テレビ等裏の電気やけ<br/>・設備機器の経年劣化
               </td>
-              <td style={{ fontSize: "9pt", lineHeight: 1.6 }}>
+              <td style={{ fontSize: "7pt", lineHeight: 1.4 }}>
                 ・故意・過失による汚損・毀損<br/>・ペットによる傷・臭い<br/>・喫煙によるヤニ汚れ<br/>・清掃未実施のカビ・油汚れ
               </td>
             </tr>
           </tbody>
         </table>
-        <div style={{ fontSize: "8pt", color: "#666", marginTop: "1mm" }}>※国土交通省「原状回復をめぐるトラブルとガイドライン（再改訂版）」準拠</div>
+        <div style={{ fontSize: "6.5pt", color: "#666", marginTop: "0.5mm" }}>※国土交通省「原状回復をめぐるトラブルとガイドライン（再改訂版）」準拠</div>
 
         {/* 保証 */}
         <div className="item">第８条（連帯保証人・保証会社）</div>
@@ -857,7 +857,7 @@ function RentalContractDocument({ p, today }: { p: PropertyData; today: string }
 
         {/* 反社 */}
         <div className="item">第９条（反社会的勢力の排除）</div>
-        <div style={{ fontSize: "9.5pt", lineHeight: 1.7, padding: "1mm 0" }}>
+        <div style={{ fontSize: "7.5pt", lineHeight: 1.4, padding: "0.5mm 0" }}>
           甲及び乙は、自らが暴力団等反社会的勢力に該当しないことを表明し、将来にわたり該当しないことを確約する。違反した場合、催告なく解除できる。
         </div>
       </div>
@@ -868,7 +868,7 @@ function RentalContractDocument({ p, today }: { p: PropertyData; today: string }
       <div className="j-page">
         {/* 特約 */}
         <div className="item">第10条（特約事項）</div>
-        <div style={{ border: "1px solid #333", padding: "2mm 3mm", minHeight: "20mm", fontSize: "10pt", whiteSpace: "pre-wrap", lineHeight: 1.8 }}>
+        <div style={{ border: "0.5pt solid #000", padding: "1.5mm 2mm", minHeight: "15mm", fontSize: "8pt", whiteSpace: "pre-wrap", lineHeight: 1.5 }}>
           {s(p.special_terms)}
         </div>
 
@@ -878,7 +878,7 @@ function RentalContractDocument({ p, today }: { p: PropertyData; today: string }
             <div className="item">告知事項</div>
             <table className="t w">
               <tbody>
-                {p.is_incident && <tr><th className="lbl">心理的瑕疵</th><td style={{ color: "#B91C1C", fontWeight: 700 }}>{s(p.incident_detail) || "あり"}</td></tr>}
+                {p.is_incident && <tr><th className="lbl">心理的瑕疵</th><td style={{ color: "#B91C1C", fontWeight: 700, fontSize: "8pt" }}>{s(p.incident_detail) || "あり"}</td></tr>}
                 {p.disclosure_notes && <tr><th className="lbl">その他</th><td>{p.disclosure_notes}</td></tr>}
               </tbody>
             </table>
@@ -886,19 +886,19 @@ function RentalContractDocument({ p, today }: { p: PropertyData; today: string }
         )}
 
         {isTeiki && (
-          <div style={{ border: "2px solid #333", padding: "3mm", marginTop: "4mm", fontSize: "9.5pt", lineHeight: 1.8 }}>
+          <div style={{ border: "1pt solid #000", padding: "2mm", marginTop: "2mm", fontSize: "7.5pt", lineHeight: 1.5 }}>
             <strong>【借地借家法第38条第3項に基づく説明書面】</strong><br/>
             本契約は定期建物賃貸借であり、契約の更新がなく、期間の満了により終了します。ただし、甲乙合意のうえ再契約することを妨げません。
-            <div style={{ display: "flex", alignItems: "baseline", marginTop: "4mm" }}>
-              <span style={{ fontWeight: 700, marginRight: "3mm" }}>上記説明を受けました　賃借人</span>
-              <span style={{ flex: 1, borderBottom: "1px solid #666", minHeight: 16 }}></span>
-              <span style={{ marginLeft: "3mm", fontSize: "9pt" }}>印</span>
+            <div style={{ display: "flex", alignItems: "baseline", marginTop: "2mm" }}>
+              <span style={{ fontWeight: 700, marginRight: "2mm", fontSize: "7.5pt" }}>上記説明を受けました　賃借人</span>
+              <span style={{ flex: 1, borderBottom: "0.5pt solid #666", minHeight: 12 }}></span>
+              <span style={{ marginLeft: "2mm", fontSize: "7.5pt" }}>印</span>
             </div>
           </div>
         )}
 
         {/* 署名 */}
-        <div style={{ marginTop: "6mm", fontSize: "10pt", marginBottom: "4mm" }}>
+        <div style={{ marginTop: "3mm", fontSize: "8pt", marginBottom: "2mm" }}>
           上記の契約を証するため、本書2通を作成し、甲乙署名捺印のうえ各1通を保有する。
         </div>
 
@@ -918,7 +918,7 @@ function RentalContractDocument({ p, today }: { p: PropertyData; today: string }
         </table>
 
         {p.guarantor_required && p.guarantor_required !== "不要" && (
-          <table className="t w" style={{ marginTop: "3mm" }}>
+          <table className="t w" style={{ marginTop: "2mm" }}>
             <thead><tr><th colSpan={4} className="hd">連帯保証人</th></tr></thead>
             <tbody>
               <tr><th className="lbl">住所</th><td colSpan={3}></td></tr>
@@ -928,7 +928,7 @@ function RentalContractDocument({ p, today }: { p: PropertyData; today: string }
           </table>
         )}
 
-        <table className="t w" style={{ marginTop: "4mm" }}>
+        <table className="t w" style={{ marginTop: "2mm" }}>
           <thead><tr><th colSpan={4} className="hd">媒介業者</th></tr></thead>
           <tbody>
             <tr><th className="lbl">商号</th><td></td><th className="lbl">免許番号</th><td></td></tr>
@@ -996,26 +996,27 @@ export default function PrintPage() {
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { background: #ddd; }
 
-        .j-wrap { font-family: 'Noto Serif JP','Yu Mincho','Hiragino Mincho ProN',serif; color: #000; line-height: 1.65; font-size: 10pt; }
-        .j-spread { display: flex; width: 420mm; min-height: 297mm; margin: 8mm auto; background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,.15); overflow: hidden; }
-        .j-page { width: 210mm; min-height: 297mm; padding: 12mm 14mm; flex-shrink: 0; }
-        .j-page + .j-page { border-left: 1px dashed #aaa; }
+        /* ── 全宅連準拠：実物書式ベース ── */
+        .j-wrap { font-family: 'Noto Serif JP','Yu Mincho','Hiragino Mincho ProN','MS Mincho',serif; color: #000; line-height: 1.35; font-size: 8.5pt; }
+        .j-spread { display: flex; width: 420mm; min-height: 297mm; margin: 6mm auto; background: #fff; box-shadow: 0 1px 6px rgba(0,0,0,.12); overflow: hidden; }
+        .j-page { width: 210mm; min-height: 297mm; padding: 8mm 10mm; flex-shrink: 0; }
+        .j-page + .j-page { border-left: 0.5pt solid #999; }
 
-        .j-title { text-align: center; font-size: 18pt; font-weight: 700; letter-spacing: 5px; border-top: 2px solid #000; border-bottom: 2px solid #000; padding: 3mm 0; margin-bottom: 2mm; }
-        .j-sub { text-align: center; font-size: 9pt; margin-bottom: 3mm; color: #333; }
-        .j-text { font-size: 9.5pt; line-height: 1.8; margin-bottom: 3mm; }
-        .j-footer { font-size: 8pt; color: #666; text-align: center; margin-top: 4mm; padding-top: 2mm; border-top: 1px solid #ccc; }
+        .j-title { text-align: center; font-size: 14pt; font-weight: 700; letter-spacing: 8px; border-top: 1.5pt solid #000; border-bottom: 1.5pt solid #000; padding: 2mm 0; margin-bottom: 1.5mm; }
+        .j-sub { text-align: center; font-size: 7.5pt; margin-bottom: 2mm; color: #000; }
+        .j-text { font-size: 7.5pt; line-height: 1.5; margin-bottom: 2mm; }
+        .j-footer { font-size: 6.5pt; color: #555; text-align: center; margin-top: 2mm; padding-top: 1mm; border-top: 0.5pt solid #999; }
 
-        .part { font-size: 11pt; font-weight: 700; background: #222; color: #fff; padding: 2mm 4mm; margin: 5mm 0 2mm; letter-spacing: 1.5px; }
-        .item { font-size: 9.5pt; font-weight: 700; background: #f0f0f0; padding: 1.2mm 3mm; border-left: 3px solid #333; margin: 3mm 0 1.5mm; }
+        .part { font-size: 9pt; font-weight: 700; background: #000; color: #fff; padding: 1mm 3mm; margin: 3mm 0 1.5mm; letter-spacing: 1px; }
+        .item { font-size: 8pt; font-weight: 700; background: #eee; padding: 0.8mm 2mm; border-left: 2pt solid #000; margin: 2mm 0 1mm; }
 
-        .t { border-collapse: collapse; font-size: 9.5pt; }
+        .t { border-collapse: collapse; font-size: 8pt; }
         .t.w { width: 100%; }
-        .t th, .t td { border: 1px solid #333; padding: 1.2mm 2mm; vertical-align: top; }
-        .t .hd { background: #ddd; text-align: center; font-size: 9pt; padding: 1.2mm; font-weight: 700; }
-        .t .lbl { background: #f5f5f5; font-weight: 700; text-align: left; white-space: nowrap; width: 18%; }
-        .t .cat { background: #f5f5f5; font-weight: 700; text-align: center; width: 6%; vertical-align: middle; }
-        .t td { min-height: 6mm; }
+        .t th, .t td { border: 0.5pt solid #000; padding: 0.6mm 1.5mm; vertical-align: top; line-height: 1.4; }
+        .t .hd { background: #e0e0e0; text-align: center; font-size: 7.5pt; padding: 0.6mm; font-weight: 700; }
+        .t .lbl { background: #f0f0f0; font-weight: 600; text-align: left; white-space: nowrap; width: 16%; font-size: 7.5pt; }
+        .t .cat { background: #f0f0f0; font-weight: 600; text-align: center; width: 5%; vertical-align: middle; font-size: 7.5pt; }
+        .t td { min-height: 4.5mm; }
 
         .toolbar { position: fixed; top: 0; left: 0; right: 0; z-index: 1000; background: #0F172A; padding: 8px 18px; display: flex; align-items: center; justify-content: space-between; }
         .toolbar button { padding: 6px 14px; border-radius: 5px; font-size: 11px; font-weight: 700; cursor: pointer; border: none; }
@@ -1028,8 +1029,8 @@ export default function PrintPage() {
           body { background: #fff; }
           .toolbar { display: none !important; }
           .j-spread { box-shadow: none; margin: 0; width: 100%; min-height: 0; }
-          .j-page { width: 50%; min-height: 0; }
-          .j-page + .j-page { border-left: none; }
+          .j-page { width: 50%; min-height: 0; padding: 8mm 10mm; }
+          .j-page + .j-page { border-left: 0.5pt solid #ccc; }
           .j-spread + .j-spread { page-break-before: always; }
           @page { size: A3 landscape; margin: 0; }
         }
