@@ -70,5 +70,17 @@
     "image_path": "",
     "has_image": false,
     "status": "posted"
+  },
+  {
+    "datetime": "2026-03-13T19:03:41.451568+09:00",
+    "tweet_id": "2032397157290885193",
+    "pillar": "3",
+    "pipeline": "P3",
+    "pattern": "C",
+    "text": "カビ対策で一番効果があるのって\n実は「湿度計を置く」ことかもしれません | 60％以下をキープできればカビはかなり防げます\n\n見える化すると\n・換気のタイミングがわかる\n・除湿器をつける基準ができる\n・なんとなく対策から卒業できる\n\n体感だけだと意外と見落としがちなんですよね",
+    "quality_score": 111,
+    "image_path": "",
+    "has_image": false,
+    "status": "posted"
   }
 ]
