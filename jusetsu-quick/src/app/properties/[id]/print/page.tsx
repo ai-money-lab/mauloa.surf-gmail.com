@@ -998,9 +998,9 @@ export default function PrintPage() {
 
         /* ── 全宅連準拠：実物書式ベース ── */
         .j-wrap { font-family: 'Noto Serif JP','Yu Mincho','Hiragino Mincho ProN','MS Mincho',serif; color: #000; line-height: 1.35; font-size: 8.5pt; }
-        .j-spread { display: flex; width: 420mm; min-height: 297mm; margin: 6mm auto; background: #fff; box-shadow: 0 1px 6px rgba(0,0,0,.12); }
+        .j-spread { display: flex; align-items: stretch; width: 420mm; margin: 6mm auto; background: #fff; box-shadow: 0 1px 6px rgba(0,0,0,.12); }
         /* 左面：外10mm / 綴じ側15mm  右面：綴じ側15mm / 外10mm */
-        .j-page { width: 210mm; min-height: 297mm; padding: 10mm 15mm 7mm 10mm; flex-shrink: 0; }
+        .j-page { width: 210mm; padding: 10mm 15mm 7mm 10mm; flex-shrink: 0; }
         .j-page + .j-page { border-left: 0.3pt solid #bbb; padding: 10mm 10mm 7mm 15mm; }
 
         .j-title { text-align: center; font-size: 14pt; font-weight: 700; letter-spacing: 8px; border-top: 1.5pt solid #000; border-bottom: 1.5pt solid #000; padding: 2mm 0; margin-bottom: 1.5mm; }
