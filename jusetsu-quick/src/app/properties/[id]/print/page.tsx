@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import type { PropertyData } from "@/lib/types";
@@ -19,6 +19,64 @@ function chk(v: unknown): string { return v ? CHK : UNCHK; }
 function chkNot(v: unknown): string { return v ? UNCHK : CHK; }
 
 type DocType = "jusetsu" | "rental" | "both";
+
+/* ─── 入力完了率の計算 ─── */
+function calcCompletion(p: PropertyData): { filled: number; total: number; missing: string[] } {
+  const isRent = !!p.rent;
+  const isMansion = p.property_type === "mansion" || p.property_type === "condo";
+
+  const fields: [string, unknown][] = [
+    ["所在地", p.address],
+    ["所有者", p.owner_name],
+    ["土地面積", p.land_area],
+    ["建物面積", p.building_area],
+    ["用途地域", p.zoning],
+    ["建ぺい率", p.building_coverage_ratio],
+    ["容積率", p.floor_area_ratio],
+    ["防火地域", p.fire_zone],
+    ["飲用水", p.water_supply],
+    ["電気", p.electricity],
+    ["ガス", p.gas_type],
+    ["排水", p.sewage],
+    ["接面道路種別", p.road_type],
+    ["道路幅員", p.road_width],
+  ];
+
+  if (isRent) {
+    fields.push(
+      ["賃料", p.rent],
+      ["敷金", p.deposit_months],
+      ["契約期間開始", p.lease_start],
+      ["契約期間終了", p.lease_end],
+      ["支払方法", p.rent_payment_method],
+      ["支払期日", p.rent_payment_due],
+    );
+  } else {
+    fields.push(
+      ["売買代金", p.price],
+      ["取引態様", p.transaction_type],
+      ["手付金", p.earnest_money],
+      ["引渡予定日", p.delivery_date],
+    );
+  }
+
+  if (isMansion) {
+    fields.push(
+      ["管理費", p.mgmt_fee],
+      ["修繕積立金", p.repair_reserve],
+      ["管理形態", p.mgmt_form],
+      ["総戸数", p.total_units],
+    );
+  }
+
+  const missing: string[] = [];
+  let filled = 0;
+  for (const [label, val] of fields) {
+    if (val != null && val !== "" && val !== 0) filled++;
+    else missing.push(label);
+  }
+  return { filled, total: fields.length, missing };
+}
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
    全宅連準拠 重要事項説明書
@@ -961,6 +1019,9 @@ export default function PrintPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [docType, setDocType] = useState<DocType>("both");
+  const [highlight, setHighlight] = useState(false);
+  const [zoom, setZoom] = useState(100);
+  const wrapRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     fetch(`/api/properties/${id}`)
@@ -978,6 +1039,38 @@ export default function PrintPage() {
       .catch(() => { setError("物件が見つかりません"); setLoading(false); });
   }, [id]);
 
+  // ハイライトモード：＿＿＿ を含むセルにクラスを付与
+  useEffect(() => {
+    if (!wrapRef.current) return;
+    const cells = wrapRef.current.querySelectorAll(".t td:not(.hd):not(.lbl):not(.cat)");
+    cells.forEach((td) => {
+      const text = td.textContent || "";
+      const hasBlank = text.includes("＿＿") || (text.trim() === "" && !td.querySelector("*"));
+      if (highlight && hasBlank) td.classList.add("hl-blank");
+      else td.classList.remove("hl-blank");
+    });
+  }, [highlight, docType, property]);
+
+  const scrollToSpread = useCallback((idx: number) => {
+    const spreads = wrapRef.current?.querySelectorAll(".j-spread");
+    if (spreads && spreads[idx]) {
+      spreads[idx].scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, []);
+
+  const handlePrint = useCallback(() => {
+    if (!property) return;
+    const { filled, total, missing } = calcCompletion(property);
+    const pct = Math.round((filled / total) * 100);
+    if (pct < 70 && missing.length > 0) {
+      const ok = window.confirm(
+        `入力完了率 ${pct}%（${missing.length}件未入力）\n\n未入力項目：\n${missing.slice(0, 8).map(m => "・" + m).join("\n")}${missing.length > 8 ? `\n…他${missing.length - 8}件` : ""}\n\nこのまま印刷しますか？`
+      );
+      if (!ok) return;
+    }
+    window.print();
+  }, [property]);
+
   if (loading) return <div style={{ textAlign: "center", padding: 60, fontFamily: "'Noto Serif JP', serif" }}>読み込み中...</div>;
   if (error || !property) return (
     <div style={{ textAlign: "center", padding: 60, fontFamily: "'Noto Serif JP', serif" }}>
@@ -988,6 +1081,14 @@ export default function PrintPage() {
 
   const p = property;
   const today = new Date().toLocaleDateString("ja-JP", { year: "numeric", month: "long", day: "numeric" });
+  const { filled, total, missing } = calcCompletion(p);
+  const completionPct = Math.round((filled / total) * 100);
+  const completionColor = completionPct >= 80 ? "#22C55E" : completionPct >= 50 ? "#F59E0B" : "#EF4444";
+
+  // ページラベル計算
+  const spreadLabels: string[] = [];
+  if (docType === "jusetsu" || docType === "both") { spreadLabels.push("重説 1-2面", "重説 3-4面"); }
+  if (docType === "rental" || docType === "both") { spreadLabels.push("契約 1-2面", "契約 3面"); }
 
   return (
     <>
@@ -1026,9 +1127,43 @@ export default function PrintPage() {
         .tab { padding: 5px 11px; border-radius: 5px; font-size: 11px; font-weight: 700; cursor: pointer; border: 1.5px solid #475569; background: transparent; color: #94A3B8; transition: all .15s; }
         .tab.on { background: #2563EB; border-color: #2563EB; color: #fff; }
 
+        /* ── ハイライトモード ── */
+        .hl-mode .t td:not(.hd):not(.lbl):not(.cat) {
+          position: relative;
+        }
+        .hl-blank {
+          background: #FEF2F2 !important;
+          outline: 1.5px dashed #EF4444;
+          outline-offset: -1px;
+        }
+        .hl-blank::after {
+          content: "未入力";
+          position: absolute; top: 0; right: 1mm;
+          font-size: 5.5pt; color: #DC2626; font-weight: 700;
+          opacity: 0.7;
+        }
+
+        /* ── ページナビ ── */
+        .page-nav { position: fixed; right: 16px; top: 50%; transform: translateY(-50%); z-index: 999; display: flex; flex-direction: column; gap: 4px; }
+        .page-nav button { width: 32px; height: 32px; border-radius: 6px; border: 1.5px solid #CBD5E1; background: #fff; color: #334155; font-size: 10px; font-weight: 700; cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,.1); transition: all .15s; }
+        .page-nav button:hover { background: #2563EB; color: #fff; border-color: #2563EB; }
+        .page-nav .nav-label { font-size: 8px; color: #94A3B8; text-align: center; writing-mode: vertical-rl; margin: 2px 0; }
+
+        /* ── ツールバー第二行 ── */
+        .toolbar-row2 { position: fixed; top: 40px; left: 0; right: 0; z-index: 999; background: #1E293B; padding: 5px 18px; display: flex; align-items: center; gap: 12px; border-top: 1px solid #334155; }
+        .toolbar-row2 .chip { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 4px; font-size: 10px; font-weight: 600; }
+        .completion-bar { height: 4px; border-radius: 2px; background: #334155; flex: 1; max-width: 80px; overflow: hidden; }
+        .completion-fill { height: 100%; border-radius: 2px; transition: width .3s; }
+        .zoom-ctrl { display: flex; align-items: center; gap: 3px; }
+        .zoom-ctrl button { width: 22px; height: 22px; border-radius: 4px; border: 1px solid #475569; background: transparent; color: #94A3B8; font-size: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .zoom-ctrl button:hover { background: #334155; color: #fff; }
+        .zoom-ctrl span { color: #94A3B8; font-size: 10px; min-width: 32px; text-align: center; }
+
         @media print {
           body { background: #fff; }
-          .toolbar { display: none !important; }
+          .toolbar, .toolbar-row2, .page-nav { display: none !important; }
+          .hl-blank { background: transparent !important; outline: none !important; }
+          .hl-blank::after { display: none !important; }
           .j-spread { box-shadow: none; margin: 0; width: 100%; min-height: 0; }
           .j-page { width: 50%; min-height: 0; padding: 10mm 15mm 7mm 10mm; }
           .j-page + .j-page { border-left: none; padding: 10mm 10mm 7mm 15mm; }
@@ -1037,6 +1172,7 @@ export default function PrintPage() {
         }
       `}</style>
 
+      {/* ── ツールバー第1行 ── */}
       <div className="toolbar">
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <span style={{ color: "#F8FAFC", fontSize: 12, fontWeight: 700 }}>書類出力</span>
@@ -1044,15 +1180,77 @@ export default function PrintPage() {
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
           <button className={`tab ${docType === "jusetsu" ? "on" : ""}`} onClick={() => setDocType("jusetsu")}>重説のみ</button>
-          <button className={`tab ${docType === "rental" ? "on" : ""}`} onClick={() => setDocType("rental")}>契約書のみ</button>
-          <button className={`tab ${docType === "both" ? "on" : ""}`} onClick={() => setDocType("both")}>両方</button>
+          {isRental(p) && <button className={`tab ${docType === "rental" ? "on" : ""}`} onClick={() => setDocType("rental")}>契約書のみ</button>}
+          {isRental(p) && <button className={`tab ${docType === "both" ? "on" : ""}`} onClick={() => setDocType("both")}>両方</button>}
           <span style={{ width: 1, height: 18, background: "#475569", margin: "0 2px" }} />
           <Link href={`/properties/${id}`}><button className="btn-b">戻る</button></Link>
-          <button className="btn-p" onClick={() => window.print()}>印刷 / PDF保存</button>
+          <button className="btn-p" onClick={handlePrint}>印刷 / PDF保存</button>
         </div>
       </div>
 
-      <div className="j-wrap" style={{ paddingTop: 48 }}>
+      {/* ── ツールバー第2行：入力状況・ハイライト・ズーム ── */}
+      <div className="toolbar-row2">
+        {/* 入力完了率 */}
+        <div className="chip" style={{ background: "#0F172A", color: completionColor, border: `1px solid ${completionColor}33` }}>
+          <span>{completionPct}%</span>
+          <div className="completion-bar">
+            <div className="completion-fill" style={{ width: `${completionPct}%`, background: completionColor }} />
+          </div>
+          <span style={{ color: "#94A3B8", fontSize: 9 }}>({filled}/{total})</span>
+        </div>
+        {missing.length > 0 && (
+          <span style={{ color: "#F59E0B", fontSize: 9 }} title={missing.join("、")}>
+            未入力: {missing.slice(0, 3).join("、")}{missing.length > 3 ? `…他${missing.length - 3}件` : ""}
+          </span>
+        )}
+
+        <span style={{ width: 1, height: 14, background: "#334155" }} />
+
+        {/* ハイライトトグル */}
+        <button
+          className="chip"
+          onClick={() => setHighlight(!highlight)}
+          style={{
+            background: highlight ? "#7C2D1233" : "transparent",
+            color: highlight ? "#FCA5A5" : "#64748B",
+            border: `1px solid ${highlight ? "#EF4444" : "#475569"}`,
+            cursor: "pointer", fontSize: 10, fontWeight: 700,
+          }}
+        >
+          {highlight ? "空欄ハイライト ON" : "空欄ハイライト"}
+        </button>
+
+        <span style={{ width: 1, height: 14, background: "#334155" }} />
+
+        {/* ズーム */}
+        <div className="zoom-ctrl">
+          <button onClick={() => setZoom(z => Math.max(50, z - 10))}>-</button>
+          <span>{zoom}%</span>
+          <button onClick={() => setZoom(z => Math.min(150, z + 10))}>+</button>
+          {zoom !== 100 && <button onClick={() => setZoom(100)} style={{ width: "auto", padding: "0 4px", fontSize: 9 }}>reset</button>}
+        </div>
+      </div>
+
+      {/* ── ページジャンプナビ（右端固定）── */}
+      <div className="page-nav">
+        <div className="nav-label">ページ</div>
+        {spreadLabels.map((label, i) => (
+          <button key={i} onClick={() => scrollToSpread(i)} title={label}>
+            {label.replace(/.*(\d).*/, "$1")}
+          </button>
+        ))}
+      </div>
+
+      <div
+        ref={wrapRef}
+        className={`j-wrap${highlight ? " hl-mode" : ""}`}
+        style={{
+          paddingTop: 80,
+          transform: zoom !== 100 ? `scale(${zoom / 100})` : undefined,
+          transformOrigin: "top center",
+          marginBottom: zoom < 100 ? `${(zoom - 100) * 3}px` : undefined,
+        }}
+      >
         {(docType === "jusetsu" || docType === "both") && <JusetsuDocument p={p} today={today} />}
         {(docType === "rental" || docType === "both") && <RentalContractDocument p={p} today={today} />}
       </div>
