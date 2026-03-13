@@ -998,9 +998,10 @@ export default function PrintPage() {
 
         /* ── 全宅連準拠：実物書式ベース ── */
         .j-wrap { font-family: 'Noto Serif JP','Yu Mincho','Hiragino Mincho ProN','MS Mincho',serif; color: #000; line-height: 1.35; font-size: 8.5pt; }
-        .j-spread { display: flex; width: 420mm; min-height: 297mm; margin: 6mm auto; background: #fff; box-shadow: 0 1px 6px rgba(0,0,0,.12); overflow: hidden; }
-        .j-page { width: 210mm; min-height: 297mm; padding: 8mm 10mm; flex-shrink: 0; }
-        .j-page + .j-page { border-left: 0.5pt solid #999; }
+        .j-spread { display: flex; width: 420mm; min-height: 297mm; margin: 6mm auto; background: #fff; box-shadow: 0 1px 6px rgba(0,0,0,.12); }
+        /* 左面：外10mm / 綴じ側15mm  右面：綴じ側15mm / 外10mm */
+        .j-page { width: 210mm; min-height: 297mm; padding: 10mm 15mm 7mm 10mm; flex-shrink: 0; }
+        .j-page + .j-page { border-left: 0.3pt solid #bbb; padding: 10mm 10mm 7mm 15mm; }
 
         .j-title { text-align: center; font-size: 14pt; font-weight: 700; letter-spacing: 8px; border-top: 1.5pt solid #000; border-bottom: 1.5pt solid #000; padding: 2mm 0; margin-bottom: 1.5mm; }
         .j-sub { text-align: center; font-size: 7.5pt; margin-bottom: 2mm; color: #000; }
@@ -1012,8 +1013,8 @@ export default function PrintPage() {
 
         .t { border-collapse: collapse; font-size: 8pt; }
         .t.w { width: 100%; }
-        .t th, .t td { border: 0.5pt solid #000; padding: 0.6mm 1.5mm; vertical-align: top; line-height: 1.4; }
-        .t .hd { background: #e0e0e0; text-align: center; font-size: 7.5pt; padding: 0.6mm; font-weight: 700; }
+        .t th, .t td { border: 0.5pt solid #000; padding: 0.8mm 1.5mm; vertical-align: top; line-height: 1.4; }
+        .t .hd { background: #e0e0e0; text-align: center; font-size: 7.5pt; padding: 0.8mm; font-weight: 700; }
         .t .lbl { background: #f0f0f0; font-weight: 600; text-align: left; white-space: nowrap; width: 16%; font-size: 7.5pt; }
         .t .cat { background: #f0f0f0; font-weight: 600; text-align: center; width: 5%; vertical-align: middle; font-size: 7.5pt; }
         .t td { min-height: 4.5mm; }
@@ -1029,8 +1030,8 @@ export default function PrintPage() {
           body { background: #fff; }
           .toolbar { display: none !important; }
           .j-spread { box-shadow: none; margin: 0; width: 100%; min-height: 0; }
-          .j-page { width: 50%; min-height: 0; padding: 8mm 10mm; }
-          .j-page + .j-page { border-left: 0.5pt solid #ccc; }
+          .j-page { width: 50%; min-height: 0; padding: 10mm 15mm 7mm 10mm; }
+          .j-page + .j-page { border-left: none; padding: 10mm 10mm 7mm 15mm; }
           .j-spread + .j-spread { page-break-before: always; }
           @page { size: A3 landscape; margin: 0; }
         }
