@@ -134,28 +134,35 @@ def generate_image(
             for log in update.logs:
                 print(f"  [{log.get('message', '')}]")
 
-    try:
-        result = fal_client.subscribe(
-            endpoint,
-            arguments=arguments,
-            with_logs=True,
-            on_queue_update=on_queue_update,
-        )
-    except Exception as e:
-        # フォールバックエンドポイントを試す
-        fallback = engine.get("fallback_endpoint")
-        if fallback:
-            print(f"  プライマリ失敗、フォールバック使用: {fallback}")
-            result = fal_client.subscribe(
-                fallback,
-                arguments=arguments,
-                with_logs=True,
-                on_queue_update=on_queue_update,
-            )
-        else:
-            raise e
+    max_retries = 3
+    endpoints_to_try = [endpoint]
+    fallback = engine.get("fallback_endpoint")
+    if fallback:
+        endpoints_to_try.append(fallback)
 
-    return result.get("images", [])
+    last_error = None
+    for ep in endpoints_to_try:
+        for attempt in range(1, max_retries + 1):
+            try:
+                if ep != endpoint or attempt > 1:
+                    label = f"フォールバック {ep}" if ep != endpoint else f"リトライ {attempt}/{max_retries}"
+                    print(f"  {label}")
+                result = fal_client.subscribe(
+                    ep,
+                    arguments=arguments,
+                    with_logs=True,
+                    on_queue_update=on_queue_update,
+                )
+                return result.get("images", [])
+            except Exception as e:
+                last_error = e
+                print(f"  エラー (attempt {attempt}): {e}")
+                if attempt < max_retries:
+                    wait = 2 ** attempt
+                    print(f"  {wait}秒後にリトライ...")
+                    time.sleep(wait)
+
+    raise last_error
 
 
 def save_images(

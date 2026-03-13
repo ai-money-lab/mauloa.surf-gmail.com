@@ -58,25 +58,46 @@ def get_twitter_api_v1() -> tweepy.API:
 def post_with_images(
     text: str,
     image_paths: list[str],
+    max_retries: int = 3,
 ) -> str:
-    """画像付きでXに投稿する"""
+    """画像付きでXに投稿する（リトライ付き）"""
+    import time
+
     client = get_twitter_client()
     api_v1 = get_twitter_api_v1()
 
-    # 画像をアップロード（最大4枚）
+    # 画像をアップロード（最大4枚、リトライ付き）
     media_ids = []
     for path in image_paths[:4]:
-        print(f"  アップロード中: {path}")
-        media = api_v1.media_upload(filename=path)
-        media_ids.append(media.media_id)
+        for attempt in range(1, max_retries + 1):
+            try:
+                print(f"  アップロード中: {path}")
+                media = api_v1.media_upload(filename=path)
+                media_ids.append(media.media_id)
+                break
+            except Exception as e:
+                print(f"  アップロード失敗 (attempt {attempt}): {e}")
+                if attempt == max_retries:
+                    raise
+                wait = 2 ** attempt
+                print(f"  {wait}秒後にリトライ...")
+                time.sleep(wait)
 
-    # ツイート投稿
-    response = client.create_tweet(text=text, media_ids=media_ids)
-    tweet_id = response.data["id"]
-    tweet_url = f"https://x.com/i/status/{tweet_id}"
-
-    print(f"  投稿完了: {tweet_url}")
-    return tweet_url
+    # ツイート投稿（リトライ付き）
+    for attempt in range(1, max_retries + 1):
+        try:
+            response = client.create_tweet(text=text, media_ids=media_ids)
+            tweet_id = response.data["id"]
+            tweet_url = f"https://x.com/i/status/{tweet_id}"
+            print(f"  投稿完了: {tweet_url}")
+            return tweet_url
+        except Exception as e:
+            print(f"  投稿失敗 (attempt {attempt}): {e}")
+            if attempt == max_retries:
+                raise
+            wait = 2 ** attempt
+            print(f"  {wait}秒後にリトライ...")
+            time.sleep(wait)
 
 
 def main():
