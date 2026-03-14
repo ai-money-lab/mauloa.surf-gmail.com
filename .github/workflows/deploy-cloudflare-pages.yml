@@ -2,9 +2,10 @@ name: Deploy jusetsu-quick to Cloudflare Pages
 
 on:
   push:
-    branches: [master]
+    branches: [master, 'claude/cloudflare-setup-*']
     paths:
       - 'jusetsu-quick/**'
+      - '.github/workflows/deploy-cloudflare-pages.yml'
   workflow_dispatch:
 
 jobs:
