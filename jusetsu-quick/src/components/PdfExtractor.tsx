@@ -6,11 +6,13 @@ import type { PropertyData } from "@/lib/types";
 /* ─── OCR: Tesseract.js（画像PDFフォールバック用） ─── */
 async function ocrFromPdfPages(file: File, onProgress?: (msg: string) => void): Promise<string> {
   const pdfjsLib = await import("pdfjs-dist");
-  pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
+  if (!pdfjsLib.GlobalWorkerOptions.workerSrc) {
+    pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`;
+  }
   const { createWorker } = await import("tesseract.js");
 
   const arrayBuffer = await file.arrayBuffer();
-  const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+  const pdf = await pdfjsLib.getDocument({ data: new Uint8Array(arrayBuffer) }).promise;
   const pageCount = Math.min(pdf.numPages, 10);
 
   onProgress?.(`OCRエンジン起動中...`);
@@ -90,10 +92,13 @@ export default function PdfExtractor({ currentData, onApply, onClose }: Props) {
   /* PDF テキスト抽出（pdfjs-dist） */
   const extractTextFromPdf = useCallback(async (file: File): Promise<string> => {
     const pdfjsLib = await import("pdfjs-dist");
-    pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
+    // workerが未設定の場合のみ設定
+    if (!pdfjsLib.GlobalWorkerOptions.workerSrc) {
+      pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`;
+    }
 
     const arrayBuffer = await file.arrayBuffer();
-    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+    const pdf = await pdfjsLib.getDocument({ data: new Uint8Array(arrayBuffer) }).promise;
     const pages: string[] = [];
     for (let i = 1; i <= Math.min(pdf.numPages, 10); i++) {
       const page = await pdf.getPage(i);
@@ -114,9 +119,9 @@ export default function PdfExtractor({ currentData, onApply, onClose }: Props) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text }),
       });
-      const data = await res.json();
+      const data = await res.json().catch(() => ({ error: `サーバーエラー (HTTP ${res.status})` }));
       if (!res.ok) {
-        setError(data.error || "抽出に失敗しました");
+        setError(data.error || `抽出に失敗しました (HTTP ${res.status})`);
         setStep("upload");
         return;
       }
@@ -141,7 +146,13 @@ export default function PdfExtractor({ currentData, onApply, onClose }: Props) {
     if (file.type === "application/pdf") {
       try {
         // まずテキスト抽出を試行
-        const text = await extractTextFromPdf(file);
+        let text = "";
+        try {
+          text = await extractTextFromPdf(file);
+        } catch (e) {
+          console.error("[PDF] テキスト抽出エラー:", e);
+          // テキスト抽出失敗 → OCRへフォールスルー
+        }
         if (text.trim().length >= 20) {
           await runExtraction(text);
           return;
@@ -149,15 +160,22 @@ export default function PdfExtractor({ currentData, onApply, onClose }: Props) {
         // テキストが少ない → 画像PDF → OCRフォールバック
         setStep("ocr");
         setOcrProgress("OCR処理を開始します...");
-        const ocrText = await ocrFromPdfPages(file, setOcrProgress);
-        if (ocrText.trim().length < 20) {
-          setError("OCRでも文字を認識できませんでした。画質の良いPDFをお試しください。");
+        try {
+          const ocrText = await ocrFromPdfPages(file, setOcrProgress);
+          if (ocrText.trim().length < 20) {
+            setError("OCRでも文字を認識できませんでした。画質の良いPDFをお試しください。");
+            setStep("upload");
+            return;
+          }
+          await runExtraction(ocrText);
+        } catch (e) {
+          console.error("[PDF] OCRエラー:", e);
+          setError(`OCR処理に失敗しました: ${e instanceof Error ? e.message : "不明なエラー"}`);
           setStep("upload");
-          return;
         }
-        await runExtraction(ocrText);
-      } catch {
-        setError("PDFの読み取りに失敗しました");
+      } catch (e) {
+        console.error("[PDF] 処理エラー:", e);
+        setError(`PDFの読み取りに失敗しました: ${e instanceof Error ? e.message : "不明なエラー"}`);
         setStep("upload");
       }
     } else if (file.type === "text/plain" || file.name.endsWith(".txt")) {
