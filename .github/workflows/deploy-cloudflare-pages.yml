@@ -30,6 +30,14 @@ jobs:
         working-directory: jusetsu-quick
         run: npm run pages:build
 
+      - name: Run D1 migrations
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: d1 migrations apply jusetsu-quick-db --remote
+          workingDirectory: jusetsu-quick
+
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/wrangler-action@v3
         with:
