@@ -9,9 +9,10 @@ import {
   CheckCircle2, ArrowRight, Database,
   DollarSign, Route, Plug, FileText,
   ClipboardCheck, TriangleAlert, Scale, Check, AlertTriangle,
-  Info,
+  Info, Upload,
 } from "lucide-react";
 import Header from "@/components/Header";
+import PdfExtractor from "@/components/PdfExtractor";
 import StepNav from "@/components/StepNav";
 import Section from "@/components/ui/Section";
 import Btn from "@/components/ui/Btn";
@@ -179,6 +180,8 @@ export default function NewPropertyPage() {
   const [saving, setSaving] = useState(false);
   const [savedId, setSavedId] = useState<string | null>(null);
   const [toast, setToast] = useState("");
+  const [showPdfExtractor, setShowPdfExtractor] = useState(false);
+  const [pdfAppliedCount, setPdfAppliedCount] = useState(0);
 
   const showToast = (msg: string) => {
     setToast(msg);
@@ -460,6 +463,60 @@ export default function NewPropertyPage() {
         {/* STEP 1 */}
         {step === 1 && !loading && (
           <div className="animate-fade-in">
+            {/* PDF読み取りセクション */}
+            <Section
+              icon={Upload}
+              title="書類から自動入力"
+              sub="登記簿謄本・マイソク・契約書などのPDFからデータを一括入力"
+            >
+              <button
+                onClick={() => setShowPdfExtractor(true)}
+                style={{
+                  width: "100%", padding: "16px 20px",
+                  background: "linear-gradient(135deg, #1E40AF, #2563EB)",
+                  color: "#fff", border: "none", borderRadius: 10,
+                  fontSize: 14, fontWeight: 700, cursor: "pointer",
+                  display: "flex", alignItems: "center", justifyContent: "center", gap: 10,
+                  boxShadow: "0 2px 8px rgba(37,99,235,0.3)",
+                  transition: "all 0.2s",
+                }}
+                onMouseOver={(e) => (e.currentTarget.style.transform = "translateY(-1px)")}
+                onMouseOut={(e) => (e.currentTarget.style.transform = "translateY(0)")}
+              >
+                <Upload size={18} strokeWidth={2.5} />
+                PDF / テキストから自動入力
+              </button>
+              <div style={{
+                display: "flex", alignItems: "center", gap: 8, marginTop: 10,
+                fontSize: 10, color: "#64748B",
+              }}>
+                <span>対応書類: 登記簿謄本 / マイソク / 賃貸契約書 / 重要事項説明書</span>
+                <span style={{ color: "#2563EB", fontWeight: 600 }}>※スキャンPDFもOCR対応</span>
+              </div>
+              {pdfAppliedCount > 0 && (
+                <div style={{
+                  marginTop: 10, padding: "8px 12px", borderRadius: 8,
+                  background: "#F0FDF4", border: "1px solid #BBF7D0",
+                  fontSize: 12, color: "#166534", fontWeight: 600,
+                  display: "flex", alignItems: "center", gap: 6,
+                }}>
+                  <CheckCircle2 size={14} />
+                  PDFから{pdfAppliedCount}件のデータを反映済み
+                </div>
+              )}
+            </Section>
+
+            {/* 区切り */}
+            <div style={{
+              display: "flex", alignItems: "center", gap: 12,
+              margin: "6px 0",
+              padding: "0 16px",
+            }}>
+              <div style={{ flex: 1, height: 1, background: "#CBD5E1" }} />
+              <span style={{ fontSize: 12, color: "#94A3B8", fontWeight: 600 }}>または 住所で検索</span>
+              <div style={{ flex: 1, height: 1, background: "#CBD5E1" }} />
+            </div>
+
             <Section
               icon={MapPin}
               title="物件の所在地"
@@ -1101,6 +1158,33 @@ export default function NewPropertyPage() {
         >
           {toast}
         </div>
+      )}
+
+      {/* PDF読み取りモーダル */}
+      {showPdfExtractor && (
+        <PdfExtractor
+          currentData={formData as PropertyData}
+          onApply={(data) => {
+            // PDFから抽出したデータをフォームに反映
+            const count = Object.keys(data).length;
+            setFormData((prev) => ({ ...prev, ...data }));
+            // 住所が抽出された場合はaddressにもセット
+            if (data.address) {
+              setAddress(data.address as string);
+            }
+            // 物件種別が抽出された場合
+            if (data.property_type) {
+              const pt = data.property_type as string;
+              if (["mansion", "house", "land", "building"].includes(pt)) {
+                setPType(pt);
+              }
+            }
+            setPdfAppliedCount(count);
+            setShowPdfExtractor(false);
+            showToast(`PDFから${count}件のデータを反映しました`);
+          }}
+          onClose={() => setShowPdfExtractor(false)}
+        />
       )}
     </div>
   );
