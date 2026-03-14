@@ -17,6 +17,7 @@ import {
 import PdfExtractor from "@/components/PdfExtractor";
 import Link from "next/link";
 import type { PropertyData, SearchResult } from "@/lib/types";
+import { generatePortalCSV, detectListingType } from "@/lib/portal-csv";
 
 type DetailRow = { label: string; value: string; field?: string; category?: string };
 
@@ -274,6 +275,7 @@ export default function PropertyDetailPage() {
   const [deleting, setDeleting] = useState(false);
   const [diffData, setDiffData] = useState<Record<string, { old: string; new: string }> | null>(null);
   const [showPdfExtractor, setShowPdfExtractor] = useState(false);
+  const [showPortalExport, setShowPortalExport] = useState(false);
 
   const showToast = (msg: string) => {
     setToast(msg);
@@ -888,6 +890,65 @@ export default function PropertyDetailPage() {
               </Btn>
               <Btn variant="success" full icon={Download} onClick={generateCSV}>CSV出力</Btn>
             </div>
+
+            {/* ポータル一括入稿 */}
+            <div style={{ marginBottom: 10 }}>
+              <button
+                onClick={() => setShowPortalExport(!showPortalExport)}
+                style={{
+                  width: "100%", padding: "12px 18px", borderRadius: 8,
+                  fontSize: 13, fontWeight: 700, cursor: "pointer",
+                  display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                  background: "linear-gradient(135deg, #1E40AF 0%, #7C3AED 100%)",
+                  color: "#FFF", border: "none",
+                  boxShadow: "0 2px 8px rgba(30,64,175,0.3)",
+                  transition: "all 0.15s",
+                }}
+              >
+                <Upload size={16} />
+                ポータル入稿CSV出力（SUUMO / HOME&apos;S）
+              </button>
+              {showPortalExport && property && (
+                <div style={{
+                  marginTop: 8, padding: "14px 16px",
+                  background: "#F5F3FF", border: "1.5px solid #C4B5FD",
+                  borderRadius: 8,
+                }}>
+                  <div style={{ fontSize: 11, color: "#6D28D9", fontWeight: 700, marginBottom: 10 }}>
+                    出力形式を選択 — {detectListingType(property) === "rental" ? "賃貸" : "売買"}として出力
+                  </div>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                    <button
+                      onClick={() => { generatePortalCSV(property, "suumo"); showToast("SUUMO形式CSVをダウンロードしました"); }}
+                      style={{
+                        padding: "10px 14px", borderRadius: 8, fontSize: 13, fontWeight: 700,
+                        cursor: "pointer", border: "1.5px solid #22C55E",
+                        background: "#F0FDF4", color: "#166534",
+                        transition: "all 0.15s",
+                      }}
+                    >
+                      SUUMO形式
+                    </button>
+                    <button
+                      onClick={() => { generatePortalCSV(property, "homes"); showToast("HOME'S形式CSVをダウンロードしました"); }}
+                      style={{
+                        padding: "10px 14px", borderRadius: 8, fontSize: 13, fontWeight: 700,
+                        cursor: "pointer", border: "1.5px solid #F97316",
+                        background: "#FFF7ED", color: "#9A3412",
+                        transition: "all 0.15s",
+                      }}
+                    >
+                      HOME&apos;S形式
+                    </button>
+                  </div>
+                  <div style={{ fontSize: 10, color: "#7C3AED", marginTop: 8, lineHeight: 1.5 }}>
+                    各ポータルの管理画面からCSV一括入稿でアップロードしてください。
+                    間取り・築年月・構造など未入力項目は空欄で出力されます。
+                  </div>
+                </div>
+              )}
+            </div>
+
             <div style={{ marginBottom: 10 }}>
               <Link href={`/properties/${id}/print`} style={{ textDecoration: "none", display: "block" }}>
                 <Btn variant="primary" full icon={Printer}>重説・契約書を出力</Btn>
