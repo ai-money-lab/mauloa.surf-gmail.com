@@ -9,5 +9,8 @@ binding = "DB"
 database_name = "jusetsu-quick-db"
 database_id = "c038eb89-5fe6-4931-a8ad-5ab926b77118"
 
+[ai]
+binding = "AI"
+
 [vars]
 # REINFOLIB_API_KEY should be set via: npx wrangler secret put REINFOLIB_API_KEY

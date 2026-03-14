@@ -12,8 +12,9 @@ import {
   FileText, ChevronLeft, Download, RefreshCw,
   Shield, Droplets, Plug, Route, Building2,
   TriangleAlert, Scale, Loader2, Trash2, Pencil,
-  Eye, Printer, X, AlertTriangle,
+  Eye, Printer, X, AlertTriangle, Upload,
 } from "lucide-react";
+import PdfExtractor from "@/components/PdfExtractor";
 import Link from "next/link";
 import type { PropertyData, SearchResult } from "@/lib/types";
 
@@ -74,6 +75,7 @@ export default function PropertyDetailPage() {
   const [deleteConfirm, setDeleteConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [diffData, setDiffData] = useState<Record<string, { old: string; new: string }> | null>(null);
+  const [showPdfExtractor, setShowPdfExtractor] = useState(false);
 
   const showToast = (msg: string) => {
     setToast(msg);
@@ -665,6 +667,12 @@ export default function PropertyDetailPage() {
 
         {/* Action buttons */}
         {editMode ? (
+          <>
+          <div style={{ marginBottom: 10 }}>
+            <Btn variant="secondary" full icon={Upload} onClick={() => setShowPdfExtractor(true)}>
+              PDF / テキストから自動入力
+            </Btn>
+          </div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 10 }}>
             <Btn variant="secondary" full icon={X} onClick={() => { setEditMode(false); setEditData(property); }}>
               キャンセル
@@ -673,6 +681,7 @@ export default function PropertyDetailPage() {
               {saving ? "保存中..." : "変更を保存"}
             </Btn>
           </div>
+          </>
         ) : (
           <>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 10 }}>
@@ -730,6 +739,18 @@ export default function PropertyDetailPage() {
           </>
         )}
       </main>
+
+      {showPdfExtractor && property && (
+        <PdfExtractor
+          currentData={property}
+          onApply={(data) => {
+            setEditData(prev => ({ ...prev, ...data }));
+            setShowPdfExtractor(false);
+            showToast(`${Object.keys(data).length}件のデータを反映しました`);
+          }}
+          onClose={() => setShowPdfExtractor(false)}
+        />
+      )}
 
       {toast && (
         <div

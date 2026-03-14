@@ -9,8 +9,13 @@ interface D1PreparedStatement {
   all<T = Record<string, unknown>>(): Promise<{ results: T[] }>;
 }
 
+interface Ai {
+  run(model: string, inputs: Record<string, unknown>): Promise<unknown>;
+}
+
 interface CloudflareEnv {
   DB: D1Database;
+  AI: Ai;
 }
 
 interface ExecutionContext {
