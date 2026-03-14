@@ -3,6 +3,47 @@
 import { useState, useCallback, useRef } from "react";
 import type { PropertyData } from "@/lib/types";
 
+/* ─── OCR: Tesseract.js（画像PDFフォールバック用） ─── */
+async function ocrFromPdfPages(file: File, onProgress?: (msg: string) => void): Promise<string> {
+  const pdfjsLib = await import("pdfjs-dist");
+  pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
+  const { createWorker } = await import("tesseract.js");
+
+  const arrayBuffer = await file.arrayBuffer();
+  const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+  const pageCount = Math.min(pdf.numPages, 10);
+
+  onProgress?.(`OCRエンジン起動中...`);
+  const worker = await createWorker("jpn+eng");
+
+  const pages: string[] = [];
+  try {
+    for (let i = 1; i <= pageCount; i++) {
+      onProgress?.(`ページ ${i}/${pageCount} をOCR処理中...`);
+      const page = await pdf.getPage(i);
+      const viewport = page.getViewport({ scale: 2.0 }); // 高解像度で精度UP
+
+      // Canvas にレンダリング
+      const canvas = document.createElement("canvas");
+      canvas.width = viewport.width;
+      canvas.height = viewport.height;
+      const ctx = canvas.getContext("2d")!;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await page.render({ canvasContext: ctx, viewport, canvas } as any).promise;
+
+      // Canvas → Tesseract OCR
+      const { data } = await worker.recognize(canvas);
+      if (data.text.trim()) {
+        pages.push(data.text);
+      }
+    }
+  } finally {
+    await worker.terminate();
+  }
+
+  return pages.join("\n\n");
+}
+
 /* ─── フィールド表示名マップ ─── */
 const FIELD_LABELS: Record<string, string> = {
   address: "所在地", owner_name: "所有者", land_area: "土地面積(㎡)",
@@ -37,12 +78,13 @@ interface Props {
 }
 
 export default function PdfExtractor({ currentData, onApply, onClose }: Props) {
-  const [step, setStep] = useState<"upload" | "extracting" | "review">("upload");
+  const [step, setStep] = useState<"upload" | "ocr" | "extracting" | "review">("upload");
   const [dragOver, setDragOver] = useState(false);
   const [error, setError] = useState("");
   const [result, setResult] = useState<ExtractResult | null>(null);
   const [selected, setSelected] = useState<Record<string, boolean>>({});
   const [pasteText, setPasteText] = useState("");
+  const [ocrProgress, setOcrProgress] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
 
   /* PDF テキスト抽出（pdfjs-dist） */
@@ -98,14 +140,25 @@ export default function PdfExtractor({ currentData, onApply, onClose }: Props) {
     setError("");
     if (file.type === "application/pdf") {
       try {
+        // まずテキスト抽出を試行
         const text = await extractTextFromPdf(file);
-        if (text.trim().length < 20) {
-          setError("PDFからテキストを抽出できませんでした（画像PDFの可能性があります）");
+        if (text.trim().length >= 20) {
+          await runExtraction(text);
           return;
         }
-        await runExtraction(text);
+        // テキストが少ない → 画像PDF → OCRフォールバック
+        setStep("ocr");
+        setOcrProgress("OCR処理を開始します...");
+        const ocrText = await ocrFromPdfPages(file, setOcrProgress);
+        if (ocrText.trim().length < 20) {
+          setError("OCRでも文字を認識できませんでした。画質の良いPDFをお試しください。");
+          setStep("upload");
+          return;
+        }
+        await runExtraction(ocrText);
       } catch {
         setError("PDFの読み取りに失敗しました");
+        setStep("upload");
       }
     } else if (file.type === "text/plain" || file.name.endsWith(".txt")) {
       const text = await file.text();
@@ -213,6 +266,9 @@ export default function PdfExtractor({ currentData, onApply, onClose }: Props) {
                 <div style={{ fontSize: 10, color: "#94A3B8", marginTop: 8 }}>
                   対応: 登記簿謄本 / マイソク / 賃貸契約書 / 重要事項説明書 / その他
                 </div>
+                <div style={{ fontSize: 9, color: "#2563EB", marginTop: 4 }}>
+                  ※ スキャン（画像）PDFもOCRで自動認識します
+                </div>
                 <input
                   ref={fileRef}
                   type="file"
@@ -261,6 +317,26 @@ export default function PdfExtractor({ currentData, onApply, onClose }: Props) {
                 </div>
               )}
             </>
+          )}
+
+          {/* ─── OCR処理中 ─── */}
+          {step === "ocr" && (
+            <div style={{ textAlign: "center", padding: "40px 20px" }}>
+              <div style={{ fontSize: 28, marginBottom: 12, animation: "pulse 1.5s ease-in-out infinite" }}>
+                🔍
+              </div>
+              <div style={{ fontSize: 14, fontWeight: 600, color: "#334155" }}>
+                画像PDFを文字認識中（OCR）
+              </div>
+              <div style={{ fontSize: 12, color: "#2563EB", marginTop: 8, fontWeight: 600 }}>
+                {ocrProgress}
+              </div>
+              <div style={{ fontSize: 10, color: "#94A3B8", marginTop: 8, lineHeight: 1.5 }}>
+                スキャンPDFから文字を認識しています。<br />
+                ページ数に応じて数秒〜数十秒かかります。
+              </div>
+              <style>{`@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }`}</style>
+            </div>
           )}
 
           {/* ─── 抽出中 ─── */}
