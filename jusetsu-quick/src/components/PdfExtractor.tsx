@@ -3,11 +3,16 @@
 import { useState, useCallback, useRef } from "react";
 import type { PropertyData } from "@/lib/types";
 
+/* ─── pdfjs worker URL（CDNフォールバック付き） ─── */
+function getPdfjsWorkerSrc(version: string): string {
+  return `//cdn.jsdelivr.net/npm/pdfjs-dist@${version}/build/pdf.worker.min.mjs`;
+}
+
 /* ─── OCR: Tesseract.js（画像PDFフォールバック用） ─── */
 async function ocrFromPdfPages(file: File, onProgress?: (msg: string) => void): Promise<string> {
   const pdfjsLib = await import("pdfjs-dist");
   if (!pdfjsLib.GlobalWorkerOptions.workerSrc) {
-    pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`;
+    pdfjsLib.GlobalWorkerOptions.workerSrc = getPdfjsWorkerSrc(pdfjsLib.version);
   }
   const { createWorker } = await import("tesseract.js");
 
@@ -23,9 +28,8 @@ async function ocrFromPdfPages(file: File, onProgress?: (msg: string) => void): 
     for (let i = 1; i <= pageCount; i++) {
       onProgress?.(`ページ ${i}/${pageCount} をOCR処理中...`);
       const page = await pdf.getPage(i);
-      const viewport = page.getViewport({ scale: 2.0 }); // 高解像度で精度UP
+      const viewport = page.getViewport({ scale: 2.0 });
 
-      // Canvas にレンダリング
       const canvas = document.createElement("canvas");
       canvas.width = viewport.width;
       canvas.height = viewport.height;
@@ -33,7 +37,6 @@ async function ocrFromPdfPages(file: File, onProgress?: (msg: string) => void): 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await page.render({ canvasContext: ctx, viewport, canvas } as any).promise;
 
-      // Canvas → Tesseract OCR
       const { data } = await worker.recognize(canvas);
       if (data.text.trim()) {
         pages.push(data.text);
@@ -44,6 +47,22 @@ async function ocrFromPdfPages(file: File, onProgress?: (msg: string) => void): 
   }
 
   return pages.join("\n\n");
+}
+
+/* ─── OCR: 画像ファイル（JPEG/PNG/WEBP）直接認識 ─── */
+async function ocrFromImage(file: File, onProgress?: (msg: string) => void): Promise<string> {
+  const { createWorker } = await import("tesseract.js");
+
+  onProgress?.("OCRエンジン起動中...");
+  const worker = await createWorker("jpn+eng");
+
+  try {
+    onProgress?.("画像を文字認識中...");
+    const { data } = await worker.recognize(file);
+    return data.text;
+  } finally {
+    await worker.terminate();
+  }
 }
 
 /* ─── フィールド表示名マップ ─── */
@@ -92,9 +111,8 @@ export default function PdfExtractor({ currentData, onApply, onClose }: Props) {
   /* PDF テキスト抽出（pdfjs-dist） */
   const extractTextFromPdf = useCallback(async (file: File): Promise<string> => {
     const pdfjsLib = await import("pdfjs-dist");
-    // workerが未設定の場合のみ設定
     if (!pdfjsLib.GlobalWorkerOptions.workerSrc) {
-      pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`;
+      pdfjsLib.GlobalWorkerOptions.workerSrc = getPdfjsWorkerSrc(pdfjsLib.version);
     }
 
     const arrayBuffer = await file.arrayBuffer();
@@ -145,12 +163,36 @@ export default function PdfExtractor({ currentData, onApply, onClose }: Props) {
     file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf");
   const isText = (file: File) =>
     file.type === "text/plain" || file.name.toLowerCase().endsWith(".txt");
+  const isImage = (file: File) => {
+    const ext = file.name.toLowerCase();
+    return file.type.startsWith("image/") ||
+      [".jpg", ".jpeg", ".png", ".webp"].some(e => ext.endsWith(e));
+  };
 
   /* ファイル処理 */
   const handleFile = useCallback(async (file: File) => {
     console.log("[PDF] handleFile called:", file.name, file.type, file.size);
     setError("");
-    if (isPdf(file)) {
+
+    if (isImage(file)) {
+      // 画像ファイル → 直接OCR
+      setStep("ocr");
+      setOcrProgress("画像を文字認識中...");
+      try {
+        const ocrText = await ocrFromImage(file, setOcrProgress);
+        console.log("[IMG] OCR完了:", ocrText.length, "文字");
+        if (ocrText.trim().length < 10) {
+          setError("画像から文字を認識できませんでした。鮮明な画像をお試しください。");
+          setStep("upload");
+          return;
+        }
+        await runExtraction(ocrText);
+      } catch (e) {
+        console.error("[IMG] OCRエラー:", e);
+        setError(`画像OCRに失敗しました: ${e instanceof Error ? e.message : "不明なエラー"}`);
+        setStep("upload");
+      }
+    } else if (isPdf(file)) {
       try {
         // まずテキスト抽出を試行
         let text = "";
@@ -242,10 +284,10 @@ export default function PdfExtractor({ currentData, onApply, onClose }: Props) {
         }}>
           <div>
             <div style={{ fontSize: 15, fontWeight: 700, color: "#0F172A" }}>
-              PDF / テキストから自動入力
+              書類から自動入力
             </div>
             <div style={{ fontSize: 11, color: "#64748B", marginTop: 2 }}>
-              登記簿謄本・マイソク・契約書などからデータを自動抽出
+              PDF・画像・テキストからデータを自動抽出（OCR対応）
             </div>
           </div>
           <button onClick={onClose} style={{
@@ -287,21 +329,21 @@ export default function PdfExtractor({ currentData, onApply, onClose }: Props) {
               >
                 <div style={{ fontSize: 32, marginBottom: 8 }}>📄</div>
                 <div style={{ fontSize: 13, fontWeight: 600, color: "#334155" }}>
-                  PDFファイルをドラッグ&ドロップ
+                  ファイルをドラッグ&ドロップ
                 </div>
                 <div style={{ fontSize: 11, color: "#94A3B8", marginTop: 4 }}>
                   またはクリックしてファイルを選択
                 </div>
                 <div style={{ fontSize: 10, color: "#94A3B8", marginTop: 8 }}>
-                  対応: 登記簿謄本 / マイソク / 賃貸契約書 / 重要事項説明書 / その他
+                  対応: PDF / JPEG / PNG / WEBP / テキスト
                 </div>
                 <div style={{ fontSize: 9, color: "#2563EB", marginTop: 4 }}>
-                  ※ スキャン（画像）PDFもOCRで自動認識します
+                  登記簿謄本・マイソク・契約書などをOCRで自動認識
                 </div>
                 <input
                   ref={fileRef}
                   type="file"
-                  accept=".pdf,.txt,application/pdf,text/plain"
+                  accept=".pdf,.txt,.jpg,.jpeg,.png,.webp,application/pdf,text/plain,image/*"
                   style={{ display: "none" }}
                   onChange={(e) => {
                     const f = e.target.files?.[0];
