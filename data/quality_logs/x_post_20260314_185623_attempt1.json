@@ -1,0 +1,30 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 9,
+    "persona_match": 8,
+    "pillar_alignment": 9,
+    "usefulness": 9,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 0,
+    "cta_ending": 8,
+    "originality": 8,
+    "tone_balance": 8,
+    "problem_solving": 9
+  },
+  "total_score": 98,
+  "threshold": 84,
+  "result": "auto_approved",
+  "usefulness_summary": "相続で迷っている人が具体的に相続登記という行動を取れるようになる",
+  "rejection_reasons": [
+    "「義務化の期限」という具体的な制度への言及があるが、正確な期限や詳細が明記されておらず、確認できない情報の断定的使用に該当する可能性がある"
+  ],
+  "improvement_suggestions": [
+    "「義務化の期限」を「義務化もあるので」や「法改正の影響もあるので」など、より柔らかい表現に変更する",
+    "期限について言及する場合は「体感では」「最近の法改正では」などのクッション言葉を追加する"
+  ],
+  "checked_at": "2026-03-14T18:56:23.557495+09:00"
+}

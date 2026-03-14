@@ -82,5 +82,17 @@
     "image_path": "",
     "has_image": false,
     "status": "posted"
+  },
+  {
+    "datetime": "2026-03-14T18:56:23.837045+09:00",
+    "tweet_id": "2032757727605223562",
+    "pillar": "1",
+    "pipeline": "P3",
+    "pattern": "A",
+    "text": "実家を相続して何から手をつければいいか分からないとき、まずやる2つのこと：\n\n①名義変更の手続き（相続登記）\n②家の中の貴重品チェック\n\n売るかどうかはその後でも大丈夫です。まずこの2つで権利を整理しておけば、後の選択肢が広がります。",
+    "quality_score": 104,
+    "image_path": "",
+    "has_image": false,
+    "status": "posted"
   }
 ]
