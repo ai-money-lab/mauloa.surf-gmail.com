@@ -140,28 +140,37 @@ export default function PdfExtractor({ currentData, onApply, onClose }: Props) {
     }
   }, [currentData]);
 
+  /* ファイル判定 */
+  const isPdf = (file: File) =>
+    file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf");
+  const isText = (file: File) =>
+    file.type === "text/plain" || file.name.toLowerCase().endsWith(".txt");
+
   /* ファイル処理 */
   const handleFile = useCallback(async (file: File) => {
+    console.log("[PDF] handleFile called:", file.name, file.type, file.size);
     setError("");
-    if (file.type === "application/pdf") {
+    if (isPdf(file)) {
       try {
         // まずテキスト抽出を試行
         let text = "";
         try {
           text = await extractTextFromPdf(file);
+          console.log("[PDF] テキスト抽出完了:", text.length, "文字");
         } catch (e) {
           console.error("[PDF] テキスト抽出エラー:", e);
-          // テキスト抽出失敗 → OCRへフォールスルー
         }
         if (text.trim().length >= 20) {
           await runExtraction(text);
           return;
         }
         // テキストが少ない → 画像PDF → OCRフォールバック
+        console.log("[PDF] テキスト少量 → OCRフォールバック");
         setStep("ocr");
         setOcrProgress("OCR処理を開始します...");
         try {
           const ocrText = await ocrFromPdfPages(file, setOcrProgress);
+          console.log("[PDF] OCR完了:", ocrText.length, "文字");
           if (ocrText.trim().length < 20) {
             setError("OCRでも文字を認識できませんでした。画質の良いPDFをお試しください。");
             setStep("upload");
@@ -178,18 +187,20 @@ export default function PdfExtractor({ currentData, onApply, onClose }: Props) {
         setError(`PDFの読み取りに失敗しました: ${e instanceof Error ? e.message : "不明なエラー"}`);
         setStep("upload");
       }
-    } else if (file.type === "text/plain" || file.name.endsWith(".txt")) {
+    } else if (isText(file)) {
       const text = await file.text();
       await runExtraction(text);
     } else {
-      setError("PDFまたはテキストファイルをアップロードしてください");
+      setError(`対応していないファイル形式です (${file.type || file.name})`);
     }
   }, [extractTextFromPdf, runExtraction]);
 
   /* ドラッグ&ドロップ */
   const onDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
+    e.stopPropagation();
     setDragOver(false);
+    console.log("[PDF] onDrop fired, files:", e.dataTransfer.files.length);
     const file = e.dataTransfer.files[0];
     if (file) handleFile(file);
   }, [handleFile]);
@@ -263,8 +274,8 @@ export default function PdfExtractor({ currentData, onApply, onClose }: Props) {
           {step === "upload" && (
             <>
               <div
-                onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
-                onDragLeave={() => setDragOver(false)}
+                onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); setDragOver(true); }}
+                onDragLeave={(e) => { e.preventDefault(); e.stopPropagation(); setDragOver(false); }}
                 onDrop={onDrop}
                 onClick={() => fileRef.current?.click()}
                 style={{
@@ -290,9 +301,14 @@ export default function PdfExtractor({ currentData, onApply, onClose }: Props) {
                 <input
                   ref={fileRef}
                   type="file"
-                  accept=".pdf,.txt"
+                  accept=".pdf,.txt,application/pdf,text/plain"
                   style={{ display: "none" }}
-                  onChange={(e) => { if (e.target.files?.[0]) handleFile(e.target.files[0]); }}
+                  onChange={(e) => {
+                    const f = e.target.files?.[0];
+                    console.log("[PDF] ファイル選択:", f?.name, f?.type, f?.size);
+                    if (f) handleFile(f);
+                    e.target.value = ""; // 同じファイルを再選択可能に
+                  }}
                 />
               </div>
 
