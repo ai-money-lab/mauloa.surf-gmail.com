@@ -19,7 +19,7 @@ build/
 
 # Node
 node_modules/
-package-lock.json
+!jusetsu-quick/package-lock.json
 
 # Next.js
 .next/
