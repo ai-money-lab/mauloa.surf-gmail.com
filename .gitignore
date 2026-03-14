@@ -21,6 +21,9 @@ build/
 node_modules/
 package-lock.json
 
+# Next.js
+.next/
+
 # IDE
 .vscode/
 .idea/
