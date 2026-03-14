@@ -56,12 +56,28 @@ const USER_PROMPT = (text: string) =>
 
 export async function POST(request: NextRequest) {
   try {
-    const { env } = getRequestContext();
+    let env: ReturnType<typeof getRequestContext>["env"];
+    try {
+      env = getRequestContext().env;
+    } catch {
+      return NextResponse.json(
+        { error: "Cloudflare環境外では利用できません。Cloudflare Pagesにデプロイしてください。" },
+        { status: 503 }
+      );
+    }
+
     const body = await request.json();
     const text = body.text as string;
 
     if (!text || text.trim().length < 10) {
       return NextResponse.json({ error: "テキストが短すぎます" }, { status: 400 });
+    }
+
+    if (!env?.AI) {
+      return NextResponse.json(
+        { error: "Workers AIが未設定です。wrangler.tomlの[ai]バインディングを確認してください。" },
+        { status: 503 }
+      );
     }
 
     // Workers AI で構造化抽出
