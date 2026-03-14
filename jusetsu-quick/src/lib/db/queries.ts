@@ -136,6 +136,51 @@ export async function listProperties(
     .all();
 }
 
+/* ─── 監査ログ ─── */
+export async function writeAuditLog(
+  db: D1Database,
+  entry: {
+    property_id?: string;
+    user_id?: string;
+    action: string;
+    details?: string;
+    ip_address?: string;
+  }
+) {
+  return db
+    .prepare(
+      `INSERT INTO audit_logs (property_id, user_id, action, details, ip_address)
+       VALUES (?, ?, ?, ?, ?)`
+    )
+    .bind(
+      entry.property_id || null,
+      entry.user_id || "demo",
+      entry.action,
+      entry.details || null,
+      entry.ip_address || null
+    )
+    .run();
+}
+
+export async function getAuditLogs(
+  db: D1Database,
+  propertyId?: string,
+  limit = 50
+) {
+  if (propertyId) {
+    return db
+      .prepare(
+        "SELECT * FROM audit_logs WHERE property_id = ? ORDER BY created_at DESC LIMIT ?"
+      )
+      .bind(propertyId, limit)
+      .all();
+  }
+  return db
+    .prepare("SELECT * FROM audit_logs ORDER BY created_at DESC LIMIT ?")
+    .bind(limit)
+    .all();
+}
+
 export async function findSameBuilding(
   db: D1Database,
   address: string,

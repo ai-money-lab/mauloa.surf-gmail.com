@@ -12,7 +12,7 @@ import {
   FileText, ChevronLeft, Download, RefreshCw,
   Shield, Droplets, Plug, Route, Building2,
   TriangleAlert, Scale, Loader2, Trash2, Pencil,
-  Eye, Printer, X, AlertTriangle, Upload,
+  Eye, Printer, X, AlertTriangle, Upload, ClipboardCheck, Clock,
 } from "lucide-react";
 import PdfExtractor from "@/components/PdfExtractor";
 import Link from "next/link";
@@ -57,6 +57,204 @@ function MissingFieldIndicator({ value, label }: { value: string; label: string 
     <span style={{ fontSize: 10, color: "#B91C1C", fontWeight: 600, marginLeft: 6 }}>
       ({label}未入力)
     </span>
+  );
+}
+
+/* ─── 法定記載事項チェックリスト ─── */
+function LegalChecklist({ property: p, isRental }: { property: PropertyData; isRental: boolean }) {
+  const [open, setOpen] = useState(false);
+  const isMansion = p.property_type === "mansion" || p.property_type === "condo";
+
+  type CheckItem = { label: string; ok: boolean; required: boolean; section: string };
+  const items: CheckItem[] = [
+    // Ⅰ 対象となる宅地又は建物に関する事項
+    { label: "所在・地番", ok: !!p.address, required: true, section: "登記記録" },
+    { label: "所有者", ok: !!p.owner_name, required: true, section: "登記記録" },
+    { label: "土地面積", ok: !!p.land_area, required: true, section: "登記記録" },
+    { label: "建物面積", ok: !!p.building_area, required: true, section: "登記記録" },
+    { label: "抵当権", ok: p.mortgage !== undefined && p.mortgage !== "", required: true, section: "登記記録" },
+    { label: "用途地域", ok: !!p.zoning, required: true, section: "法令制限" },
+    { label: "建ぺい率", ok: !!p.building_coverage_ratio, required: true, section: "法令制限" },
+    { label: "容積率", ok: !!p.floor_area_ratio, required: true, section: "法令制限" },
+    { label: "防火地域", ok: !!p.fire_zone, required: true, section: "法令制限" },
+    { label: "飲用水", ok: !!p.water_supply, required: true, section: "インフラ" },
+    { label: "排水", ok: !!p.sewage, required: true, section: "インフラ" },
+    { label: "ガス", ok: !!p.gas_type, required: true, section: "インフラ" },
+    { label: "電気", ok: !!p.electricity, required: true, section: "インフラ" },
+    { label: "接面道路", ok: !!p.road_type, required: true, section: "道路" },
+    { label: "道路幅員", ok: !!p.road_width, required: true, section: "道路" },
+    { label: "洪水ハザード", ok: !!p.flood_text, required: true, section: "災害" },
+    { label: "津波", ok: !!p.tsunami_text, required: true, section: "災害" },
+    { label: "高潮", ok: !!p.hightide_text, required: true, section: "災害" },
+  ];
+
+  if (isRental) {
+    items.push(
+      { label: "賃料", ok: !!p.rent, required: true, section: "取引条件" },
+      { label: "敷金", ok: !!p.deposit_months, required: true, section: "取引条件" },
+      { label: "契約期間", ok: !!p.lease_start && !!p.lease_end, required: true, section: "取引条件" },
+      { label: "支払方法", ok: !!p.rent_payment_method, required: true, section: "取引条件" },
+    );
+  } else {
+    items.push(
+      { label: "売買代金", ok: !!p.price, required: true, section: "取引条件" },
+      { label: "取引態様", ok: !!p.transaction_type, required: true, section: "取引条件" },
+    );
+  }
+
+  if (isMansion) {
+    items.push(
+      { label: "管理費", ok: !!p.mgmt_fee, required: true, section: "マンション" },
+      { label: "修繕積立金", ok: !!p.repair_reserve, required: true, section: "マンション" },
+      { label: "管理形態", ok: !!p.mgmt_form, required: true, section: "マンション" },
+    );
+  }
+
+  // 任意だが推奨
+  items.push(
+    { label: "石綿調査", ok: !!p.asbestos, required: false, section: "調査" },
+    { label: "耐震診断", ok: !!p.earthquake_resistance, required: false, section: "調査" },
+    { label: "告知事項確認", ok: p.is_incident !== undefined, required: false, section: "告知" },
+    { label: "特約事項", ok: !!p.special_terms, required: false, section: "特約" },
+  );
+
+  const requiredItems = items.filter(i => i.required);
+  const okCount = requiredItems.filter(i => i.ok).length;
+  const totalRequired = requiredItems.length;
+  const allOk = okCount === totalRequired;
+  const missingRequired = requiredItems.filter(i => !i.ok);
+
+  return (
+    <Section
+      icon={ClipboardCheck}
+      title="法定記載事項チェック"
+      sub={allOk ? "全項目OK" : `必須${totalRequired}項目中 ${totalRequired - okCount}件未入力`}
+    >
+      {!allOk && (
+        <div style={{
+          padding: "10px 14px", background: "#FEF2F2", borderRadius: 6,
+          border: "1px solid #FECACA", marginBottom: 10, fontSize: 12,
+          color: "#991B1B", lineHeight: 1.6,
+        }}>
+          <strong>宅建業法第35条</strong>に基づく必須記載事項が不足しています：
+          <div style={{ marginTop: 6 }}>
+            {missingRequired.map((item, i) => (
+              <span key={i} style={{
+                display: "inline-block", padding: "2px 8px", margin: "2px 4px 2px 0",
+                background: "#FEE2E2", borderRadius: 4, fontSize: 11, fontWeight: 600,
+              }}>
+                {item.section}/{item.label}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+      <button
+        onClick={() => setOpen(!open)}
+        style={{
+          background: "none", border: "none", cursor: "pointer",
+          fontSize: 12, color: "#2563EB", fontWeight: 600, padding: "4px 0",
+        }}
+      >
+        {open ? "チェックリストを閉じる" : "全項目を確認する"}
+      </button>
+      {open && (
+        <div style={{ marginTop: 8 }}>
+          {(() => {
+            const sections = [...new Set(items.map(i => i.section))];
+            return sections.map(sec => (
+              <div key={sec} style={{ marginBottom: 8 }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: "#475569", marginBottom: 4 }}>{sec}</div>
+                {items.filter(i => i.section === sec).map((item, i) => (
+                  <div key={i} style={{
+                    display: "flex", alignItems: "center", gap: 6,
+                    padding: "3px 0", fontSize: 12,
+                    color: item.ok ? "#166534" : item.required ? "#B91C1C" : "#92400E",
+                  }}>
+                    <span style={{ fontSize: 14 }}>{item.ok ? "✅" : item.required ? "❌" : "⚠️"}</span>
+                    <span style={{ fontWeight: item.ok ? 400 : 600 }}>{item.label}</span>
+                    {item.required && !item.ok && <span style={{ fontSize: 9, color: "#DC2626" }}>必須</span>}
+                  </div>
+                ))}
+              </div>
+            ));
+          })()}
+        </div>
+      )}
+    </Section>
+  );
+}
+
+/* ─── 操作履歴（監査ログ）─── */
+type AuditEntry = { id: number; action: string; details: string; created_at: string; ip_address?: string };
+
+function AuditLogSection({ propertyId }: { propertyId: string }) {
+  const [logs, setLogs] = useState<AuditEntry[]>([]);
+  const [open, setOpen] = useState(false);
+  const [loaded, setLoaded] = useState(false);
+
+  const loadLogs = useCallback(() => {
+    if (loaded) { setOpen(!open); return; }
+    fetch(`/api/audit?property_id=${propertyId}&limit=20`)
+      .then(r => r.json())
+      .then(data => {
+        setLogs(data.results || []);
+        setLoaded(true);
+        setOpen(true);
+      })
+      .catch(() => setLoaded(true));
+  }, [propertyId, loaded, open]);
+
+  const actionLabels: Record<string, { label: string; color: string }> = {
+    create: { label: "作成", color: "#166534" },
+    update: { label: "更新", color: "#1D4ED8" },
+    delete: { label: "削除", color: "#B91C1C" },
+    pdf_extract: { label: "PDF抽出", color: "#7C3AED" },
+  };
+
+  return (
+    <Section icon={Clock} title="操作履歴" sub="電子帳簿保存法対応">
+      <button
+        onClick={loadLogs}
+        style={{
+          background: "none", border: "none", cursor: "pointer",
+          fontSize: 12, color: "#2563EB", fontWeight: 600, padding: "4px 0",
+        }}
+      >
+        {open ? "閉じる" : "操作履歴を表示"}
+      </button>
+      {open && (
+        <div style={{ marginTop: 8 }}>
+          {logs.length === 0 ? (
+            <div style={{ fontSize: 12, color: "#94A3B8", padding: "8px 0" }}>
+              まだ操作履歴がありません
+            </div>
+          ) : (
+            logs.map(log => {
+              const a = actionLabels[log.action] || { label: log.action, color: "#64748B" };
+              return (
+                <div key={log.id} style={{
+                  display: "flex", alignItems: "center", gap: 8,
+                  padding: "6px 0", borderBottom: "1px solid #F1F5F9", fontSize: 12,
+                }}>
+                  <span style={{
+                    padding: "1px 6px", borderRadius: 4, fontSize: 10,
+                    fontWeight: 700, color: "#fff", background: a.color,
+                    flexShrink: 0,
+                  }}>
+                    {a.label}
+                  </span>
+                  <span style={{ color: "#334155", flex: 1 }}>{log.details}</span>
+                  <span style={{ color: "#94A3B8", fontSize: 10, flexShrink: 0 }}>
+                    {new Date(log.created_at + "Z").toLocaleString("ja-JP")}
+                  </span>
+                </div>
+              );
+            })
+          )}
+        </div>
+      )}
+    </Section>
   );
 }
 
@@ -738,6 +936,12 @@ export default function PropertyDetailPage() {
             </div>
           </>
         )}
+
+        {/* ── 法定記載事項チェックリスト ── */}
+        <LegalChecklist property={p} isRental={!!p.rent} />
+
+        {/* ── 操作履歴（監査ログ）── */}
+        <AuditLogSection propertyId={id} />
       </main>
 
       {showPdfExtractor && property && (

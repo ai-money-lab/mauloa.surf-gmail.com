@@ -121,6 +121,18 @@ CREATE TABLE IF NOT EXISTS properties (
 CREATE INDEX IF NOT EXISTS idx_prop_company ON properties(company_id);
 CREATE INDEX IF NOT EXISTS idx_prop_address ON properties(address);
 CREATE INDEX IF NOT EXISTS idx_prop_status ON properties(status);
+
+CREATE TABLE IF NOT EXISTS audit_logs (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  property_id TEXT,
+  user_id TEXT DEFAULT 'demo',
+  action TEXT NOT NULL,
+  details TEXT,
+  ip_address TEXT,
+  created_at TEXT DEFAULT (datetime('now'))
+);
+CREATE INDEX IF NOT EXISTS idx_audit_property ON audit_logs(property_id);
+CREATE INDEX IF NOT EXISTS idx_audit_created ON audit_logs(created_at);
 `;
 
 const SEED_SQL = `

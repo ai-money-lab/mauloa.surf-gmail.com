@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getRequestContext } from "@cloudflare/next-on-pages";
+import { writeAuditLog } from "@/lib/db/queries";
+import { ensureSchema } from "@/lib/db/ensure-schema";
 
 export const runtime = "edge";
 
@@ -96,6 +98,17 @@ export async function POST(request: NextRequest) {
     // document_type を分離
     const documentType = extracted.document_type || "その他";
     delete extracted.document_type;
+
+    // 監査ログ（PDF抽出の使用記録）
+    try {
+      const db = env.DB;
+      await ensureSchema(db);
+      await writeAuditLog(db, {
+        action: "pdf_extract",
+        details: `書類種別: ${documentType}, 抽出フィールド数: ${Object.keys(extracted).length}`,
+        ip_address: request.headers.get("cf-connecting-ip") || request.headers.get("x-forwarded-for") || undefined,
+      });
+    } catch { /* ログ失敗は無視 */ }
 
     return NextResponse.json({
       extracted,

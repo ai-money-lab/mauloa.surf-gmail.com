@@ -172,6 +172,21 @@ export default function PdfExtractor({ currentData, onApply, onClose }: Props) {
           }}>&#x2715;</button>
         </div>
 
+        {/* セキュリティ＆免責バナー */}
+        <div style={{
+          padding: "8px 20px", background: "#F0FDF4", borderBottom: "1px solid #BBF7D0",
+          display: "flex", alignItems: "flex-start", gap: 8, fontSize: 10, color: "#166534",
+        }}>
+          <span style={{ fontSize: 14, flexShrink: 0 }}>&#x1F512;</span>
+          <div>
+            <div style={{ fontWeight: 700, marginBottom: 2 }}>データ保護について</div>
+            <div style={{ lineHeight: 1.5, color: "#15803D" }}>
+              アップロードされたPDFはサーバーに保存されません（テキスト抽出後に即破棄）。
+              AI抽出結果は参考値です。<strong>宅地建物取引士による最終確認が必要です。</strong>
+            </div>
+          </div>
+        </div>
+
         <div style={{ padding: 20 }}>
           {/* ─── アップロード画面 ─── */}
           {step === "upload" && (
@@ -355,6 +370,17 @@ export default function PdfExtractor({ currentData, onApply, onClose }: Props) {
                     })}
                   </tbody>
                 </table>
+              </div>
+
+              {/* AI免責注意 */}
+              <div style={{
+                marginTop: 12, padding: "8px 12px", borderRadius: 6,
+                background: "#FFFBEB", border: "1px solid #FDE68A",
+                fontSize: 10, color: "#92400E", lineHeight: 1.5,
+              }}>
+                <strong>&#x26A0; 重要：</strong>AI抽出データは参考値であり、正確性を保証するものではありません。
+                宅地建物取引業法第35条に基づき、宅地建物取引士が内容を確認のうえ、
+                必要に応じて修正してください。
               </div>
 
               {/* アクションボタン */}

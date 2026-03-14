@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getRequestContext } from "@cloudflare/next-on-pages";
-import { createProperty, listProperties } from "@/lib/db/queries";
+import { createProperty, listProperties, writeAuditLog } from "@/lib/db/queries";
 import { ensureSchema } from "@/lib/db/ensure-schema";
 
 export const runtime = "edge";
@@ -84,6 +84,16 @@ export async function POST(req: NextRequest) {
     console.error("createProperty failed:", msg, JSON.stringify(data).slice(0, 500));
     return NextResponse.json({ error: `DB保存エラー: ${msg}` }, { status: 500 });
   }
+
+  // 監査ログ
+  try {
+    await writeAuditLog(db, {
+      property_id: id,
+      action: "create",
+      details: `物件作成: ${data.address}`,
+      ip_address: req.headers.get("cf-connecting-ip") || req.headers.get("x-forwarded-for") || undefined,
+    });
+  } catch { /* ログ失敗は無視 */ }
 
   try {
     const created = await db
