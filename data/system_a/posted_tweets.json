@@ -94,5 +94,17 @@
     "image_path": "",
     "has_image": false,
     "status": "posted"
+  },
+  {
+    "datetime": "2026-03-15T18:56:57.841923+09:00",
+    "tweet_id": "2033120258089681043",
+    "pillar": "1",
+    "pipeline": "P3",
+    "pattern": "A",
+    "text": "家を売るとき、不動産会社選びで迷いますよね。\n\n判断基準は3つだけ：\n\n・地元で長くやってる\n・査定の根拠をちゃんと説明してくれる\n・売り急がせない\n\n大手だから安心とは限りません。地元密着で、しっかり話を聞いてくれる会社の方が結果的に良い条件で売れることが多いです。",
+    "quality_score": 95,
+    "image_path": "",
+    "has_image": false,
+    "status": "posted"
   }
 ]

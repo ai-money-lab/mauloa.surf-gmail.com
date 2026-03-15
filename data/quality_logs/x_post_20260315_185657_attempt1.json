@@ -1,0 +1,25 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 8,
+    "persona_match": 8,
+    "pillar_alignment": 9,
+    "usefulness": 7,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 0,
+    "cta_ending": 6,
+    "originality": 8,
+    "tone_balance": 8,
+    "problem_solving": 7
+  },
+  "total_score": 91,
+  "threshold": 84,
+  "result": "auto_approved",
+  "usefulness_summary": "家を売る際の不動産会社選びで、大手より地元業者の方が良い場合があることと、担当者の質を見極めるポイントを教えている",
+  "rejection_reasons": [],
+  "improvement_suggestions": [],
+  "checked_at": "2026-03-15T18:56:57.512148+09:00"
+}
