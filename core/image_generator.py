@@ -102,6 +102,28 @@ class ImageGenerator:
             logger.error("Image generation failed: %s", e)
             return None
 
+    def generate_portrait(
+        self,
+        prompt_id: str = "bedroom_morning",
+        aspect: str = "3:4",
+        extra: str = "",
+    ) -> str | None:
+        """Generate a realistic portrait image using curated prompt templates.
+
+        Args:
+            prompt_id: Template ID from portrait_prompts module.
+            aspect: Aspect ratio (e.g. '3:4', '9:16').
+            extra: Additional prompt instructions.
+
+        Returns:
+            Path to the saved image file, or None on failure.
+        """
+        from core.portrait_prompts import get_prompt
+
+        prompt = get_prompt(prompt_id, aspect=aspect, extra=extra)
+        logger.info("Portrait prompt [%s]: %s", prompt_id, prompt[:120])
+        return self.generate_image(prompt)
+
     def generate_for_post(self, post_text: str, pillar: int = 0) -> str | None:
         """Generate an image suitable for an X post.
 
