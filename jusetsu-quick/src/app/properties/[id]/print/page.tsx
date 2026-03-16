@@ -1010,7 +1010,10 @@ function RentalContractDocument({ p, today }: { p: PropertyData; today: string }
    メインページ
    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 
-const isRental = (p: PropertyData) => !!p.rent;
+const isRental = (p: PropertyData) => {
+  const v = parseInt(String(p.rent), 10);
+  return !isNaN(v) && v > 0;
+};
 
 export default function PrintPage() {
   const params = useParams();
@@ -1030,9 +1033,11 @@ export default function PrintPage() {
         if (data.error) { setError(data.error); }
         else {
           setProperty(data);
-          if (data.rent && !data.price) setDocType("both");
-          else if (data.price && !data.rent) setDocType("jusetsu");
-          else setDocType("both");
+          // 賃貸データがある場合は重説+契約書セット、売買のみの場合は重説のみ
+          const rentVal = parseInt(String(data.rent), 10);
+          const hasRent = !isNaN(rentVal) && rentVal > 0;
+          if (hasRent) setDocType("both");
+          else setDocType("jusetsu");
         }
         setLoading(false);
       })

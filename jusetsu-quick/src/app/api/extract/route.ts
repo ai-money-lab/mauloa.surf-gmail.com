@@ -54,6 +54,87 @@ const SYSTEM_PROMPT = `あなたは日本の不動産書類からデータを抽
 const USER_PROMPT = (text: string) =>
   `以下の不動産書類テキストからデータを抽出してJSON形式で返してください。\n\n---\n${text}\n---`;
 
+/* ─── ルールベース抽出（AI未設定時のフォールバック） ─── */
+function extractByRules(text: string): Record<string, unknown> {
+  const r: Record<string, unknown> = {};
+
+  // 住所
+  const addrMatch = text.match(/(?:所在地?|住所|所在)[：:\s]*([^\n]{5,50})/);
+  if (addrMatch) r.address = addrMatch[1].trim();
+
+  // 所有者
+  const ownerMatch = text.match(/(?:所有者|登記名義人|権利者)[：:\s]*([^\n]{2,30})/);
+  if (ownerMatch) r.owner_name = ownerMatch[1].trim();
+
+  // 面積
+  const landMatch = text.match(/(?:土地[面積]*|地積)[：:\s]*([\d,.]+)\s*[㎡m²]/);
+  if (landMatch) r.land_area = parseFloat(landMatch[1].replace(/,/g, ""));
+
+  const bldgMatch = text.match(/(?:建物[面積]*|専有面積|延べ?面積|床面積)[：:\s]*([\d,.]+)\s*[㎡m²]/);
+  if (bldgMatch) r.building_area = parseFloat(bldgMatch[1].replace(/,/g, ""));
+
+  // 用途地域
+  const zoningMatch = text.match(/(第[一二三]種[低中高]層住居専用地域|第[一二]種住居地域|準住居地域|近隣商業地域|商業地域|準工業地域|工業地域|工業専用地域|田園住居地域)/);
+  if (zoningMatch) r.zoning = zoningMatch[1];
+
+  // 建ぺい率・容積率
+  const bcrMatch = text.match(/建[ぺペ]い率[：:\s]*([\d.]+)\s*[%％]/);
+  if (bcrMatch) r.building_coverage_ratio = parseFloat(bcrMatch[1]);
+
+  const farMatch = text.match(/容積率[：:\s]*([\d.]+)\s*[%％]/);
+  if (farMatch) r.floor_area_ratio = parseFloat(farMatch[1]);
+
+  // 防火地域
+  const fireMatch = text.match(/(準?防火地域)/);
+  if (fireMatch) r.fire_zone = fireMatch[1];
+
+  // 道路
+  const roadTypeMatch = text.match(/(?:道路[種別]*|接面道路)[：:\s]*([^\n]{2,20})/);
+  if (roadTypeMatch) r.road_type = roadTypeMatch[1].trim();
+
+  const roadWidthMatch = text.match(/(?:道路)?幅員[：:\s]*([\d.]+)\s*[mM]/);
+  if (roadWidthMatch) r.road_width = parseFloat(roadWidthMatch[1]);
+
+  // インフラ
+  if (/(公営水道|上水道)/.test(text)) r.water_supply = "公営水道";
+  else if (/井戸/.test(text)) r.water_supply = "井戸水";
+
+  if (/公共下水/.test(text)) r.sewage = "公共下水";
+  else if (/浄化槽/.test(text)) r.sewage = "浄化槽";
+
+  if (/都市ガス/.test(text)) r.gas_type = "都市ガス";
+  else if (/(LPガス|プロパン)/.test(text)) r.gas_type = "LPガス";
+
+  // 金額
+  const priceMatch = text.match(/(?:売買代金|価格|販売価格)[：:\s]*([\d,]+)\s*(?:円|万円)/);
+  if (priceMatch) {
+    let v = parseInt(priceMatch[1].replace(/,/g, ""), 10);
+    if (priceMatch[0].includes("万円")) v *= 10000;
+    r.price = v;
+  }
+
+  const rentMatch = text.match(/(?:賃料|家賃)[（(]?月額?[）)]?[：:\s]*([\d,]+)\s*円/);
+  if (rentMatch) r.rent = parseInt(rentMatch[1].replace(/,/g, ""), 10);
+
+  // 物件種別推定
+  if (/マンション|区分所有/.test(text)) r.property_type = "mansion";
+  else if (/一戸建|戸建住宅/.test(text)) r.property_type = "house";
+  else if (/土地$|宅地/.test(text)) r.property_type = "land";
+
+  // 抵当権
+  const mortgageMatch = text.match(/(?:抵当権)[：:\s]*([^\n]{3,80})/);
+  if (mortgageMatch) r.mortgage = mortgageMatch[1].trim();
+
+  // 書類種別推定
+  if (/登記簿|登記事項/.test(text)) r.document_type = "登記簿謄本";
+  else if (/マイソク|物件概要/.test(text)) r.document_type = "マイソク";
+  else if (/重要事項説明/.test(text)) r.document_type = "重要事項説明書";
+  else if (/賃貸借契約|建物賃貸借/.test(text)) r.document_type = "賃貸契約書";
+  else r.document_type = "その他";
+
+  return r;
+}
+
 export async function POST(request: NextRequest) {
   try {
     let env: ReturnType<typeof getRequestContext>["env"];
@@ -73,24 +154,24 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "テキストが短すぎます" }, { status: 400 });
     }
 
-    if (!env?.AI) {
-      return NextResponse.json(
-        { error: "Workers AIが未設定です。wrangler.tomlの[ai]バインディングを確認してください。" },
-        { status: 503 }
-      );
+    // Workers AI で構造化抽出（AI未設定時はルールベースフォールバック）
+    let responseText = "";
+
+    if (env?.AI) {
+      const result = await env.AI.run("@cf/meta/llama-3.1-70b-instruct", {
+        messages: [
+          { role: "system", content: SYSTEM_PROMPT },
+          { role: "user", content: USER_PROMPT(text.slice(0, 8000)) },
+        ],
+        max_tokens: 2000,
+        temperature: 0.1,
+      }) as { response?: string };
+      responseText = result?.response || "";
+    } else {
+      // AI未設定時: ルールベースで基本フィールドを抽出
+      const fallback = extractByRules(text);
+      responseText = JSON.stringify(fallback);
     }
-
-    // Workers AI で構造化抽出
-    const result = await env.AI.run("@cf/meta/llama-3.1-70b-instruct", {
-      messages: [
-        { role: "system", content: SYSTEM_PROMPT },
-        { role: "user", content: USER_PROMPT(text.slice(0, 8000)) },
-      ],
-      max_tokens: 2000,
-      temperature: 0.1,
-    }) as { response?: string };
-
-    const responseText = result?.response || "";
 
     // JSON部分を抽出（```json ... ``` やプレーンJSONに対応）
     let extracted: Record<string, unknown> = {};

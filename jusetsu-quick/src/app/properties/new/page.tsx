@@ -29,7 +29,15 @@ const PROPERTY_TYPES = [
   { v: "building", label: "一棟", Icon: Warehouse },
 ];
 
-const LOCAL_STORAGE_KEY = "jusetsu_new_property_draft";
+// タブ固有のドラフトキー（複数タブ同時編集でのデータ衝突を防止）
+const TAB_ID = typeof window !== "undefined"
+  ? (sessionStorage.getItem("jusetsu_tab_id") || (() => {
+      const id = `tab_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+      sessionStorage.setItem("jusetsu_tab_id", id);
+      return id;
+    })())
+  : "ssr";
+const LOCAL_STORAGE_KEY = `jusetsu_new_property_draft_${TAB_ID}`;
 
 function computeCompletion(
   formData: Partial<PropertyData>,
@@ -886,6 +894,27 @@ export default function NewPropertyPage() {
                 </div>
               </Section>
             )}
+
+            {/* ステップ3 バリデーション警告 */}
+            {(() => {
+              const missing: string[] = [];
+              if (!formData.water_supply) missing.push("飲用水");
+              if (!formData.sewage) missing.push("排水");
+              if (!formData.gas_type) missing.push("ガス");
+              if (!formData.electricity) missing.push("電気");
+              if (!formData.road_type) missing.push("接面道路");
+              if (!formData.owner_name) missing.push("所有者名");
+              return missing.length > 0 ? (
+                <div style={{
+                  padding: "8px 12px", borderRadius: 8, marginBottom: 10,
+                  background: "#FFFBEB", border: "1px solid #FDE68A",
+                  fontSize: 11, color: "#92400E", display: "flex", alignItems: "center", gap: 6,
+                }}>
+                  <AlertTriangle size={14} />
+                  未入力: {missing.join("、")}（後からでも入力可能）
+                </div>
+              ) : null;
+            })()}
 
             <div style={{ display: "flex", gap: 10 }}>
               <Btn variant="secondary" onClick={() => go(2)} icon={ChevronLeft}>戻る</Btn>

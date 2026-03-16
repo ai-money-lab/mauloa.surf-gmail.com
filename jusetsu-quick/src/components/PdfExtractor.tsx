@@ -407,6 +407,22 @@ export default function PdfExtractor({ currentData, onApply, onClose }: Props) {
               <div style={{ fontSize: 12, color: "#2563EB", marginTop: 8, fontWeight: 600 }}>
                 {ocrProgress}
               </div>
+              {/* プログレスバー */}
+              {(() => {
+                const m = ocrProgress.match(/(\d+)\/(\d+)/);
+                if (!m) return null;
+                const cur = parseInt(m[1], 10);
+                const total = parseInt(m[2], 10);
+                const pct = Math.round((cur / total) * 100);
+                return (
+                  <div style={{ margin: "12px auto", width: "80%", background: "#E2E8F0", borderRadius: 6, height: 6 }}>
+                    <div style={{
+                      width: `${pct}%`, background: "#2563EB", height: "100%",
+                      borderRadius: 6, transition: "width 0.3s ease",
+                    }} />
+                  </div>
+                );
+              })()}
               <div style={{ fontSize: 10, color: "#94A3B8", marginTop: 8, lineHeight: 1.5 }}>
                 スキャンPDFから文字を認識しています。<br />
                 ページ数に応じて数秒〜数十秒かかります。

@@ -257,7 +257,9 @@ export type PortalType = "suumo" | "homes";
 export type ListingType = "sale" | "rental";
 
 export function detectListingType(p: PropertyData): ListingType {
-  return p.rent ? "rental" : "sale";
+  // rent が数値として有効な値を持つ場合のみ賃貸と判定
+  const rentVal = typeof p.rent === "number" ? p.rent : parseInt(String(p.rent), 10);
+  return !isNaN(rentVal) && rentVal > 0 ? "rental" : "sale";
 }
 
 export function generatePortalCSV(
