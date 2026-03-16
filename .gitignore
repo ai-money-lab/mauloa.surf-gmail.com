@@ -33,3 +33,6 @@ Thumbs.db
 
 # Logs
 *.log
+
+# Chrome profiles (session data)
+chrome-profiles/
