@@ -106,5 +106,17 @@
     "image_path": "",
     "has_image": false,
     "status": "posted"
+  },
+  {
+    "datetime": "2026-03-16T19:35:52.482618+09:00",
+    "tweet_id": "2033492438166442262",
+    "pillar": "3",
+    "pipeline": "P3",
+    "pattern": "A",
+    "text": "内見で見落としがちな3つのポイント\n\n・スマホの電波状況\n（各部屋で実際に確認）\n\n・水圧と排水の流れ\n（蛇口全開＋排水音チェック）\n\n・隣の部屋との壁の厚さ\n（軽く叩いて音を確認）\n\n設備や間取りは写真でも分かるけど、これは実際に行かないと分からないですね。",
+    "quality_score": 108,
+    "image_path": "",
+    "has_image": false,
+    "status": "posted"
   }
 ]

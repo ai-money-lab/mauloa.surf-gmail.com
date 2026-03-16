@@ -1,0 +1,29 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 8,
+    "persona_match": 9,
+    "pillar_alignment": 9,
+    "usefulness": 9,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 0,
+    "cta_ending": 8,
+    "originality": 9,
+    "tone_balance": 9,
+    "problem_solving": 9
+  },
+  "total_score": 100,
+  "threshold": 84,
+  "result": "auto_approved",
+  "usefulness_summary": "内見時に音の確認という見落としがちな重要ポイントを教えてくれる実用的な投稿",
+  "rejection_reasons": [
+    "number_included項目が0点：数字表現にクッション言葉がない（「一番大事」は断定的すぎる）"
+  ],
+  "improvement_suggestions": [
+    "「内見で個人的に一番大事だと思うのは」「内見で最も重要だと感じるのは」など、断定を避けた表現に変更する"
+  ],
+  "checked_at": "2026-03-16T19:35:52.201301+09:00"
+}

@@ -1,0 +1,25 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 8,
+    "persona_match": 9,
+    "pillar_alignment": 9,
+    "usefulness": 6,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 0,
+    "cta_ending": 3,
+    "originality": 8,
+    "tone_balance": 9,
+    "problem_solving": 5
+  },
+  "total_score": 87,
+  "threshold": 84,
+  "result": "auto_approved",
+  "usefulness_summary": "新居選びで電波状況を事前確認する重要性を気づかせる",
+  "rejection_reasons": [],
+  "improvement_suggestions": [],
+  "checked_at": "2026-03-16T19:35:45.546648+09:00"
+}
