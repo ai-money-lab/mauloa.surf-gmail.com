@@ -52,86 +52,82 @@ IMAGE_DIR = PROJECT_ROOT / "data" / "system_e" / "images"
 # それ以上を出す。妥協しない。
 # ═══════════════════════════════════════════════════════════
 
-MAIA_FACE_PROMPT = """
-A stunning portrait photograph of a 26-year-old Japanese woman.
-She has silky dark brown hair in a loose messy bun with soft face-framing layers.
-Large expressive almond-shaped brown eyes with naturally long lashes.
-Flawless luminous skin with a natural healthy glow, high cheekbones, small straight nose, soft full lips with a natural pink tint.
-Slim toned athletic figure, elegant neck and collarbones visible.
-She wears a simple fitted white top and a delicate vintage silver watch on her left wrist.
-Her expression is a warm, confident half-smile — the kind that makes you feel like she's sharing a secret with you.
+# ═══════════════════════════════════════════════════════════
+# キャラクター定義: Maia
+#
+# Aitana Lopez ($10K+/月) の制作者が使うテクニック:
+# 1. 超具体的な顔の特徴（毎回同じ人物に見える）
+# 2. 不完全さ（完璧はAIっぽい。そばかす、肌質感、乱れ髪）
+# 3. フィルム感（Kodak Portra, Fuji Pro 400H = リアリティ）
+# 4. 実在する場所の空気感
+#
+# Source: https://www.theinfluencer.ai/blog/how-to-create-an-ai-influencer-like-aitana-lopez
+# Source: https://metricsmule.com/ai/create-ai-influencers/
+# ═══════════════════════════════════════════════════════════
 
-Setting: Bright modern Tokyo apartment, golden morning sunlight streaming through large windows.
-A beautifully prepared matcha latte on the counter beside her.
-Soft creamy bokeh background with hints of green plants.
+# キャラクター固定パーツ（全プロンプトで共有 = 一貫性の鍵）
+MAIA_IDENTITY = """young Japanese woman, age 26, named Maia.
+Face: oval face shape, high cheekbones with subtle definition, small straight nose with a very slight upturn at the tip, naturally full lips with a soft cupid's bow, clear double eyelids.
+Eyes: large almond-shaped dark brown eyes, naturally thick long eyelashes, slight upward tilt at outer corners giving a gentle cat-eye effect.
+Eyebrows: straight natural thick eyebrows with soft arch, dark brown, slightly messy and unfilled.
+Skin: warm golden undertone, smooth but with natural skin texture visible — tiny pores on nose, faint beauty mark below left eye, very subtle light freckles across nose bridge from sun exposure. Healthy natural glow, no heavy foundation look.
+Hair: dark chocolate brown, thick and healthy, medium length past shoulders. Natural slight wave texture, not perfectly straight.
+Body: slim athletic build with toned arms and visible collarbone definition, long neck. 165cm, lean muscle tone from regular training.
+Signature: vintage thin silver watch on left wrist (her late mother's).
+""".strip()
 
-Technical: Shot on Canon R5, RF 85mm f/1.2L USM lens at f/1.4, natural window light with subtle fill.
-Professional fashion editorial photography, skin retouching, warm color grade.
-Ultra high resolution, photorealistic, magazine cover quality.
+MAIA_FACE_PROMPT = f"""Intimate portrait photograph of {MAIA_IDENTITY}
+Hair styled in a loose low messy bun with soft wispy pieces framing face and neck.
+Wearing a simple white ribbed tank top, minimal jewelry.
+Expression: warm knowing half-smile, eyes slightly crinkled with genuine warmth, looking directly into camera as if sharing a private moment with someone she trusts.
+Setting: bright airy Tokyo apartment kitchen, morning. Soft natural window light from the left creating gentle shadows. A ceramic cup of matcha with foam art on white marble counter. Green plants soft in background. Everything feels lived-in and real.
+Shot on Fujifilm X-T5 with XF 56mm f/1.2 lens, shot wide open. Fuji Pro 400H film simulation, warm muted tones with creamy skin rendering. Shallow depth of field, focus on eyes. Natural light only, no flash.
+This looks like a real photograph taken by her boyfriend on a lazy Sunday morning. Not staged, not perfect, real.
 """.strip()
 
 MAIA_SCENE_PROMPTS = {
     "portrait_warm": MAIA_FACE_PROMPT,
 
-    "selfie_cute": """
-A beautiful 26-year-old Japanese woman taking a casual selfie, slightly above eye level angle.
-Silky dark brown hair down past shoulders with soft waves, wispy curtain bangs.
-Large sparkling brown eyes, dewy glowing skin, natural makeup with glossy lips and subtle blush.
-Wearing a cream off-shoulder oversized knit, delicate gold necklace, showing elegant collarbones.
-Sweet genuine smile showing just a hint of teeth, slight playful head tilt.
-Background: cozy bedroom with warm fairy lights, soft neutral tones, potted plants.
-Natural warm lighting from golden hour window light.
-iPhone 15 Pro selfie aesthetic but magazine quality skin and detail.
-Photorealistic, ultra detailed, stunning natural beauty.
+    "selfie_cute": f"""Casual mirror selfie photograph of {MAIA_IDENTITY}
+Hair down, natural waves, slightly messy from just waking up. Curtain bangs softly parted.
+Wearing an oversized cream cable-knit sweater slipping off one shoulder, bare collarbone visible.
+Holding iPhone at slightly above eye level, other hand touching hair.
+Expression: playful sleepy smile, one eyebrow slightly raised, eyes half-lidded but sparkling.
+Background: sunlit bedroom, white linen sheets unmade, morning light through sheer curtains, small potted plants on windowsill.
+Shot on iPhone 15 Pro, portrait mode, natural morning light. The effortless kind of selfie that gets 10K likes because it feels unplanned. Slight lens flare from window. Warm golden tones, soft and dreamy.
 """.strip(),
 
-    "workout_power": """
-A gorgeous 26-year-old Japanese woman in a high-end modern gym.
-Dark brown hair in a sleek high ponytail with face-framing baby hairs.
-Athletic toned physique — defined shoulders, visible lean abs, strong legs.
-Wearing a black designer sports bra and matching high-waisted leggings, silver watch on wrist.
-She's standing between sets, one hand on hip, looking at camera with fierce confident energy.
-Skin has a beautiful natural workout glow, light perspiration catching the light.
-Background: clean premium gym with warm industrial lighting, mirrors reflecting depth.
-Shot on Sony A1, 70-200mm f/2.8 at 85mm, dramatic Rembrandt lighting from above-left.
-Fitness editorial for Vogue or Women's Health. Ultra sharp, cinematic color grade.
+    "workout_power": f"""Fitness photograph of {MAIA_IDENTITY}
+Hair in sleek high ponytail, baby hairs along hairline, few loose strands stuck to temples from sweat.
+Athletic body on full display — toned shoulders, lean visible abs, defined arms. Skin glistening with light sweat catching overhead lights.
+Wearing matte black sports bra and matching high-waisted compression leggings, white training shoes, silver watch.
+She's just finished a set of deadlifts, standing tall with one hand on the barbell, other hand on hip. Chest slightly heaving. Expression: fierce quiet confidence, slight smirk, direct eye contact with camera.
+Setting: premium minimal gym, concrete floors, natural wood accents, large mirrors. Golden hour light streaming through floor-to-ceiling windows mixing with warm overhead spots.
+Shot on Sony A7IV, 85mm f/1.4 GM lens. Dramatic side lighting creating sculptural shadows on muscle definition. Shot at 1/500s freezing any motion. Slight orange and teal color grade. This is an Adidas or Nike campaign image.
 """.strip(),
 
-    "evening_intimate": """
-A strikingly beautiful 26-year-old Japanese woman in a warm evening setting.
-Dark brown hair loose and flowing with natural soft waves, catching warm lamplight.
-Luminous bare skin, naturally flushed cheeks, sleepy soft eyes with long lashes.
-Wearing an oversized cream cashmere sweater that slips off one shoulder, revealing smooth skin.
-She's sitting on a soft white rug, knees drawn up, holding an old leather journal.
-An orange tabby cat is nestled against her side.
-Warm golden light from designer table lamp, candles flickering in background.
-Atmosphere: intimate, private, like a photo her closest friend took without her noticing.
-Shot on Leica SL2-S, Summilux 50mm f/1.4, available light only.
-Cinematic film look, warm analog tones, slight grain. Editorial intimacy.
+    "evening_intimate": f"""Intimate evening photograph of {MAIA_IDENTITY}
+Hair completely down, natural waves, slightly tangled. No makeup, bare natural face — slightly flushed cheeks, lips naturally pink.
+Wearing an oversized vintage cream wool cardigan over a thin white camisole, soft cotton shorts. Bare legs tucked underneath her.
+She's sitting on a worn Persian rug on wooden apartment floor, leaning against the couch. An old leather notebook open in her lap — her mother's handwritten recipes visible. Expression: tender and thoughtful, looking down at the notebook, lashes casting shadows on cheeks. An orange tabby cat curled asleep pressed against her thigh.
+Warm golden light from a single vintage brass table lamp. Background: bookshelves, stacked paperbacks, a half-drunk cup of hojicha tea, a small framed photo.
+Shot on Leica Q3, 28mm f/1.7, available warm lamp light only. Kodak Portra 800 pushed, visible grain, deep warm shadows. The intimacy of this image is almost uncomfortable — you feel like you're seeing something private.
 """.strip(),
 
-    "matcha_aesthetic": """
-Overhead flat-lay style photograph of a beautiful Japanese woman's hands preparing matcha.
-Graceful slender fingers with clean short nails, delicate silver watch visible.
-She's whisking vibrant green matcha in a handmade ceramic chawan bowl.
-The surface shows: bamboo chasen, a small plate with wagashi sweets, a linen napkin, her phone showing data.
-Her face is partially visible at the top of frame — glowing skin, soft smile, dark brown hair in low bun.
-Morning golden light creating long shadows across the white marble counter.
-Minimalist Japanese aesthetic meets Scandinavian design.
-Shot from directly above, Canon R5, RF 35mm f/1.4, perfectly styled editorial.
-Clean, serene, aspirational lifestyle content. Magazine quality.
+    "matcha_aesthetic": f"""Overhead lifestyle photograph featuring {MAIA_IDENTITY}
+Only her hands and partial face visible from above. Graceful fingers with short clean nails, thin silver watch on left wrist.
+She's whisking vibrant emerald matcha in a handmade ceramic chawan. The surface around her: bamboo chasen whisk, a small plate with two delicate wagashi, folded linen napkin, her phone face-down.
+Her face partially visible at top of frame: soft smile, eyes focused on the matcha, dark brown hair in messy low bun with a wooden hair stick.
+Morning golden directional light from upper left creating long dramatic shadows. White oak counter surface.
+Shot on Canon R5, RF 35mm f/1.4 from directly above on tripod. Perfectly styled but feels organic — a few matcha powder specks on the counter, a slight water ring from the cup. Japanese minimalism meets Kinfolk magazine aesthetic.
 """.strip(),
 
-    "tokyo_street": """
-A fashionable 26-year-old Japanese woman walking through a Tokyo street at golden hour.
-Dark brown hair flowing in a light breeze, catching sunlight with golden highlights.
-She wears a tailored beige trench coat over a white tee, high-waisted vintage jeans, white sneakers.
-Silver watch and minimal jewelry. Carrying a canvas tote bag.
-She's glancing back over her shoulder at the camera with a magnetic confident smile.
-Background: blurred Tokyo streetscape — warm-toned buildings, cherry blossom trees, soft city lights.
-Shot on Canon R5, RF 85mm f/1.2 at f/1.4, beautiful natural backlight creating a rim light effect.
-Fashion street photography, editorial quality, warm cinematic color grade.
-The kind of photo that stops your scroll.
+    "tokyo_golden": f"""Street fashion photograph of {MAIA_IDENTITY}
+Hair down with natural movement from walking, catching golden backlight creating a halo rim-light effect.
+Wearing a perfectly fitted camel wool coat over a white crew-neck tee, high-waisted straight-leg vintage Levi's, white Adidas Sambas. Canvas tote bag on shoulder, thin silver watch visible at wrist.
+She's walking through Daikanyama backstreets at golden hour, glancing back over her shoulder at camera with a magnetic smile — teeth slightly showing, eyes alive with warmth.
+Background: soft bokeh of warm Tokyo residential street, old wooden buildings, a bicycle, green hedge, dappled light through trees.
+Shot on Contax T2 with Kodak Portra 400, 38mm f/2.8. Real film grain, warm nostalgic color palette. Natural golden backlight. This is the photo that makes someone fall in love. Editorial street style meets stolen moment.
 """.strip(),
 }
 
