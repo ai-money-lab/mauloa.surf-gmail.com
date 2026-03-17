@@ -125,15 +125,34 @@ def generate_with_fal(prompt: str, api_key: str, aspect_ratio: str = "3:4") -> s
 
 def generate_with_gemini(prompt: str, api_key: str) -> str | None:
     """Generate image using Gemini API (free tier)."""
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp-image-generation:generateContent?key={api_key}"
+    # Try models in order: latest stable → experimental
+    models = [
+        "gemini-2.0-flash-exp-image-generation",
+        "gemini-2.0-flash-exp",
+        "gemini-2.0-flash",
+    ]
     payload = {
         "contents": [{"parts": [{"text": f"Generate this image: {prompt}"}]}],
         "generationConfig": {"responseModalities": ["TEXT", "IMAGE"]},
     }
 
+    resp = None
+    for model in models:
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}"
+        logger.info("Trying model: %s", model)
+        resp = requests.post(url, json=payload, timeout=60)
+        if resp.status_code == 200:
+            logger.info("Success with model: %s", model)
+            break
+        logger.warning("Model %s returned %d, trying next...", model, resp.status_code)
+
+    if resp is None or resp.status_code != 200:
+        logger.error("All models failed. Last status: %s", resp.status_code if resp else "none")
+        if resp is not None:
+            logger.error("Response: %s", resp.text[:500])
+        return None
+
     logger.info("Submitting to Gemini API...")
-    resp = requests.post(url, json=payload, timeout=60)
-    resp.raise_for_status()
     data = resp.json()
 
     candidates = data.get("candidates", [])
