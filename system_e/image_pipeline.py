@@ -72,6 +72,74 @@ class RunPodBackend:
             "Content-Type": "application/json",
         }
 
+    def _build_workflow(
+        self,
+        prompt: str,
+        width: int,
+        height: int,
+        steps: int,
+        seed: int,
+    ) -> dict:
+        """Build a ComfyUI API workflow JSON for Flux.1 Dev fp8.
+
+        Flux.1 Dev requires cfg=1.0 with KSampler (guidance is baked into the model).
+        """
+        return {
+            "4": {
+                "inputs": {"ckpt_name": "flux1-dev-fp8.safetensors"},
+                "class_type": "CheckpointLoaderSimple",
+                "_meta": {"title": "Load Checkpoint"},
+            },
+            "5": {
+                "inputs": {
+                    "width": width,
+                    "height": height,
+                    "batch_size": 1,
+                },
+                "class_type": "EmptyLatentImage",
+                "_meta": {"title": "Empty Latent Image"},
+            },
+            "6": {
+                "inputs": {"text": prompt, "clip": ["4", 1]},
+                "class_type": "CLIPTextEncode",
+                "_meta": {"title": "CLIP Text Encode (Prompt)"},
+            },
+            "7": {
+                "inputs": {"text": "", "clip": ["4", 1]},
+                "class_type": "CLIPTextEncode",
+                "_meta": {"title": "CLIP Text Encode (Negative)"},
+            },
+            "3": {
+                "inputs": {
+                    "seed": seed,
+                    "steps": steps,
+                    "cfg": 1.0,
+                    "sampler_name": "euler",
+                    "scheduler": "normal",
+                    "denoise": 1,
+                    "model": ["4", 0],
+                    "positive": ["6", 0],
+                    "negative": ["7", 0],
+                    "latent_image": ["5", 0],
+                },
+                "class_type": "KSampler",
+                "_meta": {"title": "KSampler"},
+            },
+            "8": {
+                "inputs": {"samples": ["3", 0], "vae": ["4", 2]},
+                "class_type": "VAEDecode",
+                "_meta": {"title": "VAE Decode"},
+            },
+            "9": {
+                "inputs": {
+                    "filename_prefix": "ComfyUI",
+                    "images": ["8", 0],
+                },
+                "class_type": "SaveImage",
+                "_meta": {"title": "Save Image"},
+            },
+        }
+
     def generate(
         self,
         prompt: str,
@@ -79,43 +147,19 @@ class RunPodBackend:
         seed: int | None = None,
         reference_image_url: str | None = None,
     ) -> dict | None:
-        """Submit a generation job to RunPod Serverless.
+        """Submit a generation job to RunPod Serverless (ComfyUI workflow).
 
         Returns the result dict with image data, or None on failure.
         """
         defaults = self.image_config.get("defaults", {})
         width, height = _resolve_aspect_ratio(aspect_ratio, defaults)
+        steps = defaults.get("num_inference_steps", 28)
 
-        # Build the generation input (ComfyUI / Flux.1 Dev compatible)
-        gen_input = {
-            "prompt": prompt,
-            "width": width,
-            "height": height,
-            "num_inference_steps": defaults.get("num_inference_steps", 28),
-            "guidance_scale": defaults.get("guidance_scale", 7.5),
-            "output_format": "jpeg",
-        }
+        if seed is None:
+            seed = random.randint(0, 2**32 - 1)
 
-        if seed is not None:
-            gen_input["seed"] = seed
-
-        # LoRA configuration
-        lora = self.image_config.get("lora", {})
-        lora_path = lora.get("model_path", "")
-        if lora_path:
-            gen_input["lora"] = {
-                "model": lora_path,
-                "strength": lora.get("strength", 0.8),
-            }
-
-        # Reference image for IP-Adapter (Kontext equivalent)
-        if reference_image_url:
-            gen_input["ip_adapter"] = {
-                "image_url": reference_image_url,
-                "strength": 0.7,
-            }
-
-        payload = {"input": gen_input}
+        workflow = self._build_workflow(prompt, width, height, steps, seed)
+        payload = {"input": {"workflow": workflow}}
 
         try:
             # Submit job via /run (async)
@@ -467,11 +511,21 @@ class ImagePipeline:
                 logger.info("Image saved: %s (%d bytes)", filepath, len(image_bytes))
                 return str(filepath)
 
-            # Images array (RunPod list output)
+            # Images array (ComfyUI worker v5+ output)
+            # Format: [{"type": "base64", "data": "..."}, ...] or
+            #         [{"type": "s3_url", "data": "https://..."}, ...]
             images = result.get("images", [])
             if images:
                 first = images[0]
                 if isinstance(first, dict):
+                    # ComfyUI worker format
+                    img_type = first.get("type", "")
+                    img_data = first.get("data", "")
+                    if img_type == "base64" and img_data:
+                        return self._save_from_result({"image_base64": img_data}, prefix)
+                    if img_type == "s3_url" and img_data:
+                        return self._save_from_result({"image_url": img_data}, prefix)
+                    # Fallback: try nested recursion
                     return self._save_from_result(first, prefix)
                 if isinstance(first, str):
                     if first.startswith("http"):
