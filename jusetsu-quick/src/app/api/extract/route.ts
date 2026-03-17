@@ -137,14 +137,12 @@ function extractByRules(text: string): Record<string, unknown> {
 
 export async function POST(request: NextRequest) {
   try {
-    let env: ReturnType<typeof getRequestContext>["env"];
+    // Cloudflare環境を取得（非CF環境ではルールベースフォールバック）
+    let env: ReturnType<typeof getRequestContext>["env"] | null = null;
     try {
       env = getRequestContext().env;
     } catch {
-      return NextResponse.json(
-        { error: "Cloudflare環境外では利用できません。Cloudflare Pagesにデプロイしてください。" },
-        { status: 503 }
-      );
+      // Cloudflare外（ローカル開発等）→ ルールベースで続行
     }
 
     const body = await request.json();
@@ -158,15 +156,22 @@ export async function POST(request: NextRequest) {
     let responseText = "";
 
     if (env?.AI) {
-      const result = await env.AI.run("@cf/meta/llama-3.1-70b-instruct", {
-        messages: [
-          { role: "system", content: SYSTEM_PROMPT },
-          { role: "user", content: USER_PROMPT(text.slice(0, 8000)) },
-        ],
-        max_tokens: 2000,
-        temperature: 0.1,
-      }) as { response?: string };
-      responseText = result?.response || "";
+      try {
+        const result = await env.AI.run("@cf/meta/llama-3.1-70b-instruct", {
+          messages: [
+            { role: "system", content: SYSTEM_PROMPT },
+            { role: "user", content: USER_PROMPT(text.slice(0, 8000)) },
+          ],
+          max_tokens: 2000,
+          temperature: 0.1,
+        }) as { response?: string };
+        responseText = result?.response || "";
+      } catch (aiErr) {
+        console.error("Workers AI error, falling back to rules:", aiErr);
+        // AI呼び出し失敗時もルールベースにフォールバック
+        const fallback = extractByRules(text);
+        responseText = JSON.stringify(fallback);
+      }
     } else {
       // AI未設定時: ルールベースで基本フィールドを抽出
       const fallback = extractByRules(text);
@@ -198,7 +203,8 @@ export async function POST(request: NextRequest) {
 
     // 監査ログ（PDF抽出の使用記録）
     try {
-      const db = env.DB;
+      const db = env?.DB;
+      if (!db) throw new Error("DB not available");
       await ensureSchema(db);
       await writeAuditLog(db, {
         action: "pdf_extract",

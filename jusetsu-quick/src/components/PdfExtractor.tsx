@@ -5,15 +5,28 @@ import type { PropertyData } from "@/lib/types";
 
 /* ─── pdfjs worker URL（CDNフォールバック付き） ─── */
 function getPdfjsWorkerSrc(version: string): string {
-  return `//cdn.jsdelivr.net/npm/pdfjs-dist@${version}/build/pdf.worker.min.mjs`;
+  // CDN URL（複数フォールバック）
+  const urls = [
+    `https://cdn.jsdelivr.net/npm/pdfjs-dist@${version}/build/pdf.worker.min.mjs`,
+    `https://unpkg.com/pdfjs-dist@${version}/build/pdf.worker.min.mjs`,
+  ];
+  return urls[0];
+}
+
+/* ─── pdfjs 初期化ヘルパー ─── */
+async function initPdfjs() {
+  const pdfjsLib = await import("pdfjs-dist");
+  if (!pdfjsLib.GlobalWorkerOptions.workerSrc) {
+    const workerSrc = getPdfjsWorkerSrc(pdfjsLib.version);
+    pdfjsLib.GlobalWorkerOptions.workerSrc = workerSrc;
+    console.log("[PDF] Worker URL:", workerSrc, "version:", pdfjsLib.version);
+  }
+  return pdfjsLib;
 }
 
 /* ─── OCR: Tesseract.js（画像PDFフォールバック用） ─── */
 async function ocrFromPdfPages(file: File, onProgress?: (msg: string) => void): Promise<string> {
-  const pdfjsLib = await import("pdfjs-dist");
-  if (!pdfjsLib.GlobalWorkerOptions.workerSrc) {
-    pdfjsLib.GlobalWorkerOptions.workerSrc = getPdfjsWorkerSrc(pdfjsLib.version);
-  }
+  const pdfjsLib = await initPdfjs();
   const { createWorker } = await import("tesseract.js");
 
   const arrayBuffer = await file.arrayBuffer();
@@ -34,8 +47,7 @@ async function ocrFromPdfPages(file: File, onProgress?: (msg: string) => void): 
       canvas.width = viewport.width;
       canvas.height = viewport.height;
       const ctx = canvas.getContext("2d")!;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await page.render({ canvasContext: ctx, viewport, canvas } as any).promise;
+      await page.render({ canvasContext: ctx, viewport, canvas }).promise;
 
       const { data } = await worker.recognize(canvas);
       if (data.text.trim()) {
@@ -110,10 +122,7 @@ export default function PdfExtractor({ currentData, onApply, onClose }: Props) {
 
   /* PDF テキスト抽出（pdfjs-dist） */
   const extractTextFromPdf = useCallback(async (file: File): Promise<string> => {
-    const pdfjsLib = await import("pdfjs-dist");
-    if (!pdfjsLib.GlobalWorkerOptions.workerSrc) {
-      pdfjsLib.GlobalWorkerOptions.workerSrc = getPdfjsWorkerSrc(pdfjsLib.version);
-    }
+    const pdfjsLib = await initPdfjs();
 
     const arrayBuffer = await file.arrayBuffer();
     const pdf = await pdfjsLib.getDocument({ data: new Uint8Array(arrayBuffer) }).promise;
@@ -197,10 +206,12 @@ export default function PdfExtractor({ currentData, onApply, onClose }: Props) {
         // まずテキスト抽出を試行
         let text = "";
         try {
+          setOcrProgress("PDFを解析中...");
           text = await extractTextFromPdf(file);
           console.log("[PDF] テキスト抽出完了:", text.length, "文字");
         } catch (e) {
           console.error("[PDF] テキスト抽出エラー:", e);
+          // pdfjs-dist の読み込みに失敗した場合はOCRにフォールバック
         }
         if (text.trim().length >= 20) {
           await runExtraction(text);
