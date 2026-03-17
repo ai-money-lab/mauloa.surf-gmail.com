@@ -19,7 +19,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
           cache-dependency-path: jusetsu-quick/package-lock.json
 
@@ -27,9 +27,15 @@ jobs:
         working-directory: jusetsu-quick
         run: npm ci
 
-      - name: Build for Cloudflare Pages
+      - name: Build Next.js (Vercel output)
         working-directory: jusetsu-quick
-        run: npm run pages:build
+        run: npx vercel build
+        env:
+          NODE_OPTIONS: '--max-old-space-size=4096'
+
+      - name: Convert for Cloudflare Pages
+        working-directory: jusetsu-quick
+        run: npx @cloudflare/next-on-pages --skip-build
 
       - name: Run D1 migrations
         uses: cloudflare/wrangler-action@v3
