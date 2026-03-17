@@ -65,86 +65,92 @@ IMAGE_DIR = PROJECT_ROOT / "data" / "system_e" / "images"
 # Source: https://metricsmule.com/ai/create-ai-influencers/
 # ═══════════════════════════════════════════════════════════
 
-# キャラクター固定パーツ（全プロンプトで共有 = 一貫性の鍵）
-# 重要: AI画像生成で「26歳」は老ける。「20歳」「baby face」で若く出す。
-# ネガティブワードで老け防止。これがAI美女界隈の常識。
-MAIA_IDENTITY = """extremely beautiful young Japanese girl, 20 years old, baby face, youthful glowing dewy skin.
-Face: small oval face, soft round cheeks, cute button nose with slight upturn, plump glossy lips with natural pink tint, adorable dimples when smiling, clear double eyelids.
-Eyes: big round sparkling dark brown eyes, long thick natural eyelashes, innocent yet captivating gaze, puppy-dog eyes.
-Eyebrows: soft natural straight eyebrows, well-groomed.
-Skin: flawless porcelain-like smooth skin with natural healthy glow, youthful radiance, dewy finish, no wrinkles, no blemishes, baby-soft skin texture. Tiny beauty mark below left eye.
-Hair: glossy dark brown hair, silky texture, soft highlights, healthy and shiny, medium-long past shoulders.
-Body: slim petite toned figure, delicate collarbones, long slender neck, 163cm. Toned but soft feminine curves.
+# ═══════════════════════════════════════════════════════════
+# Maiaのシグネチャー: 「かわいいのに強い」
+#
+# AI美女界のポジションマップ:
+#   凛、Aitana → かわいい/セクシー × ファッション（飽和）
+#   imma       → かわいい × ハイファッション（飽和）
+#   Maia       → かわいい × アスリート体型（空席！！）
+#
+# ベビーフェイスなのに腹筋が割れている。
+# この「ギャップ」が0.5秒で人を止める。
+# Nike/Adidas/Lululemonが組みたくなる唯一のAI美女。
+# ═══════════════════════════════════════════════════════════
+
+MAIA_IDENTITY = """extremely beautiful young Japanese girl, 20 years old, adorable baby face with stunning supermodel body.
+Face: small round baby face, soft cheeks with cute dimples, adorable button nose, plump glossy lips, clear double eyelids. Looks innocent and youthful like an idol.
+Eyes: big round sparkling dark brown doe eyes, long thick eyelashes, bright innocent gaze.
+Skin: flawless dewy porcelain skin with healthy glow, youthful radiance. Tiny beauty mark below left eye.
+Hair: glossy dark brown hair, silky and voluminous, medium-long past shoulders.
+Body: tall slender supermodel proportions — tiny narrow waist, perfect hourglass figure, full bust, round shapely hips, long toned legs. Slim but curvy in all the right places. Flat toned stomach. Long elegant neck, prominent collarbones.
+HEIGHT: 170cm, long limbed, model proportions.
+KEY GAP: her face is an adorable 20-year-old baby face, but her body is a Victoria's Secret supermodel. This extreme contrast is her entire brand. You look at her face and think 'cute girl next door', you look at her body and think 'runway model'. That gap is what makes people unable to scroll past.
 Signature: delicate thin vintage silver watch on left wrist.
 """.strip()
 
-# おばさん化を防ぐネガティブプロンプト
-NEGATIVE_PROMPT = "old, aged, wrinkles, mature face, sagging skin, dark circles, tired eyes, rough skin, large pores, masculine features, thick neck, broad shoulders, cartoon, anime, illustration, 3D render, lowres, blurry, deformed, ugly, bad anatomy"
+# おばさん化を防ぐ＋アスリート感を保つネガティブプロンプト
+NEGATIVE_PROMPT = "old, aged, wrinkles, mature face, sagging skin, dark circles, tired, rough skin, large pores, thick neck, overweight, soft body, no muscle definition, cartoon, anime, illustration, 3D render, lowres, blurry, deformed, ugly, bad anatomy, masculine jaw"
 
-MAIA_FACE_PROMPT = f"""Stunning portrait photograph of {MAIA_IDENTITY}
-Glossy dark brown hair in a loose messy bun with soft wispy face-framing pieces and curtain bangs.
-Wearing a white off-shoulder knit top, showing delicate collarbones.
-Expression: adorable sweet smile showing slight dimples, sparkling eyes looking at camera with warmth and charm. Head slightly tilted. She looks like she's about to laugh.
-Setting: bright modern Tokyo apartment, soft golden morning light through large window. Matcha latte on white counter, green plants. Clean and aesthetic.
-Shot on Sony A7IV, 85mm f/1.4, wide open. Soft dreamy bokeh. Warm golden tones, skin looks luminous and dewy. Soft sunlight creating a halo effect on hair.
-Ultra photorealistic, magazine beauty editorial, skin retouching, 8K detail. The kind of face that stops your scroll on Instagram.
+MAIA_FACE_PROMPT = f"""Upper body portrait of {MAIA_IDENTITY}
+Glossy dark brown hair down with soft waves, curtain bangs framing her adorable baby face.
+Wearing a fitted white V-neck crop top that shows her stunning figure — tiny waist, full bust, elegant collarbones and long neck.
+Expression: irresistible sweet smile with dimples, big sparkly innocent doe eyes looking at camera. Head tilted cutely.
+The contrast: her face is pure innocence, her body is supermodel. This is what makes her unforgettable.
+Setting: bright Tokyo apartment, golden morning light, matcha on counter, clean aesthetic.
+85mm f/1.4, creamy bokeh, warm golden light, dewy glowing skin, sun halo on hair.
+Ultra photorealistic, fashion magazine cover quality, 8K.
 Avoid: {NEGATIVE_PROMPT}
 """.strip()
 
 MAIA_SCENE_PROMPTS = {
     "portrait_warm": MAIA_FACE_PROMPT,
 
-    "selfie_cute": f"""Adorable selfie of {MAIA_IDENTITY}
-Glossy dark brown hair down with soft natural waves, wispy curtain bangs framing face perfectly.
-Wearing oversized cream knit sweater, off-shoulder showing smooth skin and delicate collarbone.
-Taking selfie from slightly above, one hand playing with hair strand, big innocent eyes looking up at camera.
-Expression: cute pouty lips, sweet playful smile, head tilted, irresistible charm.
-Background: cozy sunlit bedroom, white sheets, fairy lights, warm dreamy atmosphere.
-iPhone selfie aesthetic, portrait mode bokeh, warm golden light, dewy glowing skin.
-Ultra photorealistic, beautiful young girl, Instagram viral quality. Baby face, youthful.
+    "selfie_cute": f"""Full body mirror selfie of {MAIA_IDENTITY}
+Glossy hair down, soft waves, curtain bangs. Dewy glowing skin.
+Wearing a cropped oversized hoodie and high-waisted bike shorts — showing her incredible proportions: tiny waist, curvy hips, long toned legs. Full figure visible in mirror.
+Adorable cute expression, peace sign, head tilted. Her baby face doesn't match her supermodel body. That's the magic.
+Bright sunlit room, full length mirror, clean aesthetic.
+iPhone portrait mode, warm golden light, dreamy soft tones.
+Ultra photorealistic, viral Instagram quality.
 Avoid: {NEGATIVE_PROMPT}
 """.strip(),
 
-    "workout_power": f"""Fitness photo of {MAIA_IDENTITY}
-Glossy dark brown hair in high ponytail with cute face-framing baby hairs.
-Slim toned body, flat stomach, lean arms. Skin has pretty workout glow.
-Wearing black sports bra and high-waisted leggings, delicate silver watch.
-Standing between sets, one hand on hip, confident cute smirk at camera. Youthful energy.
-Setting: clean modern gym, golden light through windows.
-Shot on Sony A7IV, 85mm f/1.4. Beautiful lighting on skin. Fitness magazine quality.
-Ultra photorealistic, young athletic girl, healthy and beautiful.
+    "workout_power": f"""Gym photo of {MAIA_IDENTITY}
+Hair in high ponytail, baby hairs framing face.
+Full body visible: wearing black sports bra and matching leggings that show her incredible figure — narrow waist, full bust, sculpted round hips, long toned legs, flat stomach.
+Standing between sets, one hand on hip. Her face: cute innocent baby face with big doe eyes and sweet expression. Her body: absolute supermodel. The gap is shocking.
+Premium gym, golden light through windows, mirrors showing her silhouette from behind.
+Sony A7IV, full body shot, 50mm f/1.4. Dramatic golden light.
+This is a Fabletics or Gymshark campaign. Ultra photorealistic.
+Avoid: {NEGATIVE_PROMPT}
+""".strip(),
+
+    "casual_reveal": f"""Candid lifestyle photo of {MAIA_IDENTITY}
+Hair down, slightly messy, cute. She's stretching with arms above her head, wearing an oversized vintage tee that rides up — showing her tiny waist, flat toned stomach, and the curve of her hips above low-rise shorts. Long bare legs.
+Her face: innocent sweet expression, eyes closed, peaceful smile. She's not trying to be sexy. She just IS.
+Sunlit apartment by window, morning golden hour, plants.
+Natural warm light, candid feel, 50mm f/1.4.
+Ultra photorealistic. Baby face model body. The accidental reveal is more powerful than any pose.
 Avoid: {NEGATIVE_PROMPT}
 """.strip(),
 
     "evening_intimate": f"""Cozy evening photo of {MAIA_IDENTITY}
-Glossy dark brown hair down, soft waves, slightly messy in a cute way.
-Wearing oversized cream cashmere cardigan over thin white camisole, bare legs.
-Sitting on soft rug, hugging knees, reading an old journal. Sweet tender expression, long lashes.
-Orange tabby cat curled up beside her. Warm golden lamp light, candles.
-Cozy intimate bedroom, books, tea cup, fairy lights.
-Shot on 50mm f/1.4, warm available light. Soft dreamy tones, dewy skin glow.
-Ultra photorealistic, adorable young girl in private moment.
+Hair down, soft waves. Wearing oversized cream knit cardigan that slips off one shoulder revealing smooth skin, tiny shorts showing her long toned legs.
+Even in cozy mode her supermodel proportions are visible — the cardigan drapes over her curves, her waist looks impossibly small.
+Sitting on soft rug, hugging knees, sweet expression, big innocent eyes. Cat beside her. Warm lamp light.
+50mm f/1.4, warm tones, intimate.
+Ultra photorealistic. Cute girl-next-door face, model body. Even in pajamas.
 Avoid: {NEGATIVE_PROMPT}
 """.strip(),
 
-    "matcha_aesthetic": f"""Aesthetic morning photo of {MAIA_IDENTITY}
-Glossy dark brown hair in cute messy low bun with wispy bangs.
-Wearing sage green silk camisole, delicate silver watch visible.
-Preparing matcha in ceramic bowl, graceful hands, serene sweet expression.
-Bright morning golden light, white minimalist kitchen, steam rising.
-Overhead angle, shallow depth of field, clean Japanese aesthetic.
-Shot on 35mm f/1.4, magazine lifestyle editorial quality.
-Ultra photorealistic, beautiful young girl, peaceful and radiant.
-Avoid: {NEGATIVE_PROMPT}
-""".strip(),
-
-    "tokyo_golden": f"""Street fashion photo of {MAIA_IDENTITY}
-Glossy dark brown hair flowing in light breeze, golden backlight creating halo rim-light.
-Wearing fitted camel coat, white tee, high-waisted jeans, white sneakers. Silver watch, canvas tote.
-Walking through pretty Tokyo backstreet at golden hour, glancing back over shoulder with bright charming smile.
-Soft bokeh background, warm buildings, trees, dappled sunlight.
-Shot on 85mm f/1.2, Kodak Portra 400 film tones, warm nostalgic palette.
-Ultra photorealistic, adorable young Japanese girl, the photo that stops your scroll.
+    "tokyo_golden": f"""Full body street fashion of {MAIA_IDENTITY}
+Hair flowing in breeze, golden backlight creating rim light on her silhouette.
+Wearing fitted beige trench coat belted at her tiny waist — accentuating her hourglass figure, long legs in straight jeans, white sneakers.
+Walking through Tokyo at golden hour, looking back over shoulder with adorable bright smile.
+Her silhouette is stunning — narrow waist, curves, long legs. Her face is pure cute innocence.
+Bokeh cityscape, warm tones.
+85mm f/1.2, full body shot. Ultra photorealistic. This stops every scroll.
 Avoid: {NEGATIVE_PROMPT}
 """.strip(),
 }
