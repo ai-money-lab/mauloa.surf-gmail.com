@@ -11,6 +11,8 @@ Usage:
     python system_e/generate_maia_face.py --dry-run
 """
 
+from __future__ import annotations
+
 import argparse
 import base64
 import json
@@ -123,7 +125,7 @@ def generate_with_fal(prompt: str, api_key: str, aspect_ratio: str = "3:4") -> s
 
 def generate_with_gemini(prompt: str, api_key: str) -> str | None:
     """Generate image using Gemini API (free tier)."""
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key={api_key}"
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp-image-generation:generateContent?key={api_key}"
     payload = {
         "contents": [{"parts": [{"text": f"Generate this image: {prompt}"}]}],
         "generationConfig": {"responseModalities": ["TEXT", "IMAGE"]},
