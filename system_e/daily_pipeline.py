@@ -47,7 +47,10 @@ class SystemEPipeline:
         logger.info("Phase 2: Image generation")
 
         if not self.image_pipeline.enabled:
-            logger.warning("Image pipeline not configured (FAL_API_KEY missing)")
+            logger.warning(
+                "Image pipeline not configured (provider=%s)",
+                self.image_pipeline.provider,
+            )
             return plan
 
         for item in plan:
