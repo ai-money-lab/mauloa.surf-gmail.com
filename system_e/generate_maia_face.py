@@ -66,68 +66,86 @@ IMAGE_DIR = PROJECT_ROOT / "data" / "system_e" / "images"
 # ═══════════════════════════════════════════════════════════
 
 # キャラクター固定パーツ（全プロンプトで共有 = 一貫性の鍵）
-MAIA_IDENTITY = """young Japanese woman, age 26, named Maia.
-Face: oval face shape, high cheekbones with subtle definition, small straight nose with a very slight upturn at the tip, naturally full lips with a soft cupid's bow, clear double eyelids.
-Eyes: large almond-shaped dark brown eyes, naturally thick long eyelashes, slight upward tilt at outer corners giving a gentle cat-eye effect.
-Eyebrows: straight natural thick eyebrows with soft arch, dark brown, slightly messy and unfilled.
-Skin: warm golden undertone, smooth but with natural skin texture visible — tiny pores on nose, faint beauty mark below left eye, very subtle light freckles across nose bridge from sun exposure. Healthy natural glow, no heavy foundation look.
-Hair: dark chocolate brown, thick and healthy, medium length past shoulders. Natural slight wave texture, not perfectly straight.
-Body: slim athletic build with toned arms and visible collarbone definition, long neck. 165cm, lean muscle tone from regular training.
-Signature: vintage thin silver watch on left wrist (her late mother's).
+# 重要: AI画像生成で「26歳」は老ける。「20歳」「baby face」で若く出す。
+# ネガティブワードで老け防止。これがAI美女界隈の常識。
+MAIA_IDENTITY = """extremely beautiful young Japanese girl, 20 years old, baby face, youthful glowing dewy skin.
+Face: small oval face, soft round cheeks, cute button nose with slight upturn, plump glossy lips with natural pink tint, adorable dimples when smiling, clear double eyelids.
+Eyes: big round sparkling dark brown eyes, long thick natural eyelashes, innocent yet captivating gaze, puppy-dog eyes.
+Eyebrows: soft natural straight eyebrows, well-groomed.
+Skin: flawless porcelain-like smooth skin with natural healthy glow, youthful radiance, dewy finish, no wrinkles, no blemishes, baby-soft skin texture. Tiny beauty mark below left eye.
+Hair: glossy dark brown hair, silky texture, soft highlights, healthy and shiny, medium-long past shoulders.
+Body: slim petite toned figure, delicate collarbones, long slender neck, 163cm. Toned but soft feminine curves.
+Signature: delicate thin vintage silver watch on left wrist.
 """.strip()
 
-MAIA_FACE_PROMPT = f"""Intimate portrait photograph of {MAIA_IDENTITY}
-Hair styled in a loose low messy bun with soft wispy pieces framing face and neck.
-Wearing a simple white ribbed tank top, minimal jewelry.
-Expression: warm knowing half-smile, eyes slightly crinkled with genuine warmth, looking directly into camera as if sharing a private moment with someone she trusts.
-Setting: bright airy Tokyo apartment kitchen, morning. Soft natural window light from the left creating gentle shadows. A ceramic cup of matcha with foam art on white marble counter. Green plants soft in background. Everything feels lived-in and real.
-Shot on Fujifilm X-T5 with XF 56mm f/1.2 lens, shot wide open. Fuji Pro 400H film simulation, warm muted tones with creamy skin rendering. Shallow depth of field, focus on eyes. Natural light only, no flash.
-This looks like a real photograph taken by her boyfriend on a lazy Sunday morning. Not staged, not perfect, real.
+# おばさん化を防ぐネガティブプロンプト
+NEGATIVE_PROMPT = "old, aged, wrinkles, mature face, sagging skin, dark circles, tired eyes, rough skin, large pores, masculine features, thick neck, broad shoulders, cartoon, anime, illustration, 3D render, lowres, blurry, deformed, ugly, bad anatomy"
+
+MAIA_FACE_PROMPT = f"""Stunning portrait photograph of {MAIA_IDENTITY}
+Glossy dark brown hair in a loose messy bun with soft wispy face-framing pieces and curtain bangs.
+Wearing a white off-shoulder knit top, showing delicate collarbones.
+Expression: adorable sweet smile showing slight dimples, sparkling eyes looking at camera with warmth and charm. Head slightly tilted. She looks like she's about to laugh.
+Setting: bright modern Tokyo apartment, soft golden morning light through large window. Matcha latte on white counter, green plants. Clean and aesthetic.
+Shot on Sony A7IV, 85mm f/1.4, wide open. Soft dreamy bokeh. Warm golden tones, skin looks luminous and dewy. Soft sunlight creating a halo effect on hair.
+Ultra photorealistic, magazine beauty editorial, skin retouching, 8K detail. The kind of face that stops your scroll on Instagram.
+Avoid: {NEGATIVE_PROMPT}
 """.strip()
 
 MAIA_SCENE_PROMPTS = {
     "portrait_warm": MAIA_FACE_PROMPT,
 
-    "selfie_cute": f"""Casual mirror selfie photograph of {MAIA_IDENTITY}
-Hair down, natural waves, slightly messy from just waking up. Curtain bangs softly parted.
-Wearing an oversized cream cable-knit sweater slipping off one shoulder, bare collarbone visible.
-Holding iPhone at slightly above eye level, other hand touching hair.
-Expression: playful sleepy smile, one eyebrow slightly raised, eyes half-lidded but sparkling.
-Background: sunlit bedroom, white linen sheets unmade, morning light through sheer curtains, small potted plants on windowsill.
-Shot on iPhone 15 Pro, portrait mode, natural morning light. The effortless kind of selfie that gets 10K likes because it feels unplanned. Slight lens flare from window. Warm golden tones, soft and dreamy.
+    "selfie_cute": f"""Adorable selfie of {MAIA_IDENTITY}
+Glossy dark brown hair down with soft natural waves, wispy curtain bangs framing face perfectly.
+Wearing oversized cream knit sweater, off-shoulder showing smooth skin and delicate collarbone.
+Taking selfie from slightly above, one hand playing with hair strand, big innocent eyes looking up at camera.
+Expression: cute pouty lips, sweet playful smile, head tilted, irresistible charm.
+Background: cozy sunlit bedroom, white sheets, fairy lights, warm dreamy atmosphere.
+iPhone selfie aesthetic, portrait mode bokeh, warm golden light, dewy glowing skin.
+Ultra photorealistic, beautiful young girl, Instagram viral quality. Baby face, youthful.
+Avoid: {NEGATIVE_PROMPT}
 """.strip(),
 
-    "workout_power": f"""Fitness photograph of {MAIA_IDENTITY}
-Hair in sleek high ponytail, baby hairs along hairline, few loose strands stuck to temples from sweat.
-Athletic body on full display — toned shoulders, lean visible abs, defined arms. Skin glistening with light sweat catching overhead lights.
-Wearing matte black sports bra and matching high-waisted compression leggings, white training shoes, silver watch.
-She's just finished a set of deadlifts, standing tall with one hand on the barbell, other hand on hip. Chest slightly heaving. Expression: fierce quiet confidence, slight smirk, direct eye contact with camera.
-Setting: premium minimal gym, concrete floors, natural wood accents, large mirrors. Golden hour light streaming through floor-to-ceiling windows mixing with warm overhead spots.
-Shot on Sony A7IV, 85mm f/1.4 GM lens. Dramatic side lighting creating sculptural shadows on muscle definition. Shot at 1/500s freezing any motion. Slight orange and teal color grade. This is an Adidas or Nike campaign image.
+    "workout_power": f"""Fitness photo of {MAIA_IDENTITY}
+Glossy dark brown hair in high ponytail with cute face-framing baby hairs.
+Slim toned body, flat stomach, lean arms. Skin has pretty workout glow.
+Wearing black sports bra and high-waisted leggings, delicate silver watch.
+Standing between sets, one hand on hip, confident cute smirk at camera. Youthful energy.
+Setting: clean modern gym, golden light through windows.
+Shot on Sony A7IV, 85mm f/1.4. Beautiful lighting on skin. Fitness magazine quality.
+Ultra photorealistic, young athletic girl, healthy and beautiful.
+Avoid: {NEGATIVE_PROMPT}
 """.strip(),
 
-    "evening_intimate": f"""Intimate evening photograph of {MAIA_IDENTITY}
-Hair completely down, natural waves, slightly tangled. No makeup, bare natural face — slightly flushed cheeks, lips naturally pink.
-Wearing an oversized vintage cream wool cardigan over a thin white camisole, soft cotton shorts. Bare legs tucked underneath her.
-She's sitting on a worn Persian rug on wooden apartment floor, leaning against the couch. An old leather notebook open in her lap — her mother's handwritten recipes visible. Expression: tender and thoughtful, looking down at the notebook, lashes casting shadows on cheeks. An orange tabby cat curled asleep pressed against her thigh.
-Warm golden light from a single vintage brass table lamp. Background: bookshelves, stacked paperbacks, a half-drunk cup of hojicha tea, a small framed photo.
-Shot on Leica Q3, 28mm f/1.7, available warm lamp light only. Kodak Portra 800 pushed, visible grain, deep warm shadows. The intimacy of this image is almost uncomfortable — you feel like you're seeing something private.
+    "evening_intimate": f"""Cozy evening photo of {MAIA_IDENTITY}
+Glossy dark brown hair down, soft waves, slightly messy in a cute way.
+Wearing oversized cream cashmere cardigan over thin white camisole, bare legs.
+Sitting on soft rug, hugging knees, reading an old journal. Sweet tender expression, long lashes.
+Orange tabby cat curled up beside her. Warm golden lamp light, candles.
+Cozy intimate bedroom, books, tea cup, fairy lights.
+Shot on 50mm f/1.4, warm available light. Soft dreamy tones, dewy skin glow.
+Ultra photorealistic, adorable young girl in private moment.
+Avoid: {NEGATIVE_PROMPT}
 """.strip(),
 
-    "matcha_aesthetic": f"""Overhead lifestyle photograph featuring {MAIA_IDENTITY}
-Only her hands and partial face visible from above. Graceful fingers with short clean nails, thin silver watch on left wrist.
-She's whisking vibrant emerald matcha in a handmade ceramic chawan. The surface around her: bamboo chasen whisk, a small plate with two delicate wagashi, folded linen napkin, her phone face-down.
-Her face partially visible at top of frame: soft smile, eyes focused on the matcha, dark brown hair in messy low bun with a wooden hair stick.
-Morning golden directional light from upper left creating long dramatic shadows. White oak counter surface.
-Shot on Canon R5, RF 35mm f/1.4 from directly above on tripod. Perfectly styled but feels organic — a few matcha powder specks on the counter, a slight water ring from the cup. Japanese minimalism meets Kinfolk magazine aesthetic.
+    "matcha_aesthetic": f"""Aesthetic morning photo of {MAIA_IDENTITY}
+Glossy dark brown hair in cute messy low bun with wispy bangs.
+Wearing sage green silk camisole, delicate silver watch visible.
+Preparing matcha in ceramic bowl, graceful hands, serene sweet expression.
+Bright morning golden light, white minimalist kitchen, steam rising.
+Overhead angle, shallow depth of field, clean Japanese aesthetic.
+Shot on 35mm f/1.4, magazine lifestyle editorial quality.
+Ultra photorealistic, beautiful young girl, peaceful and radiant.
+Avoid: {NEGATIVE_PROMPT}
 """.strip(),
 
-    "tokyo_golden": f"""Street fashion photograph of {MAIA_IDENTITY}
-Hair down with natural movement from walking, catching golden backlight creating a halo rim-light effect.
-Wearing a perfectly fitted camel wool coat over a white crew-neck tee, high-waisted straight-leg vintage Levi's, white Adidas Sambas. Canvas tote bag on shoulder, thin silver watch visible at wrist.
-She's walking through Daikanyama backstreets at golden hour, glancing back over her shoulder at camera with a magnetic smile — teeth slightly showing, eyes alive with warmth.
-Background: soft bokeh of warm Tokyo residential street, old wooden buildings, a bicycle, green hedge, dappled light through trees.
-Shot on Contax T2 with Kodak Portra 400, 38mm f/2.8. Real film grain, warm nostalgic color palette. Natural golden backlight. This is the photo that makes someone fall in love. Editorial street style meets stolen moment.
+    "tokyo_golden": f"""Street fashion photo of {MAIA_IDENTITY}
+Glossy dark brown hair flowing in light breeze, golden backlight creating halo rim-light.
+Wearing fitted camel coat, white tee, high-waisted jeans, white sneakers. Silver watch, canvas tote.
+Walking through pretty Tokyo backstreet at golden hour, glancing back over shoulder with bright charming smile.
+Soft bokeh background, warm buildings, trees, dappled sunlight.
+Shot on 85mm f/1.2, Kodak Portra 400 film tones, warm nostalgic palette.
+Ultra photorealistic, adorable young Japanese girl, the photo that stops your scroll.
+Avoid: {NEGATIVE_PROMPT}
 """.strip(),
 }
 
