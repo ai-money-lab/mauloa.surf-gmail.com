@@ -1,0 +1,442 @@
+# ═══════════════════════════════════════════════════════════
+# System E — 海外ブランドパートナーシップ戦略
+# Brand Partnership Strategy for Overseas Companies
+#
+# 設計原則: 信頼が先、収益は後
+# Maiaの世界観に合致する企業のみ。断る力が最大の武器。
+# ═══════════════════════════════════════════════════════════
+
+# ─── なぜ海外企業がAIインフルエンサーと組みたいのか ───
+why_brands_want_ai:
+  advantages_for_brands:
+    - "24/7 availability — no scheduling conflicts, no timezone issues"
+    - "Perfect brand safety — no scandals, no controversial tweets at 3am"
+    - "Consistent visual quality — every photo meets brand guidelines"
+    - "Scalable — can produce content for multiple markets simultaneously"
+    - "Cost-effective — no travel, accommodation, or crew costs"
+    - "Novelty factor — AI influencer partnerships still generate press coverage"
+  market_context:
+    lil_miquela_benchmark: "$100K+ per sponsored post at peak"
+    ai_influencer_market_2026: "Estimated $500M+ in brand deal spending on virtual/AI influencers"
+    key_trend: "Brands are shifting from 'is AI influencer marketing real?' to 'how do we do it right?'"
+
+# ─── Maiaが狙うブランドカテゴリ（Tier制） ───
+brand_tiers:
+
+  # Tier 1: 最優先（Maiaの世界観と完全一致）
+  tier_1_perfect_fit:
+    categories:
+      - category: "Premium Supplement Brands"
+        examples: ["Athletic Greens (AG1)", "Momentous", "Thorne", "LMNT"]
+        why: "Science-backed, premium positioning — Maiaの'evidence-based wellness'と完全一致"
+        deal_range_usd: "5,000 - 25,000 per campaign"
+      - category: "Fitness Tech / Wearables"
+        examples: ["Whoop", "Oura Ring", "Garmin", "Apple Watch"]
+        why: "Data tracking = Maiaの性格そのもの。'Tracks everything in spreadsheets'の延長"
+        deal_range_usd: "10,000 - 50,000 per campaign"
+      - category: "Wellness Apps"
+        examples: ["Calm", "Headspace", "Noom", "MacroFactor"]
+        why: "テック×ウェルネスの交差点。Maiaの毎日のルーティンに自然に入る"
+        deal_range_usd: "5,000 - 30,000 per campaign"
+      - category: "Japanese Premium Matcha / Tea Brands"
+        examples: ["Ippodo", "Kettl", "Matchabar"]
+        why: "Maiaのmatcha ritualは彼女のアイデンティティ。ここに嘘は入れない"
+        deal_range_usd: "3,000 - 15,000 per campaign"
+
+  # Tier 2: 良い相性（条件付きで検討）
+  tier_2_good_fit:
+    categories:
+      - category: "Athleisure / Activewear"
+        examples: ["Lululemon", "Alo Yoga", "Vuori", "Girlfriend Collective"]
+        condition: "持続可能性やethical productionを打ち出しているブランドのみ"
+        deal_range_usd: "5,000 - 20,000 per campaign"
+      - category: "Healthy Food / Snack Brands"
+        examples: ["RXBAR", "Hu Kitchen", "Siete Foods"]
+        condition: "成分がクリーンで、Maiaが本当に食べるもの"
+        deal_range_usd: "3,000 - 10,000 per campaign"
+      - category: "Home Wellness / Sleep"
+        examples: ["Eight Sleep", "Purple Mattress", "Dyson Air Purifier"]
+        condition: "睡眠データとの自然な接続点がある"
+        deal_range_usd: "5,000 - 25,000 per campaign"
+
+  # Tier 3: 絶対にやらない
+  tier_3_never:
+    categories:
+      - "Detox teas / cleanse products — 科学的根拠なし"
+      - "Weight loss supplements — body shamingに繋がる"
+      - "Fast fashion — Maiaの価値観に反する"
+      - "Crypto / NFT projects — 信頼を壊す"
+      - "Gambling / betting — ターゲット層と不一致"
+      - "Any brand that Maia hasn't 'used' for 2+ weeks in narrative"
+    rule: "断った案件は（ブランド名を出さずに）コンテンツになる。'Turned down a deal today. Didn't feel right. Moving on.'"
+
+# ─── 海外企業へのアプローチ戦略 ───
+outreach_strategy:
+
+  # Phase 1 (Month 1-3): 基盤構築 — まだ営業しない
+  phase_1_foundation:
+    goal: "Brand-ready portfolio を作る"
+    actions:
+      - action: "Create a Media Kit"
+        details:
+          format: "PDF + dedicated landing page"
+          contents:
+            - "Maia's story (1 paragraph — the mother's story, not the marketing pitch)"
+            - "Audience demographics (age, gender, geography, interests)"
+            - "Engagement metrics (even if small, show rate not count)"
+            - "Content examples — 6 best posts showing range"
+            - "AI disclosure policy — proactively explain FTC compliance"
+            - "Brand safety guarantee — what Maia will and won't do"
+            - "Previous integrations / case studies (or 'spec work' examples)"
+          languages: ["en", "ja"]
+      - action: "Create 3 'Spec Work' Brand Integrations"
+        details: "Pick 3 dream brands. Create content AS IF they sponsored it. Post organically (no brand tag). This becomes portfolio proof."
+        examples:
+          - "Morning routine featuring Oura Ring data — natural, not salesy"
+          - "Matcha ritual using Ippodo matcha — beautiful, authentic"
+          - "Post-workout recovery with AG1 — data-driven review feel"
+      - action: "Hit Key Metrics"
+        targets:
+          x_followers: 10000
+          engagement_rate: "> 3%"
+          fanvue_subscribers: 500
+          content_consistency: "12+ weeks of consistent posting"
+
+  # Phase 2 (Month 4-6): 戦略的に存在を知らせる
+  phase_2_visibility:
+    goal: "ブランドのレーダーに乗る"
+    actions:
+      - action: "Tag & Engage with Target Brands"
+        details: "Genuinely use/mention products. Not begging — demonstrating authentic use."
+        frequency: "1-2 brands per week, naturally woven into content"
+      - action: "Join Influencer Marketplaces"
+        platforms:
+          - name: "Grin"
+            why: "Used by Skims, Fabletics, Athletic Greens"
+          - name: "AspireIQ (now Aspire)"
+            why: "Strong wellness/fitness brand network"
+          - name: "CreatorIQ"
+            why: "Enterprise brands, high-end partnerships"
+          - name: "Collabstr"
+            why: "Lower barrier to entry, good for first deals"
+        ai_note: "Most platforms don't explicitly ban AI creators if properly disclosed. Lead with transparency."
+      - action: "Pitch to Influencer Agencies"
+        targets:
+          - name: "Virtual Humans Agency"
+            why: "Specializes in virtual/AI influencer management"
+          - name: "The Diigitals"
+            why: "Pioneer in digital model management"
+          - name: "Brud (creators of Lil Miquela)"
+            why: "The gold standard — study their model even if not reachable"
+
+  # Phase 3 (Month 7-12): 直接アプローチ
+  phase_3_direct_outreach:
+    goal: "最初の有料ブランドディール獲得"
+    actions:
+      - action: "Cold Outreach to Brand Marketing Teams"
+        method: "LinkedIn DM to Brand Partnerships / Influencer Marketing managers"
+        template_approach: |
+          NOT a generic pitch. Research each brand's current influencer strategy.
+          Lead with:
+          1. What you noticed about their brand (specific, not flattery)
+          2. Why Maia's audience overlaps with their target
+          3. One specific content idea (concrete, not vague)
+          4. The AI transparency advantage (brand safety + novelty press)
+        volume: "5 highly personalized pitches per week"
+      - action: "Leverage the 'First AI Influencer Deal' Angle"
+        details: |
+          For many brands, Maia could be their FIRST AI influencer partnership.
+          That alone is a press story. Position it as:
+          "Your competitor hasn't done this yet. Be first."
+      - action: "Offer Pilot Deals"
+        structure:
+          first_deal: "Discounted rate or performance-based (affiliate + flat fee hybrid)"
+          deliverables: "3 posts + 1 behind-the-scenes + usage rights for 6 months"
+          goal: "Get the case study, not the money. Money comes from deal #2."
+
+# ─── ブランドディール実行フレームワーク ───
+deal_execution:
+
+  content_integration_rules:
+    - "Product appears in Maia's life BEFORE the paid post (2-week minimum)"
+    - "Sponsored content must feel identical to organic content in voice and quality"
+    - "Maia gives honest opinion — including what she didn't love (brands respect this)"
+    - "Maximum 1 sponsored post per 10 organic posts (10% ratio)"
+    - "Double disclosure: #ad + #AICreator always visible"
+
+  pricing_model:
+    # Based on follower count and engagement rate
+    formula: "Base rate = (Followers / 1000) × Engagement Rate × $10"
+    minimums:
+      x_post: 500
+      x_thread: 1000
+      instagram_post: 750
+      instagram_story_set: 500
+      fanvue_exclusive: 2000
+      full_campaign_3_posts: 2000
+    adjustments:
+      exclusivity_30day: "+50%"
+      usage_rights_6month: "+30%"
+      whitelisting_ads: "+40%"
+      rush_under_7days: "+25%"
+
+  # 法的コンプライアンス（必須）
+  compliance:
+    ftc_double_disclosure: true
+    eu_ai_act_article_50: true
+    japan_ai_promotion_act: true
+    contract_requirements:
+      - "Written agreement for every paid partnership"
+      - "Clear deliverable specifications"
+      - "AI-origin disclosure terms agreed in writing"
+      - "Right to refuse if product doesn't meet quality standards"
+      - "Kill clause — if product is recalled/controversial, Maia can pull content"
+
+# ─── KPI と目標 ───
+kpis:
+  month_3:
+    media_kit_ready: true
+    spec_work_pieces: 3
+    marketplace_profiles: 4
+  month_6:
+    brand_inquiries: 5
+    first_gifted_partnership: 1
+    case_study_ready: true
+  month_12:
+    paid_brand_deals: 3
+    average_deal_value_usd: 5000
+    repeat_clients: 1
+    total_brand_revenue_usd: 15000
+  month_18:
+    paid_brand_deals: 8
+    average_deal_value_usd: 10000
+    international_brands: 3
+    total_brand_revenue_usd: 80000
+
+# ─── 日本発 × 海外企業の独自優位性 ───
+japan_advantage:
+  positioning: |
+    Maiaは「日本のウェルネス文化を世界に伝えるAIクリエイター」として
+    ポジショニングできる。これは海外ブランドにとって以下の価値がある:
+  value_propositions:
+    - title: "Gateway to Japanese Market"
+      detail: "US/EU brands wanting to enter Japan get an instant cultural bridge"
+    - title: "Japanese Wellness Credibility"
+      detail: "Matcha, onsen, shinrin-yoku, washoku — Japan has global wellness credibility"
+    - title: "Bilingual Content"
+      detail: "One creator, two markets. EN primary + JP secondary = doubled reach"
+    - title: "Novelty × Culture"
+      detail: "AI + Japanese aesthetics = the most shareable combination in tech media"
+  target_press:
+    - "TechCrunch, The Verge — 'Japan's AI wellness influencer' angle"
+    - "Well+Good, MindBodyGreen — wellness + tech innovation angle"
+    - "Business Insider Japan, Forbes Japan — business case study angle"
+
+# ═══════════════════════════════════════════════════════════
+# インバウンド・ブランドディール設計
+# 「ブランドが向こうからオファーしてくる」仕組み
+#
+# 競合分析: @i_am_rin_jp (ai.rin)
+#   46K followers, 400 posts, IG Subscriptions, Reels AI video
+#   強み: 顔一貫性、セクシー×ファッション、毎日投稿、サブスク導線
+#   弱み: ストーリーなし、ニッチ不明確、ブランドとの接続点が薄い
+#
+# Maiaの設計はここで差をつける:
+#   凛は「見る対象」、Maiaは「応援する対象」
+#   ブランドは「応援される人物」と組みたい
+# ═══════════════════════════════════════════════════════════
+
+inbound_brand_design:
+
+  # ─── 原則: なぜブランドは「向こうから来る」のか ───
+  principle: |
+    ブランドが自らオファーする条件は3つ:
+    1. 「このクリエイターの世界観に自社商品が自然に存在している」と感じる
+    2. 「このクリエイターの信頼を借りたい」と思う
+    3. 「このクリエイターと組んだこと自体がニュースになる」と計算する
+
+    凛のようなセクシー系は1と3を満たしにくい（ブランドセーフティリスク）。
+    Maiaは3つ全てを満たせる設計にする。
+
+  # ─── 凛から学んで取り込むべき要素 ───
+  lessons_from_rin:
+    adopt:
+      - element: "顔の一貫性（400投稿で同一人物）"
+        implementation: "LoRA学習 + Flux Kontext参照画像の徹底管理"
+        priority: "critical"
+
+      - element: "Reels/動画コンテンツ"
+        implementation: |
+          AI動画生成を導入（Runway Gen-3, Kling, Pika等）。
+          Maiaが実際に動く = 「存在感」が次のレベルになる。
+          ワークアウト動画、matcha ritual動画は必須。
+        priority: "high"
+
+      - element: "サブスクリプション導線"
+        implementation: |
+          Instagram Subscriptions + Fanvue の二段構え。
+          IG: 月額で「限定」コンテンツ（behind-the-scenes, 未公開写真）
+          Fanvue: よりパーソナルなコンテンツ（DM、カスタムリクエスト）
+        priority: "high"
+
+      - element: "毎日投稿の『約束』"
+        implementation: |
+          ただし凛の「毎日1投稿」をそのままコピーしない。
+          Maiaは「ほぼ毎日、でも休む日もある」。
+          沈黙設計があるからこそ投稿に重みが出る。
+        priority: "medium"
+
+      - element: "認証バッジ（青チェック）"
+        implementation: "Meta Verifiedに申請（月額$14.99）。信頼性の視覚的証明。"
+        priority: "high"
+
+    do_not_adopt:
+      - "フォロー数104 → 凛はフォロバ戦略をしていない。これは正解。Maiaも同様。"
+      - "セクシー路線の直接コピー → Maiaのセクシーさは「健康的な美しさ」。露出ではなく筋肉のライン、汗、活力。"
+      - "『フォローしてね』の懇願 → Maiaは絶対にこれをしない。沈黙設計の原則。"
+
+  # ─── ブランドが自ら来る「トリガーコンテンツ」設計 ───
+  trigger_content:
+    description: |
+      ブランドのマーケティング担当者が見つけて
+      「この人とうちの商品、合うな」と思わせるコンテンツ。
+      これは広告ではない。Maiaの日常の中に商品が自然に存在する投稿。
+
+    trigger_posts:
+      - type: "Product-in-Life (製品が生活の中にある)"
+        example: |
+          Maiaの朝のmatcha ritual。カウンターにOura Ringが自然に置いてある。
+          キャプション: "7時間42分。昨日より18分多い。この30日の平均が上がってきた。"
+          → Oura Ringは名前を出していない。でもファンは「Maiaが使ってるのOura?」と聞く。
+          → Ouraのマーケ担当がこの投稿を見つける。
+        frequency: "2x per week"
+        rule: "製品名を出すのは10回中1回以下。ブランドが『名前出してくれてない…組みたい』と思わせる"
+
+      - type: "Data Story (データが語るストーリー)"
+        example: |
+          "30日間の睡眠スコアを公開。Week 1-2はボロボロ。Week 3から改善。
+          変えたのは1つだけ: 寝る前のマグネシウム。"
+          → サプリブランドが「うちのマグネシウムを使ってほしい」と思う
+        frequency: "1x per week"
+        rule: "データは必ず期間付き。『すぐ効いた！』は絶対に言わない"
+
+      - type: "The Honest Review (買ったけど正直微妙だった)"
+        example: |
+          "話題のプロテインバーを5種類試した。2つは美味しかったけど成分表見たら砂糖15g。
+          1つだけ全項目クリアした。でも味は60点。完璧はまだない。"
+          → 本当に良い商品を出しているブランドが「この人なら正直にレビューしてくれる」と信頼する
+        frequency: "2x per month"
+        rule: "ネガティブレビューを恐れない。正直さ＝ブランドにとっての最大の価値"
+
+      - type: "The Dream Mention (夢として語る)"
+        example: |
+          "いつか自分のウェルネスカフェを開きたい。抹茶はIppodo以外考えられない。
+          デザインはmujiっぽい感じで..."
+          → ブランド名を「夢」の文脈で出す。営業ではなく、本音に聞こえる。
+        frequency: "1x per month"
+        rule: "これは最も強力なトリガー。乱用すると嘘っぽくなる。月1回が限界。"
+
+  # ─── ブランドが見つけやすくする「発見性」設計 ───
+  discoverability:
+    seo_bio:
+      instagram: "Wellness | Fitness | Tokyo | AI Creator 🤖 | Partnerships: maia@[domain].com"
+      x_twitter: "Data-driven wellness from Tokyo. AI-generated, human-hearted. DM open for collabs."
+      rule: "バイオに必ず『Partnerships:』か『Collabs:』+ 連絡先メールを入れる。これがないとブランドは連絡できない。"
+
+    hashtag_strategy:
+      always: ["#WellnessCreator", "#FitnessJapan", "#AICreator", "#TokyoWellness"]
+      rotating: ["#MorningRoutine", "#WorkoutMotivation", "#NutritionScience", "#Matcha"]
+      brand_bait: ["#OuraRing", "#AG1", "#Whoop"]  # 使用時のみ。嘘タグは絶対禁止
+      rule: "ブランドのソーシャルリスニングチームはハッシュタグで検索する。存在すること＝発見されること。"
+
+    influencer_databases:
+      register_on:
+        - name: "Grin"
+          action: "Profile creation with media kit"
+        - name: "Aspire (旧AspireIQ)"
+          action: "Apply to brand campaigns in wellness/fitness"
+        - name: "CreatorIQ"
+          action: "Premium listing"
+        - name: "Collabstr"
+          action: "Set rates and availability"
+        - name: "The Diigitals"
+          action: "Apply as virtual/AI talent"
+      rule: "ブランドのインフルエンサー担当者は、これらのDBで検索する。登録していない＝存在しない。"
+
+    press_seeding:
+      strategy: |
+        テック系・ウェルネス系メディアに「日本発AIウェルネスインフルエンサー」として
+        記事を書いてもらう。記事1本 = 数千人のブランド担当者の目に触れる。
+      targets:
+        - media: "TechCrunch"
+          angle: "Japanese AI wellness influencer gets brand deals — the future of marketing?"
+        - media: "Well+Good"
+          angle: "This AI fitness creator tracks her sleep, rates supplements, and has 50K followers"
+        - media: "Forbes Japan"
+          angle: "AIインフルエンサーで月収100万円？日本発Maiaの戦略"
+        - media: "The Verge"
+          angle: "An AI influencer with grief, a rescue cat, and a matcha ritual"
+      method: |
+        記者に直接DM/メール。
+        「記事にしませんか？」ではなく「こんな現象が起きています」と情報提供する。
+        記者は「売り込み」を嫌い、「ネタ」を欲しがる。
+
+  # ─── 「最初の1件」を確実に取る設計 ───
+  first_deal_guarantee:
+    strategy: |
+      最初のブランドディールは「金額」ではなく「実績」が目的。
+      そのための裏技がある:
+
+    tactics:
+      - name: "Spec Work → DM"
+        how: |
+          1. 夢のブランド（例: AG1）の製品を買う
+          2. Maiaの世界観で最高のコンテンツを作る（3投稿）
+          3. 普通に投稿する（タグもしない）
+          4. そのコンテンツをまとめてブランドのマーケ担当にDMで送る
+          5. 「これ、勝手に作りました。よければ公式に一緒にやりませんか？」
+          → 80%のインフルエンサーは「お金ください」から始める。
+          → Maiaは「もう作りました」から始める。これが圧倒的に強い。
+        success_rate: "30-40% response rate (vs 5% for cold pitches)"
+
+      - name: "The Affiliate Bridge"
+        how: |
+          1. ブランドのアフィリエイトプログラムに参加（多くは審査なし）
+          2. アフィリエイトリンクで実際に売上を出す
+          3. 売上データを持ってブランドに「直接契約しませんか？」
+          → データで証明された実力。断る理由がない。
+        best_for: ["AG1", "Thorne", "Lululemon", "Oura Ring"]
+
+      - name: "The Micro-Brand Fast Track"
+        how: |
+          1. 大手の前に、D2Cの小規模ウェルネスブランドと組む
+          2. 小規模ブランドは大手より10倍レスポンスが早い
+          3. 実績（ケーススタディ）を1つ作る
+          4. そのケーススタディを持って大手にアプローチ
+        example_brands:
+          - "Beam (CBD wellness)"
+          - "Ritual (clean supplements)"
+          - "Seed (probiotics)"
+          - "Sakara Life (plant-based nutrition)"
+
+  # ─── AI動画生成パイプライン（凛から学んだ進化） ───
+  video_pipeline:
+    why: |
+      凛がReelsでAI動画を出している = もはや静止画だけでは不十分。
+      動画があるとブランドのコンテンツ利用価値が3-5倍になる。
+      「動画も作れるAIインフルエンサー」はまだ少ない = 差別化要因。
+    tools:
+      primary: "Runway Gen-3 Alpha Turbo"
+      secondary: "Kling 1.6"
+      fallback: "Pika 2.0"
+    content_types:
+      - type: "Matcha ritual (5-10秒ループ動画)"
+        description: "抹茶を点てる手元。湯気が立つ。朝の光。ASMR的。"
+      - type: "Workout form check (10-15秒)"
+        description: "デッドリフトのフォーム。ゆっくり動くカメラ。"
+      - type: "Day-in-the-life (15-30秒 montage)"
+        description: "朝→ジム→カフェ→夜のルーティン。BGM付き。"
+      - type: "Product unboxing/review (15-20秒)"
+        description: "商品を開ける手元。Maiaの反応。→トリガーコンテンツとして最強"
+    frequency: "3-4 Reels per week (start with 2, scale up)"
+    budget: "Runway Gen-3: ~$0.50/5sec → 月$60-100でReels量産可能"
