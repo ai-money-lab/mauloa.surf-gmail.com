@@ -40,49 +40,61 @@ CONFIG_PATH = Path(__file__).parent / "character_config.yaml"
 # ─── Maiaの顔プロンプト（最重要：ここがアイデンティティを決める） ───
 
 MAIA_FACE_PROMPT = """
-A portrait photograph of a 26-year-old Japanese woman named Maia.
-She has dark brown medium-length hair in a loose messy bun with a few strands falling naturally.
-Athletic, fit build. Warm, intelligent brown eyes with a slight spark of curiosity.
-Natural skin, minimal makeup — just a touch of lip color.
-She wears a simple white athletic top and her late mother's minimal silver watch on her left wrist.
-Expression: a gentle, genuine half-smile — not a posed influencer smile,
-but the kind of smile you make when you're thinking about something you love.
-There's a quiet strength in her face, mixed with a softness that says she's been through something.
-
-Setting: Morning light streaming through a window in a small Tokyo apartment kitchen.
-A cup of matcha sits on the counter beside her. An orange tabby cat is slightly blurred in the background.
-
-Style: Natural photography, shot on 85mm lens, shallow depth of field, warm golden hour tones.
-NOT stock photo. NOT AI-looking. NOT over-processed. Feels like a candid moment a friend captured.
-No text, no watermarks, no logos.
+Beautiful 26-year-old Japanese woman, stunning natural beauty, soft glowing skin.
+Dark brown hair styled in a effortless messy bun, loose strands framing her delicate face.
+Big expressive brown eyes, long eyelashes, subtle cat-eye shape.
+Slim athletic body, toned but feminine. High cheekbones, small nose, full soft lips.
+Wearing a fitted white crop top, showing toned midriff. Delicate silver watch on wrist.
+Warm genuine smile, looking directly at camera with confident yet gentle gaze.
+Golden morning sunlight through window, Tokyo apartment kitchen.
+Matcha latte on marble counter. Soft bokeh background.
+Shot on Sony A7IV, 85mm f/1.4 lens, shallow depth of field.
+Magazine-quality editorial portrait, warm color grading, skin glow effect.
+Photorealistic, ultra detailed, 8K quality.
 """.strip()
 
 MAIA_SCENE_PROMPTS = {
     "portrait_warm": MAIA_FACE_PROMPT,
+    "selfie_cute": """
+Adorable 26-year-old Japanese woman taking a mirror selfie in her bedroom.
+Dark brown hair down, slightly wavy, past shoulders. Flawless dewy skin.
+Big beautiful brown eyes, natural makeup with glossy lips.
+Wearing an oversized off-shoulder knit sweater, showing collarbone.
+Playful expression, slight head tilt, peace sign near face.
+Warm soft lighting, fairy lights in background. Cozy aesthetic.
+iPhone selfie style, natural and intimate. Ultra pretty, model-tier beauty.
+""".strip(),
     "workout": """
-A 26-year-old Japanese woman with dark brown hair in a high ponytail, athletic build.
-She's mid-deadlift at a clean, well-lit gym, focused expression, real sweat on her forehead.
-Wearing simple black athletic wear and a minimal silver watch.
-Natural gym lighting, slightly warm tones. Shot from a low angle.
-Feels like a training partner took this photo mid-set.
-No text, no watermarks. Real, not glamorous.
+Gorgeous 26-year-old Japanese fitness girl at a modern gym.
+Dark brown hair in sleek high ponytail, baby hairs framing face.
+Athletic toned body, visible abs, lean muscle definition.
+Wearing black sports bra and high-waisted leggings, silver watch.
+Mid-workout glow, light sweat on skin making it shine.
+Confident powerful expression, looking at camera between sets.
+Clean modern gym background, dramatic side lighting.
+Fitness magazine editorial quality, Sony A7IV, 85mm lens.
+Photorealistic, ultra detailed, beautiful lighting.
 """.strip(),
     "evening_vulnerable": """
-A 26-year-old Japanese woman sitting on her apartment floor in the evening.
-Dark brown hair down, loose. Wearing an oversized sweater and comfortable shorts.
-She's looking at an old notebook (her mother's food diary), expression thoughtful and tender.
-An orange tabby cat curled up beside her. Warm lamp light, slightly dim.
-The apartment is lived-in — a stack of books, a half-drunk cup of tea.
-Intimate, quiet, not posed. Feels private, like you're seeing a real moment.
-No text, no watermarks.
+Stunningly beautiful 26-year-old Japanese woman in cozy evening setting.
+Dark brown hair loose and flowing, soft waves. Luminous bare skin.
+Wearing oversized cream cashmere sweater slipping off one shoulder, tiny shorts.
+Sitting on plush rug, legs tucked under her, reading an old journal.
+Soft dreamy expression, long eyelashes casting shadows on cheeks.
+Orange tabby cat curled in her lap. Warm golden lamp light.
+Intimate bedroom aesthetic, candles, fairy lights, soft textures.
+Cinematic portrait, warm tones, shallow depth of field, editorial quality.
 """.strip(),
     "matcha_ritual": """
-Close-up of a 26-year-old Japanese woman's hands whisking matcha in a ceramic bowl.
-Morning light from a window. Her minimal silver watch visible on her wrist.
-The kitchen counter shows a small matcha set, a phone with a spreadsheet visible on screen.
-Warm, peaceful, ritualistic feeling. The kind of photo that makes you want to slow down.
-Slightly overhead angle. Shallow depth of field on the matcha foam.
-No text, no watermarks.
+Beautiful 26-year-old Japanese woman preparing matcha in minimalist kitchen.
+Dark brown hair in loose low bun, wispy bangs. Glowing morning skin.
+Wearing silk camisole in sage green, delicate silver watch.
+Graceful hands whisking matcha in handmade ceramic bowl.
+Serene focused expression, natural beauty, no makeup look.
+Soft morning golden light streaming through sheer curtains.
+Steam rising from matcha. Clean minimalist Japanese aesthetic.
+Overhead angle, shallow depth of field on her hands and matcha foam.
+Lifestyle editorial photography, warm film tones, magazine quality.
 """.strip(),
 }
 
