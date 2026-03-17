@@ -125,11 +125,13 @@ def generate_with_fal(prompt: str, api_key: str, aspect_ratio: str = "3:4") -> s
 
 def generate_with_gemini(prompt: str, api_key: str) -> str | None:
     """Generate image using Gemini API (free tier)."""
-    # Try models in order: stable image-capable → preview
+    # Try models in order: highest quality first
+    # Pro > Flash, newer > older, Ultra > Standard
     models = [
-        "gemini-2.5-flash-image",
-        "gemini-3.1-flash-image-preview",
-        "nano-banana-pro-preview",
+        "gemini-3-pro-image-preview",       # Pro = 最高品質
+        "gemini-3.1-flash-image-preview",    # 3.1 Flash = 最新
+        "gemini-2.5-flash-image",            # 安定版
+        "nano-banana-pro-preview",           # Nano Banana Pro
     ]
     payload = {
         "contents": [{"parts": [{"text": f"Generate this image: {prompt}"}]}],
