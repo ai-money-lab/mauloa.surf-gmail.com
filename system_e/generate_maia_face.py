@@ -125,11 +125,11 @@ def generate_with_fal(prompt: str, api_key: str, aspect_ratio: str = "3:4") -> s
 
 def generate_with_gemini(prompt: str, api_key: str) -> str | None:
     """Generate image using Gemini API (free tier)."""
-    # Try models in order: latest stable → experimental
+    # Try models in order: newest image-capable → older
     models = [
+        "gemini-2.0-flash-preview-image-generation",
         "gemini-2.0-flash-exp-image-generation",
-        "gemini-2.0-flash-exp",
-        "gemini-2.0-flash",
+        "gemini-2.0-flash-thinking-exp",
     ]
     payload = {
         "contents": [{"parts": [{"text": f"Generate this image: {prompt}"}]}],
