@@ -78,79 +78,78 @@ IMAGE_DIR = PROJECT_ROOT / "data" / "system_e" / "images"
 # Nike/Adidas/Lululemonが組みたくなる唯一のAI美女。
 # ═══════════════════════════════════════════════════════════
 
-MAIA_IDENTITY = """extremely beautiful young Japanese girl, 20 years old, adorable baby face with stunning supermodel body.
-Face: small round baby face, soft cheeks with cute dimples, adorable button nose, plump glossy lips, clear double eyelids. Looks innocent and youthful like an idol.
-Eyes: big round sparkling dark brown doe eyes, long thick eyelashes, bright innocent gaze.
-Skin: flawless dewy porcelain skin with healthy glow, youthful radiance. Tiny beauty mark below left eye.
-Hair: glossy dark brown hair, silky and voluminous, medium-long past shoulders.
-Body: tall slender supermodel proportions — tiny narrow waist, perfect hourglass figure, full bust, round shapely hips, long toned legs. Slim but curvy in all the right places. Flat toned stomach. Long elegant neck, prominent collarbones.
-HEIGHT: 170cm, long limbed, model proportions.
-KEY GAP: her face is an adorable 20-year-old baby face, but her body is a Victoria's Secret supermodel. This extreme contrast is her entire brand. You look at her face and think 'cute girl next door', you look at her body and think 'runway model'. That gap is what makes people unable to scroll past.
+# ベンチマーク: @i.am_natsuki_ (186万フォロワー), @373off
+# あの超スレンダー体型 × ベビーフェイスが基準。それ以下は論外。
+MAIA_IDENTITY = """extremely beautiful young Japanese girl, 20 years old, baby face, full body shot from head to toe.
+Face: adorable small round baby face, big sparkling doe eyes, cute button nose, plump glossy pink lips, dimples, double eyelids. Looks like a Japanese idol.
+Skin: flawless glowing dewy skin, porcelain smooth, youthful.
+Hair: glossy dark brown, silky, long past shoulders, natural soft waves.
+Body: EXTREMELY slender and slim, super skinny tiny waist, very long slim legs, thigh gap, flat toned stomach, full bust, nice round perky hips, prominent collarbones, slim arms. 170cm tall with extremely long legs. Supermodel body proportions like a Victoria's Secret angel. Think Natsuki Abe body type — impossibly slim yet curvy.
+IMPORTANT: always show FULL BODY from head to feet. The body is the signature. Never crop at waist.
 Signature: delicate thin vintage silver watch on left wrist.
 """.strip()
 
 # おばさん化を防ぐ＋アスリート感を保つネガティブプロンプト
 NEGATIVE_PROMPT = "old, aged, wrinkles, mature face, sagging skin, dark circles, tired, rough skin, large pores, thick neck, overweight, soft body, no muscle definition, cartoon, anime, illustration, 3D render, lowres, blurry, deformed, ugly, bad anatomy, masculine jaw"
 
-MAIA_FACE_PROMPT = f"""Upper body portrait of {MAIA_IDENTITY}
-Glossy dark brown hair down with soft waves, curtain bangs framing her adorable baby face.
-Wearing a fitted white V-neck crop top that shows her stunning figure — tiny waist, full bust, elegant collarbones and long neck.
-Expression: irresistible sweet smile with dimples, big sparkly innocent doe eyes looking at camera. Head tilted cutely.
-The contrast: her face is pure innocence, her body is supermodel. This is what makes her unforgettable.
-Setting: bright Tokyo apartment, golden morning light, matcha on counter, clean aesthetic.
-85mm f/1.4, creamy bokeh, warm golden light, dewy glowing skin, sun halo on hair.
-Ultra photorealistic, fashion magazine cover quality, 8K.
+MAIA_FACE_PROMPT = f"""FULL BODY photograph from head to feet of {MAIA_IDENTITY}
+Long glossy dark brown hair down, soft waves, curtain bangs.
+Wearing white fitted crop top and high-waisted mini skirt showing her extremely slim waist, long bare legs from thigh to feet, white sneakers.
+Full body visible head to toe. Her super slender figure is the focus — impossibly thin waist, long model legs, perfect proportions.
+Adorable baby face smiling sweetly at camera, big doe eyes, dimples. Cute face, killer body.
+Bright Tokyo apartment, golden morning light, clean white aesthetic.
+Full body shot, 35mm lens, warm golden tones, photorealistic, 8K, fashion editorial.
 Avoid: {NEGATIVE_PROMPT}
 """.strip()
 
 MAIA_SCENE_PROMPTS = {
     "portrait_warm": MAIA_FACE_PROMPT,
 
-    "selfie_cute": f"""Full body mirror selfie of {MAIA_IDENTITY}
-Glossy hair down, soft waves, curtain bangs. Dewy glowing skin.
-Wearing a cropped oversized hoodie and high-waisted bike shorts — showing her incredible proportions: tiny waist, curvy hips, long toned legs. Full figure visible in mirror.
-Adorable cute expression, peace sign, head tilted. Her baby face doesn't match her supermodel body. That's the magic.
-Bright sunlit room, full length mirror, clean aesthetic.
-iPhone portrait mode, warm golden light, dreamy soft tones.
-Ultra photorealistic, viral Instagram quality.
+    "selfie_cute": f"""FULL BODY mirror selfie from head to feet of {MAIA_IDENTITY}
+Long glossy hair down, soft waves. Dewy glowing skin.
+Wearing cropped tank top and tiny denim shorts — her entire super slender body visible in full length mirror: extremely thin waist, long slim legs, thigh gap, nice figure. Head to toe reflected.
+Adorable cute face, peace sign, sweet smile. Baby face on a supermodel body.
+Bright room, full length mirror, warm sunlight.
+iPhone selfie, full body visible, warm golden tones, photorealistic.
 Avoid: {NEGATIVE_PROMPT}
 """.strip(),
 
-    "workout_power": f"""Gym photo of {MAIA_IDENTITY}
-Hair in high ponytail, baby hairs framing face.
-Full body visible: wearing black sports bra and matching leggings that show her incredible figure — narrow waist, full bust, sculpted round hips, long toned legs, flat stomach.
-Standing between sets, one hand on hip. Her face: cute innocent baby face with big doe eyes and sweet expression. Her body: absolute supermodel. The gap is shocking.
-Premium gym, golden light through windows, mirrors showing her silhouette from behind.
-Sony A7IV, full body shot, 50mm f/1.4. Dramatic golden light.
-This is a Fabletics or Gymshark campaign. Ultra photorealistic.
+    "workout_power": f"""FULL BODY gym photograph from head to feet of {MAIA_IDENTITY}
+Hair in high ponytail.
+Wearing black sports bra and black leggings. Her ENTIRE body visible head to toe: super slender waist, flat toned stomach, full bust, round hips, very long slim toned legs. Think Natsuki Abe proportions.
+Standing full body, one hand on hip, cute confident smirk on her baby face.
+Premium gym, golden light, mirrors.
+Full body shot, 35mm f/1.8, dramatic lighting showing her incredible slim silhouette.
+Ultra photorealistic. Gymshark campaign quality.
 Avoid: {NEGATIVE_PROMPT}
 """.strip(),
 
-    "casual_reveal": f"""Candid lifestyle photo of {MAIA_IDENTITY}
-Hair down, slightly messy, cute. She's stretching with arms above her head, wearing an oversized vintage tee that rides up — showing her tiny waist, flat toned stomach, and the curve of her hips above low-rise shorts. Long bare legs.
-Her face: innocent sweet expression, eyes closed, peaceful smile. She's not trying to be sexy. She just IS.
-Sunlit apartment by window, morning golden hour, plants.
-Natural warm light, candid feel, 50mm f/1.4.
-Ultra photorealistic. Baby face model body. The accidental reveal is more powerful than any pose.
+    "bikini_pool": f"""FULL BODY photograph from head to feet of {MAIA_IDENTITY}
+Long glossy hair down, slightly wet, sun-kissed.
+Wearing simple white bikini. Her full body visible: extremely slender tiny waist, flat stomach, full bust, beautiful hips, very long slim legs, thigh gap. Perfect supermodel proportions.
+Standing by infinity pool edge, one hand in hair. Adorable sweet smile on her baby face looking at camera.
+Bright blue sky, turquoise pool water, tropical resort setting, golden sunlight.
+Full body shot head to toe, 35mm lens, bright vivid colors, sun-kissed skin glow.
+Ultra photorealistic, Sports Illustrated swimsuit quality.
 Avoid: {NEGATIVE_PROMPT}
 """.strip(),
 
-    "evening_intimate": f"""Cozy evening photo of {MAIA_IDENTITY}
-Hair down, soft waves. Wearing oversized cream knit cardigan that slips off one shoulder revealing smooth skin, tiny shorts showing her long toned legs.
-Even in cozy mode her supermodel proportions are visible — the cardigan drapes over her curves, her waist looks impossibly small.
-Sitting on soft rug, hugging knees, sweet expression, big innocent eyes. Cat beside her. Warm lamp light.
-50mm f/1.4, warm tones, intimate.
-Ultra photorealistic. Cute girl-next-door face, model body. Even in pajamas.
+    "evening_intimate": f"""FULL BODY photograph from head to feet of {MAIA_IDENTITY}
+Hair down, soft waves. Wearing oversized cream knit sweater as dress, barely covering her thighs, showing extremely long bare slim legs all the way down to bare feet.
+Even in cozy mode her super slender figure is obvious — tiny waist, long legs, model proportions.
+Standing by window in warm lamplight, hugging a mug, sweet innocent expression, big doe eyes.
+Cat at her feet. Warm golden tones, intimate evening light.
+Full body shot, 50mm f/1.4, warm tones. Photorealistic. Baby face, supermodel legs.
 Avoid: {NEGATIVE_PROMPT}
 """.strip(),
 
-    "tokyo_golden": f"""Full body street fashion of {MAIA_IDENTITY}
-Hair flowing in breeze, golden backlight creating rim light on her silhouette.
-Wearing fitted beige trench coat belted at her tiny waist — accentuating her hourglass figure, long legs in straight jeans, white sneakers.
-Walking through Tokyo at golden hour, looking back over shoulder with adorable bright smile.
-Her silhouette is stunning — narrow waist, curves, long legs. Her face is pure cute innocence.
-Bokeh cityscape, warm tones.
-85mm f/1.2, full body shot. Ultra photorealistic. This stops every scroll.
+    "tokyo_golden": f"""FULL BODY photograph from head to feet of {MAIA_IDENTITY}
+Long hair flowing in breeze, golden backlight halo.
+Wearing fitted cropped jacket, tiny waist belt, mini skirt showing her incredibly long slim legs, heeled boots.
+Walking through Tokyo at golden hour, full body visible, looking back over shoulder with adorable bright smile.
+Her silhouette from behind shows her super slender figure — impossibly thin waist, long legs, perfect proportions.
+Bokeh Tokyo street, warm golden tones.
+Full body shot, 50mm f/1.4, Kodak Portra warmth. Ultra photorealistic. Scroll-stopping.
 Avoid: {NEGATIVE_PROMPT}
 """.strip(),
 }
