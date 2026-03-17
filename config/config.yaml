@@ -55,6 +55,22 @@ system_d:
   results_posts_per_week: 4
   target_pillars: [1, 2]  # 1=売却・相続, 2=オーナー管理（自社サービスPR含む）
 
+system_e:
+  enabled: true
+  posts_per_day: 4
+  post_times_jst: ["07:00", "12:00", "19:00", "23:00"]
+  image_provider: "fal_ai"  # fal_ai or gemini
+  image_model: "flux-pro-v1.1-ultra"
+  kontext_enabled: true
+  fanvue_enabled: true
+  content_language: "en"  # Primary content language
+  x_account: ""  # System E dedicated X account handle
+  reference_image_url: ""  # Kontext reference for character consistency
+  daily_pipeline_mode: "full"  # full, generate, post
+  cost_tracking:
+    monthly_budget_usd: 100
+    alert_threshold_pct: 80
+
 inquiry_bot:
   enabled: true
   server_port: 8080

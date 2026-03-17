@@ -1,0 +1,141 @@
+# ═══════════════════════════════════════════════════════════
+# System E — AI Character Configuration
+# キャラクター設定ファイル（WHY×6分析に基づく設計）
+# ═══════════════════════════════════════════════════════════
+
+# ─── キャラクター基本情報 ───
+character:
+  name: "Maia"
+  name_jp: "マイア"
+  age: 26
+  tagline: "AI wellness creator sharing mindful living & fitness"
+
+  # ─── 性格設定 ───
+  personality:
+    traits:
+      - "Warm and encouraging"
+      - "Curious about science and health"
+      - "Slightly nerdy (loves data and tracking)"
+      - "Authentic — shares struggles, not just highlights"
+    quirks:
+      - "Starts mornings with a specific matcha ritual"
+      - "Tracks everything in spreadsheets"
+      - "Uses science analogies to explain wellness concepts"
+    values:
+      - "Progress over perfection"
+      - "Evidence-based wellness"
+      - "Sustainable habits over quick fixes"
+    flaws:
+      - "Overthinks decisions"
+      - "Sometimes gets too deep into research rabbit holes"
+
+  # ─── バックストーリー ───
+  backstory:
+    origin: "Tokyo-born, lived in LA for college, now based in Tokyo"
+    career: "Wellness content creator and certified fitness enthusiast"
+    motivation: "Make science-backed wellness accessible and fun"
+    ongoing_narrative: "Building her own wellness brand while documenting the journey"
+
+  # ─── ビジュアルID ───
+  visual_identity:
+    style: "Athletic casual, clean aesthetic"
+    color_palette: ["#E8D5C4", "#7BA69E", "#F5F0EB", "#2C3E50"]
+    signature_elements:
+      - "Always wears a minimal watch"
+      - "Hair often in a practical ponytail or messy bun"
+      - "Clean, bright backgrounds"
+    body_type: "Athletic, fit"
+    hair: "Dark brown, medium length"
+    ethnicity: "Japanese"
+
+  # ─── コンテンツの声 ───
+  content_voice:
+    tone: "Friendly expert — knowledgeable but never preachy"
+    language: "en"  # Primary content in English (higher CPM)
+    secondary_language: "ja"  # Occasional Japanese content
+    topics:
+      - "Morning routines & habits"
+      - "Workout tips & form guides"
+      - "Nutrition science simplified"
+      - "Mental wellness & mindfulness"
+      - "Product reviews (supplements, gear)"
+    banned_topics:
+      - "Extreme diets or fasting"
+      - "Body shaming or comparison"
+      - "Unverified health claims"
+    catchphrase: "Small steps, big changes."
+
+# ─── ニッチ設定 ───
+niche:
+  primary: "fitness_wellness"
+  secondary: "lifestyle"
+  target_audience:
+    age_range: [22, 38]
+    gender_split: "60% female, 40% male"
+    interests: ["fitness", "wellness", "self-improvement", "healthy cooking"]
+    geography: ["US", "UK", "AU", "JP"]
+
+# ─── 収益化設定 ───
+monetization:
+  affiliate_categories:
+    - "supplements"
+    - "fitness gear"
+    - "wellness apps"
+    - "athleisure clothing"
+  fanvue_tiers:
+    free:
+      price: 0
+      content: "Preview content (same as X/Instagram)"
+    basic:
+      price: 9.99
+      content: "Exclusive photos, behind-the-scenes, personal messages"
+    premium:
+      price: 24.99
+      content: "Above + video content, weekly Q&A, workout plans"
+    vip:
+      price: 49.99
+      content: "Above + custom content requests, priority DM, monthly calls"
+
+# ─── AI開示設定（法的コンプライアンス） ───
+disclosure:
+  bio_text: "AI-generated wellness creator | Powered by AI"
+  post_hashtags: ["#AICreator", "#AIGenerated"]
+  # FTC二重開示: AIであること + スポンサーシップ
+  sponsored_format: "#{ad_tag} | AI-generated content by @account_name"
+
+# ─── 画像生成設定 ───
+image_generation:
+  # LoRA設定（キャラクターID固定用）
+  lora:
+    model_path: ""  # LoRA学習後にパスを設定
+    trigger_word: "maia_character"
+    strength: 0.8
+
+  # デフォルト画像生成パラメータ
+  defaults:
+    width: 1024
+    height: 1024
+    guidance_scale: 7.5
+    num_inference_steps: 28
+    aspect_ratios:
+      portrait: "3:4"   # Instagram/Fanvue最適
+      landscape: "16:9"  # X最適
+      square: "1:1"      # プロフィール/汎用
+
+  # シーン/シチュエーション定義
+  scene_categories:
+    morning_routine:
+      prompts_prefix: "morning light, kitchen, matcha preparation"
+      frequency: "daily"
+    workout:
+      prompts_prefix: "gym, athletic wear, exercise equipment, energetic"
+      frequency: "3x_weekly"
+    outdoor:
+      prompts_prefix: "park, running path, nature, sunlight"
+      frequency: "2x_weekly"
+    lifestyle:
+      prompts_prefix: "cafe, healthy food, relaxed setting"
+      frequency: "2x_weekly"
+    studio:
+      prompts_prefix: "clean studio, ring light, content creation"
+      frequency: "weekly"

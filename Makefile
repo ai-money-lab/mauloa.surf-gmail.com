@@ -45,10 +45,13 @@ help:
 	@echo "   make test           全テスト実行"
 	@echo "   make lint           コード品質チェック"
 	@echo ""
-	@echo " System A-D:"
+	@echo " System A-E:"
 	@echo "   make system-a       X投稿パイプライン実行"
 	@echo "   make system-c       データ収集実行"
 	@echo "   make system-d       実績コンテンツ生成"
+	@echo "   make system-e       System E フルパイプライン"
+	@echo "   make system-e-gen   System E コンテンツ生成のみ"
+	@echo "   make system-e-post  System E 投稿のみ"
 	@echo ""
 	@echo " その他:"
 	@echo "   make clean          キャッシュ/一時ファイル削除"
@@ -126,9 +129,9 @@ test:
 
 lint:
 	@pip install ruff -q 2>/dev/null
-	ruff check inquiry_bot/ core/ system_a/ system_b/ system_c/ system_d/ --select E,W,F --ignore E501
+	ruff check inquiry_bot/ core/ system_a/ system_b/ system_c/ system_d/ system_e/ --select E,W,F --ignore E501
 
-# ─── System A-D ───
+# ─── System A-E ───
 system-a:
 	python system_a/daily_pipeline.py
 
@@ -137,6 +140,15 @@ system-c:
 
 system-d:
 	python system_d/generate_results_content.py
+
+system-e:
+	python system_e/daily_pipeline.py --mode full
+
+system-e-gen:
+	python system_e/daily_pipeline.py --mode generate
+
+system-e-post:
+	python system_e/daily_pipeline.py --mode post
 
 # ─── crontab一括登録 ───
 cron-install:
