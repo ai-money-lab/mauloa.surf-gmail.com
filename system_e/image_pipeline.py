@@ -4,6 +4,8 @@ Generates character-consistent images using RunPod Serverless (primary)
 or FAL.ai (fallback). Supports Flux.1 Dev with LoRA for identity preservation.
 """
 
+from __future__ import annotations
+
 import base64
 import json
 import logging
