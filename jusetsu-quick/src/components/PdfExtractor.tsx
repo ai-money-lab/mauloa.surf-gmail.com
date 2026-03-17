@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import type { PropertyData } from "@/lib/types";
 
 /* ─── pdfjs worker URL（CDNフォールバック付き） ─── */
@@ -102,6 +102,7 @@ type ExtractResult = {
   extracted: Record<string, unknown>;
   document_type: string;
   field_count: number;
+  ai_mode?: "ai" | "rules";
 };
 
 interface Props {
@@ -118,7 +119,16 @@ export default function PdfExtractor({ currentData, onApply, onClose }: Props) {
   const [selected, setSelected] = useState<Record<string, boolean>>({});
   const [pasteText, setPasteText] = useState("");
   const [ocrProgress, setOcrProgress] = useState("");
+  const [aiStatus, setAiStatus] = useState<{ ai: boolean; db: boolean } | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+
+  /* AI可用性チェック（マウント時） */
+  useEffect(() => {
+    fetch("/api/extract")
+      .then(r => r.json())
+      .then(data => setAiStatus(data))
+      .catch(() => setAiStatus({ ai: false, db: false }));
+  }, []);
 
   /* PDF テキスト抽出（pdfjs-dist） */
   const extractTextFromPdf = useCallback(async (file: File): Promise<string> => {
@@ -403,6 +413,21 @@ export default function PdfExtractor({ currentData, onApply, onClose }: Props) {
                   {error}
                 </div>
               )}
+
+              {/* AI/ルールベース状態表示 */}
+              {aiStatus && (
+                <div style={{
+                  marginTop: 12, padding: "8px 14px", borderRadius: 8,
+                  background: aiStatus.ai ? "#F0FDF4" : "#FFF7ED",
+                  border: `1px solid ${aiStatus.ai ? "#BBF7D0" : "#FED7AA"}`,
+                  fontSize: 11, color: aiStatus.ai ? "#166534" : "#9A3412",
+                }}>
+                  {aiStatus.ai
+                    ? "Workers AI 有効 — 高精度抽出モード"
+                    : "ルールベース抽出モード（Workers AIが未接続のため、基本項目をパターンマッチで抽出します）"
+                  }
+                </div>
+              )}
             </>
           )}
 
@@ -474,6 +499,13 @@ export default function PdfExtractor({ currentData, onApply, onClose }: Props) {
                 </span>
                 <span style={{ fontSize: 11, color: "#64748B" }}>
                   {result.field_count}件のデータを抽出
+                </span>
+                <span style={{
+                  padding: "2px 8px", borderRadius: 12, fontSize: 9, fontWeight: 600,
+                  background: result.ai_mode === "ai" ? "#DCFCE7" : "#FEF3C7",
+                  color: result.ai_mode === "ai" ? "#166534" : "#92400E",
+                }}>
+                  {result.ai_mode === "ai" ? "AI抽出" : "パターン抽出"}
                 </span>
                 <div style={{ flex: 1 }} />
                 <button onClick={toggleAll} style={{

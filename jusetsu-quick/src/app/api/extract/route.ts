@@ -135,6 +135,20 @@ function extractByRules(text: string): Record<string, unknown> {
   return r;
 }
 
+/* ─── ヘルスチェック（AI可用性確認） ─── */
+export async function GET() {
+  let aiAvailable = false;
+  let dbAvailable = false;
+  try {
+    const env = getRequestContext().env;
+    aiAvailable = !!env?.AI;
+    dbAvailable = !!env?.DB;
+  } catch {
+    // Cloudflare外
+  }
+  return NextResponse.json({ ai: aiAvailable, db: dbAvailable });
+}
+
 export async function POST(request: NextRequest) {
   try {
     // Cloudflare環境を取得（非CF環境ではルールベースフォールバック）
@@ -217,6 +231,7 @@ export async function POST(request: NextRequest) {
       extracted,
       document_type: documentType,
       field_count: Object.keys(extracted).length,
+      ai_mode: env?.AI ? "ai" : "rules",
     });
   } catch (e: unknown) {
     console.error("Extract error:", e);
