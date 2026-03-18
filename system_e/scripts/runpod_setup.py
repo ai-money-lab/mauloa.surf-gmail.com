@@ -15,7 +15,19 @@ import time
 import requests
 from dotenv import load_dotenv
 
-load_dotenv()
+# .envファイルがUTF-16の場合に対応
+env_path = os.path.join(os.path.dirname(__file__), "..", "..", ".env")
+env_path = os.path.normpath(env_path)
+try:
+    load_dotenv(env_path)
+except UnicodeDecodeError:
+    # UTF-16 BOM付きファイルの場合
+    with open(env_path, "r", encoding="utf-16") as f:
+        for line in f:
+            line = line.strip()
+            if line and not line.startswith("#") and "=" in line:
+                key, _, value = line.partition("=")
+                os.environ[key.strip()] = value.strip()
 
 API_KEY = os.getenv("RUNPOD_API_KEY", "")
 ENDPOINT_ID = os.getenv("RUNPOD_ENDPOINT_ID", "")
