@@ -1,0 +1,29 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 8,
+    "persona_match": 9,
+    "pillar_alignment": 9,
+    "usefulness": 9,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 0,
+    "cta_ending": 8,
+    "originality": 8,
+    "tone_balance": 9,
+    "problem_solving": 9
+  },
+  "total_score": 99,
+  "threshold": 84,
+  "result": "auto_approved",
+  "usefulness_summary": "中古物件購入時に設備の製造年確認で予期せぬ出費を防げる",
+  "rejection_reasons": [
+    "「30万円」という具体的な金額が断定的に記載されており、柔らかいニュアンス表現（「約」「〜ほど」等）がない"
+  ],
+  "improvement_suggestions": [
+    "「交換に30万円かかった」を「交換に30万円ほどかかった」または「交換に約30万円かかった」に修正する"
+  ],
+  "checked_at": "2026-03-18T19:29:15.268154+09:00"
+}
