@@ -347,6 +347,37 @@ def _poll_fal(request_id: str, model_path: str, headers: dict, max_wait: int = 1
 
 
 # ═══════════════════════════════════════════════════════════
+# ImagePipeline (RunPod / ComfyUI Pod) — config.yamlのproviderを使用
+# ═══════════════════════════════════════════════════════════
+
+def _generate_with_pipeline(scene: str, prompt: str, count: int = 1) -> list[str]:
+    """Generate images using the ImagePipeline (RunPod/ComfyUI/FAL via config)."""
+    from system_e.image_pipeline import ImagePipeline
+
+    pipeline = ImagePipeline()
+    logger.info("ImagePipeline provider: %s, enabled: %s", pipeline.provider, pipeline.enabled)
+
+    if not pipeline.enabled:
+        logger.error("ImagePipeline is disabled. Check config/config.yaml and API keys.")
+        return []
+
+    saved = []
+    for i in range(count):
+        logger.info("ImagePipeline generation %d/%d (scene=%s)...", i + 1, count, scene)
+        result_path = pipeline.generate_for_scene(scene, extra_prompt=prompt, aspect_ratio="3:4")
+        if result_path:
+            saved.append(result_path)
+            logger.info("Generated: %s", result_path)
+        else:
+            logger.warning("Generation %d/%d failed", i + 1, count)
+
+        if count > 1 and i < count - 1:
+            time.sleep(1)
+
+    return saved
+
+
+# ═══════════════════════════════════════════════════════════
 # ユーティリティ
 # ═══════════════════════════════════════════════════════════
 
@@ -374,6 +405,7 @@ def main():
     parser = argparse.ArgumentParser(description="Generate Maia — production quality")
     parser.add_argument("--gemini", action="store_true", help="Force Gemini generateContent (lower quality)")
     parser.add_argument("--fal", action="store_true", help="Use FAL.ai Flux Pro (requires FAL_API_KEY)")
+    parser.add_argument("--runpod", action="store_true", help="Use ImagePipeline (RunPod/ComfyUI — uses config/config.yaml provider)")
     parser.add_argument("--scene", choices=list(MAIA_SCENE_PROMPTS.keys()), default="portrait_warm")
     parser.add_argument("--all-scenes", action="store_true", help="Generate all scenes")
     parser.add_argument("--count", type=int, default=1, help="Number of images per scene (pick the best)")
@@ -397,7 +429,9 @@ def main():
         api_key = os.getenv("GEMINI_API_KEY", "")
         fal_key = os.getenv("FAL_API_KEY", "")
 
-        if args.fal:
+        if args.runpod:
+            results = _generate_with_pipeline(scene, prompt, count=args.count)
+        elif args.fal:
             if not fal_key:
                 print("ERROR: FAL_API_KEY not set. Get one at: https://fal.ai/dashboard/keys")
                 sys.exit(1)
@@ -408,11 +442,12 @@ def main():
                 sys.exit(1)
             results = _generate_with_gemini_image(prompt, api_key, count=args.count)
         else:
-            # Default: Imagen 4.0 Ultra (最高品質)
-            if not api_key:
-                print("ERROR: GEMINI_API_KEY not set. Get one at: https://aistudio.google.com/apikey")
-                sys.exit(1)
-            results = generate_with_imagen(prompt, api_key, count=args.count)
+            # Default: try ImagePipeline first, then Imagen
+            if api_key:
+                results = generate_with_imagen(prompt, api_key, count=args.count)
+            else:
+                print("INFO: GEMINI_API_KEY not set. Using ImagePipeline (RunPod/ComfyUI)...")
+                results = _generate_with_pipeline(scene, prompt, count=args.count)
 
         if results:
             total_generated += len(results)
