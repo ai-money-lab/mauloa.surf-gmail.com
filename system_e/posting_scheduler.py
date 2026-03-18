@@ -5,6 +5,7 @@ Uses dedicated X account credentials (SYSTEM_E_X_* env vars)
 with fallback to default X_* credentials.
 
 FTC Compliance: Every post automatically includes #AICreator disclosure.
+Algorithm Guard: Every post checked for penalty triggers before publishing.
 """
 
 import json
@@ -17,6 +18,7 @@ import yaml
 from dotenv import load_dotenv
 
 from system_a.auto_post import AutoPoster
+from system_e.algorithm_guard import AlgorithmGuard
 
 load_dotenv()
 
@@ -50,6 +52,7 @@ class PostingScheduler:
 
     def __init__(self):
         self.poster = AutoPoster()
+        self.guard = AlgorithmGuard()
         self.disclosure_tags = _load_disclosure_tags()
         # Use System E dedicated X account if configured, else fall back to default
         se_api_key = os.getenv("SYSTEM_E_X_API_KEY", "")
@@ -141,6 +144,34 @@ class PostingScheduler:
             return None
 
         text = self._append_hashtags(text, content.get("hashtags", []))
+
+        # Algorithm Guard: 投稿前に引き算ルールチェック
+        check = self.guard.check_post(text)
+        if not check["approved"]:
+            if check["fixed_text"]:
+                logger.warning(
+                    "Algorithm guard auto-fixed post: %s",
+                    [v["rule"] for v in check["violations"]],
+                )
+                text = check["fixed_text"]
+                # Re-check after fix
+                recheck = self.guard.check_post(text)
+                if not recheck["approved"]:
+                    logger.error(
+                        "Post BLOCKED by algorithm guard: %s",
+                        [v["detail"] for v in recheck["violations"]],
+                    )
+                    return None
+            else:
+                logger.error(
+                    "Post BLOCKED by algorithm guard: %s",
+                    [v["detail"] for v in check["violations"]],
+                )
+                return None
+
+        if check["warnings"]:
+            for w in check["warnings"]:
+                logger.warning("Algorithm guard warning: [%s] %s", w["rule"], w["detail"])
 
         # Build post dict compatible with AutoPoster
         post = {

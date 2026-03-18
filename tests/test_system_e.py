@@ -436,3 +436,137 @@ def test_mention_responder_run_no_mentions():
     responder.collector.get_unreplied_mentions = lambda: []
     results = responder.run()
     assert results == []
+
+
+# ─── Algorithm Guard Tests (引き算ルール) ───
+
+def test_algorithm_guard_init():
+    """AlgorithmGuard initializes."""
+    from system_e.algorithm_guard import AlgorithmGuard
+    guard = AlgorithmGuard()
+    assert guard is not None
+
+
+def test_guard_blocks_external_links():
+    """External links are detected and blocked (リーチ激減)."""
+    from system_e.algorithm_guard import AlgorithmGuard
+    guard = AlgorithmGuard()
+    result = guard.check_post("Check out my blog https://example.com/post\n\n#AICreator #AIGenerated")
+    assert not result["approved"]
+    assert any(v["rule"] == "external_link" for v in result["violations"])
+    # Auto-fix should remove the link
+    assert result["fixed_text"] is not None
+    assert "https://" not in result["fixed_text"]
+
+
+def test_guard_blocks_engagement_bait():
+    """Engagement bait patterns are blocked."""
+    from system_e.algorithm_guard import AlgorithmGuard
+    guard = AlgorithmGuard()
+    bait_posts = [
+        "Like if you agree! Health is wealth\n\n#AICreator #AIGenerated",
+        "Retweet if you love mornings\n\n#AICreator #AIGenerated",
+        "Follow me for more tips\n\n#AICreator #AIGenerated",
+        "Smash that like button\n\n#AICreator #AIGenerated",
+    ]
+    for post in bait_posts:
+        result = guard.check_post(post)
+        assert not result["approved"], f"Should block: {post[:50]}"
+        assert any(v["rule"] == "engagement_bait" for v in result["violations"])
+
+
+def test_guard_approves_genuine_engagement():
+    """Genuine engagement questions are NOT blocked."""
+    from system_e.algorithm_guard import AlgorithmGuard
+    guard = AlgorithmGuard()
+    genuine = [
+        "What's your go-to morning routine? I'm curious!\n\n#AICreator #AIGenerated",
+        "Started tracking my sleep last week. Anyone else obsess over their data?\n\n#AICreator #AIGenerated",
+        "Hot take: cold showers are overhyped. Change my mind.\n\n#AICreator #AIGenerated",
+    ]
+    for post in genuine:
+        result = guard.check_post(post)
+        assert result["approved"], f"Should approve: {post[:50]}"
+
+
+def test_guard_blocks_too_short():
+    """Extremely short posts are blocked."""
+    from system_e.algorithm_guard import AlgorithmGuard
+    guard = AlgorithmGuard()
+    result = guard.check_post("Hi\n\n#AICreator #AIGenerated")
+    assert not result["approved"]
+    assert any(v["rule"] == "empty_or_too_short" for v in result["violations"])
+
+
+def test_guard_warns_ai_self_reference():
+    """AI self-reference in text triggers warning (not block)."""
+    from system_e.algorithm_guard import AlgorithmGuard
+    guard = AlgorithmGuard()
+    result = guard.check_post("As an AI, I recommend drinking more water.\n\n#AICreator #AIGenerated")
+    assert result["approved"]  # warning, not block
+    assert any(w["rule"] == "ai_self_disclosure_in_text" for w in result["warnings"])
+
+
+def test_guard_posting_jitter():
+    """Posting jitter adds randomness to avoid bot detection."""
+    from system_e.algorithm_guard import AlgorithmGuard
+    guard = AlgorithmGuard()
+    jitters = [guard.add_posting_jitter(5) for _ in range(20)]
+    # Should have some variation
+    assert len(set(jitters)) > 1, "Jitter should produce varied results"
+    # All should be non-negative
+    assert all(j >= 0 for j in jitters)
+
+
+def test_guard_account_health_normal():
+    """Normal metrics = healthy account."""
+    from system_e.algorithm_guard import AlgorithmGuard
+    guard = AlgorithmGuard()
+    metrics = [
+        {"impressions": 1000, "likes": 50, "retweets": 10, "replies": 5, "date": "2026-03-15"},
+        {"impressions": 1200, "likes": 60, "retweets": 12, "replies": 6, "date": "2026-03-16"},
+        {"impressions": 1100, "likes": 55, "retweets": 11, "replies": 5, "date": "2026-03-17"},
+        {"impressions": 1300, "likes": 65, "retweets": 13, "replies": 7, "date": "2026-03-18"},
+    ]
+    result = guard.check_account_health(metrics)
+    assert result["healthy"]
+
+
+def test_guard_detects_shadow_ban():
+    """Zero impressions on recent posts = shadow ban suspected."""
+    from system_e.algorithm_guard import AlgorithmGuard
+    guard = AlgorithmGuard()
+    metrics = [
+        {"impressions": 1000, "likes": 50, "retweets": 10, "replies": 5, "date": "2026-03-13"},
+        {"impressions": 1200, "likes": 60, "retweets": 12, "replies": 6, "date": "2026-03-14"},
+        {"impressions": 0, "likes": 0, "retweets": 0, "replies": 0, "date": "2026-03-15"},
+        {"impressions": 0, "likes": 0, "retweets": 0, "replies": 0, "date": "2026-03-16"},
+        {"impressions": 0, "likes": 0, "retweets": 0, "replies": 0, "date": "2026-03-17"},
+    ]
+    result = guard.check_account_health(metrics)
+    assert not result["healthy"]
+    assert any(a["type"] == "shadow_ban_suspected" for a in result["alerts"])
+
+
+def test_guard_detects_impression_drop():
+    """Sudden impression drop = potential restriction."""
+    from system_e.algorithm_guard import AlgorithmGuard
+    guard = AlgorithmGuard()
+    metrics = [
+        {"impressions": 5000, "likes": 200, "retweets": 50, "replies": 30, "date": "2026-03-13"},
+        {"impressions": 4800, "likes": 190, "retweets": 45, "replies": 25, "date": "2026-03-14"},
+        {"impressions": 5200, "likes": 210, "retweets": 55, "replies": 35, "date": "2026-03-15"},
+        {"impressions": 500, "likes": 10, "retweets": 2, "replies": 1, "date": "2026-03-16"},
+        {"impressions": 300, "likes": 5, "retweets": 1, "replies": 0, "date": "2026-03-17"},
+    ]
+    result = guard.check_account_health(metrics)
+    assert not result["healthy"]
+    assert any(a["type"] == "impression_drop" for a in result["alerts"])
+
+
+def test_guard_integrated_in_scheduler():
+    """PostingScheduler has AlgorithmGuard integrated."""
+    from system_e.posting_scheduler import PostingScheduler
+    scheduler = PostingScheduler()
+    assert hasattr(scheduler, 'guard')
+    assert scheduler.guard is not None
