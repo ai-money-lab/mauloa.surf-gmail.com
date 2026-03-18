@@ -52,6 +52,7 @@ help:
 	@echo "   make system-e       System E フルパイプライン"
 	@echo "   make system-e-gen   System E コンテンツ生成のみ"
 	@echo "   make system-e-post  System E 投稿のみ"
+	@echo "   make system-e-engage System Eエンゲージメント収集+返信"
 	@echo "   make system-e-check System E ローンチ準備チェック"
 	@echo ""
 	@echo " その他:"
@@ -150,6 +151,10 @@ system-e-gen:
 
 system-e-post:
 	python system_e/daily_pipeline.py --mode post
+
+system-e-engage:
+	PYTHONPATH=. python -c "from system_e.engagement_collector import EngagementCollector; c = EngagementCollector(); print(f'Metrics: {c.collect_tweet_metrics()} tweets'); print(f'Mentions: {len(c.collect_mentions())} new')"
+	PYTHONPATH=. python -c "from system_e.mention_responder import MentionResponder; r = MentionResponder(); print(f'Replied: {len(r.run())}')"
 
 system-e-check:
 	python system_e/scripts/launch_check.py

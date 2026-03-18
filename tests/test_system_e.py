@@ -359,3 +359,80 @@ def test_fanvue_fallback_caption_includes_disclosure():
     # Call the fallback caption directly
     post = manager.prepare_fanvue_post("/fake/image.jpg", "lifestyle", "Check this out")
     assert "ai-generated" in post["caption"].lower()
+
+
+# ─── Engagement Collector Tests ───
+
+def test_engagement_collector_init():
+    """EngagementCollector initializes without errors."""
+    from system_e.engagement_collector import EngagementCollector
+    collector = EngagementCollector()
+    assert collector.analytics is not None
+
+
+def test_engagement_collector_no_bearer_token():
+    """Metrics collection gracefully handles missing bearer token."""
+    with patch.dict("os.environ", {"SYSTEM_E_X_BEARER_TOKEN": "", "X_BEARER_TOKEN": ""}, clear=False):
+        from system_e.engagement_collector import EngagementCollector
+        collector = EngagementCollector()
+        collector.bearer_token = ""
+        assert collector.collect_tweet_metrics() == 0
+        assert collector.collect_mentions() == []
+
+
+def test_engagement_collector_get_unreplied_empty():
+    """get_unreplied_mentions returns empty when no file."""
+    from system_e.engagement_collector import EngagementCollector
+    collector = EngagementCollector()
+    assert collector.get_unreplied_mentions() == []
+
+
+# ─── Mention Responder Tests ───
+
+def test_mention_responder_init():
+    """MentionResponder initializes without errors."""
+    from system_e.mention_responder import MentionResponder
+    responder = MentionResponder()
+    assert responder.character["name"] == "Maia"
+
+
+def test_mention_responder_should_skip_spam():
+    """Spam mentions are filtered out."""
+    from system_e.mention_responder import MentionResponder
+    responder = MentionResponder()
+    spam_mention = {
+        "text": "Buy followers cheap! Check my bio for details",
+        "author_id": "12345",
+        "tweet_id": "99999",
+    }
+    assert responder._should_skip(spam_mention) is True
+
+
+def test_mention_responder_should_not_skip_genuine():
+    """Genuine mentions pass the filter."""
+    from system_e.mention_responder import MentionResponder
+    responder = MentionResponder()
+    genuine_mention = {
+        "text": "Love your morning routine! What matcha brand do you use?",
+        "author_id": "12345",
+        "tweet_id": "99999",
+    }
+    assert responder._should_skip(genuine_mention) is False
+
+
+def test_mention_responder_hourly_limit():
+    """Hourly limit returns 0 when no log exists."""
+    from system_e.mention_responder import MentionResponder
+    responder = MentionResponder()
+    count = responder._hourly_reply_count()
+    assert count == 0
+
+
+def test_mention_responder_run_no_mentions():
+    """run() returns empty when no unreplied mentions."""
+    from system_e.mention_responder import MentionResponder
+    responder = MentionResponder()
+    # Mock the collector to return empty
+    responder.collector.get_unreplied_mentions = lambda: []
+    results = responder.run()
+    assert results == []
