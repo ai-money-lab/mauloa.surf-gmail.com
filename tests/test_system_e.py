@@ -79,11 +79,16 @@ def test_image_pipeline_init():
 
 
 def test_image_pipeline_disabled_without_key():
-    """ImagePipeline reports disabled when FAL_API_KEY is not set."""
-    with patch.dict("os.environ", {"FAL_API_KEY": ""}, clear=False):
+    """ImagePipeline reports disabled when no API keys are set."""
+    env_overrides = {
+        "FAL_API_KEY": "",
+        "RUNPOD_API_KEY": "",
+        "RUNPOD_ENDPOINT_ID": "",
+        "RUNPOD_POD_ID": "",
+    }
+    with patch.dict("os.environ", env_overrides, clear=False):
         from system_e.image_pipeline import ImagePipeline
         pipeline = ImagePipeline()
-        pipeline.fal_api_key = ""
         assert not pipeline.enabled
 
 
