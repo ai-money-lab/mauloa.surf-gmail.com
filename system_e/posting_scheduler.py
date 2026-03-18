@@ -214,10 +214,10 @@ class PostingScheduler:
     # to the algorithm. Replies are worth ~150x likes for reach.
     BOOST_TEMPLATES = {
         "engagement": [
-            "Curious what you all think about this \ud83d\udc47",
+            "Curious what you all think about this \U0001f447",
             "What's YOUR take? Drop it below",
-            "Would love to hear your experience with this \ud83d\ude4f",
-            "Agree or disagree? Let me know \ud83d\udc47",
+            "Would love to hear your experience with this \U0001f64f",
+            "Agree or disagree? Let me know \U0001f447",
             "Anyone else feel the same way?",
         ],
         "standard": [
@@ -228,9 +228,9 @@ class PostingScheduler:
             "Still processing this tbh.",
         ],
         "story": [
-            "The data on this is actually wild. More on this later \ud83e\uddf5",
+            "The data on this is actually wild. More on this later \U0001f9f5",
             "Been testing this for 2 weeks now. Results coming soon.",
-            "Part 2 dropping soon. Stay tuned \ud83d\udc40",
+            "Part 2 dropping soon. Stay tuned \U0001f440",
             "There's so much more to this story.",
             "Wait until you see what happened next.",
         ],

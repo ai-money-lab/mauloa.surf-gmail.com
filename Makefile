@@ -4,7 +4,7 @@
 # ═══════════════════════════════════════════════════════════
 
 .PHONY: help setup test bot-start bot-stop bot-dev deploy-render deploy-docker \
-        report-daily report-monthly faq-check health logs clean
+        report-daily report-monthly faq-check health logs clean system-e-launch
 
 # プロジェクトルートをPYTHONPATHに追加（core/ 等のimport解決）
 export PYTHONPATH := $(CURDIR):$(PYTHONPATH)
@@ -54,6 +54,7 @@ help:
 	@echo "   make system-e-post  System E 投稿のみ"
 	@echo "   make system-e-engage System Eエンゲージメント収集+返信"
 	@echo "   make system-e-check System E ローンチ準備チェック"
+	@echo "   make system-e-launch System E ワンクリック起動セットアップ"
 	@echo ""
 	@echo " その他:"
 	@echo "   make clean          キャッシュ/一時ファイル削除"
@@ -161,6 +162,9 @@ system-e-check:
 
 system-e-seed:
 	python system_e/scripts/seed_content.py --days 7
+
+system-e-launch:
+	@bash system_e/scripts/setup_launch.sh
 
 # ─── crontab一括登録 ───
 cron-install:
