@@ -236,6 +236,206 @@ class RunPodBackend:
         return None
 
 
+class ComfyUIPodBackend:
+    """Image generation via ComfyUI running on a RunPod GPU Pod.
+
+    Connects directly to ComfyUI's HTTP API on the pod, bypassing
+    the RunPod Serverless layer for lower latency and full control.
+    """
+
+    def __init__(self, pod_id: str, api_key: str, image_config: dict):
+        self.pod_id = pod_id
+        self.api_key = api_key
+        self.image_config = image_config
+        self.base_url = f"https://{pod_id}-8188.proxy.runpod.net"
+
+    @property
+    def enabled(self) -> bool:
+        return bool(self.pod_id)
+
+    def _build_workflow(
+        self,
+        prompt: str,
+        width: int,
+        height: int,
+        steps: int,
+        seed: int,
+    ) -> dict:
+        """Build a ComfyUI API workflow JSON for Flux.1 Dev fp8."""
+        return {
+            "4": {
+                "inputs": {"ckpt_name": "flux1-dev-fp8.safetensors"},
+                "class_type": "CheckpointLoaderSimple",
+                "_meta": {"title": "Load Checkpoint"},
+            },
+            "5": {
+                "inputs": {
+                    "width": width,
+                    "height": height,
+                    "batch_size": 1,
+                },
+                "class_type": "EmptyLatentImage",
+                "_meta": {"title": "Empty Latent Image"},
+            },
+            "6": {
+                "inputs": {"text": prompt, "clip": ["4", 1]},
+                "class_type": "CLIPTextEncode",
+                "_meta": {"title": "CLIP Text Encode (Prompt)"},
+            },
+            "7": {
+                "inputs": {"text": "", "clip": ["4", 1]},
+                "class_type": "CLIPTextEncode",
+                "_meta": {"title": "CLIP Text Encode (Negative)"},
+            },
+            "3": {
+                "inputs": {
+                    "seed": seed,
+                    "steps": steps,
+                    "cfg": 1.0,
+                    "sampler_name": "euler",
+                    "scheduler": "normal",
+                    "denoise": 1,
+                    "model": ["4", 0],
+                    "positive": ["6", 0],
+                    "negative": ["7", 0],
+                    "latent_image": ["5", 0],
+                },
+                "class_type": "KSampler",
+                "_meta": {"title": "KSampler"},
+            },
+            "8": {
+                "inputs": {"samples": ["3", 0], "vae": ["4", 2]},
+                "class_type": "VAEDecode",
+                "_meta": {"title": "VAE Decode"},
+            },
+            "9": {
+                "inputs": {
+                    "filename_prefix": "ComfyUI",
+                    "images": ["8", 0],
+                },
+                "class_type": "SaveImage",
+                "_meta": {"title": "Save Image"},
+            },
+        }
+
+    def generate(
+        self,
+        prompt: str,
+        aspect_ratio: str = "3:4",
+        seed: int | None = None,
+        reference_image_url: str | None = None,
+    ) -> dict | None:
+        """Submit a workflow to ComfyUI on GPU Pod and retrieve the image."""
+        defaults = self.image_config.get("defaults", {})
+        width, height = _resolve_aspect_ratio(aspect_ratio, defaults)
+        steps = defaults.get("num_inference_steps", 28)
+
+        if seed is None:
+            seed = random.randint(0, 2**32 - 1)
+
+        workflow = self._build_workflow(prompt, width, height, steps, seed)
+
+        try:
+            # Submit prompt to ComfyUI
+            resp = requests.post(
+                f"{self.base_url}/prompt",
+                json={"prompt": workflow},
+                timeout=30,
+            )
+            resp.raise_for_status()
+            data = resp.json()
+            prompt_id = data.get("prompt_id")
+
+            if not prompt_id:
+                logger.error("ComfyUI Pod: no prompt_id in response: %s", data)
+                return None
+
+            logger.info("ComfyUI Pod prompt submitted: %s", prompt_id)
+
+            # Poll history for completion
+            return self._poll_history(prompt_id)
+
+        except requests.exceptions.ConnectionError:
+            logger.error(
+                "ComfyUI Pod unreachable at %s — is the pod running?",
+                self.base_url,
+            )
+            return None
+        except requests.exceptions.Timeout:
+            logger.error("ComfyUI Pod timeout on submit")
+            return None
+        except Exception as e:
+            logger.error("ComfyUI Pod generation failed: %s", e)
+            return None
+
+    def _poll_history(self, prompt_id: str, max_wait: int = 300) -> dict | None:
+        """Poll ComfyUI /history endpoint for job completion."""
+        url = f"{self.base_url}/history/{prompt_id}"
+        start = time.time()
+
+        while time.time() - start < max_wait:
+            try:
+                resp = requests.get(url, timeout=10)
+                resp.raise_for_status()
+                history = resp.json()
+
+                if prompt_id in history:
+                    outputs = history[prompt_id].get("outputs", {})
+                    # Find the SaveImage node output
+                    for _node_id, node_output in outputs.items():
+                        images = node_output.get("images", [])
+                        if images:
+                            img_info = images[0]
+                            filename = img_info["filename"]
+                            subfolder = img_info.get("subfolder", "")
+                            img_type = img_info.get("type", "output")
+
+                            # Download the image
+                            return self._download_image(
+                                filename, subfolder, img_type
+                            )
+
+                    logger.error(
+                        "ComfyUI Pod: no images in output for %s", prompt_id
+                    )
+                    return None
+
+                time.sleep(3)
+            except Exception as e:
+                logger.warning("ComfyUI Pod poll error: %s", e)
+                time.sleep(5)
+
+        logger.error(
+            "ComfyUI Pod job %s timed out after %ds", prompt_id, max_wait
+        )
+        return None
+
+    def _download_image(
+        self, filename: str, subfolder: str, img_type: str
+    ) -> dict | None:
+        """Download generated image from ComfyUI /view endpoint."""
+        params = {
+            "filename": filename,
+            "subfolder": subfolder,
+            "type": img_type,
+        }
+        try:
+            resp = requests.get(
+                f"{self.base_url}/view", params=params, timeout=30
+            )
+            resp.raise_for_status()
+            image_b64 = base64.b64encode(resp.content).decode("ascii")
+            logger.info(
+                "ComfyUI Pod image downloaded: %s (%d bytes)",
+                filename,
+                len(resp.content),
+            )
+            return {"image_base64": image_b64}
+        except Exception as e:
+            logger.error("ComfyUI Pod image download failed: %s", e)
+            return None
+
+
 class FalBackend:
     """Image generation via FAL.ai (Flux Pro / Kontext)."""
 
@@ -421,6 +621,11 @@ class ImagePipeline:
             api_key=os.getenv("RUNPOD_API_KEY", ""),
             image_config=self.image_config,
         )
+        self._comfyui_pod = ComfyUIPodBackend(
+            pod_id=os.getenv("RUNPOD_POD_ID", ""),
+            api_key=os.getenv("RUNPOD_API_KEY", ""),
+            image_config=self.image_config,
+        )
         self._fal = FalBackend(
             api_key=os.getenv("FAL_API_KEY", ""),
             image_config=self.image_config,
@@ -431,12 +636,16 @@ class ImagePipeline:
 
     @property
     def enabled(self) -> bool:
+        if self.provider == "comfyui_pod":
+            return self._comfyui_pod.enabled
         if self.provider == "runpod":
             return self._runpod.enabled
         return self._fal.enabled
 
     @property
     def _backend(self):
+        if self.provider == "comfyui_pod":
+            return self._comfyui_pod
         if self.provider == "runpod":
             return self._runpod
         return self._fal
