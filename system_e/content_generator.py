@@ -236,12 +236,13 @@ JSON only, no explanation."""
                 max_tokens=2048,
                 temperature=0.8,
             )
+            result["type"] = "thread"
             result["topic"] = topic
             result["generated_at"] = datetime.now(JST).isoformat()
             return result
         except Exception as e:
             logger.error("Thread generation failed: %s", e)
-            return {"tweets": [], "topic": topic, "error": str(e)}
+            return {"tweets": [], "type": "thread", "topic": topic, "error": str(e)}
 
     def generate_daily_content_plan(self, date: str | None = None) -> list[dict]:
         """Generate a full day's content plan.
