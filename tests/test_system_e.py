@@ -748,14 +748,16 @@ def test_content_mix_has_correct_types():
     """Daily content plan has the right content types for reach optimization."""
     from system_e.content_generator import ContentGenerator
     gen = ContentGenerator()
-    # Mock Claude to avoid API calls
-    gen.claude.generate_json = MagicMock(return_value={
-        "text": "Test post",
-        "hashtags": ["wellness"],
-        "tweets": ["tweet 1", "tweet 2", "tweet 3"],
-        "hook_quality": 7,
-        "options": ["A", "B", "C"],
-    })
+    # Mock Claude to return fresh dicts each call
+    def mock_generate_json(**kwargs):
+        return {
+            "text": "Test post",
+            "hashtags": ["wellness"],
+            "tweets": ["tweet 1", "tweet 2", "tweet 3"],
+            "hook_quality": 7,
+            "options": ["A", "B", "C"],
+        }
+    gen.claude.generate_json = mock_generate_json
 
     # Test odd day (poll at noon)
     plan = gen.generate_daily_content_plan("2026-03-19")  # 19 = odd
@@ -778,11 +780,13 @@ def test_content_mix_has_four_slots():
     """Daily content plan generates exactly 4 content items."""
     from system_e.content_generator import ContentGenerator
     gen = ContentGenerator()
-    gen.claude.generate_json = MagicMock(return_value={
-        "text": "Test", "hashtags": ["test"],
-        "tweets": ["t1", "t2", "t3"], "hook_quality": 5,
-        "options": ["A", "B"],
-    })
+    def mock_generate_json(**kwargs):
+        return {
+            "text": "Test", "hashtags": ["test"],
+            "tweets": ["t1", "t2", "t3"], "hook_quality": 5,
+            "options": ["A", "B"],
+        }
+    gen.claude.generate_json = mock_generate_json
     plan = gen.generate_daily_content_plan("2026-04-01")
     assert len(plan) == 4
 
@@ -791,11 +795,13 @@ def test_content_mix_thread_at_prime_time():
     """Thread is scheduled at 19:00 JST (EU+Asia overlap) for max reach."""
     from system_e.content_generator import ContentGenerator
     gen = ContentGenerator()
-    gen.claude.generate_json = MagicMock(return_value={
-        "text": "Test", "hashtags": ["test"],
-        "tweets": ["t1", "t2", "t3"], "hook_quality": 5,
-        "options": ["A", "B"],
-    })
+    def mock_generate_json(**kwargs):
+        return {
+            "text": "Test", "hashtags": ["test"],
+            "tweets": ["t1", "t2", "t3"], "hook_quality": 5,
+            "options": ["A", "B"],
+        }
+    gen.claude.generate_json = mock_generate_json
     plan = gen.generate_daily_content_plan("2026-03-21")
     evening_slot = [p for p in plan if p.get("scheduled_time_jst") == "19:00"]
     assert len(evening_slot) == 1
