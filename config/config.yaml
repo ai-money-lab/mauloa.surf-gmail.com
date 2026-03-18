@@ -75,6 +75,8 @@ system_e:
   comfyui_pod:
     # Set RUNPOD_POD_ID in .env (GPU Podのxaix-comfyuiなど)
     # ComfyUI HTTP API (port 8188) に直接接続
+    # Volume Disk: 75GB以上必要（Flux.1 Dev FP8: 16GB + システム: ~40GB）
+    # 初回セットアップ: bash system_e/scripts/comfyui_pod_setup.sh
     max_poll_seconds: 300
   cost_tracking:
     monthly_budget_usd: 50  # RunPod is cheaper — budget reduced from $100
