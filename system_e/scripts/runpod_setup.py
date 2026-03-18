@@ -12,11 +12,23 @@ import os
 import sys
 import time
 
+import io
+
 import requests
+from dotenv import load_dotenv
 
-from core.env_loader import safe_load_dotenv
-
-safe_load_dotenv()
+# プロジェクトルートの .env を UTF-16 BOM対応で読み込む
+_env_path = os.path.normpath(os.path.join(os.path.dirname(__file__), "..", "..", ".env"))
+if os.path.isfile(_env_path):
+    with open(_env_path, "rb") as _f:
+        _bom = _f.read(2)
+    if _bom in (b"\xff\xfe", b"\xfe\xff"):
+        with open(_env_path, "r", encoding="utf-16") as _f:
+            load_dotenv(stream=io.StringIO(_f.read()))
+    else:
+        load_dotenv(_env_path)
+else:
+    load_dotenv()
 
 API_KEY = os.getenv("RUNPOD_API_KEY", "")
 ENDPOINT_ID = os.getenv("RUNPOD_ENDPOINT_ID", "")
