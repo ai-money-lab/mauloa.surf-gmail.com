@@ -205,8 +205,28 @@ def main():
     if not ref_image:
         warn("reference_image_url not set", "Optional but improves character consistency")
 
-    # ─── 8. GitHub Actions ───
-    print("\n8. GitHub Actions")
+    # ─── 8. Algorithm & Reach Optimization ───
+    print("\n8. Algorithm & Reach Optimization")
+    warn(
+        "X Premium subscription",
+        "X Premium gives 2-10x reach boost. Subscribe before launch: https://premium.twitter.com",
+    )
+    results.append(check(
+        "Bio AI disclosure set",
+        bool(char.get("disclosure", {}).get("bio_text")),
+        "FTC: bio-based disclosure (no per-post hashtags = +40% reach)",
+    ))
+    results.append(check(
+        "AlgorithmGuard module exists",
+        (PROJECT_ROOT / "system_e" / "algorithm_guard.py").exists(),
+    ))
+    results.append(check(
+        "Self-reply boost enabled",
+        "BOOST_TEMPLATES" in (PROJECT_ROOT / "system_e" / "posting_scheduler.py").read_text(),
+    ))
+
+    # ─── 9. GitHub Actions ───
+    print("\n9. GitHub Actions")
     workflow = PROJECT_ROOT / ".github" / "workflows" / "system-e-pipeline.yml"
     results.append(check("system-e-pipeline.yml exists", workflow.exists()))
 

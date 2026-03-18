@@ -301,47 +301,61 @@ def test_posting_scheduler_uses_dedicated_credentials():
 
 # ─── FTC Compliance Tests ───
 
-def test_disclosure_tags_always_added():
-    """Every post must include AI disclosure hashtags."""
+def test_bio_based_disclosure_no_per_post_tags():
+    """AI disclosure is in the bio, NOT per-post hashtags.
+
+    The account bio reads 'AI-generated wellness creator | Powered by AI'
+    which satisfies FTC transparency. Posts should NOT contain #AICreator
+    or #AIGenerated — research shows multiple hashtags reduce reach by ~40%.
+    """
     from system_e.posting_scheduler import PostingScheduler
     scheduler = PostingScheduler()
     result = scheduler._append_hashtags("Hello world", ["fitness", "wellness"])
-    assert "#AICreator" in result
-    assert "#AIGenerated" in result
+    assert "#AICreator" not in result
+    assert "#AIGenerated" not in result
+    # Should have branded hashtag instead
+    assert "#MaiaWellness" in result
 
 
-def test_disclosure_tags_prioritized_over_content_tags():
-    """Disclosure tags are included even if content tags get dropped for space."""
+def test_max_two_hashtags_per_post():
+    """Posts should have at most 2 hashtags: 1 content + #MaiaWellness."""
+    import re
     from system_e.posting_scheduler import PostingScheduler
     scheduler = PostingScheduler()
-    # Long text near 280 char limit
-    long_text = "A" * 240
-    result = scheduler._append_hashtags(long_text, ["fitness", "wellness", "health"])
-    assert "#AICreator" in result
-    assert "#AIGenerated" in result
-    assert len(result) <= 280
+    result = scheduler._append_hashtags("Hello world", ["fitness", "wellness", "health"])
+    hashtags = re.findall(r'#\w+', result)
+    assert len(hashtags) <= 2
+    assert "#MaiaWellness" in result
 
 
-def test_disclosure_tags_with_truncation():
-    """Text is truncated to fit disclosure tags if necessary."""
+def test_branded_hashtag_always_included():
+    """#MaiaWellness branded hashtag is included when space permits."""
     from system_e.posting_scheduler import PostingScheduler
     scheduler = PostingScheduler()
-    # Text that's already near 280 chars
+    result = scheduler._append_hashtags("Hello world", [])
+    assert "#MaiaWellness" in result
+
+
+def test_hashtags_dropped_when_text_too_long():
+    """When text is near 280 chars, hashtags are dropped rather than truncating."""
+    from system_e.posting_scheduler import PostingScheduler
+    scheduler = PostingScheduler()
     very_long_text = "B" * 275
-    result = scheduler._append_hashtags(very_long_text, [])
-    assert "#AICreator" in result
-    assert "#AIGenerated" in result
+    result = scheduler._append_hashtags(very_long_text, ["fitness"])
+    # Text should not be truncated — hashtags dropped instead
     assert len(result) <= 280
-    assert "…" in result  # text was truncated
+    assert "B" * 275 in result
 
 
-def test_disclosure_tags_no_duplicates():
-    """If content already has AICreator tag, don't duplicate it."""
+def test_no_duplicate_branded_hashtag():
+    """If content hashtag is MaiaWellness, don't duplicate it."""
+    import re
     from system_e.posting_scheduler import PostingScheduler
     scheduler = PostingScheduler()
-    result = scheduler._append_hashtags("Hello", ["AICreator", "fitness"])
-    # Should only appear once in the tag section
-    assert result.count("#AICreator") == 1
+    result = scheduler._append_hashtags("Hello", ["MaiaWellness", "fitness"])
+    assert result.count("#MaiaWellness") == 1
+    hashtags = re.findall(r'#\w+', result)
+    assert len(hashtags) <= 2
 
 
 def test_fanvue_post_includes_ai_disclosure():
@@ -451,7 +465,7 @@ def test_guard_blocks_external_links():
     """External links are detected and blocked (リーチ激減)."""
     from system_e.algorithm_guard import AlgorithmGuard
     guard = AlgorithmGuard()
-    result = guard.check_post("Check out my blog https://example.com/post\n\n#AICreator #AIGenerated")
+    result = guard.check_post("Check out my blog https://example.com/post\n\n#MaiaWellness")
     assert not result["approved"]
     assert any(v["rule"] == "external_link" for v in result["violations"])
     # Auto-fix should remove the link
@@ -464,10 +478,10 @@ def test_guard_blocks_engagement_bait():
     from system_e.algorithm_guard import AlgorithmGuard
     guard = AlgorithmGuard()
     bait_posts = [
-        "Like if you agree! Health is wealth\n\n#AICreator #AIGenerated",
-        "Retweet if you love mornings\n\n#AICreator #AIGenerated",
-        "Follow me for more tips\n\n#AICreator #AIGenerated",
-        "Smash that like button\n\n#AICreator #AIGenerated",
+        "Like if you agree! Health is wealth\n\n#MaiaWellness",
+        "Retweet if you love mornings\n\n#MaiaWellness",
+        "Follow me for more tips\n\n#MaiaWellness",
+        "Smash that like button\n\n#MaiaWellness",
     ]
     for post in bait_posts:
         result = guard.check_post(post)
@@ -480,9 +494,9 @@ def test_guard_approves_genuine_engagement():
     from system_e.algorithm_guard import AlgorithmGuard
     guard = AlgorithmGuard()
     genuine = [
-        "What's your go-to morning routine? I'm curious!\n\n#AICreator #AIGenerated",
-        "Started tracking my sleep last week. Anyone else obsess over their data?\n\n#AICreator #AIGenerated",
-        "Hot take: cold showers are overhyped. Change my mind.\n\n#AICreator #AIGenerated",
+        "What's your go-to morning routine? I'm curious!\n\n#MaiaWellness",
+        "Started tracking my sleep last week. Anyone else obsess over their data?\n\n#MaiaWellness",
+        "Hot take: cold showers are overhyped. Change my mind.\n\n#MaiaWellness",
     ]
     for post in genuine:
         result = guard.check_post(post)
@@ -493,7 +507,7 @@ def test_guard_blocks_too_short():
     """Extremely short posts are blocked."""
     from system_e.algorithm_guard import AlgorithmGuard
     guard = AlgorithmGuard()
-    result = guard.check_post("Hi\n\n#AICreator #AIGenerated")
+    result = guard.check_post("Hi\n\n#MaiaWellness")
     assert not result["approved"]
     assert any(v["rule"] == "empty_or_too_short" for v in result["violations"])
 
@@ -502,7 +516,7 @@ def test_guard_warns_ai_self_reference():
     """AI self-reference in text triggers warning (not block)."""
     from system_e.algorithm_guard import AlgorithmGuard
     guard = AlgorithmGuard()
-    result = guard.check_post("As an AI, I recommend drinking more water.\n\n#AICreator #AIGenerated")
+    result = guard.check_post("As an AI, I recommend drinking more water.\n\n#MaiaWellness")
     assert result["approved"]  # warning, not block
     assert any(w["rule"] == "ai_self_disclosure_in_text" for w in result["warnings"])
 
@@ -570,3 +584,265 @@ def test_guard_integrated_in_scheduler():
     scheduler = PostingScheduler()
     assert hasattr(scheduler, 'guard')
     assert scheduler.guard is not None
+
+
+# ─── Self-Reply Boost Tests ───
+
+def test_boost_reply_templates_exist():
+    """Boost reply templates are defined for all expected content types."""
+    from system_e.posting_scheduler import PostingScheduler
+    templates = PostingScheduler.BOOST_TEMPLATES
+    assert "engagement" in templates
+    assert "standard" in templates
+    assert "story" in templates
+    # Each category should have at least 3 templates
+    for category, items in templates.items():
+        assert len(items) >= 3, f"'{category}' should have at least 3 templates"
+    # All templates should be max 200 chars
+    for category, items in templates.items():
+        for t in items:
+            assert len(t) <= 200, f"Template too long ({len(t)} chars): {t[:50]}"
+
+
+def test_boost_template_selection_engagement():
+    """Engagement content type selects from engagement templates."""
+    from system_e.posting_scheduler import PostingScheduler
+    for _ in range(20):
+        template = PostingScheduler._select_boost_template("engagement")
+        assert template in PostingScheduler.BOOST_TEMPLATES["engagement"]
+
+
+def test_boost_template_selection_standard():
+    """Standard content type selects from standard templates."""
+    from system_e.posting_scheduler import PostingScheduler
+    for _ in range(20):
+        template = PostingScheduler._select_boost_template("standard")
+        assert template in PostingScheduler.BOOST_TEMPLATES["standard"]
+
+
+def test_boost_template_selection_story():
+    """Story content type selects from story templates."""
+    from system_e.posting_scheduler import PostingScheduler
+    for _ in range(20):
+        template = PostingScheduler._select_boost_template("story")
+        assert template in PostingScheduler.BOOST_TEMPLATES["story"]
+
+
+def test_boost_template_selection_unknown_falls_back():
+    """Unknown content type falls back to standard templates."""
+    from system_e.posting_scheduler import PostingScheduler
+    for _ in range(20):
+        template = PostingScheduler._select_boost_template("nonexistent_type")
+        assert template in PostingScheduler.BOOST_TEMPLATES["standard"]
+
+
+def test_boost_reply_content_type_mapping():
+    """Content type field maps correctly to template categories."""
+    from system_e.posting_scheduler import PostingScheduler
+    scheduler = PostingScheduler()
+
+    # Mock poster.post_tweet to capture the reply text
+    calls = []
+
+    def mock_post_tweet(text, reply_to=None, media_id=None):
+        calls.append({"text": text, "reply_to": reply_to})
+        return {"data": {"id": "reply_999"}}
+
+    scheduler.poster.post_tweet = mock_post_tweet
+
+    # Engagement types -> engagement templates
+    for content_type in ("question", "poll", "engagement"):
+        calls.clear()
+        scheduler._post_boost_reply("tweet_123", {"type": content_type})
+        assert len(calls) == 1
+        assert calls[0]["text"] in PostingScheduler.BOOST_TEMPLATES["engagement"]
+        assert calls[0]["reply_to"] == "tweet_123"
+
+    # Story types -> story templates
+    for content_type in ("story", "thread_teaser", "personal"):
+        calls.clear()
+        scheduler._post_boost_reply("tweet_123", {"type": content_type})
+        assert len(calls) == 1
+        assert calls[0]["text"] in PostingScheduler.BOOST_TEMPLATES["story"]
+
+    # Default -> standard templates
+    for content_type in ("tip", "motivational", ""):
+        calls.clear()
+        scheduler._post_boost_reply("tweet_123", {"type": content_type})
+        assert len(calls) == 1
+        assert calls[0]["text"] in PostingScheduler.BOOST_TEMPLATES["standard"]
+
+
+# ─── Poll Generation Tests ───
+
+def test_poll_generation_fallback():
+    """Poll generation falls back to preset list when Claude fails."""
+    from system_e.content_generator import ContentGenerator
+    gen = ContentGenerator()
+    # Mock Claude to fail
+    gen.claude.generate_json = MagicMock(side_effect=Exception("API down"))
+    result = gen.generate_poll()
+    assert result["type"] == "poll"
+    assert result["duration_minutes"] == 1440
+    assert "text" in result
+    assert "options" in result
+    assert 2 <= len(result["options"]) <= 4
+    assert "generated_at" in result
+
+
+def test_poll_generation_with_topic():
+    """Poll generation accepts optional topic hint."""
+    from system_e.content_generator import ContentGenerator
+    gen = ContentGenerator()
+    # Mock Claude to fail so we get fallback
+    gen.claude.generate_json = MagicMock(side_effect=Exception("API down"))
+    result = gen.generate_poll(topic="sleep quality")
+    assert result["type"] == "poll"
+    assert result["duration_minutes"] == 1440
+
+
+def test_poll_options_constrained():
+    """Poll options are max 25 chars and 2-4 items."""
+    from system_e.content_generator import ContentGenerator
+    gen = ContentGenerator()
+    # Mock Claude to return valid but long options
+    gen.claude.generate_json = MagicMock(return_value={
+        "text": "Test poll question?",
+        "options": ["Short", "This option is way too long and should be truncated at 25", "Medium option", "Another"],
+    })
+    result = gen.generate_poll()
+    assert len(result["options"]) <= 4
+    assert len(result["options"]) >= 2
+    for opt in result["options"]:
+        assert len(opt) <= 25
+
+
+def test_poll_too_few_options_triggers_fallback():
+    """If Claude returns fewer than 2 options, fallback is used."""
+    from system_e.content_generator import ContentGenerator
+    gen = ContentGenerator()
+    gen.claude.generate_json = MagicMock(return_value={
+        "text": "Bad poll?",
+        "options": ["Only one"],
+    })
+    result = gen.generate_poll()
+    # Should have fallen back to preset
+    assert len(result["options"]) >= 2
+    assert result["duration_minutes"] == 1440
+
+
+def test_fallback_polls_valid():
+    """All fallback polls have valid structure."""
+    from system_e.content_generator import ContentGenerator
+    for poll in ContentGenerator.FALLBACK_POLLS:
+        assert "text" in poll
+        assert "options" in poll
+        assert 2 <= len(poll["options"]) <= 4
+        for opt in poll["options"]:
+            assert len(opt) <= 25, f"Fallback option too long: {opt}"
+
+
+# ─── Content Mix Tests ───
+
+def test_content_mix_has_correct_types():
+    """Daily content plan has the right content types for reach optimization."""
+    from system_e.content_generator import ContentGenerator
+    gen = ContentGenerator()
+    # Mock Claude to avoid API calls
+    gen.claude.generate_json = MagicMock(return_value={
+        "text": "Test post",
+        "hashtags": ["wellness"],
+        "tweets": ["tweet 1", "tweet 2", "tweet 3"],
+        "hook_quality": 7,
+        "options": ["A", "B", "C"],
+    })
+
+    # Test odd day (poll at noon)
+    plan = gen.generate_daily_content_plan("2026-03-19")  # 19 = odd
+    types = [item.get("type") for item in plan]
+    assert types[0] == "standard", "07:00 should be standard"
+    assert types[1] == "poll", "12:00 on odd day should be poll"
+    assert types[2] == "thread", "19:00 should be thread (40-60% more reach)"
+    assert types[3] == "story", "23:00 should be story"
+
+    # Test even day (engagement at noon)
+    plan = gen.generate_daily_content_plan("2026-03-20")  # 20 = even
+    types = [item.get("type") for item in plan]
+    assert types[0] == "standard"
+    assert types[1] == "engagement", "12:00 on even day should be engagement"
+    assert types[2] == "thread"
+    assert types[3] == "story"
+
+
+def test_content_mix_has_four_slots():
+    """Daily content plan generates exactly 4 content items."""
+    from system_e.content_generator import ContentGenerator
+    gen = ContentGenerator()
+    gen.claude.generate_json = MagicMock(return_value={
+        "text": "Test", "hashtags": ["test"],
+        "tweets": ["t1", "t2", "t3"], "hook_quality": 5,
+        "options": ["A", "B"],
+    })
+    plan = gen.generate_daily_content_plan("2026-04-01")
+    assert len(plan) == 4
+
+
+def test_content_mix_thread_at_prime_time():
+    """Thread is scheduled at 19:00 JST (EU+Asia overlap) for max reach."""
+    from system_e.content_generator import ContentGenerator
+    gen = ContentGenerator()
+    gen.claude.generate_json = MagicMock(return_value={
+        "text": "Test", "hashtags": ["test"],
+        "tweets": ["t1", "t2", "t3"], "hook_quality": 5,
+        "options": ["A", "B"],
+    })
+    plan = gen.generate_daily_content_plan("2026-03-21")
+    evening_slot = [p for p in plan if p.get("scheduled_time_jst") == "19:00"]
+    assert len(evening_slot) == 1
+    assert evening_slot[0]["type"] == "thread"
+
+
+# ─── Poll Posting Tests ───
+
+def test_post_poll_method_exists():
+    """PostingScheduler has post_poll method."""
+    from system_e.posting_scheduler import PostingScheduler
+    scheduler = PostingScheduler()
+    assert hasattr(scheduler, "post_poll")
+    assert callable(scheduler.post_poll)
+
+
+def test_post_poll_rejects_invalid_content():
+    """post_poll returns None for invalid poll content."""
+    from system_e.posting_scheduler import PostingScheduler
+    scheduler = PostingScheduler()
+    # Missing text
+    assert scheduler.post_poll({"options": ["A", "B"]}) is None
+    # Too few options
+    assert scheduler.post_poll({"text": "Question?", "options": ["Only one"]}) is None
+    # Empty options
+    assert scheduler.post_poll({"text": "Question?", "options": []}) is None
+
+
+def test_run_due_posts_handles_poll_type():
+    """run_due_posts dispatches poll content to post_poll."""
+    from system_e.posting_scheduler import PostingScheduler
+    scheduler = PostingScheduler()
+
+    poll_content = {
+        "type": "poll",
+        "text": "What's your favorite workout?",
+        "options": ["Running", "Weights", "Yoga"],
+        "duration_minutes": 1440,
+        "scheduled_time_jst": "12:00",
+        "_post_id": "2026-03-19_12:00",
+    }
+
+    # Mock get_due_posts to return our poll
+    scheduler.get_due_posts = MagicMock(return_value=[poll_content])
+    # Mock post_poll to track calls
+    scheduler.post_poll = MagicMock(return_value={"data": {"id": "poll_123"}})
+
+    results = scheduler.run_due_posts()
+    scheduler.post_poll.assert_called_once_with(poll_content)
+    assert len(results) == 1

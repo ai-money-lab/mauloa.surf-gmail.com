@@ -111,7 +111,7 @@ Image shows: {image_description or 'Character in ' + scene + ' setting'}
 
 Return a JSON object with:
 - "text": the post text (no hashtags in text)
-- "hashtags": array of 3-5 relevant hashtags (without # symbol)
+- "hashtags": array of 1 most relevant hashtag (without # symbol)
 
 JSON only, no explanation."""
 
@@ -136,6 +136,71 @@ JSON only, no explanation."""
                 "error": str(e),
             }
 
+    # Fallback polls when Claude API is unavailable
+    FALLBACK_POLLS = [
+        {
+            "text": "What's your go-to way to de-stress after a long day?",
+            "options": ["Workout", "Meditation", "Walk in nature", "Hot bath"],
+        },
+        {
+            "text": "Morning workout or evening workout — which team are you?",
+            "options": ["Morning", "Evening", "Whenever I can", "Rest day"],
+        },
+        {
+            "text": "How many hours of sleep did you get last night?",
+            "options": ["Less than 6", "6-7 hours", "7-8 hours", "8+ hours"],
+        },
+        {
+            "text": "What's your biggest wellness struggle right now?",
+            "options": ["Consistency", "Motivation", "Time management", "Nutrition"],
+        },
+        {
+            "text": "Do you track your fitness data?",
+            "options": ["Obsessively", "Sometimes", "Just started", "Nope"],
+        },
+    ]
+
+    def generate_poll(self, topic: str = "") -> dict:
+        """Generate a poll post. Polls get highest engagement on X."""
+        prompt = f"""Create a fun, engaging poll for X/Twitter about wellness or fitness.
+{f'Topic hint: {topic}' if topic else 'Pick a relevant wellness/fitness topic.'}
+
+Rules:
+- Question should be conversational and easy to engage with
+- 2-4 poll options, each max 25 characters
+- Question max 200 characters
+- Make it feel authentic, not corporate
+
+Return a JSON object with:
+- "text": the poll question
+- "options": array of 2-4 poll option strings
+
+JSON only, no explanation."""
+
+        try:
+            result = self.claude.generate_json(
+                prompt=prompt,
+                system=self._build_system_prompt(),
+                max_tokens=512,
+                temperature=0.9,
+            )
+            # Validate and constrain options
+            options = result.get("options", [])[:4]
+            if len(options) < 2:
+                raise ValueError("Too few poll options returned")
+            result["options"] = [opt[:25] for opt in options]
+            result["duration_minutes"] = 1440  # 24 hours
+            result["type"] = "poll"
+            result["generated_at"] = datetime.now(JST).isoformat()
+            return result
+        except Exception as e:
+            logger.error("Poll generation failed, using fallback: %s", e)
+            fallback = random.choice(self.FALLBACK_POLLS).copy()
+            fallback["duration_minutes"] = 1440
+            fallback["type"] = "poll"
+            fallback["generated_at"] = datetime.now(JST).isoformat()
+            return fallback
+
     def generate_thread(self, topic: str, num_tweets: int = 4) -> dict:
         """Generate a thread of tweets on a topic.
 
@@ -159,7 +224,7 @@ Rules:
 
 Return a JSON object with:
 - "tweets": array of tweet texts (without numbering — I'll add that)
-- "hashtags": array of 3-5 hashtags for the first tweet (without # symbol)
+- "hashtags": array of 1 most relevant hashtag for the first tweet (without # symbol)
 - "hook_quality": rate 1-10 how attention-grabbing the first tweet is
 
 JSON only, no explanation."""
@@ -193,26 +258,39 @@ JSON only, no explanation."""
             tomorrow = datetime.now(JST) + timedelta(days=1)
             date = tomorrow.strftime("%Y-%m-%d")
 
-        # Content mix based on WHY×6 analysis optimal ratios
+        # Determine day-of-month for alternating poll/engagement at noon
+        day_of_month = int(date.split("-")[2])
+        noon_type = "poll" if day_of_month % 2 == 1 else "engagement"
+
+        # Content mix optimized for reach:
+        # - Threads get 40-60% more impressions than standalone posts
+        # - Polls get highest impressions on X
         content_plan = [
             {"time_jst": "07:00", "type": "standard", "scene": "morning_routine",
              "note": "Asia peak - morning ritual content"},
-            {"time_jst": "12:00", "type": "engagement", "scene": "lifestyle",
-             "note": "Asia lunch - engagement/poll"},
-            {"time_jst": "19:00", "type": "standard", "scene": self._pick_scene(),
-             "note": "EU morning + Asia evening - main content"},
+            {"time_jst": "12:00", "type": noon_type, "scene": "lifestyle",
+             "note": f"Asia lunch - {'poll (odd day)' if noon_type == 'poll' else 'engagement (even day)'}"},
+            {"time_jst": "19:00", "type": "thread", "scene": self._pick_scene(),
+             "note": "EU morning + Asia evening - thread for 40-60% more reach"},
             {"time_jst": "23:00", "type": "story", "scene": self._pick_scene(),
-             "note": "US West morning - story/thread"},
+             "note": "US West morning - story content"},
         ]
 
         # Generate content for each slot
         results = []
         for slot in content_plan:
             logger.info("Generating content for %s %s (%s)", date, slot["time_jst"], slot["type"])
-            content = self.generate_caption(
-                scene=slot["scene"],
-                content_type=slot["type"],
-            )
+
+            if slot["type"] == "poll":
+                content = self.generate_poll()
+            elif slot["type"] == "thread":
+                content = self.generate_thread(topic=slot["scene"])
+            else:
+                content = self.generate_caption(
+                    scene=slot["scene"],
+                    content_type=slot["type"],
+                )
+
             content["scheduled_date"] = date
             content["scheduled_time_jst"] = slot["time_jst"]
             content["note"] = slot["note"]

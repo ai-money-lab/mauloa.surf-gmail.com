@@ -38,7 +38,7 @@ class AlgorithmGuard:
     """Pre-posting filter that blocks or fixes algorithm penalty triggers."""
 
     # ─── 引き算ルール定数 ───
-    MAX_HASHTAGS = 7           # 開示2 + コンテンツ5 = 最大7
+    MAX_HASHTAGS = 3           # ブランド1 + コンテンツ1 = 最大2（余裕で3）
     MAX_MENTIONS_PER_POST = 2  # @メンション上限
     MIN_POST_INTERVAL_MIN = 30 # 最低投稿間隔（分）
     SIMILARITY_THRESHOLD = 0.7 # 類似度70%以上 = 重複判定
@@ -126,6 +126,11 @@ class AlgorithmGuard:
                 "rule": "hashtag_spam",
                 "severity": "high",
                 "detail": f"ハッシュタグ{len(hashtags)}個（上限{self.MAX_HASHTAGS}）",
+            })
+        elif len(hashtags) > 2:
+            warnings.append({
+                "rule": "hashtag_count_high",
+                "detail": f"ハッシュタグ{len(hashtags)}個 — 最適は1-2個（リーチ低下リスク）",
             })
 
         # ── Rule 3: エンゲージメントベイト ──

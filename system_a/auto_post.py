@@ -105,13 +105,15 @@ class AutoPoster:
             logger.error("Media upload failed: %s", e)
             return None
 
-    def post_tweet(self, text: str, media_id: str | None = None) -> dict:
-        """Post a single tweet, optionally with an image."""
+    def post_tweet(self, text: str, media_id: str | None = None, reply_to: str | None = None) -> dict:
+        """Post a single tweet, optionally with an image and/or as a reply."""
         url = "https://api.x.com/2/tweets"
         auth = self._get_oauth1_session()
         payload = {"text": text}
         if media_id:
             payload["media"] = {"media_ids": [media_id]}
+        if reply_to:
+            payload["reply"] = {"in_reply_to_tweet_id": reply_to}
 
         try:
             resp = requests.post(url, json=payload, auth=auth, timeout=15)
