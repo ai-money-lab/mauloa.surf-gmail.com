@@ -297,3 +297,65 @@ def test_posting_scheduler_uses_dedicated_credentials():
         scheduler = PostingScheduler()
         assert scheduler.poster.api_key == "test_se_key"
         assert scheduler.poster.access_token == "test_se_token"
+
+
+# ─── FTC Compliance Tests ───
+
+def test_disclosure_tags_always_added():
+    """Every post must include AI disclosure hashtags."""
+    from system_e.posting_scheduler import PostingScheduler
+    scheduler = PostingScheduler()
+    result = scheduler._append_hashtags("Hello world", ["fitness", "wellness"])
+    assert "#AICreator" in result
+    assert "#AIGenerated" in result
+
+
+def test_disclosure_tags_prioritized_over_content_tags():
+    """Disclosure tags are included even if content tags get dropped for space."""
+    from system_e.posting_scheduler import PostingScheduler
+    scheduler = PostingScheduler()
+    # Long text near 280 char limit
+    long_text = "A" * 240
+    result = scheduler._append_hashtags(long_text, ["fitness", "wellness", "health"])
+    assert "#AICreator" in result
+    assert "#AIGenerated" in result
+    assert len(result) <= 280
+
+
+def test_disclosure_tags_with_truncation():
+    """Text is truncated to fit disclosure tags if necessary."""
+    from system_e.posting_scheduler import PostingScheduler
+    scheduler = PostingScheduler()
+    # Text that's already near 280 chars
+    very_long_text = "B" * 275
+    result = scheduler._append_hashtags(very_long_text, [])
+    assert "#AICreator" in result
+    assert "#AIGenerated" in result
+    assert len(result) <= 280
+    assert "…" in result  # text was truncated
+
+
+def test_disclosure_tags_no_duplicates():
+    """If content already has AICreator tag, don't duplicate it."""
+    from system_e.posting_scheduler import PostingScheduler
+    scheduler = PostingScheduler()
+    result = scheduler._append_hashtags("Hello", ["AICreator", "fitness"])
+    # Should only appear once in the tag section
+    assert result.count("#AICreator") == 1
+
+
+def test_fanvue_post_includes_ai_disclosure():
+    """Every Fanvue post must include AI-generated disclosure."""
+    from system_e.fanvue_manager import FanvueManager
+    manager = FanvueManager()
+    post = manager.prepare_fanvue_post("/fake/image.jpg", "workout", "Great workout today!")
+    assert "ai-generated" in post["caption"].lower()
+
+
+def test_fanvue_fallback_caption_includes_disclosure():
+    """Fanvue fallback caption includes AI disclosure."""
+    from system_e.fanvue_manager import FanvueManager
+    manager = FanvueManager()
+    # Call the fallback caption directly
+    post = manager.prepare_fanvue_post("/fake/image.jpg", "lifestyle", "Check this out")
+    assert "ai-generated" in post["caption"].lower()

@@ -3,6 +3,8 @@
 Manages posting schedule across time zones for maximum global reach.
 Uses dedicated X account credentials (SYSTEM_E_X_* env vars)
 with fallback to default X_* credentials.
+
+FTC Compliance: Every post automatically includes #AICreator disclosure.
 """
 
 import json
@@ -11,6 +13,7 @@ import os
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
 
+import yaml
 from dotenv import load_dotenv
 
 from system_a.auto_post import AutoPoster
@@ -22,6 +25,21 @@ logger = logging.getLogger(__name__)
 JST = timezone(timedelta(hours=9))
 GENERATED_DIR = Path(__file__).parent.parent / "data" / "system_e" / "generated"
 POSTED_LOG = Path(__file__).parent.parent / "data" / "system_e" / "posted_log.json"
+CHAR_CONFIG_PATH = Path(__file__).parent / "character_config.yaml"
+
+# FTC-required AI disclosure hashtags — loaded from config, hardcoded fallback
+_DISCLOSURE_TAGS_FALLBACK = ["#AICreator", "#AIGenerated"]
+
+
+def _load_disclosure_tags() -> list[str]:
+    """Load mandatory AI disclosure hashtags from character config."""
+    try:
+        with open(CHAR_CONFIG_PATH, encoding="utf-8") as f:
+            config = yaml.safe_load(f)
+        tags = config.get("disclosure", {}).get("post_hashtags", [])
+        return tags if tags else _DISCLOSURE_TAGS_FALLBACK
+    except Exception:
+        return _DISCLOSURE_TAGS_FALLBACK
 
 
 class PostingScheduler:
@@ -32,6 +50,7 @@ class PostingScheduler:
 
     def __init__(self):
         self.poster = AutoPoster()
+        self.disclosure_tags = _load_disclosure_tags()
         # Use System E dedicated X account if configured, else fall back to default
         se_api_key = os.getenv("SYSTEM_E_X_API_KEY", "")
         se_access_token = os.getenv("SYSTEM_E_X_ACCESS_TOKEN", "")
@@ -121,13 +140,7 @@ class PostingScheduler:
             logger.warning("Empty text in content, skipping")
             return None
 
-        # Add hashtags
-        hashtags = content.get("hashtags", [])
-        if hashtags:
-            tag_str = " ".join(f"#{tag}" for tag in hashtags[:5])
-            # Only add if fits within character limit
-            if len(text) + len(tag_str) + 2 <= 280:
-                text = f"{text}\n\n{tag_str}"
+        text = self._append_hashtags(text, content.get("hashtags", []))
 
         # Build post dict compatible with AutoPoster
         post = {
@@ -183,12 +196,11 @@ class PostingScheduler:
         # Number the tweets
         numbered = [f"{i+1}/{len(tweets)} {t}" for i, t in enumerate(tweets)]
 
-        # Add hashtags to first tweet
-        hashtags = content.get("hashtags", [])
-        if hashtags and numbered:
-            tag_str = " ".join(f"#{tag}" for tag in hashtags[:3])
-            if len(numbered[0]) + len(tag_str) + 2 <= 280:
-                numbered[0] = f"{numbered[0]}\n\n{tag_str}"
+        # Add disclosure + content hashtags to first tweet
+        if numbered:
+            numbered[0] = self._append_hashtags(
+                numbered[0], content.get("hashtags", [])
+            )
 
         try:
             results = self.poster.post_thread(numbered)
@@ -219,6 +231,43 @@ class PostingScheduler:
 
         logger.info("Posted %d/%d due items", len(results), len(due))
         return results
+
+    def _append_hashtags(self, text: str, content_hashtags: list[str]) -> str:
+        """Append hashtags to text, ensuring AI disclosure tags are always included.
+
+        Priority order:
+        1. AI disclosure tags (mandatory — #AICreator, #AIGenerated)
+        2. Content hashtags (optional, space permitting)
+
+        If even disclosure tags don't fit, truncate text to make room.
+        """
+        max_len = 280
+        # Build disclosure string (always included)
+        disclosure_str = " ".join(self.disclosure_tags)
+
+        # Build optional content tags (deduplicate against disclosure)
+        disclosure_lower = {t.lower() for t in self.disclosure_tags}
+        extra_tags = [
+            f"#{tag}" for tag in content_hashtags[:5]
+            if f"#{tag}".lower() not in disclosure_lower
+        ]
+
+        # Try: text + disclosure + content tags
+        full_tags = f"{disclosure_str} {' '.join(extra_tags)}".strip() if extra_tags else disclosure_str
+        candidate = f"{text}\n\n{full_tags}"
+        if len(candidate) <= max_len:
+            return candidate
+
+        # Try: text + disclosure only
+        candidate = f"{text}\n\n{disclosure_str}"
+        if len(candidate) <= max_len:
+            return candidate
+
+        # Last resort: truncate text to fit disclosure
+        available = max_len - len(f"\n\n{disclosure_str}")
+        truncated = text[:available - 1] + "…"
+        logger.warning("Text truncated to fit AI disclosure tags")
+        return f"{truncated}\n\n{disclosure_str}"
 
     def _get_posted_ids(self, date: str) -> set:
         """Get IDs of already-posted content for a date."""

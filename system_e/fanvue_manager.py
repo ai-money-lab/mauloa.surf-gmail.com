@@ -75,6 +75,11 @@ class FanvueManager:
         if not caption:
             caption = self._generate_fanvue_caption(scene, tier)
 
+        # Ensure AI disclosure is present in every Fanvue post
+        ai_marker = "AI-generated"
+        if ai_marker.lower() not in caption.lower():
+            caption = f"{caption}\n🤖 {ai_marker} content"
+
         post = {
             "image_path": image_path,
             "caption": caption,
@@ -109,7 +114,8 @@ class FanvueManager:
 Vibe: {vibe}
 Tier: {tier} ({"free — visible to everyone" if tier == "free" else f"${self.tiers[tier]['price']}/month subscribers only"})
 
-Make it feel exclusive and personal. No hashtags needed.
+Make it feel exclusive and personal.
+End with: "🤖 AI-generated content"
 Return just the caption text, nothing else."""
 
         try:
@@ -126,7 +132,7 @@ Return just the caption text, nothing else."""
             ).strip().strip('"')
         except Exception as e:
             logger.error("Fanvue caption generation failed: %s", e)
-            return f"New {scene} content just dropped! ✨"
+            return f"New {scene} content just dropped! ✨ 🤖 AI-generated content"
 
     def _add_to_queue(self, post: dict) -> None:
         """Add a post to the Fanvue posting queue."""
