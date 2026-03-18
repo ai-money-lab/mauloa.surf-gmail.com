@@ -154,6 +154,9 @@ system-e-post:
 system-e-check:
 	python system_e/scripts/launch_check.py
 
+system-e-seed:
+	python system_e/scripts/seed_content.py --days 7
+
 # ─── crontab一括登録 ───
 cron-install:
 	@PROJECT_ROOT=$$(pwd); \

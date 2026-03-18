@@ -1,11 +1,13 @@
 """System E — Multi-Timezone Posting Scheduler.
 
 Manages posting schedule across time zones for maximum global reach.
-Integrates with System A's AutoPoster for X API access.
+Uses dedicated X account credentials (SYSTEM_E_X_* env vars)
+with fallback to default X_* credentials.
 """
 
 import json
 import logging
+import os
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
 
@@ -30,8 +32,18 @@ class PostingScheduler:
 
     def __init__(self):
         self.poster = AutoPoster()
-        # Override System A's daily limit for System E account
-        self.poster.__class__.MAX_POSTS_PER_DAY = self.MAX_POSTS_PER_DAY
+        # Use System E dedicated X account if configured, else fall back to default
+        se_api_key = os.getenv("SYSTEM_E_X_API_KEY", "")
+        se_access_token = os.getenv("SYSTEM_E_X_ACCESS_TOKEN", "")
+        if se_api_key and se_access_token:
+            self.poster.api_key = se_api_key
+            self.poster.api_secret = os.getenv("SYSTEM_E_X_API_SECRET_KEY", "")
+            self.poster.access_token = se_access_token
+            self.poster.access_secret = os.getenv("SYSTEM_E_X_ACCESS_TOKEN_SECRET", "")
+            self.poster.bearer_token = os.getenv("SYSTEM_E_X_BEARER_TOKEN", "")
+            logger.info("Using dedicated System E X account credentials")
+        else:
+            logger.info("Using default X account credentials (SYSTEM_E_X_* not set)")
 
     def get_pending_posts(self, date: str | None = None) -> list[dict]:
         """Get posts scheduled for today that haven't been posted yet.

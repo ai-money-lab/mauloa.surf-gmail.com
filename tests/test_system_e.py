@@ -205,3 +205,95 @@ def test_daily_pipeline_init():
     assert pipeline.scheduler is not None
     assert pipeline.fanvue is not None
     assert pipeline.analytics is not None
+
+
+def test_daily_pipeline_budget_check():
+    """Budget check passes when no cost data exists."""
+    from system_e.daily_pipeline import SystemEPipeline
+    pipeline = SystemEPipeline()
+    assert pipeline._check_budget() is True
+
+
+def test_daily_pipeline_monthly_spend_empty():
+    """Monthly spend returns 0 when no cost log exists."""
+    from system_e.daily_pipeline import SystemEPipeline
+    pipeline = SystemEPipeline()
+    assert pipeline._get_monthly_spend("2099-01") == 0.0
+
+
+def test_daily_pipeline_record_cost(tmp_path):
+    """Cost recording creates and appends to cost log."""
+    from system_e.daily_pipeline import SystemEPipeline, COST_LOG
+    pipeline = SystemEPipeline()
+
+    # Use a temp cost log
+    original_log = COST_LOG
+    import system_e.daily_pipeline as dp
+    dp.COST_LOG = tmp_path / "cost_log.json"
+    try:
+        pipeline._record_cost("test_image", 0.10)
+        assert dp.COST_LOG.exists()
+        entries = json.loads(dp.COST_LOG.read_text(encoding="utf-8"))
+        assert len(entries) == 1
+        assert entries[0]["item"] == "test_image"
+        assert entries[0]["cost_usd"] == 0.10
+
+        # Append another
+        pipeline._record_cost("test_image_2", 0.20)
+        entries = json.loads(dp.COST_LOG.read_text(encoding="utf-8"))
+        assert len(entries) == 2
+    finally:
+        dp.COST_LOG = original_log
+
+
+def test_daily_pipeline_budget_exceeded(tmp_path):
+    """Budget check fails when monthly spend exceeds limit."""
+    from system_e.daily_pipeline import SystemEPipeline
+    import system_e.daily_pipeline as dp
+
+    pipeline = SystemEPipeline()
+    original_log = dp.COST_LOG
+    dp.COST_LOG = tmp_path / "cost_log.json"
+    try:
+        from datetime import datetime, timezone, timedelta
+        JST = timezone(timedelta(hours=9))
+        month_key = datetime.now(JST).strftime("%Y-%m")
+        # Write costs that exceed the $50 budget
+        entries = [
+            {"date": f"{month_key}-01T10:00:00+09:00", "item": "big_batch", "cost_usd": 55.0}
+        ]
+        dp.COST_LOG.write_text(json.dumps(entries), encoding="utf-8")
+        assert pipeline._check_budget() is False
+    finally:
+        dp.COST_LOG = original_log
+
+
+# ─── Posting Scheduler Account Separation Tests ───
+
+def test_posting_scheduler_uses_default_credentials():
+    """PostingScheduler falls back to default X credentials when SYSTEM_E_X_* not set."""
+    env_overrides = {
+        "SYSTEM_E_X_API_KEY": "",
+        "SYSTEM_E_X_ACCESS_TOKEN": "",
+    }
+    with patch.dict("os.environ", env_overrides, clear=False):
+        from system_e.posting_scheduler import PostingScheduler
+        scheduler = PostingScheduler()
+        # Should still be using default creds (from X_API_KEY env)
+        assert scheduler.poster is not None
+
+
+def test_posting_scheduler_uses_dedicated_credentials():
+    """PostingScheduler uses SYSTEM_E_X_* credentials when available."""
+    env_overrides = {
+        "SYSTEM_E_X_API_KEY": "test_se_key",
+        "SYSTEM_E_X_API_SECRET_KEY": "test_se_secret",
+        "SYSTEM_E_X_ACCESS_TOKEN": "test_se_token",
+        "SYSTEM_E_X_ACCESS_TOKEN_SECRET": "test_se_token_secret",
+        "SYSTEM_E_X_BEARER_TOKEN": "test_se_bearer",
+    }
+    with patch.dict("os.environ", env_overrides, clear=False):
+        from system_e.posting_scheduler import PostingScheduler
+        scheduler = PostingScheduler()
+        assert scheduler.poster.api_key == "test_se_key"
+        assert scheduler.poster.access_token == "test_se_token"
