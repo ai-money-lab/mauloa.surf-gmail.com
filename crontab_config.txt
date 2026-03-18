@@ -26,7 +26,7 @@ PROJECT_ROOT=$PROJECT_ROOT
 # ═══ System D: Results Publishing ═══
 0 20 * * 5  cd $PROJECT_ROOT && PYTHONPATH=. python system_d/generate_results_content.py >> data/cron.log 2>&1
 
-# ═══ System E: AI Character Pipeline (Maia) ═══
+# ═══ System E: AI Character Pipeline (Riena) ═══
 # 21:00 コンテンツ生成（翌日分のテキスト＋画像を一括生成）
 0 21 * * *  cd $PROJECT_ROOT && PYTHONPATH=. python system_e/daily_pipeline.py --mode generate >> data/cron.log 2>&1
 # 投稿ウィンドウ（07:00/12:00/19:00/23:00 JST — 15分以内に投稿）

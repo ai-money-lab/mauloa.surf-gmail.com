@@ -3,7 +3,7 @@
 # Brand Partnership Strategy for Overseas Companies
 #
 # 設計原則: 信頼が先、収益は後
-# Maiaの世界観に合致する企業のみ。断る力が最大の武器。
+# Rienaの世界観に合致する企業のみ。断る力が最大の武器。
 # ═══════════════════════════════════════════════════════════
 
 # ─── なぜ海外企業がAIインフルエンサーと組みたいのか ───
@@ -20,27 +20,27 @@ why_brands_want_ai:
     ai_influencer_market_2026: "Estimated $500M+ in brand deal spending on virtual/AI influencers"
     key_trend: "Brands are shifting from 'is AI influencer marketing real?' to 'how do we do it right?'"
 
-# ─── Maiaが狙うブランドカテゴリ（Tier制） ───
+# ─── Rienaが狙うブランドカテゴリ（Tier制） ───
 brand_tiers:
 
-  # Tier 1: 最優先（Maiaの世界観と完全一致）
+  # Tier 1: 最優先（Rienaの世界観と完全一致）
   tier_1_perfect_fit:
     categories:
       - category: "Premium Supplement Brands"
         examples: ["Athletic Greens (AG1)", "Momentous", "Thorne", "LMNT"]
-        why: "Science-backed, premium positioning — Maiaの'evidence-based wellness'と完全一致"
+        why: "Science-backed, premium positioning — Rienaの'evidence-based wellness'と完全一致"
         deal_range_usd: "5,000 - 25,000 per campaign"
       - category: "Fitness Tech / Wearables"
         examples: ["Whoop", "Oura Ring", "Garmin", "Apple Watch"]
-        why: "Data tracking = Maiaの性格そのもの。'Tracks everything in spreadsheets'の延長"
+        why: "Data tracking = Rienaの性格そのもの。'Tracks everything in spreadsheets'の延長"
         deal_range_usd: "10,000 - 50,000 per campaign"
       - category: "Wellness Apps"
         examples: ["Calm", "Headspace", "Noom", "MacroFactor"]
-        why: "テック×ウェルネスの交差点。Maiaの毎日のルーティンに自然に入る"
+        why: "テック×ウェルネスの交差点。Rienaの毎日のルーティンに自然に入る"
         deal_range_usd: "5,000 - 30,000 per campaign"
       - category: "Japanese Premium Matcha / Tea Brands"
         examples: ["Ippodo", "Kettl", "Matchabar"]
-        why: "Maiaのmatcha ritualは彼女のアイデンティティ。ここに嘘は入れない"
+        why: "Rienaのmatcha ritualは彼女のアイデンティティ。ここに嘘は入れない"
         deal_range_usd: "3,000 - 15,000 per campaign"
 
   # Tier 2: 良い相性（条件付きで検討）
@@ -52,7 +52,7 @@ brand_tiers:
         deal_range_usd: "5,000 - 20,000 per campaign"
       - category: "Healthy Food / Snack Brands"
         examples: ["RXBAR", "Hu Kitchen", "Siete Foods"]
-        condition: "成分がクリーンで、Maiaが本当に食べるもの"
+        condition: "成分がクリーンで、Rienaが本当に食べるもの"
         deal_range_usd: "3,000 - 10,000 per campaign"
       - category: "Home Wellness / Sleep"
         examples: ["Eight Sleep", "Purple Mattress", "Dyson Air Purifier"]
@@ -64,10 +64,10 @@ brand_tiers:
     categories:
       - "Detox teas / cleanse products — 科学的根拠なし"
       - "Weight loss supplements — body shamingに繋がる"
-      - "Fast fashion — Maiaの価値観に反する"
+      - "Fast fashion — Rienaの価値観に反する"
       - "Crypto / NFT projects — 信頼を壊す"
       - "Gambling / betting — ターゲット層と不一致"
-      - "Any brand that Maia hasn't 'used' for 2+ weeks in narrative"
+      - "Any brand that Riena hasn't 'used' for 2+ weeks in narrative"
     rule: "断った案件は（ブランド名を出さずに）コンテンツになる。'Turned down a deal today. Didn't feel right. Moving on.'"
 
 # ─── 海外企業へのアプローチ戦略 ───
@@ -81,12 +81,12 @@ outreach_strategy:
         details:
           format: "PDF + dedicated landing page"
           contents:
-            - "Maia's story (1 paragraph — the mother's story, not the marketing pitch)"
+            - "Riena's story (1 paragraph — the mother's story, not the marketing pitch)"
             - "Audience demographics (age, gender, geography, interests)"
             - "Engagement metrics (even if small, show rate not count)"
             - "Content examples — 6 best posts showing range"
             - "AI disclosure policy — proactively explain FTC compliance"
-            - "Brand safety guarantee — what Maia will and won't do"
+            - "Brand safety guarantee — what Riena will and won't do"
             - "Previous integrations / case studies (or 'spec work' examples)"
           languages: ["en", "ja"]
       - action: "Create 3 'Spec Work' Brand Integrations"
@@ -139,13 +139,13 @@ outreach_strategy:
           NOT a generic pitch. Research each brand's current influencer strategy.
           Lead with:
           1. What you noticed about their brand (specific, not flattery)
-          2. Why Maia's audience overlaps with their target
+          2. Why Riena's audience overlaps with their target
           3. One specific content idea (concrete, not vague)
           4. The AI transparency advantage (brand safety + novelty press)
         volume: "5 highly personalized pitches per week"
       - action: "Leverage the 'First AI Influencer Deal' Angle"
         details: |
-          For many brands, Maia could be their FIRST AI influencer partnership.
+          For many brands, Riena could be their FIRST AI influencer partnership.
           That alone is a press story. Position it as:
           "Your competitor hasn't done this yet. Be first."
       - action: "Offer Pilot Deals"
@@ -158,9 +158,9 @@ outreach_strategy:
 deal_execution:
 
   content_integration_rules:
-    - "Product appears in Maia's life BEFORE the paid post (2-week minimum)"
+    - "Product appears in Riena's life BEFORE the paid post (2-week minimum)"
     - "Sponsored content must feel identical to organic content in voice and quality"
-    - "Maia gives honest opinion — including what she didn't love (brands respect this)"
+    - "Riena gives honest opinion — including what she didn't love (brands respect this)"
     - "Maximum 1 sponsored post per 10 organic posts (10% ratio)"
     - "Double disclosure: #ad + #AICreator always visible"
 
@@ -190,7 +190,7 @@ deal_execution:
       - "Clear deliverable specifications"
       - "AI-origin disclosure terms agreed in writing"
       - "Right to refuse if product doesn't meet quality standards"
-      - "Kill clause — if product is recalled/controversial, Maia can pull content"
+      - "Kill clause — if product is recalled/controversial, Riena can pull content"
 
 # ─── KPI と目標 ───
 kpis:
@@ -216,7 +216,7 @@ kpis:
 # ─── 日本発 × 海外企業の独自優位性 ───
 japan_advantage:
   positioning: |
-    Maiaは「日本のウェルネス文化を世界に伝えるAIクリエイター」として
+    Rienaは「日本のウェルネス文化を世界に伝えるAIクリエイター」として
     ポジショニングできる。これは海外ブランドにとって以下の価値がある:
   value_propositions:
     - title: "Gateway to Japanese Market"
@@ -241,8 +241,8 @@ japan_advantage:
 #   強み: 顔一貫性、セクシー×ファッション、毎日投稿、サブスク導線
 #   弱み: ストーリーなし、ニッチ不明確、ブランドとの接続点が薄い
 #
-# Maiaの設計はここで差をつける:
-#   凛は「見る対象」、Maiaは「応援する対象」
+# Rienaの設計はここで差をつける:
+#   凛は「見る対象」、Rienaは「応援する対象」
 #   ブランドは「応援される人物」と組みたい
 # ═══════════════════════════════════════════════════════════
 
@@ -256,7 +256,7 @@ inbound_brand_design:
     3. 「このクリエイターと組んだこと自体がニュースになる」と計算する
 
     凛のようなセクシー系は1と3を満たしにくい（ブランドセーフティリスク）。
-    Maiaは3つ全てを満たせる設計にする。
+    Rienaは3つ全てを満たせる設計にする。
 
   # ─── 凛から学んで取り込むべき要素 ───
   lessons_from_rin:
@@ -268,7 +268,7 @@ inbound_brand_design:
       - element: "Reels/動画コンテンツ"
         implementation: |
           AI動画生成を導入（Runway Gen-3, Kling, Pika等）。
-          Maiaが実際に動く = 「存在感」が次のレベルになる。
+          Rienaが実際に動く = 「存在感」が次のレベルになる。
           ワークアウト動画、matcha ritual動画は必須。
         priority: "high"
 
@@ -282,7 +282,7 @@ inbound_brand_design:
       - element: "毎日投稿の『約束』"
         implementation: |
           ただし凛の「毎日1投稿」をそのままコピーしない。
-          Maiaは「ほぼ毎日、でも休む日もある」。
+          Rienaは「ほぼ毎日、でも休む日もある」。
           沈黙設計があるからこそ投稿に重みが出る。
         priority: "medium"
 
@@ -291,23 +291,23 @@ inbound_brand_design:
         priority: "high"
 
     do_not_adopt:
-      - "フォロー数104 → 凛はフォロバ戦略をしていない。これは正解。Maiaも同様。"
-      - "セクシー路線の直接コピー → Maiaのセクシーさは「健康的な美しさ」。露出ではなく筋肉のライン、汗、活力。"
-      - "『フォローしてね』の懇願 → Maiaは絶対にこれをしない。沈黙設計の原則。"
+      - "フォロー数104 → 凛はフォロバ戦略をしていない。これは正解。Rienaも同様。"
+      - "セクシー路線の直接コピー → Rienaのセクシーさは「健康的な美しさ」。露出ではなく筋肉のライン、汗、活力。"
+      - "『フォローしてね』の懇願 → Rienaは絶対にこれをしない。沈黙設計の原則。"
 
   # ─── ブランドが自ら来る「トリガーコンテンツ」設計 ───
   trigger_content:
     description: |
       ブランドのマーケティング担当者が見つけて
       「この人とうちの商品、合うな」と思わせるコンテンツ。
-      これは広告ではない。Maiaの日常の中に商品が自然に存在する投稿。
+      これは広告ではない。Rienaの日常の中に商品が自然に存在する投稿。
 
     trigger_posts:
       - type: "Product-in-Life (製品が生活の中にある)"
         example: |
-          Maiaの朝のmatcha ritual。カウンターにOura Ringが自然に置いてある。
+          Rienaの朝のmatcha ritual。カウンターにOura Ringが自然に置いてある。
           キャプション: "7時間42分。昨日より18分多い。この30日の平均が上がってきた。"
-          → Oura Ringは名前を出していない。でもファンは「Maiaが使ってるのOura?」と聞く。
+          → Oura Ringは名前を出していない。でもファンは「Rienaが使ってるのOura?」と聞く。
           → Ouraのマーケ担当がこの投稿を見つける。
         frequency: "2x per week"
         rule: "製品名を出すのは10回中1回以下。ブランドが『名前出してくれてない…組みたい』と思わせる"
@@ -339,7 +339,7 @@ inbound_brand_design:
   # ─── ブランドが見つけやすくする「発見性」設計 ───
   discoverability:
     seo_bio:
-      instagram: "Wellness | Fitness | Tokyo | AI Creator 🤖 | Partnerships: maia@[domain].com"
+      instagram: "Wellness | Fitness | Tokyo | AI Creator 🤖 | Partnerships: riena@[domain].com"
       x_twitter: "Data-driven wellness from Tokyo. AI-generated, human-hearted. DM open for collabs."
       rule: "バイオに必ず『Partnerships:』か『Collabs:』+ 連絡先メールを入れる。これがないとブランドは連絡できない。"
 
@@ -373,7 +373,7 @@ inbound_brand_design:
         - media: "Well+Good"
           angle: "This AI fitness creator tracks her sleep, rates supplements, and has 50K followers"
         - media: "Forbes Japan"
-          angle: "AIインフルエンサーで月収100万円？日本発Maiaの戦略"
+          angle: "AIインフルエンサーで月収100万円？日本発Rienaの戦略"
         - media: "The Verge"
           angle: "An AI influencer with grief, a rescue cat, and a matcha ritual"
       method: |
@@ -391,12 +391,12 @@ inbound_brand_design:
       - name: "Spec Work → DM"
         how: |
           1. 夢のブランド（例: AG1）の製品を買う
-          2. Maiaの世界観で最高のコンテンツを作る（3投稿）
+          2. Rienaの世界観で最高のコンテンツを作る（3投稿）
           3. 普通に投稿する（タグもしない）
           4. そのコンテンツをまとめてブランドのマーケ担当にDMで送る
           5. 「これ、勝手に作りました。よければ公式に一緒にやりませんか？」
           → 80%のインフルエンサーは「お金ください」から始める。
-          → Maiaは「もう作りました」から始める。これが圧倒的に強い。
+          → Rienaは「もう作りました」から始める。これが圧倒的に強い。
         success_rate: "30-40% response rate (vs 5% for cold pitches)"
 
       - name: "The Affiliate Bridge"
@@ -437,6 +437,6 @@ inbound_brand_design:
       - type: "Day-in-the-life (15-30秒 montage)"
         description: "朝→ジム→カフェ→夜のルーティン。BGM付き。"
       - type: "Product unboxing/review (15-20秒)"
-        description: "商品を開ける手元。Maiaの反応。→トリガーコンテンツとして最強"
+        description: "商品を開ける手元。Rienaの反応。→トリガーコンテンツとして最強"
     frequency: "3-4 Reels per week (start with 2, scale up)"
     budget: "Runway Gen-3: ~$0.50/5sec → 月$60-100でReels量産可能"

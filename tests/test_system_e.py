@@ -314,26 +314,26 @@ def test_bio_based_disclosure_no_per_post_tags():
     assert "#AICreator" not in result
     assert "#AIGenerated" not in result
     # Should have branded hashtag instead
-    assert "#MaiaWellness" in result
+    assert "#RienaWellness" in result
 
 
 def test_max_two_hashtags_per_post():
-    """Posts should have at most 2 hashtags: 1 content + #MaiaWellness."""
+    """Posts should have at most 2 hashtags: 1 content + #RienaWellness."""
     import re
     from system_e.posting_scheduler import PostingScheduler
     scheduler = PostingScheduler()
     result = scheduler._append_hashtags("Hello world", ["fitness", "wellness", "health"])
     hashtags = re.findall(r'#\w+', result)
     assert len(hashtags) <= 2
-    assert "#MaiaWellness" in result
+    assert "#RienaWellness" in result
 
 
 def test_branded_hashtag_always_included():
-    """#MaiaWellness branded hashtag is included when space permits."""
+    """#RienaWellness branded hashtag is included when space permits."""
     from system_e.posting_scheduler import PostingScheduler
     scheduler = PostingScheduler()
     result = scheduler._append_hashtags("Hello world", [])
-    assert "#MaiaWellness" in result
+    assert "#RienaWellness" in result
 
 
 def test_hashtags_dropped_when_text_too_long():
@@ -348,12 +348,12 @@ def test_hashtags_dropped_when_text_too_long():
 
 
 def test_no_duplicate_branded_hashtag():
-    """If content hashtag is MaiaWellness, don't duplicate it."""
+    """If content hashtag is RienaWellness, don't duplicate it."""
     import re
     from system_e.posting_scheduler import PostingScheduler
     scheduler = PostingScheduler()
-    result = scheduler._append_hashtags("Hello", ["MaiaWellness", "fitness"])
-    assert result.count("#MaiaWellness") == 1
+    result = scheduler._append_hashtags("Hello", ["RienaWellness", "fitness"])
+    assert result.count("#RienaWellness") == 1
     hashtags = re.findall(r'#\w+', result)
     assert len(hashtags) <= 2
 
@@ -407,7 +407,7 @@ def test_mention_responder_init():
     """MentionResponder initializes without errors."""
     from system_e.mention_responder import MentionResponder
     responder = MentionResponder()
-    assert responder.character["name"] == "Maia"
+    assert responder.character["name"] == "Riena"
 
 
 def test_mention_responder_should_skip_spam():
@@ -465,7 +465,7 @@ def test_guard_blocks_external_links():
     """External links are detected and blocked (リーチ激減)."""
     from system_e.algorithm_guard import AlgorithmGuard
     guard = AlgorithmGuard()
-    result = guard.check_post("Check out my blog https://example.com/post\n\n#MaiaWellness")
+    result = guard.check_post("Check out my blog https://example.com/post\n\n#RienaWellness")
     assert not result["approved"]
     assert any(v["rule"] == "external_link" for v in result["violations"])
     # Auto-fix should remove the link
@@ -478,10 +478,10 @@ def test_guard_blocks_engagement_bait():
     from system_e.algorithm_guard import AlgorithmGuard
     guard = AlgorithmGuard()
     bait_posts = [
-        "Like if you agree! Health is wealth\n\n#MaiaWellness",
-        "Retweet if you love mornings\n\n#MaiaWellness",
-        "Follow me for more tips\n\n#MaiaWellness",
-        "Smash that like button\n\n#MaiaWellness",
+        "Like if you agree! Health is wealth\n\n#RienaWellness",
+        "Retweet if you love mornings\n\n#RienaWellness",
+        "Follow me for more tips\n\n#RienaWellness",
+        "Smash that like button\n\n#RienaWellness",
     ]
     for post in bait_posts:
         result = guard.check_post(post)
@@ -494,9 +494,9 @@ def test_guard_approves_genuine_engagement():
     from system_e.algorithm_guard import AlgorithmGuard
     guard = AlgorithmGuard()
     genuine = [
-        "What's your go-to morning routine? I'm curious!\n\n#MaiaWellness",
-        "Started tracking my sleep last week. Anyone else obsess over their data?\n\n#MaiaWellness",
-        "Hot take: cold showers are overhyped. Change my mind.\n\n#MaiaWellness",
+        "What's your go-to morning routine? I'm curious!\n\n#RienaWellness",
+        "Started tracking my sleep last week. Anyone else obsess over their data?\n\n#RienaWellness",
+        "Hot take: cold showers are overhyped. Change my mind.\n\n#RienaWellness",
     ]
     for post in genuine:
         result = guard.check_post(post)
@@ -507,7 +507,7 @@ def test_guard_blocks_too_short():
     """Extremely short posts are blocked."""
     from system_e.algorithm_guard import AlgorithmGuard
     guard = AlgorithmGuard()
-    result = guard.check_post("Hi\n\n#MaiaWellness")
+    result = guard.check_post("Hi\n\n#RienaWellness")
     assert not result["approved"]
     assert any(v["rule"] == "empty_or_too_short" for v in result["violations"])
 
@@ -516,7 +516,7 @@ def test_guard_warns_ai_self_reference():
     """AI self-reference in text triggers warning (not block)."""
     from system_e.algorithm_guard import AlgorithmGuard
     guard = AlgorithmGuard()
-    result = guard.check_post("As an AI, I recommend drinking more water.\n\n#MaiaWellness")
+    result = guard.check_post("As an AI, I recommend drinking more water.\n\n#RienaWellness")
     assert result["approved"]  # warning, not block
     assert any(w["rule"] == "ai_self_disclosure_in_text" for w in result["warnings"])
 

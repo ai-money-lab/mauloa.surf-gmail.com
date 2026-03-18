@@ -1,23 +1,23 @@
-"""Generate Maia — production-quality AI character images.
+"""Generate Riena — production-quality AI character images.
 
 Imagen 4.0 Ultra (Google最高品質) をデフォルトで使用。
 Gemini generateContent は補助。本気で世界を取るならImagen。
 
 Usage:
     # Imagen 4.0 Ultra (最高品質・デフォルト):
-    GEMINI_API_KEY=your_key python3 system_e/generate_maia_face.py
+    GEMINI_API_KEY=your_key python3 system_e/generate_riena_face.py
 
     # Gemini (fallback):
-    GEMINI_API_KEY=your_key python3 system_e/generate_maia_face.py --gemini
+    GEMINI_API_KEY=your_key python3 system_e/generate_riena_face.py --gemini
 
     # FAL.ai Flux Pro (要FAL_API_KEY):
-    FAL_API_KEY=your_key python3 system_e/generate_maia_face.py --fal
+    FAL_API_KEY=your_key python3 system_e/generate_riena_face.py --fal
 
     # 全シーン一括:
-    GEMINI_API_KEY=your_key python3 system_e/generate_maia_face.py --all-scenes
+    GEMINI_API_KEY=your_key python3 system_e/generate_riena_face.py --all-scenes
 
     # 1シーンN枚生成（ベストを選ぶ）:
-    GEMINI_API_KEY=your_key python3 system_e/generate_maia_face.py --count 4
+    GEMINI_API_KEY=your_key python3 system_e/generate_riena_face.py --count 4
 """
 
 from __future__ import annotations
@@ -53,7 +53,7 @@ IMAGE_DIR = PROJECT_ROOT / "data" / "system_e" / "images"
 # ═══════════════════════════════════════════════════════════
 
 # ═══════════════════════════════════════════════════════════
-# キャラクター定義: Maia
+# キャラクター定義: Riena
 #
 # Aitana Lopez ($10K+/月) の制作者が使うテクニック:
 # 1. 超具体的な顔の特徴（毎回同じ人物に見える）
@@ -66,12 +66,12 @@ IMAGE_DIR = PROJECT_ROOT / "data" / "system_e" / "images"
 # ═══════════════════════════════════════════════════════════
 
 # ═══════════════════════════════════════════════════════════
-# Maiaのシグネチャー: 「かわいいのに強い」
+# Rienaのシグネチャー: 「かわいいのに強い」
 #
 # AI美女界のポジションマップ:
 #   凛、Aitana → かわいい/セクシー × ファッション（飽和）
 #   imma       → かわいい × ハイファッション（飽和）
-#   Maia       → かわいい × アスリート体型（空席！！）
+#   Riena       → かわいい × アスリート体型（空席！！）
 #
 # ベビーフェイスなのに腹筋が割れている。
 # この「ギャップ」が0.5秒で人を止める。
@@ -80,7 +80,7 @@ IMAGE_DIR = PROJECT_ROOT / "data" / "system_e" / "images"
 
 # ベンチマーク: @i.am_natsuki_ (186万フォロワー), @373off
 # あの超スレンダー体型 × ベビーフェイスが基準。それ以下は論外。
-MAIA_IDENTITY = """extremely beautiful young Japanese girl, 20 years old, baby face, full body shot from head to toe.
+RIENA_IDENTITY = """extremely beautiful young Japanese girl, 20 years old, baby face, full body shot from head to toe.
 Face: adorable small round baby face, big sparkling doe eyes, cute button nose, plump glossy pink lips, dimples, double eyelids. Looks like a Japanese idol.
 Skin: flawless glowing dewy skin, porcelain smooth, youthful.
 Hair: glossy dark brown, silky, long past shoulders, natural soft waves.
@@ -92,7 +92,7 @@ Signature: delicate thin vintage silver watch on left wrist.
 # おばさん化を防ぐ＋アスリート感を保つネガティブプロンプト
 NEGATIVE_PROMPT = "old, aged, wrinkles, mature face, sagging skin, dark circles, tired, rough skin, large pores, thick neck, overweight, soft body, no muscle definition, cartoon, anime, illustration, 3D render, lowres, blurry, deformed, ugly, bad anatomy, masculine jaw"
 
-MAIA_FACE_PROMPT = f"""FULL BODY photograph from head to feet of {MAIA_IDENTITY}
+RIENA_FACE_PROMPT = f"""FULL BODY photograph from head to feet of {RIENA_IDENTITY}
 Long glossy dark brown hair down, soft waves, curtain bangs.
 Wearing white fitted crop top and high-waisted mini skirt showing her extremely slim waist, long bare legs from thigh to feet, white sneakers.
 Full body visible head to toe. Her super slender figure is the focus — impossibly thin waist, long model legs, perfect proportions.
@@ -102,10 +102,10 @@ Full body shot, 35mm lens, warm golden tones, photorealistic, 8K, fashion editor
 Avoid: {NEGATIVE_PROMPT}
 """.strip()
 
-MAIA_SCENE_PROMPTS = {
-    "portrait_warm": MAIA_FACE_PROMPT,
+RIENA_SCENE_PROMPTS = {
+    "portrait_warm": RIENA_FACE_PROMPT,
 
-    "selfie_cute": f"""FULL BODY mirror selfie from head to feet of {MAIA_IDENTITY}
+    "selfie_cute": f"""FULL BODY mirror selfie from head to feet of {RIENA_IDENTITY}
 Long glossy hair down, soft waves. Dewy glowing skin.
 Wearing cropped tank top and tiny denim shorts — her entire super slender body visible in full length mirror: extremely thin waist, long slim legs, thigh gap, nice figure. Head to toe reflected.
 Adorable cute face, peace sign, sweet smile. Baby face on a supermodel body.
@@ -114,7 +114,7 @@ iPhone selfie, full body visible, warm golden tones, photorealistic.
 Avoid: {NEGATIVE_PROMPT}
 """.strip(),
 
-    "workout_power": f"""FULL BODY gym photograph from head to feet of {MAIA_IDENTITY}
+    "workout_power": f"""FULL BODY gym photograph from head to feet of {RIENA_IDENTITY}
 Hair in high ponytail.
 Wearing black sports bra and black leggings. Her ENTIRE body visible head to toe: super slender waist, flat toned stomach, full bust, round hips, very long slim toned legs. Think Natsuki Abe proportions.
 Standing full body, one hand on hip, cute confident smirk on her baby face.
@@ -124,7 +124,7 @@ Ultra photorealistic. Gymshark campaign quality.
 Avoid: {NEGATIVE_PROMPT}
 """.strip(),
 
-    "bikini_pool": f"""FULL BODY photograph from head to feet of {MAIA_IDENTITY}
+    "bikini_pool": f"""FULL BODY photograph from head to feet of {RIENA_IDENTITY}
 Long glossy hair down, slightly wet, sun-kissed.
 Wearing simple white bikini. Her full body visible: extremely slender tiny waist, flat stomach, full bust, beautiful hips, very long slim legs, thigh gap. Perfect supermodel proportions.
 Standing by infinity pool edge, one hand in hair. Adorable sweet smile on her baby face looking at camera.
@@ -134,7 +134,7 @@ Ultra photorealistic, Sports Illustrated swimsuit quality.
 Avoid: {NEGATIVE_PROMPT}
 """.strip(),
 
-    "evening_intimate": f"""FULL BODY photograph from head to feet of {MAIA_IDENTITY}
+    "evening_intimate": f"""FULL BODY photograph from head to feet of {RIENA_IDENTITY}
 Hair down, soft waves. Wearing oversized cream knit sweater as dress, barely covering her thighs, showing extremely long bare slim legs all the way down to bare feet.
 Even in cozy mode her super slender figure is obvious — tiny waist, long legs, model proportions.
 Standing by window in warm lamplight, hugging a mug, sweet innocent expression, big doe eyes.
@@ -143,7 +143,7 @@ Full body shot, 50mm f/1.4, warm tones. Photorealistic. Baby face, supermodel le
 Avoid: {NEGATIVE_PROMPT}
 """.strip(),
 
-    "tokyo_golden": f"""FULL BODY photograph from head to feet of {MAIA_IDENTITY}
+    "tokyo_golden": f"""FULL BODY photograph from head to feet of {RIENA_IDENTITY}
 Long hair flowing in breeze, golden backlight halo.
 Wearing fitted cropped jacket, tiny waist belt, mini skirt showing her incredibly long slim legs, heeled boots.
 Walking through Tokyo at golden hour, full body visible, looking back over shoulder with adorable bright smile.
@@ -205,7 +205,7 @@ def _parse_imagen_response(data: dict, model: str) -> list[str]:
             continue
         mime = pred.get("mimeType", "image/png")
         ext = "png" if "png" in mime else "jpg"
-        path = _save_image(base64.b64decode(image_b64), f"maia_{model}", ext)
+        path = _save_image(base64.b64decode(image_b64), f"riena_{model}", ext)
         saved.append(path)
         logger.info("Imagen image %d/%d saved: %s", i + 1, len(predictions), path)
     return saved
@@ -247,7 +247,7 @@ def _generate_with_gemini_image(prompt: str, api_key: str, count: int = 1) -> li
                         ext = inline_data["mimeType"].split("/")[-1]
                         if ext == "jpeg":
                             ext = "jpg"
-                        path = _save_image(image_bytes, f"maia_{model}", ext)
+                        path = _save_image(image_bytes, f"riena_{model}", ext)
                         saved.append(path)
                         logger.info("Gemini image %d/%d saved: %s", attempt + 1, count, path)
                         break
@@ -299,7 +299,7 @@ def generate_with_fal(prompt: str, api_key: str, aspect_ratio: str = "3:4", coun
                     image_url = _poll_fal(request_id, "fal-ai/flux-pro/v1.1-ultra", headers)
 
             if image_url:
-                path = _download_image(image_url, "maia_flux_pro")
+                path = _download_image(image_url, "riena_flux_pro")
                 saved.append(path)
         except Exception as e:
             logger.error("FAL.ai error: %s", e)
@@ -402,21 +402,21 @@ def _save_image(data: bytes, prefix: str, ext: str) -> str:
 # ═══════════════════════════════════════════════════════════
 
 def main():
-    parser = argparse.ArgumentParser(description="Generate Maia — production quality")
+    parser = argparse.ArgumentParser(description="Generate Riena — production quality")
     parser.add_argument("--gemini", action="store_true", help="Force Gemini generateContent (lower quality)")
     parser.add_argument("--fal", action="store_true", help="Use FAL.ai Flux Pro (requires FAL_API_KEY)")
     parser.add_argument("--runpod", action="store_true", help="Use ImagePipeline (RunPod/ComfyUI — uses config/config.yaml provider)")
-    parser.add_argument("--scene", choices=list(MAIA_SCENE_PROMPTS.keys()), default="portrait_warm")
+    parser.add_argument("--scene", choices=list(RIENA_SCENE_PROMPTS.keys()), default="portrait_warm")
     parser.add_argument("--all-scenes", action="store_true", help="Generate all scenes")
     parser.add_argument("--count", type=int, default=1, help="Number of images per scene (pick the best)")
     parser.add_argument("--dry-run", action="store_true", help="Show prompts only")
     args = parser.parse_args()
 
-    scenes = list(MAIA_SCENE_PROMPTS.keys()) if args.all_scenes else [args.scene]
+    scenes = list(RIENA_SCENE_PROMPTS.keys()) if args.all_scenes else [args.scene]
 
     total_generated = 0
     for scene in scenes:
-        prompt = MAIA_SCENE_PROMPTS[scene]
+        prompt = RIENA_SCENE_PROMPTS[scene]
         print(f"\n{'='*60}")
         print(f"Scene: {scene}")
         print(f"{'='*60}")

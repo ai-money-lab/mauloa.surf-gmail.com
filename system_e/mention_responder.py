@@ -1,7 +1,7 @@
 """System E — Mention Auto-Responder.
 
 Generates and posts character-consistent replies to mentions/comments.
-Uses Claude to maintain Maia's voice while keeping replies natural.
+Uses Claude to maintain Riena's voice while keeping replies natural.
 
 Safety:
 - Rate limited (max 20 replies/hour)
@@ -35,7 +35,7 @@ MAX_REPLY_LENGTH = 240  # Leave room for @mention
 
 
 class MentionResponder:
-    """Reply to mentions in Maia's character voice."""
+    """Reply to mentions in Riena's character voice."""
 
     def __init__(self):
         self.claude = ClaudeClient()

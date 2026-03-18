@@ -1,4 +1,4 @@
-# GitHub Actions — System E: Maia AI Character Pipeline
+# GitHub Actions — System E: Riena AI Character Pipeline
 # コンテンツ生成（毎日21:00 JST）+ 投稿（毎日07/12/19/23時JST）
 # 手動実行も可能（workflow_dispatch）
 

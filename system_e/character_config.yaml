@@ -9,8 +9,8 @@
 
 # ─── キャラクター基本情報 ───
 character:
-  name: "Maia"
-  name_jp: "マイア"
+  name: "Riena"
+  name_jp: "リエナ"
   age: 26
   tagline: "AI wellness creator sharing mindful living & fitness"
 
@@ -68,7 +68,7 @@ character:
 
     # ─── 深層ストーリー ───
     deep_story:
-      trigger_event: "At 22, her mother passed away from complications of Type 2 diabetes. Maia had just graduated in LA. She came back to Tokyo for the funeral and never fully went back."
+      trigger_event: "At 22, her mother passed away from complications of Type 2 diabetes. Riena had just graduated in LA. She came back to Tokyo for the funeral and never fully went back."
       turning_point: "Found her mother's old food diary — realized small daily choices compound over decades. Started tracking her own habits obsessively."
       current_struggle: "Trying to build something meaningful, not just 'content.' Wants to reach the person she was at 20 — lost, grieving, eating convenience store food 3 meals a day."
       hidden_dream: "Open a small wellness cafe in Tokyo where people can just exist without being sold anything."
@@ -108,11 +108,11 @@ character:
       rule: "Mochi is never 'content strategy.' He just exists and sometimes steals the frame."
     yuki:
       who: "Childhood friend, graphic designer, lives in Osaka"
-      role: "The one who keeps Maia grounded. Sometimes referenced in stories."
-      interactions: "Occasional texts shown (with permission jokes). Yuki calls out Maia's BS."
+      role: "The one who keeps Riena grounded. Sometimes referenced in stories."
+      interactions: "Occasional texts shown (with permission jokes). Yuki calls out Riena's BS."
     cafe_owner:
       who: "The owner of a small kissaten (old-school coffee shop) near her apartment"
-      role: "Represents the slow life Maia aspires to. Occasionally quoted."
+      role: "Represents the slow life Riena aspires to. Occasionally quoted."
       name: "Tanaka-san"
     gym_community:
       who: "Unnamed regulars at her local gym"
@@ -212,7 +212,7 @@ image_generation:
   # LoRA設定（キャラクターID固定用）
   lora:
     model_path: ""  # LoRA学習後にパスを設定
-    trigger_word: "maia_character"
+    trigger_word: "riena_character"
     strength: 0.8
 
   # デフォルト画像生成パラメータ

@@ -35,7 +35,7 @@ POSTED_LOG = Path(__file__).parent.parent / "data" / "system_e" / "posted_log.js
 CHAR_CONFIG_PATH = Path(__file__).parent / "character_config.yaml"
 
 # Branded hashtag — the account's signature tag on every post
-BRANDED_HASHTAG = "#MaiaWellness"
+BRANDED_HASHTAG = "#RienaWellness"
 
 # AI disclosure strategy: bio-based, NOT per-post hashtags.
 # The account bio reads "AI-generated wellness creator | Powered by AI"
@@ -431,11 +431,11 @@ class PostingScheduler:
 
         Strategy (bio-based AI disclosure):
         - AI disclosure lives in the account bio, NOT in every post.
-        - Posts get max 2 hashtags: 1 content tag (most relevant) + #MaiaWellness.
+        - Posts get max 2 hashtags: 1 content tag (most relevant) + #RienaWellness.
         - Research shows multiple hashtags reduce X/Twitter reach by ~40%.
 
         Priority order:
-        1. #MaiaWellness (branded, always included if space permits)
+        1. #RienaWellness (branded, always included if space permits)
         2. 1 content hashtag (the first/most relevant one, if space permits)
         """
         max_len = 280
