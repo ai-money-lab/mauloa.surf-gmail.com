@@ -52,6 +52,7 @@ help:
 	@echo "   make system-e       System E フルパイプライン"
 	@echo "   make system-e-gen   System E コンテンツ生成のみ"
 	@echo "   make system-e-post  System E 投稿のみ"
+	@echo "   make system-e-check System E ローンチ準備チェック"
 	@echo ""
 	@echo " その他:"
 	@echo "   make clean          キャッシュ/一時ファイル削除"
@@ -150,6 +151,9 @@ system-e-gen:
 system-e-post:
 	python system_e/daily_pipeline.py --mode post
 
+system-e-check:
+	python system_e/scripts/launch_check.py
+
 # ─── crontab一括登録 ───
 cron-install:
 	@PROJECT_ROOT=$$(pwd); \
@@ -173,6 +177,13 @@ cron-install:
 	echo "0 9 * * 1 cd $$PROJECT_ROOT && PYTHONPATH=$$PROJECT_ROOT python -m inquiry_bot.scheduler faq_update_check >> data/cron.log 2>&1"; \
 	echo "# Bot: X投稿案生成（金曜19時、System D前）"; \
 	echo "0 19 * * 5 cd $$PROJECT_ROOT && PYTHONPATH=$$PROJECT_ROOT python -m inquiry_bot.scheduler results_to_x >> data/cron.log 2>&1"; \
+	echo "# System E: コンテンツ生成（毎日21時）"; \
+	echo "0 21 * * * cd $$PROJECT_ROOT && PYTHONPATH=$$PROJECT_ROOT python system_e/daily_pipeline.py --mode generate >> data/cron.log 2>&1"; \
+	echo "# System E: 投稿ウィンドウ（07/12/19/23時JST）"; \
+	echo "0 7 * * * cd $$PROJECT_ROOT && PYTHONPATH=$$PROJECT_ROOT python system_e/daily_pipeline.py --mode post >> data/cron.log 2>&1"; \
+	echo "0 12 * * * cd $$PROJECT_ROOT && PYTHONPATH=$$PROJECT_ROOT python system_e/daily_pipeline.py --mode post >> data/cron.log 2>&1"; \
+	echo "0 19 * * * cd $$PROJECT_ROOT && PYTHONPATH=$$PROJECT_ROOT python system_e/daily_pipeline.py --mode post >> data/cron.log 2>&1"; \
+	echo "0 23 * * * cd $$PROJECT_ROOT && PYTHONPATH=$$PROJECT_ROOT python system_e/daily_pipeline.py --mode post >> data/cron.log 2>&1"; \
 	) | crontab -
 	@echo "✅ crontab 登録完了"
 	@crontab -l | grep -A1 "AI Empire"

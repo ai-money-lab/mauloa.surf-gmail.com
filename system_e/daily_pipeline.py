@@ -7,6 +7,9 @@ Runs daily via cron or GitHub Actions.
 import json
 import logging
 from datetime import datetime, timezone, timedelta
+from pathlib import Path
+
+import yaml
 
 from core.notifier import Notifier
 from system_e.image_pipeline import ImagePipeline
@@ -18,6 +21,8 @@ from system_e.analytics import Analytics
 logger = logging.getLogger(__name__)
 
 JST = timezone(timedelta(hours=9))
+COST_LOG = Path(__file__).parent.parent / "data" / "system_e" / "analytics" / "cost_log.json"
+CONFIG_PATH = Path(__file__).parent.parent / "config" / "config.yaml"
 
 
 class SystemEPipeline:
@@ -53,6 +58,10 @@ class SystemEPipeline:
             )
             return plan
 
+        if not self._check_budget():
+            logger.warning("Skipping image generation — budget limit reached")
+            return plan
+
         for item in plan:
             scene = item.get("scene", "lifestyle")
             try:
@@ -82,6 +91,13 @@ class SystemEPipeline:
 
         images_generated = sum(1 for item in plan if item.get("image_path"))
         logger.info("Images generated: %d/%d", images_generated, len(plan))
+
+        # Record estimated cost (Flux.1 Dev ~$0.04/image via RunPod)
+        cost_per_image = 0.05  # conservative estimate
+        total_cost = images_generated * cost_per_image * 2  # X + Fanvue
+        if total_cost > 0:
+            self._record_cost(f"image_gen_{images_generated}x2", total_cost)
+
         return plan
 
     def run_posting(self) -> list[dict]:
@@ -165,6 +181,62 @@ class SystemEPipeline:
     def run_posting_only(self) -> list[dict]:
         """Run only the posting phase (for frequent cron execution)."""
         return self.run_posting()
+
+    def _check_budget(self) -> bool:
+        """Check if monthly image generation budget allows more spending."""
+        try:
+            with open(CONFIG_PATH, encoding="utf-8") as f:
+                config = yaml.safe_load(f)
+            budget = config.get("system_e", {}).get("cost_tracking", {})
+            monthly_limit = budget.get("monthly_budget_usd", 50)
+            alert_pct = budget.get("alert_threshold_pct", 80) / 100
+
+            month_key = datetime.now(JST).strftime("%Y-%m")
+            spent = self._get_monthly_spend(month_key)
+            if spent >= monthly_limit:
+                logger.warning(
+                    "Monthly budget exhausted: $%.2f / $%.2f", spent, monthly_limit
+                )
+                return False
+            if spent >= monthly_limit * alert_pct:
+                logger.warning(
+                    "Budget alert: $%.2f / $%.2f (%.0f%%)",
+                    spent, monthly_limit, spent / monthly_limit * 100,
+                )
+            return True
+        except Exception as e:
+            logger.debug("Budget check skipped: %s", e)
+            return True
+
+    def _record_cost(self, item: str, cost_usd: float) -> None:
+        """Record a cost entry for tracking."""
+        COST_LOG.parent.mkdir(parents=True, exist_ok=True)
+        entries = []
+        if COST_LOG.exists():
+            try:
+                entries = json.loads(COST_LOG.read_text(encoding="utf-8"))
+            except Exception:
+                entries = []
+        entries.append({
+            "date": datetime.now(JST).isoformat(),
+            "item": item,
+            "cost_usd": cost_usd,
+        })
+        COST_LOG.write_text(json.dumps(entries, indent=2), encoding="utf-8")
+
+    def _get_monthly_spend(self, month_key: str) -> float:
+        """Sum costs for a given month (YYYY-MM)."""
+        if not COST_LOG.exists():
+            return 0.0
+        try:
+            entries = json.loads(COST_LOG.read_text(encoding="utf-8"))
+            return sum(
+                e.get("cost_usd", 0)
+                for e in entries
+                if e.get("date", "").startswith(month_key)
+            )
+        except Exception:
+            return 0.0
 
 
 def main():

@@ -1,0 +1,109 @@
+# GitHub Actions — System E: Maia AI Character Pipeline
+# コンテンツ生成（毎日21:00 JST）+ 投稿（毎日07/12/19/23時JST）
+# 手動実行も可能（workflow_dispatch）
+
+name: System E Pipeline
+
+on:
+  schedule:
+    # Content generation: 21:00 JST (12:00 UTC) — generate tomorrow's content + images
+    - cron: '0 12 * * *'
+    # Posting windows: 07:00/12:00/19:00/23:00 JST = 22:00/03:00/10:00/14:00 UTC
+    - cron: '0 22 * * *'   # 07:00 JST
+    - cron: '0 3 * * *'    # 12:00 JST
+    - cron: '0 10 * * *'   # 19:00 JST
+    - cron: '0 14 * * *'   # 23:00 JST
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'Pipeline mode'
+        required: true
+        type: choice
+        options:
+          - 'full'
+          - 'generate'
+          - 'post'
+        default: 'post'
+      dry_run:
+        description: 'Dry run (no posting/generation)'
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+jobs:
+  pipeline:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          pip install anthropic requests requests-oauthlib python-dotenv \
+                    pyyaml gspread google-auth beautifulsoup4 lxml pandas
+
+      - name: Determine pipeline mode
+        id: mode
+        run: |
+          # Manual dispatch uses the selected mode
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "mode=${{ inputs.mode }}" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          # Scheduled: determine mode from UTC hour
+          HOUR=$(date -u +%H)
+          if [ "$HOUR" = "12" ]; then
+            echo "mode=full" >> $GITHUB_OUTPUT  # 21:00 JST = generation time
+          else
+            echo "mode=post" >> $GITHUB_OUTPUT  # posting windows
+          fi
+
+      - name: Run System E Pipeline
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          X_API_KEY: ${{ secrets.X_API_KEY }}
+          X_API_SECRET_KEY: ${{ secrets.X_API_SECRET_KEY }}
+          X_ACCESS_TOKEN: ${{ secrets.SYSTEM_E_X_ACCESS_TOKEN }}
+          X_ACCESS_TOKEN_SECRET: ${{ secrets.SYSTEM_E_X_ACCESS_TOKEN_SECRET }}
+          X_BEARER_TOKEN: ${{ secrets.SYSTEM_E_X_BEARER_TOKEN }}
+          RUNPOD_API_KEY: ${{ secrets.RUNPOD_API_KEY }}
+          RUNPOD_POD_ID: ${{ secrets.RUNPOD_POD_ID }}
+          RUNPOD_ENDPOINT_ID: ${{ secrets.RUNPOD_ENDPOINT_ID }}
+          FAL_API_KEY: ${{ secrets.FAL_API_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          LINE_CHANNEL_ACCESS_TOKEN: ${{ secrets.LINE_CHANNEL_ACCESS_TOKEN }}
+          LINE_USER_ID: ${{ secrets.LINE_USER_ID }}
+        run: |
+          MODE="${{ steps.mode.outputs.mode }}"
+          ARGS="--mode $MODE"
+          if [ "${{ inputs.dry_run }}" = "true" ]; then
+            echo "[DRY RUN] Would run: python system_e/daily_pipeline.py $ARGS"
+            PYTHONPATH=. python -c "
+          from system_e.daily_pipeline import SystemEPipeline
+          p = SystemEPipeline()
+          print('SystemEPipeline initialized OK')
+          print(f'Image provider: {p.image_pipeline.provider}')
+          print(f'Image enabled: {p.image_pipeline.enabled}')
+          "
+            exit 0
+          fi
+          PYTHONPATH=. python system_e/daily_pipeline.py $ARGS
+
+      - name: Commit data updates
+        if: success() && inputs.dry_run != 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -f data/system_e/
+          git diff --cached --quiet || git commit -m "auto: System E pipeline data update $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          git push
