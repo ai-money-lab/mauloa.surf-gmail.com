@@ -1,0 +1,135 @@
+# ═══════════════════════════════════════════════════════════
+# System E — LoRA Training Configuration
+# Rienaの顔一貫性を確立するためのLoRA学習設定
+#
+# ワークフロー:
+#   1. 参照画像を準備（prepare）
+#   2. キャプション自動生成（caption）
+#   3. LoRA学習実行（train）— RunPod/Vast.ai GPU
+#   4. 品質検証（validate）
+#   5. image_pipeline.pyに統合（deploy）
+# ═══════════════════════════════════════════════════════════
+
+# ─── 学習対象キャラクター ───
+character:
+  name: "riena"
+  trigger_word: "riena_character"  # LoRA発動トリガー
+  class_word: "woman"              # 正則化用クラスワード
+
+# ─── 学習データ設定 ───
+dataset:
+  # 参照画像ディレクトリ（学習に使う顔写真）
+  images_dir: "data/system_e/lora_training/images"
+  # 正則化画像ディレクトリ（過学習防止）
+  reg_images_dir: "data/system_e/lora_training/regularization"
+  # キャプションディレクトリ（自動生成 or 手動）
+  captions_dir: "data/system_e/lora_training/captions"
+  # 学習済みLoRA出力先
+  output_dir: "data/system_e/lora_training/output"
+
+  # 画像要件
+  image_requirements:
+    min_count: 15        # 最低15枚（推奨20-30枚）
+    max_count: 50        # 50枚以上は過学習リスク
+    resolution: 1024     # Flux用は1024x1024
+    formats: ["jpg", "jpeg", "png", "webp"]
+
+  # 画像のバリエーション要件（一貫性のため重要）
+  variety:
+    angles: ["front", "3/4 left", "3/4 right", "profile left", "profile right"]
+    expressions: ["neutral", "smile", "slight smile", "serious", "laughing"]
+    lighting: ["natural daylight", "golden hour", "studio soft", "overcast"]
+    backgrounds: ["plain white", "outdoor", "indoor", "gym", "cafe"]
+    outfits: ["athletic wear", "casual", "formal", "swimwear", "evening"]
+
+# ─── LoRA学習パラメータ ───
+training:
+  # ベースモデル
+  base_model: "black-forest-labs/FLUX.1-dev"
+  # 代替: "stabilityai/stable-diffusion-xl-base-1.0"
+
+  # 学習ハイパーパラメータ
+  params:
+    network_dim: 32         # LoRAランク（16-64、高い=詳細だが過学習リスク）
+    network_alpha: 16       # Alpha（通常dimの半分）
+    learning_rate: 1.0e-4   # 学習率（Flux: 1e-4推奨）
+    unet_lr: 1.0e-4
+    text_encoder_lr: 5.0e-5
+    train_batch_size: 1     # バッチサイズ（VRAM依存）
+    max_train_epochs: 20    # 最大エポック数
+    save_every_n_epochs: 5  # N エポックごとに中間保存
+    resolution: 1024
+    mixed_precision: "bf16"  # bf16推奨（Flux）
+    optimizer_type: "AdamW8bit"  # メモリ効率型
+    lr_scheduler: "cosine_with_restarts"
+    lr_warmup_steps: 100
+
+  # Flux固有設定
+  flux_specific:
+    guidance_scale: 1.0     # Flux Devはcfg=1.0
+    cache_latents: true     # VRAM節約
+    cache_text_encoder_outputs: true
+    gradient_checkpointing: true  # VRAM節約
+
+  # 正則化
+  regularization:
+    enabled: true
+    prior_loss_weight: 1.0
+    reg_images_count: 200   # 正則化画像数（クラスワードで生成）
+
+# ─── GPU設定 ───
+gpu:
+  # RunPod設定
+  runpod:
+    gpu_type: "NVIDIA RTX A5000"  # 24GB VRAM — LoRA学習に十分
+    min_vram_gb: 16
+    docker_image: "runpod/pytorch:2.4.0-py3.11-cuda12.4.0-devel-ubuntu22.04"
+    volume_size_gb: 50
+
+  # Vast.ai設定（コスト優先時）
+  vast_ai:
+    gpu_type: "RTX 3090"    # 24GB VRAM、$0.20-0.50/hr
+    min_vram_gb: 24
+    docker_image: "pytorch/pytorch:2.4.0-cuda12.4-cudnn9-devel"
+
+# ─── キャプション生成設定 ───
+captioning:
+  # 自動キャプションモデル
+  method: "blip2"  # blip2 | cogvlm | manual
+  # キャプションテンプレート
+  template: "{trigger_word}, {auto_caption}"
+  # 必須タグ（全キャプションに含める）
+  required_tags:
+    - "riena_character"
+    - "1girl"
+    - "japanese"
+  # 除外タグ（キャプションから削除）
+  excluded_tags:
+    - "watermark"
+    - "text"
+    - "logo"
+
+# ─── 品質検証設定 ───
+validation:
+  # 検証プロンプト（学習後のテスト用）
+  test_prompts:
+    - "riena_character, portrait photo of a young Japanese woman, neutral expression, studio lighting"
+    - "riena_character, full body photo of a fit Japanese woman in athletic wear at gym"
+    - "riena_character, candid photo of a Japanese woman at a cafe, warm lighting, smiling"
+    - "riena_character, young Japanese woman in evening wear, elegant, golden hour lighting"
+    - "riena_character, Japanese woman in bikini at beach, natural sunlight, happy expression"
+
+  # 合格基準
+  criteria:
+    face_consistency_threshold: 0.85  # 顔類似度（cosine similarity）
+    min_test_images: 10
+    human_review_required: true       # 最終判断は人間
+
+# ─── デプロイ設定 ───
+deploy:
+  # 学習完了後のLoRAファイルパス
+  lora_output_filename: "riena_lora_flux_v1.safetensors"
+  # RunPodへのアップロード先
+  runpod_model_path: "/workspace/models/loras/"
+  # character_config.yamlのlora.model_pathを自動更新
+  auto_update_config: true
