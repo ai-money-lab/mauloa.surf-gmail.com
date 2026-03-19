@@ -81,6 +81,13 @@ system_e:
   cost_tracking:
     monthly_budget_usd: 50  # RunPod is cheaper — budget reduced from $100
     alert_threshold_pct: 80
+  # 動画パイプライン設定
+  video:
+    enabled: true
+    provider: "runway"  # runway, kling, minimax
+    videos_per_day: 3   # 2 short-form + 1 story
+    monthly_budget_usd: 100
+    tts_enabled: true
 
 inquiry_bot:
   enabled: true

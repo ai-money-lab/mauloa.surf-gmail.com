@@ -42,24 +42,24 @@ class ContentGenerator:
         voice = char["content_voice"]
         personality = char["personality"]
 
-        return f"""You are ghostwriting social media content as {char['name']}, a {char['age']}-year-old {char['backstory']['career']}.
+        return f"""You are ghostwriting social media content as {char["name"]}, a {char["age"]}-year-old {char["backstory"]["career"]}.
 
 CHARACTER PROFILE:
-- Name: {char['name']}
-- Tagline: {char['tagline']}
-- Personality: {', '.join(personality['traits'])}
-- Quirks: {', '.join(personality['quirks'])}
-- Values: {', '.join(personality['values'])}
-- Tone: {voice['tone']}
-- Catchphrase: {voice['catchphrase']}
-- Backstory: {char['backstory']['origin']}. {char['backstory']['motivation']}.
+- Name: {char["name"]}
+- Tagline: {char["tagline"]}
+- Personality: {", ".join(personality["traits"])}
+- Quirks: {", ".join(personality["quirks"])}
+- Values: {", ".join(personality["values"])}
+- Tone: {voice["tone"]}
+- Catchphrase: {voice["catchphrase"]}
+- Backstory: {char["backstory"]["origin"]}. {char["backstory"]["motivation"]}.
 
 CONTENT RULES:
-- Write in first person as {char['name']}
+- Write in first person as {char["name"]}
 - Primary language: English (occasional Japanese phrases OK for flavor)
 - Never mention being AI in the content itself (disclosed in bio per FTC rules)
-- Stay within approved topics: {', '.join(voice['topics'])}
-- NEVER discuss: {', '.join(voice['banned_topics'])}
+- Stay within approved topics: {", ".join(voice["topics"])}
+- NEVER discuss: {", ".join(voice["banned_topics"])}
 - Keep it authentic — share struggles too, not just highlights
 - Use data/science references when relevant (fits the nerdy personality)
 - Tone: warm, encouraging, slightly geeky — NEVER preachy or salesy"""
@@ -107,7 +107,7 @@ CONTENT RULES:
         prompt = f"""{instruction}
 
 Scene: {scene}
-Image shows: {image_description or 'Character in ' + scene + ' setting'}
+Image shows: {image_description or "Character in " + scene + " setting"}
 
 Return a JSON object with:
 - "text": the post text (no hashtags in text)
@@ -163,7 +163,7 @@ JSON only, no explanation."""
     def generate_poll(self, topic: str = "") -> dict:
         """Generate a poll post. Polls get highest engagement on X."""
         prompt = f"""Create a fun, engaging poll for X/Twitter about wellness or fitness.
-{f'Topic hint: {topic}' if topic else 'Pick a relevant wellness/fitness topic.'}
+{f"Topic hint: {topic}" if topic else "Pick a relevant wellness/fitness topic."}
 
 Rules:
 - Question should be conversational and easy to engage with
@@ -217,7 +217,7 @@ JSON only, no explanation."""
 
 Rules:
 - Tweet 1: Hook that makes people want to read the thread
-- Tweets 2-{num_tweets-1}: Valuable content, tips, or insights
+- Tweets 2-{num_tweets - 1}: Valuable content, tips, or insights
 - Tweet {num_tweets}: Summary + call to engage (question or invitation)
 - Each tweet max 270 chars (leave room for numbering)
 - Use data/science when relevant
@@ -267,20 +267,41 @@ JSON only, no explanation."""
         # - Threads get 40-60% more impressions than standalone posts
         # - Polls get highest impressions on X
         content_plan = [
-            {"time_jst": "07:00", "type": "standard", "scene": "morning_routine",
-             "note": "Asia peak - morning ritual content"},
-            {"time_jst": "12:00", "type": noon_type, "scene": "lifestyle",
-             "note": f"Asia lunch - {'poll (odd day)' if noon_type == 'poll' else 'engagement (even day)'}"},
-            {"time_jst": "19:00", "type": "thread", "scene": self._pick_scene(),
-             "note": "EU morning + Asia evening - thread for 40-60% more reach"},
-            {"time_jst": "23:00", "type": "story", "scene": self._pick_scene(),
-             "note": "US West morning - story content"},
+            {
+                "time_jst": "07:00",
+                "type": "standard",
+                "scene": "morning_routine",
+                "note": "Asia peak - morning ritual content",
+            },
+            {
+                "time_jst": "12:00",
+                "type": noon_type,
+                "scene": "lifestyle",
+                "note": f"Asia lunch - {'poll (odd day)' if noon_type == 'poll' else 'engagement (even day)'}",
+            },
+            {
+                "time_jst": "19:00",
+                "type": "thread",
+                "scene": self._pick_scene(),
+                "note": "EU morning + Asia evening - thread for 40-60% more reach",
+            },
+            {
+                "time_jst": "23:00",
+                "type": "story",
+                "scene": self._pick_scene(),
+                "note": "US West morning - story content",
+            },
         ]
 
         # Generate content for each slot
         results = []
         for slot in content_plan:
-            logger.info("Generating content for %s %s (%s)", date, slot["time_jst"], slot["type"])
+            logger.info(
+                "Generating content for %s %s (%s)",
+                date,
+                slot["time_jst"],
+                slot["type"],
+            )
 
             if slot["type"] == "poll":
                 content = self.generate_poll()
@@ -306,6 +327,66 @@ JSON only, no explanation."""
 
         return results
 
+    def generate_video_script(
+        self,
+        template_name: str,
+        scene: str = "",
+        topic: str = "",
+    ) -> dict:
+        """Generate a video script with voiceover text and scene directions.
+
+        Args:
+            template_name: Video template key (e.g., 'workout_short').
+            scene: Scene category for context.
+            topic: Specific topic to focus on.
+
+        Returns:
+            Dict with 'voiceover', 'scene_directions', 'hook', 'cta'.
+        """
+        prompt = f"""Write a short-form video script for a {template_name.replace("_", " ")} video.
+{f"Scene: {scene}" if scene else ""}
+{f"Topic: {topic}" if topic else ""}
+
+Rules:
+- Voiceover should be 15-45 seconds when spoken (roughly 40-120 words)
+- Start with a strong hook (first 3 seconds matter most for retention)
+- End with a soft CTA (question, not "follow me")
+- Stay in character: warm, slightly nerdy, science-loving wellness creator
+- No hard sells. Authentic voice only.
+
+Return a JSON object with:
+- "hook": first sentence that grabs attention (max 15 words)
+- "voiceover": full voiceover script
+- "scene_directions": array of 3-4 scene descriptions for video generation
+- "cta": closing call-to-action (question or invitation)
+- "estimated_duration_s": estimated speaking duration in seconds
+
+JSON only, no explanation."""
+
+        try:
+            result = self.claude.generate_json(
+                prompt=prompt,
+                system=self._build_system_prompt(),
+                max_tokens=1024,
+                temperature=0.8,
+            )
+            result["type"] = "video_script"
+            result["template"] = template_name
+            result["scene"] = scene
+            result["generated_at"] = datetime.now(JST).isoformat()
+            return result
+        except Exception as e:
+            logger.error("Video script generation failed: %s", e)
+            return {
+                "hook": "",
+                "voiceover": "",
+                "scene_directions": [],
+                "cta": "",
+                "type": "video_script",
+                "template": template_name,
+                "error": str(e),
+            }
+
     def _pick_scene(self) -> str:
         """Pick a random scene weighted by frequency config."""
         scenes = self.config["image_generation"].get("scene_categories", {})
@@ -328,4 +409,6 @@ if __name__ == "__main__":
     gen = ContentGenerator()
     plan = gen.generate_daily_content_plan()
     for item in plan:
-        print(f"[{item.get('scheduled_time_jst')}] {item.get('type')}: {item.get('text', '')[:80]}")
+        print(
+            f"[{item.get('scheduled_time_jst')}] {item.get('type')}: {item.get('text', '')[:80]}"
+        )

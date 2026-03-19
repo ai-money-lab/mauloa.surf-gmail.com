@@ -249,3 +249,54 @@ image_generation:
     cat_moments:
       prompts_prefix: "orange tabby cat, apartment, warm lighting, candid moment"
       frequency: "weekly"
+
+# ─── 動画生成設定 ───
+video_generation:
+  # 動画プロバイダー優先順位
+  primary_provider: "runway"     # runway, kling, minimax
+  fallback_provider: "kling"
+
+  # TTS（ボイスオーバー）設定
+  tts:
+    provider: "elevenlabs"
+    model: "eleven_turbo_v2_5"
+    voice_profile:
+      description: "Young female, warm, slightly nerdy, English with subtle Japanese accent"
+      stability: 0.5
+      similarity_boost: 0.75
+      style: 0.3
+
+  # 日次動画ミックス
+  daily_mix:
+    short_vertical: 2    # Shorts/Reels/TikTok (最高リーチ)
+    stories: 1           # IG/X Stories (エンゲージメント維持)
+    fanvue_exclusive: 1  # 3日に1回 (サブスク継続率向上)
+
+  # プラットフォーム別最適化
+  platforms:
+    youtube_shorts:
+      max_duration_s: 60
+      aspect: "9:16"
+      hashtags: ["#shorts", "#wellness", "#fitness"]
+    tiktok:
+      max_duration_s: 60
+      aspect: "9:16"
+      sounds_strategy: "trending"  # トレンドサウンドに合わせる
+    reels:
+      max_duration_s: 90
+      aspect: "9:16"
+    x_video:
+      max_duration_s: 140
+      aspect: "16:9"
+    fanvue:
+      max_duration_s: 120
+      aspect: "9:16"
+      tier: "premium"  # premium以上のサブスク限定
+
+  # コスト管理
+  cost_per_clip:
+    runway: 0.25      # $/5s clip
+    kling: 0.10       # $/5s clip
+    minimax: 0.05     # $/5s clip
+    elevenlabs: 0.03  # $/voiceover
+  monthly_video_budget_usd: 100

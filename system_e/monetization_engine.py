@@ -108,15 +108,30 @@ class MonetizationEngine:
         text = content.get("text", "")
 
         # Scene scoring
-        high_value_scenes = {"workout": 20, "morning_routine": 18, "studio": 15,
-                             "lifestyle": 12, "outdoor": 10}
+        high_value_scenes = {
+            "workout": 20,
+            "morning_routine": 18,
+            "studio": 15,
+            "lifestyle": 12,
+            "outdoor": 10,
+        }
         scene_score = high_value_scenes.get(scene, 5)
         score += scene_score
         reasons.append(f"scene '{scene}': +{scene_score}")
 
-        # Content type scoring
-        type_scores = {"promo": 25, "standard": 15, "story": 12,
-                       "thread": 20, "engagement": 8, "poll": 5}
+        # Content type scoring — video formats get highest scores (CPM multiplier)
+        type_scores = {
+            "video_short": 30,
+            "video_long": 35,
+            "video_fanvue": 28,
+            "video_story": 18,
+            "promo": 25,
+            "standard": 15,
+            "story": 12,
+            "thread": 20,
+            "engagement": 8,
+            "poll": 5,
+        }
         type_score = type_scores.get(content_type, 10)
         score += type_score
         reasons.append(f"type '{content_type}': +{type_score}")
@@ -132,10 +147,24 @@ class MonetizationEngine:
             score += 15
             reasons.append("fanvue upsell potential: +15")
 
+        # Video format CPM multiplier
+        if content_type.startswith("video"):
+            score += 15
+            reasons.append("video format CPM bonus: +15")
+
         # Keyword richness
         monetizable_keywords = [
-            "routine", "review", "tried", "favorite", "data", "results",
-            "tracking", "supplement", "workout", "sleep", "recovery",
+            "routine",
+            "review",
+            "tried",
+            "favorite",
+            "data",
+            "results",
+            "tracking",
+            "supplement",
+            "workout",
+            "sleep",
+            "recovery",
         ]
         kw_count = sum(1 for kw in monetizable_keywords if kw in text.lower())
         kw_score = min(20, kw_count * 5)
@@ -163,8 +192,9 @@ class MonetizationEngine:
 
     # ─── A/B Testing ───
 
-    def create_ab_test(self, test_name: str, variants: list[dict],
-                       metric: str = "engagement_rate") -> dict:
+    def create_ab_test(
+        self, test_name: str, variants: list[dict], metric: str = "engagement_rate"
+    ) -> dict:
         """Create an A/B test for content optimization.
 
         Args:
@@ -193,8 +223,13 @@ class MonetizationEngine:
         logger.info("A/B test created: %s (%d variants)", test_name, len(variants))
         return test
 
-    def record_ab_result(self, test_name: str, variant_name: str,
-                         impressions: int = 1, successes: int = 0) -> None:
+    def record_ab_result(
+        self,
+        test_name: str,
+        variant_name: str,
+        impressions: int = 1,
+        successes: int = 0,
+    ) -> None:
         """Record a result for an A/B test variant."""
         test_file = AB_TEST_DIR / f"{test_name.replace(' ', '_')}.json"
         test = self._load_json_dict(test_file)
@@ -223,12 +258,14 @@ class MonetizationEngine:
         results = []
         for v in variants:
             rate = v["successes"] / max(1, v["impressions"])
-            results.append({
-                "name": v["name"],
-                "impressions": v["impressions"],
-                "successes": v["successes"],
-                "rate": round(rate * 100, 2),
-            })
+            results.append(
+                {
+                    "name": v["name"],
+                    "impressions": v["impressions"],
+                    "successes": v["successes"],
+                    "rate": round(rate * 100, 2),
+                }
+            )
 
         results.sort(key=lambda x: x["rate"], reverse=True)
 
@@ -313,9 +350,7 @@ class MonetizationEngine:
             "total_posts_analyzed": total_posts,
         }
 
-    def optimize_fanvue_pricing(
-        self, subscriber_counts: dict[str, int]
-    ) -> dict:
+    def optimize_fanvue_pricing(self, subscriber_counts: dict[str, int]) -> dict:
         """Recommend Fanvue pricing adjustments."""
         tiers = self.fanvue.tiers
         recommendations = []
@@ -329,19 +364,23 @@ class MonetizationEngine:
 
             # Basic pricing analysis
             if count > 100 and tier_name == "basic":
-                recommendations.append({
-                    "tier": tier_name,
-                    "current_price": price,
-                    "suggested_price": round(price * 1.1, 2),
-                    "reason": f"Strong demand ({count} subs) supports 10% increase",
-                })
+                recommendations.append(
+                    {
+                        "tier": tier_name,
+                        "current_price": price,
+                        "suggested_price": round(price * 1.1, 2),
+                        "reason": f"Strong demand ({count} subs) supports 10% increase",
+                    }
+                )
             elif count < 10 and price > 20:
-                recommendations.append({
-                    "tier": tier_name,
-                    "current_price": price,
-                    "suggested_price": round(price * 0.85, 2),
-                    "reason": f"Low adoption ({count} subs) — test lower price",
-                })
+                recommendations.append(
+                    {
+                        "tier": tier_name,
+                        "current_price": price,
+                        "suggested_price": round(price * 0.85, 2),
+                        "reason": f"Low adoption ({count} subs) — test lower price",
+                    }
+                )
 
         # Revenue projection
         current_mrr = sum(
@@ -457,7 +496,9 @@ class MonetizationEngine:
 
     def _save_json(self, path: Path, data) -> None:
         path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
+        path.write_text(
+            json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8"
+        )
 
 
 if __name__ == "__main__":
