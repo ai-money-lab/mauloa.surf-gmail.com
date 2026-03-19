@@ -1,0 +1,25 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 8,
+    "persona_match": 9,
+    "pillar_alignment": 9,
+    "usefulness": 9,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 9,
+    "cta_ending": 8,
+    "originality": 8,
+    "tone_balance": 9,
+    "problem_solving": 8
+  },
+  "total_score": 107,
+  "threshold": 84,
+  "result": "auto_approved",
+  "usefulness_summary": "防犯カメラ設置を検討している大家さんが具体的な効果とコストを知って判断できる",
+  "rejection_reasons": [],
+  "improvement_suggestions": [],
+  "checked_at": "2026-03-19T19:07:20.241894+09:00"
+}
