@@ -447,8 +447,88 @@ class MinimaxBackend:
 # ─── TTS Backend ───
 
 
+class EdgeTTS:
+    """Text-to-speech via Microsoft Edge TTS — completely free, no API key.
+
+    Uses the edge-tts Python package (pip install edge-tts).
+    Quality is surprisingly good for free. Supports multiple voices and languages.
+
+    Riena voice: en-US-AnaNeural (young female, warm, natural)
+    Japanese fallback: ja-JP-NanamiNeural
+    """
+
+    # Best free voices for Riena's character
+    VOICE_EN = "en-US-AnaNeural"  # Young female, warm, natural
+    VOICE_JA = "ja-JP-NanamiNeural"  # Japanese content
+    VOICE_ALTERNATIVES = [
+        "en-US-AriaNeural",  # Slightly more mature
+        "en-US-JennyNeural",  # Professional, clear
+        "en-GB-SoniaNeural",  # British accent option
+    ]
+
+    def __init__(self, voice: str = ""):
+        self.voice = voice or self.VOICE_EN
+
+    @property
+    def enabled(self) -> bool:
+        try:
+            import edge_tts  # noqa: F401
+
+            return True
+        except ImportError:
+            return False
+
+    def synthesize(self, text: str, output_path: Path) -> bool:
+        """Generate speech audio file using Edge TTS (free).
+
+        Args:
+            text: Text to speak.
+            output_path: Path to save MP3 file.
+
+        Returns:
+            True if successful.
+        """
+        try:
+            import asyncio
+
+            import edge_tts
+
+            async def _generate():
+                communicate = edge_tts.Communicate(text, self.voice)
+                output_path.parent.mkdir(parents=True, exist_ok=True)
+                await communicate.save(str(output_path))
+
+            # Run async in sync context
+            try:
+                loop = asyncio.get_running_loop()
+            except RuntimeError:
+                loop = None
+
+            if loop and loop.is_running():
+                # Already in async context — use nest_asyncio or thread
+                import concurrent.futures
+
+                with concurrent.futures.ThreadPoolExecutor() as pool:
+                    pool.submit(lambda: asyncio.run(_generate())).result(timeout=30)
+            else:
+                asyncio.run(_generate())
+
+            logger.info(
+                "Edge TTS audio saved: %s (%d bytes)",
+                output_path,
+                output_path.stat().st_size,
+            )
+            return True
+        except ImportError:
+            logger.error("edge-tts not installed. Run: pip install edge-tts")
+            return False
+        except Exception as e:
+            logger.error("Edge TTS failed: %s", e)
+            return False
+
+
 class ElevenLabsTTS:
-    """Text-to-speech via ElevenLabs for voiceover.
+    """Text-to-speech via ElevenLabs for voiceover (paid, higher quality).
 
     Riena's voice: young female, warm, slightly nerdy, English with
     subtle Japanese accent.
@@ -624,10 +704,17 @@ class VideoPipeline:
             group_id=os.getenv("MINIMAX_GROUP_ID", ""),
         )
 
-        # TTS backend
-        self._tts = ElevenLabsTTS(
+        # TTS backends: ElevenLabs (paid, premium) → Edge-TTS (free, default)
+        self._tts_elevenlabs = ElevenLabsTTS(
             api_key=os.getenv("ELEVENLABS_API_KEY", ""),
             voice_id=os.getenv("RIENA_VOICE_ID", ""),
+        )
+        self._tts_edge = EdgeTTS(
+            voice=os.getenv("EDGE_TTS_VOICE", EdgeTTS.VOICE_EN),
+        )
+        # Auto-select: paid if configured, free otherwise
+        self._tts = (
+            self._tts_elevenlabs if self._tts_elevenlabs.enabled else self._tts_edge
         )
 
         VIDEO_DIR.mkdir(parents=True, exist_ok=True)
@@ -716,7 +803,7 @@ class VideoPipeline:
         """
         if not self._tts.enabled:
             logger.warning(
-                "TTS not configured (set ELEVENLABS_API_KEY + RIENA_VOICE_ID)"
+                "TTS not configured. Install edge-tts (free): pip install edge-tts"
             )
             return None
 
@@ -982,13 +1069,20 @@ if __name__ == "__main__":
         f"  Monthly: ${est['monthly_revenue_range'][0]}-${est['monthly_revenue_range'][1]}"
     )
 
+    # TTS status
+    tts_type = type(pipeline._tts).__name__
+    tts_ok = pipeline._tts.enabled
+    print(f"\nTTS: {tts_type} ({'ready' if tts_ok else 'not available'})")
+    if not tts_ok:
+        print("  Free TTS: pip install edge-tts")
+        print("  Paid TTS: set ELEVENLABS_API_KEY + RIENA_VOICE_ID")
+
     if pipeline.enabled:
-        print(f"\nVideo provider: {pipeline.video_provider}")
+        print(f"Video provider: {pipeline.video_provider}")
     else:
         print(
-            "\nVideo pipeline not configured. Set one of:\n"
-            "  Runway: RUNWAY_API_KEY\n"
-            "  Kling:  KLING_ACCESS_KEY + KLING_SECRET_KEY\n"
-            "  Minimax: MINIMAX_API_KEY + MINIMAX_GROUP_ID\n"
-            "  TTS:    ELEVENLABS_API_KEY + RIENA_VOICE_ID"
+            "\nVideo backends (set one):\n"
+            "  Free:  Kling free tier (KLING_ACCESS_KEY + KLING_SECRET_KEY)\n"
+            "  Free:  Minimax free tier (MINIMAX_API_KEY + MINIMAX_GROUP_ID)\n"
+            "  Paid:  Runway (RUNWAY_API_KEY)"
         )
