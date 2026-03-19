@@ -17,6 +17,7 @@ from system_e.content_generator import ContentGenerator
 from system_e.posting_scheduler import PostingScheduler
 from system_e.fanvue_manager import FanvueManager
 from system_e.analytics import Analytics
+from system_e.monetization_engine import MonetizationEngine
 
 logger = logging.getLogger(__name__)
 
@@ -35,6 +36,7 @@ class SystemEPipeline:
         self.fanvue = FanvueManager()
         self.analytics = Analytics()
         self.notifier = Notifier()
+        self.monetization = MonetizationEngine()
 
     def run_content_generation(self, date: str | None = None) -> list[dict]:
         """Phase 1: Generate tomorrow's content plan with captions."""
@@ -127,6 +129,7 @@ class SystemEPipeline:
             "images_generated": 0,
             "posts_published": 0,
             "fanvue_queued": 0,
+            "monetization_enriched": 0,
         }
 
         # Phase 1: Generate tomorrow's content
@@ -136,6 +139,17 @@ class SystemEPipeline:
         except Exception as e:
             logger.error("Content generation failed: %s", e)
             plan = []
+
+        # Phase 1.5: Monetization enrichment
+        if plan:
+            try:
+                plan = self.monetization.run_monetization_pass(plan)
+                summary["monetization_enriched"] = sum(
+                    1 for p in plan if p.get("monetization", {}).get("score", 0) > 0
+                )
+                logger.info("Monetization pass: %d items enriched", summary["monetization_enriched"])
+            except Exception as e:
+                logger.error("Monetization enrichment failed: %s", e)
 
         # Phase 2: Generate images
         if plan:
@@ -250,9 +264,9 @@ def main():
     parser = argparse.ArgumentParser(description="System E Daily Pipeline")
     parser.add_argument(
         "--mode",
-        choices=["full", "generate", "post"],
+        choices=["full", "generate", "post", "monetize"],
         default="full",
-        help="Pipeline mode: full (generate+post), generate (content only), post (due posts only)",
+        help="Pipeline mode: full (generate+post+monetize), generate (content only), post (due posts only), monetize (revenue report)",
     )
     parser.add_argument(
         "--date",
@@ -274,6 +288,9 @@ def main():
             pipeline.run_image_generation(plan, args.reference_image)
     elif args.mode == "post":
         pipeline.run_posting_only()
+    elif args.mode == "monetize":
+        report = pipeline.monetization.generate_monthly_report()
+        print(json.dumps(report, indent=2, ensure_ascii=False))
 
 
 if __name__ == "__main__":
