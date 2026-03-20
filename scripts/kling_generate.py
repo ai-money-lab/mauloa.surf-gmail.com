@@ -7,7 +7,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from dotenv import load_dotenv
 
-load_dotenv(override=True)
+load_dotenv(override=True, encoding="utf-8")
 
 ak = os.getenv("KLING_ACCESS_KEY", "")
 sk = os.getenv("KLING_SECRET_KEY", "")

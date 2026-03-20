@@ -42,7 +42,7 @@ powershell -Command ^
   "  $content += \"`nVIDEO_PROVIDER=kling`nKLING_ACCESS_KEY=AQK4BmBJne4f8GYY99tEK9GnDELTpDTJ`nKLING_SECRET_KEY=EdKMGLLDHkfpta8tykL4AEy3rygahene`n\"; " ^
   "}; " ^
   "if ($content -notmatch 'VIDEO_PROVIDER=') { $content += \"`nVIDEO_PROVIDER=kling`n\" }; " ^
-  "Set-Content '.env' $content"
+  "Set-Content '.env' $content -Encoding UTF8"
 
 echo       Kling APIキー設定完了
 
