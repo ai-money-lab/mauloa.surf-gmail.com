@@ -229,30 +229,19 @@ class KlingBackend:
         return bool(self.access_key and self.secret_key)
 
     def _get_token(self) -> str | None:
-        """Get JWT token from Kling API."""
-        import hashlib
-        import hmac
+        """Generate JWT token locally for Kling API authentication."""
+        import jwt
 
-        timestamp = str(int(time.time()))
-        sign_str = f"{self.access_key}{timestamp}"
-        signature = hmac.new(
-            self.secret_key.encode(), sign_str.encode(), hashlib.sha256
-        ).hexdigest()
-
+        now = int(time.time())
+        payload = {
+            "iss": self.access_key,
+            "exp": now + 1800,
+            "nbf": now - 5,
+        }
         try:
-            resp = requests.post(
-                f"{self.BASE_URL}/auth/token",
-                json={
-                    "access_key": self.access_key,
-                    "timestamp": timestamp,
-                    "signature": signature,
-                },
-                timeout=10,
-            )
-            resp.raise_for_status()
-            return resp.json().get("data", {}).get("token")
+            return jwt.encode(payload, self.secret_key, algorithm="HS256")
         except Exception as e:
-            logger.error("Kling auth failed: %s", e)
+            logger.error("Kling JWT generation failed: %s", e)
             return None
 
     def _headers(self, token: str) -> dict:
@@ -261,6 +250,25 @@ class KlingBackend:
             "Content-Type": "application/json",
         }
 
+    @staticmethod
+    def _resolve_image(image_input: str) -> str:
+        """Accept URL, file path, or base64. Returns URL or base64 data URI."""
+        if image_input.startswith(("http://", "https://", "data:")):
+            return image_input
+        # Local file path → base64 data URI
+        import base64
+
+        path = Path(image_input)
+        if path.is_file():
+            suffix = path.suffix.lower().lstrip(".")
+            mime = {"jpg": "jpeg", "jpeg": "jpeg", "png": "png", "webp": "webp"}.get(
+                suffix, "jpeg"
+            )
+            with open(path, "rb") as f:
+                b64 = base64.b64encode(f.read()).decode()
+            return f"data:image/{mime};base64,{b64}"
+        return image_input  # assume URL if not a file
+
     def generate(
         self,
         image_url: str,
@@ -268,17 +276,26 @@ class KlingBackend:
         duration_s: int = 5,
         aspect_ratio: str = "9:16",
     ) -> dict | None:
-        """Generate video from image via Kling."""
+        """Generate video from image via Kling.
+
+        Args:
+            image_url: Public URL, local file path, or base64 data URI.
+            prompt: Motion/scene description.
+            duration_s: 5 or 10 seconds.
+            aspect_ratio: e.g. "9:16", "16:9", "1:1".
+        """
         token = self._get_token()
         if not token:
             return None
 
+        image = self._resolve_image(image_url)
         payload = {
-            "image": image_url,
+            "model_name": "kling-v1",
+            "image": image,
             "prompt": prompt,
             "duration": str(min(10, max(5, duration_s))),
             "aspect_ratio": aspect_ratio,
-            "mode": "std",  # std or pro
+            "mode": "std",  # std=free tier friendly, pro=higher quality
         }
 
         try:
