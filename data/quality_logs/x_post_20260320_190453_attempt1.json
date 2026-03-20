@@ -1,0 +1,25 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 7,
+    "persona_match": 8,
+    "pillar_alignment": 8,
+    "usefulness": 4,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 10,
+    "cta_ending": 3,
+    "originality": 6,
+    "tone_balance": 8,
+    "problem_solving": 4
+  },
+  "total_score": 88,
+  "threshold": 84,
+  "result": "auto_approved",
+  "usefulness_summary": "不動産オーナーが管理会社変更を検討する際の心理的ハードルを下げる参考情報",
+  "rejection_reasons": [],
+  "improvement_suggestions": [],
+  "checked_at": "2026-03-20T19:04:53.004890+09:00"
+}

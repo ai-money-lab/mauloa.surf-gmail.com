@@ -1,0 +1,29 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 8,
+    "persona_match": 9,
+    "pillar_alignment": 9,
+    "usefulness": 9,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 0,
+    "cta_ending": 6,
+    "originality": 8,
+    "tone_balance": 9,
+    "problem_solving": 9
+  },
+  "total_score": 97,
+  "threshold": 84,
+  "result": "auto_approved",
+  "usefulness_summary": "管理会社変更を諦めていたオーナーが実際に変更する方法を知ることができる",
+  "rejection_reasons": [
+    "数字表現「1〜3ヶ月前」に柔らかいクッション表現がない（「大体」だけでは不十分で「〜くらい」「〜ほど」等が必要）"
+  ],
+  "improvement_suggestions": [
+    "「大体1〜3ヶ月前くらいに通知すれば」または「大体1〜3ヶ月ほど前に通知すれば」に修正する"
+  ],
+  "checked_at": "2026-03-20T19:04:59.498966+09:00"
+}
