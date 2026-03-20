@@ -252,21 +252,19 @@ class KlingBackend:
 
     @staticmethod
     def _resolve_image(image_input: str) -> str:
-        """Accept URL, file path, or base64. Returns URL or base64 data URI."""
-        if image_input.startswith(("http://", "https://", "data:")):
+        """Accept URL, file path, or base64. Returns URL or raw base64 string."""
+        if image_input.startswith(("http://", "https://")):
             return image_input
-        # Local file path → base64 data URI
+        # Strip data URI prefix if already provided
+        if image_input.startswith("data:"):
+            return image_input.split(",", 1)[-1]
+        # Local file path → raw base64 string
         import base64
 
         path = Path(image_input)
         if path.is_file():
-            suffix = path.suffix.lower().lstrip(".")
-            mime = {"jpg": "jpeg", "jpeg": "jpeg", "png": "png", "webp": "webp"}.get(
-                suffix, "jpeg"
-            )
             with open(path, "rb") as f:
-                b64 = base64.b64encode(f.read()).decode()
-            return f"data:image/{mime};base64,{b64}"
+                return base64.b64encode(f.read()).decode()
         return image_input  # assume URL if not a file
 
     def generate(
@@ -291,7 +289,7 @@ class KlingBackend:
         image = self._resolve_image(image_url)
         payload = {
             "model_name": "kling-v1",
-            "image_list": [{"image": image}],
+            "image": image,
             "prompt": prompt,
             "duration": str(min(10, max(5, duration_s))),
             "aspect_ratio": aspect_ratio,
