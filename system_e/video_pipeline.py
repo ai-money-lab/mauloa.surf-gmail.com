@@ -291,7 +291,7 @@ class KlingBackend:
         image = self._resolve_image(image_url)
         payload = {
             "model_name": "kling-v1",
-            "image": image,
+            "image_list": [{"image": image}],
             "prompt": prompt,
             "duration": str(min(10, max(5, duration_s))),
             "aspect_ratio": aspect_ratio,
@@ -316,6 +316,12 @@ class KlingBackend:
             logger.info("Kling task submitted: %s", task_id)
             return self._poll_task(task_id, token)
 
+        except requests.HTTPError as e:
+            body = ""
+            if e.response is not None:
+                body = e.response.text[:500]
+            logger.error("Kling generation failed: %s — %s", e, body)
+            return None
         except Exception as e:
             logger.error("Kling generation failed: %s", e)
             return None
