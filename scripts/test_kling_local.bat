@@ -57,57 +57,7 @@ echo  Kling API で動画生成を開始します...
 echo  （1〜3分かかります）
 echo.
 
-python -c "
-import sys
-sys.path.insert(0, '.')
-from dotenv import load_dotenv
-load_dotenv()
-
-from system_e.video_pipeline import VideoPipeline
-
-pipeline = VideoPipeline()
-print(f'Video provider: {pipeline.video_provider}')
-print(f'Kling enabled: {pipeline._kling.enabled}')
-
-if not pipeline._kling.enabled:
-    print('ERROR: Kling API keys not set. Run setup_local_env.bat first.')
-    sys.exit(1)
-
-image = r'%IMAGE_FILE%'
-print(f'\nGenerating video from: {image}')
-
-prompt = 'gentle wind blowing hair, soft natural movement, warm golden hour sunlight, slight smile, cinematic'
-print(f'Prompt: {prompt}')
-print(f'Mode: std, Duration: 5s, Aspect: 9:16')
-print('Processing...\n')
-
-result = pipeline._kling.generate(
-    image_url=image,
-    prompt=prompt,
-    duration_s=5,
-    aspect_ratio='9:16',
-)
-
-if result and result.get('video_url'):
-    print(f'SUCCESS! Video URL: {result[\"video_url\"]}')
-
-    import requests
-    from pathlib import Path
-    video_dir = Path('data/system_e/videos')
-    video_dir.mkdir(parents=True, exist_ok=True)
-    out_path = video_dir / 'kling_test_riena_001.mp4'
-
-    print(f'Downloading to: {out_path}')
-    resp = requests.get(result['video_url'], timeout=120)
-    out_path.write_bytes(resp.content)
-    print(f'SAVED: {out_path} ({len(resp.content) / 1024:.0f} KB)')
-    print(f'\nOpen the video: start {out_path}')
-else:
-    print('FAILED: Video generation did not return a URL.')
-    if result:
-        print(f'Response: {result}')
-    sys.exit(1)
-"
+python "%~dp0kling_generate.py" "%IMAGE_FILE%"
 
 if %ERRORLEVEL% EQU 0 (
     echo.
