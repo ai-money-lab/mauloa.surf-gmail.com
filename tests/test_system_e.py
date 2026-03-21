@@ -1383,3 +1383,68 @@ def test_pipeline_weekly_mode():
     assert "dashboard" in REQUIRED_ENV
     assert REQUIRED_ENV["weekly"] == []
     assert REQUIRED_ENV["dashboard"] == []
+
+
+# ─── Content Planner Tests ───
+
+
+def test_content_planner_init():
+    """ContentPlanner initializes all submodules."""
+    from system_e.content_planner import ContentPlanner
+    planner = ContentPlanner()
+    assert planner.generator is not None
+    assert planner.fanvue is not None
+    assert planner.brand is not None
+    assert planner.analytics is not None
+    assert planner.optimizer is not None
+
+
+def test_brand_trigger_thresholds_defined():
+    """Brand trigger thresholds have all required keys."""
+    from system_e.content_planner import BRAND_TRIGGER_THRESHOLDS
+    assert "min_weekly_impressions" in BRAND_TRIGGER_THRESHOLDS
+    assert "min_avg_engagement_rate" in BRAND_TRIGGER_THRESHOLDS
+    assert "min_posts_with_data" in BRAND_TRIGGER_THRESHOLDS
+    assert BRAND_TRIGGER_THRESHOLDS["min_weekly_impressions"] > 0
+
+
+def test_auto_prospect_categories_valid():
+    """Auto-prospect categories have required fields."""
+    from system_e.content_planner import AUTO_PROSPECT_CATEGORIES
+    assert len(AUTO_PROSPECT_CATEGORIES) > 0
+    for cat in AUTO_PROSPECT_CATEGORIES:
+        assert "brand" in cat
+        assert "tier" in cat
+        assert "category" in cat
+        assert isinstance(cat["tier"], int)
+
+
+def test_evaluate_brand_triggers_structure():
+    """Brand trigger evaluation returns expected structure."""
+    from system_e.content_planner import ContentPlanner
+    planner = ContentPlanner()
+    result = planner.evaluate_brand_triggers()
+    assert "evaluated_at" in result
+    assert "metrics" in result
+    assert "thresholds" in result
+    assert "triggers_fired" in result
+    assert isinstance(result["triggers_fired"], int)
+
+
+def test_recycle_top_posts_empty():
+    """Recycle returns empty list when no posts exist."""
+    from system_e.content_planner import ContentPlanner
+    planner = ContentPlanner()
+    result = planner.recycle_top_posts()
+    assert isinstance(result, list)
+
+
+def test_pipeline_plan_modes():
+    """daily_pipeline.py accepts plan, recycle, and brand modes."""
+    from system_e.daily_pipeline import REQUIRED_ENV
+    assert "plan" in REQUIRED_ENV
+    assert "recycle" in REQUIRED_ENV
+    assert "brand" in REQUIRED_ENV
+    assert REQUIRED_ENV["plan"] == ["ANTHROPIC_API_KEY"]
+    assert REQUIRED_ENV["recycle"] == []
+    assert REQUIRED_ENV["brand"] == []

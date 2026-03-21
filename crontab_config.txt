@@ -37,6 +37,8 @@ PROJECT_ROOT=$PROJECT_ROOT
 
 # エンゲージメント収集+メンション自動返信（2時間毎）
 30 */2 * * * cd $PROJECT_ROOT && PYTHONPATH=. python system_e/daily_pipeline.py --mode engage --no-lock >> data/cron.log 2>&1
+# 月曜8:00 週次コンテンツ計画（7日分生成+Fanvueリサイクル+ブランドトリガー）
+0 8 * * 1   cd $PROJECT_ROOT && PYTHONPATH=. python system_e/daily_pipeline.py --mode plan >> data/cron.log 2>&1
 # 月曜9:00 週次レポート生成+LINE通知
 0 9 * * 1   cd $PROJECT_ROOT && PYTHONPATH=. python system_e/daily_pipeline.py --mode weekly --no-lock >> data/cron.log 2>&1
 

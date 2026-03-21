@@ -40,6 +40,9 @@ REQUIRED_ENV = {
     "full": ["ANTHROPIC_API_KEY"],
     "weekly": [],
     "dashboard": [],
+    "plan": ["ANTHROPIC_API_KEY"],
+    "recycle": [],
+    "brand": [],
 }
 
 
@@ -401,9 +404,9 @@ def main():
     parser = argparse.ArgumentParser(description="System E Daily Pipeline")
     parser.add_argument(
         "--mode",
-        choices=["full", "generate", "post", "engage", "monetize", "optimize", "collect", "weekly", "dashboard"],
+        choices=["full", "generate", "post", "engage", "monetize", "optimize", "collect", "weekly", "dashboard", "plan", "recycle", "brand"],
         default="full",
-        help="Pipeline mode: full, generate, post, engage, monetize, optimize, collect, weekly, dashboard",
+        help="Pipeline mode: full, generate, post, engage, monetize, optimize, collect, weekly, dashboard, plan, recycle, brand",
     )
     parser.add_argument(
         "--date",
@@ -427,7 +430,7 @@ def main():
         raise SystemExit(1)
 
     # Execution lock for modes that modify state
-    needs_lock = args.mode in ("full", "generate", "post", "engage")
+    needs_lock = args.mode in ("full", "generate", "post", "engage", "plan")
     if needs_lock and not args.no_lock:
         if not _acquire_lock():
             logger.error("Cannot acquire lock — another pipeline is running")
@@ -467,6 +470,18 @@ def main():
             else:
                 dashboard = gen.get_unified_dashboard()
                 print(json.dumps(dashboard, indent=2, ensure_ascii=False))
+        elif args.mode in ("plan", "recycle", "brand"):
+            from system_e.content_planner import ContentPlanner
+            planner = ContentPlanner()
+            if args.mode == "plan":
+                result = planner.run_weekly_plan()
+                print(json.dumps(result, indent=2, ensure_ascii=False))
+            elif args.mode == "recycle":
+                recycled = planner.recycle_top_posts()
+                print(f"Recycled {len(recycled)} posts to Fanvue")
+            elif args.mode == "brand":
+                result = planner.evaluate_brand_triggers()
+                print(json.dumps(result, indent=2, ensure_ascii=False))
     finally:
         if needs_lock and not args.no_lock:
             _release_lock()

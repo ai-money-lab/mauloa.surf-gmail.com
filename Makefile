@@ -55,6 +55,9 @@ help:
 	@echo "   make system-e-engage System Eエンゲージメント収集+返信"
 	@echo "   make system-e-weekly System E 週次レポート生成+LINE通知"
 	@echo "   make system-e-dashboard System E 統合ダッシュボード表示"
+	@echo "   make system-e-plan  System E 週次コンテンツ計画（7日分）"
+	@echo "   make system-e-recycle System E トップ投稿→Fanvueリサイクル"
+	@echo "   make system-e-brand System E ブランドアウトリーチトリガー評価"
 	@echo "   make system-e-check System E ローンチ準備チェック"
 	@echo "   make system-e-launch System E ワンクリック起動セットアップ"
 	@echo ""
@@ -163,6 +166,15 @@ system-e-weekly:
 
 system-e-dashboard:
 	PYTHONPATH=. python system_e/daily_pipeline.py --mode dashboard --no-lock
+
+system-e-plan:
+	PYTHONPATH=. python system_e/daily_pipeline.py --mode plan
+
+system-e-recycle:
+	PYTHONPATH=. python system_e/daily_pipeline.py --mode recycle --no-lock
+
+system-e-brand:
+	PYTHONPATH=. python system_e/daily_pipeline.py --mode brand --no-lock
 
 system-e-check:
 	python system_e/scripts/launch_check.py
