@@ -53,6 +53,8 @@ help:
 	@echo "   make system-e-gen   System E コンテンツ生成のみ"
 	@echo "   make system-e-post  System E 投稿のみ"
 	@echo "   make system-e-engage System Eエンゲージメント収集+返信"
+	@echo "   make system-e-weekly System E 週次レポート生成+LINE通知"
+	@echo "   make system-e-dashboard System E 統合ダッシュボード表示"
 	@echo "   make system-e-check System E ローンチ準備チェック"
 	@echo "   make system-e-launch System E ワンクリック起動セットアップ"
 	@echo ""
@@ -154,8 +156,13 @@ system-e-post:
 	python system_e/daily_pipeline.py --mode post
 
 system-e-engage:
-	PYTHONPATH=. python -c "from system_e.engagement_collector import EngagementCollector; c = EngagementCollector(); print(f'Metrics: {c.collect_tweet_metrics()} tweets'); print(f'Mentions: {len(c.collect_mentions())} new')"
-	PYTHONPATH=. python -c "from system_e.mention_responder import MentionResponder; r = MentionResponder(); print(f'Replied: {len(r.run())}')"
+	PYTHONPATH=. python system_e/daily_pipeline.py --mode engage --no-lock
+
+system-e-weekly:
+	PYTHONPATH=. python system_e/daily_pipeline.py --mode weekly --no-lock
+
+system-e-dashboard:
+	PYTHONPATH=. python system_e/daily_pipeline.py --mode dashboard --no-lock
 
 system-e-check:
 	python system_e/scripts/launch_check.py

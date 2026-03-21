@@ -35,6 +35,11 @@ PROJECT_ROOT=$PROJECT_ROOT
 0 19 * * *  cd $PROJECT_ROOT && PYTHONPATH=. python system_e/daily_pipeline.py --mode post >> data/cron.log 2>&1
 0 23 * * *  cd $PROJECT_ROOT && PYTHONPATH=. python system_e/daily_pipeline.py --mode post >> data/cron.log 2>&1
 
+# エンゲージメント収集+メンション自動返信（2時間毎）
+30 */2 * * * cd $PROJECT_ROOT && PYTHONPATH=. python system_e/daily_pipeline.py --mode engage --no-lock >> data/cron.log 2>&1
+# 月曜9:00 週次レポート生成+LINE通知
+0 9 * * 1   cd $PROJECT_ROOT && PYTHONPATH=. python system_e/daily_pipeline.py --mode weekly --no-lock >> data/cron.log 2>&1
+
 # ═══ 問い合わせBot 自動化タスク ═══
 # 日次レポート送信（毎日21時）
 0 21 * * *  cd $PROJECT_ROOT && PYTHONPATH=. python -m inquiry_bot.scheduler daily_report >> data/cron.log 2>&1

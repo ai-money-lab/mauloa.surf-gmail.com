@@ -38,6 +38,8 @@ REQUIRED_ENV = {
     "collect": [],
     "optimize": [],
     "full": ["ANTHROPIC_API_KEY"],
+    "weekly": [],
+    "dashboard": [],
 }
 
 
@@ -399,9 +401,9 @@ def main():
     parser = argparse.ArgumentParser(description="System E Daily Pipeline")
     parser.add_argument(
         "--mode",
-        choices=["full", "generate", "post", "engage", "monetize", "optimize", "collect"],
+        choices=["full", "generate", "post", "engage", "monetize", "optimize", "collect", "weekly", "dashboard"],
         default="full",
-        help="Pipeline mode: full, generate, post, engage, monetize, optimize, collect",
+        help="Pipeline mode: full, generate, post, engage, monetize, optimize, collect, weekly, dashboard",
     )
     parser.add_argument(
         "--date",
@@ -456,6 +458,15 @@ def main():
             print(f"Collected metrics for {count} tweets")
             pipeline.optimizer.auto_feed_ab_tests()
             print("A/B test feedback updated")
+        elif args.mode in ("weekly", "dashboard"):
+            from system_e.weekly_report import WeeklyReportGenerator
+            gen = WeeklyReportGenerator()
+            if args.mode == "weekly":
+                report = gen.generate_weekly_report(notify=True)
+                print(json.dumps(report, indent=2, ensure_ascii=False))
+            else:
+                dashboard = gen.get_unified_dashboard()
+                print(json.dumps(dashboard, indent=2, ensure_ascii=False))
     finally:
         if needs_lock and not args.no_lock:
             _release_lock()

@@ -1301,3 +1301,85 @@ def test_lock_stale_override():
     # Should override stale lock
     assert _acquire_lock() is True
     _release_lock()
+
+
+# ─── Weekly Report Tests ───
+
+
+def test_weekly_report_init():
+    """WeeklyReportGenerator initializes all submodules."""
+    from system_e.weekly_report import WeeklyReportGenerator
+    gen = WeeklyReportGenerator()
+    assert gen.analytics is not None
+    assert gen.monetization is not None
+    assert gen.optimizer is not None
+    assert gen.fanvue is not None
+
+
+def test_unified_dashboard_structure():
+    """get_unified_dashboard returns correct top-level keys."""
+    from system_e.weekly_report import WeeklyReportGenerator
+    gen = WeeklyReportGenerator()
+    dashboard = gen.get_unified_dashboard()
+    assert "generated_at" in dashboard
+    assert "engagement" in dashboard
+    assert "revenue" in dashboard
+    assert "fanvue" in dashboard
+    assert "optimization" in dashboard
+    assert "community" in dashboard
+    assert "health" in dashboard
+
+
+def test_weekly_report_structure():
+    """generate_weekly_report returns correct structure."""
+    from system_e.weekly_report import WeeklyReportGenerator
+    gen = WeeklyReportGenerator()
+    report = gen.generate_weekly_report(notify=False)
+    assert report["report_type"] == "weekly"
+    assert "dashboard" in report
+    assert "week_over_week" in report
+    assert "action_items" in report
+    assert isinstance(report["action_items"], list)
+    assert len(report["action_items"]) > 0
+
+
+def test_wow_calculation():
+    """Week-over-week calculation returns expected keys."""
+    from system_e.weekly_report import WeeklyReportGenerator
+    gen = WeeklyReportGenerator()
+    wow = gen._calculate_wow()
+    assert "likes" in wow
+    assert "impressions" in wow
+    assert "posts" in wow
+    assert "engagement_rate" in wow
+
+
+def test_pipeline_health_check():
+    """Pipeline health check returns dict with expected fields."""
+    from system_e.weekly_report import WeeklyReportGenerator
+    gen = WeeklyReportGenerator()
+    health = gen._pipeline_health()
+    assert "content_plans" in health
+    assert "posted_count" in health
+    assert "errors" in health
+    assert isinstance(health["errors"], list)
+
+
+def test_action_items_generation():
+    """Action items are generated from dashboard data."""
+    from system_e.weekly_report import WeeklyReportGenerator
+    gen = WeeklyReportGenerator()
+    dashboard = gen.get_unified_dashboard()
+    wow = gen._calculate_wow()
+    actions = gen._generate_action_items(dashboard, wow)
+    assert isinstance(actions, list)
+    assert len(actions) > 0
+
+
+def test_pipeline_weekly_mode():
+    """daily_pipeline.py accepts weekly and dashboard modes."""
+    from system_e.daily_pipeline import REQUIRED_ENV
+    assert "weekly" in REQUIRED_ENV
+    assert "dashboard" in REQUIRED_ENV
+    assert REQUIRED_ENV["weekly"] == []
+    assert REQUIRED_ENV["dashboard"] == []

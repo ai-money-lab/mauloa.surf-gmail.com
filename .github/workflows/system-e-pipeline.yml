@@ -15,6 +15,8 @@ on:
     - cron: '0 14 * * *'   # 23:00 JST
     # Engagement: every 2 hours (collect metrics + reply to mentions)
     - cron: '30 */2 * * *'
+    # Weekly report: Monday 09:00 JST (00:00 UTC)
+    - cron: '0 0 * * 1'
   workflow_dispatch:
     inputs:
       mode:
@@ -28,6 +30,8 @@ on:
           - 'engage'
           - 'optimize'
           - 'collect'
+          - 'weekly'
+          - 'dashboard'
         default: 'post'
       dry_run:
         description: 'Dry run (no posting/generation)'
@@ -68,7 +72,10 @@ jobs:
           # Scheduled: determine mode from UTC hour + minute
           HOUR=$(date -u +%H)
           MIN=$(date -u +%M)
-          if [ "$HOUR" = "12" ] && [ "$MIN" = "00" ]; then
+          DAY=$(date -u +%u)  # 1=Monday
+          if [ "$HOUR" = "00" ] && [ "$MIN" = "00" ] && [ "$DAY" = "1" ]; then
+            echo "mode=weekly" >> $GITHUB_OUTPUT  # Monday 09:00 JST = weekly report
+          elif [ "$HOUR" = "12" ] && [ "$MIN" = "00" ]; then
             echo "mode=full" >> $GITHUB_OUTPUT  # 21:00 JST = generation time
           elif [ "$MIN" = "30" ]; then
             echo "mode=engage" >> $GITHUB_OUTPUT  # :30 = engagement window
