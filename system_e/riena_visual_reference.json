@@ -1,0 +1,487 @@
+{
+  "meta": {
+    "version": "1.0",
+    "created": "2026-03-21",
+    "description": "Riena 写真分析から抽出した統合ビジュアルリファレンスデータ（32枚分）",
+    "purpose": "ローカルClaude Code用 - 画像生成・LoRAトレーニング・一貫性維持のための参照データ",
+    "source_photos": 32,
+    "source_captions": 27
+  },
+
+  "identity": {
+    "name": "Riena",
+    "name_jp": "リエナ",
+    "age_actual": 26,
+    "age_appearance": "23-24",
+    "height_cm": 168,
+    "ethnicity": "Japanese",
+    "aesthetic": "きれい系ハーフ (refined half-Japanese aesthetic)",
+    "trigger_word": "riena_character",
+    "class_word": "woman"
+  },
+
+  "face": {
+    "shape": "oval",
+    "jawline": "slim, delicate",
+    "chin": "small, delicate",
+    "cheeks": "soft, rounded",
+    "overall_size": "小顔 (small face)",
+    "eyes": {
+      "shape": "large round-almond",
+      "color": "dark brown",
+      "iris": "big, sparkling",
+      "corners": "slightly downturned outer corners",
+      "eyelids": "double eyelids (二重)",
+      "gaze": "warm, gentle",
+      "notes": "最も識別力の高い特徴 - 大きくキラキラした瞳が写真全体で一貫"
+    },
+    "nose": {
+      "shape": "straight, refined",
+      "height": "natural height (NOT button nose)",
+      "profile": "横顔で鼻筋がはっきり確認できる"
+    },
+    "lips": {
+      "fullness": "slightly full",
+      "color": "natural pink",
+      "upper_lip": "rounded upper lip",
+      "ng": "NOT glossy/plump/over-defined"
+    },
+    "eyebrows": {
+      "shape": "softly arched",
+      "style": "natural"
+    },
+    "skin": {
+      "tone": "very fair porcelain (色白)",
+      "finish": "semi-matte to dewy, luminous",
+      "texture": "flawless, smooth, clear",
+      "tanning": "does not tan easily",
+      "notes": "日光下でも色白を維持 - ビーチ/プール写真で確認済み"
+    },
+    "vibe": "Japanese-Korean beauty mix, model/actress quality",
+    "ng_elements": [
+      "baby face / round face",
+      "childish features",
+      "idol-like cuteness (アイドル系)",
+      "dimples",
+      "button nose",
+      "over-glossy/plump lips",
+      "masculine jaw"
+    ]
+  },
+
+  "expressions": {
+    "default": {
+      "description": "warm soft closed-lip smile with slight head tilt",
+      "frequency": "most common across all photos",
+      "photos_observed": ["01", "02", "20", "23", "27"]
+    },
+    "serene_mysterious": {
+      "description": "calm, slightly mysterious gaze, looking to the side",
+      "frequency": "second most common",
+      "photos_observed": ["03", "04", "07", "18", "22"]
+    },
+    "slightly_pouty": {
+      "description": "slightly pouty mysterious expression, hand near face",
+      "frequency": "occasional",
+      "photos_observed": ["23"]
+    },
+    "genuine_smile": {
+      "description": "teeth-showing smile with eye-crinkling, happy expression",
+      "frequency": "rare but impactful",
+      "photos_observed": ["16"]
+    },
+    "calm_focused": {
+      "description": "neutral calm expression, looking away or down",
+      "frequency": "workout/casual scenes",
+      "photos_observed": ["08", "10", "15"]
+    },
+    "looking_upward": {
+      "description": "elegant upward gaze, often with architectural elements",
+      "frequency": "rare, for dramatic shots",
+      "photos_observed": ["09", "21"]
+    }
+  },
+
+  "hair": {
+    "color": "medium brown (中間ブラウン - NOT black)",
+    "color_in_sunlight": "warm tones visible, slightly lighter",
+    "length": "long, past shoulders",
+    "primary_styles": {
+      "loose_waves": {
+        "description": "loose soft waves with face-framing pieces",
+        "frequency": "most common",
+        "photos": ["01", "02", "03", "12", "13", "27"]
+      },
+      "straight_with_bangs": {
+        "description": "dark brown straight hair with bangs",
+        "frequency": "common",
+        "photos": ["05", "06", "07", "08", "10", "11", "14", "15", "18"]
+      },
+      "ponytail": {
+        "description": "ponytail with loose face-framing pieces",
+        "frequency": "athletic/casual scenes",
+        "photos": ["17"]
+      },
+      "updo_bun": {
+        "description": "bun updo with loose pieces",
+        "frequency": "pool/formal scenes",
+        "photos": ["04", "19", "21"]
+      },
+      "center_part": {
+        "description": "center-parted straight hair",
+        "frequency": "studio shots",
+        "photos": ["10"]
+      },
+      "shoulder_length_layers": {
+        "description": "shoulder-length with layers",
+        "frequency": "cafe/portrait",
+        "photos": ["27"]
+      }
+    },
+    "bangs": {
+      "type": "wispy sheer bangs (シースルーバング / see-through bangs)",
+      "notes": "薄く透け感のある前髪 - 顔の小ささを強調"
+    },
+    "face_framing": "face-framing pieces always present",
+    "movement": "natural movement, not stiff"
+  },
+
+  "body": {
+    "overall": "very slender with soft feminine curves, naturally slim but subtly toned",
+    "build_type": "Japanese model body type - NOT muscular",
+    "proportions": "petite upper body with slightly curvier lower body",
+
+    "shoulders": {
+      "description": "delicate, sloping, narrow",
+      "photos_confirmed": ["04", "08", "10", "18"]
+    },
+    "collarbones": {
+      "description": "prominent, clearly visible",
+      "photos_confirmed": ["04", "08", "09", "10", "18", "19", "20"]
+    },
+    "neck": {
+      "description": "long, slender",
+      "photos_confirmed": ["21", "22"]
+    },
+    "arms": {
+      "description": "very slim, thin, with slight tone",
+      "photos_confirmed": ["02", "10", "11", "14", "17", "19"]
+    },
+    "hands": {
+      "description": "long slender fingers",
+      "nails": "pink beige / white french / natural",
+      "photos_confirmed": ["10", "23"]
+    },
+    "bust": {
+      "description": "medium, natural (NOT large)",
+      "photos_confirmed": ["05", "06", "16", "19", "21", "27"]
+    },
+    "waist": {
+      "description": "very slim with visible waistline",
+      "notes": "全写真で最も一貫した特徴 - ウエストの細さが際立つ",
+      "photos_confirmed": ["05", "06", "11", "12", "15", "16", "19", "24", "26"]
+    },
+    "stomach": {
+      "description": "flat with faint vertical line (うっすら腹筋ライン)",
+      "ab_definition": "subtle, not defined six-pack",
+      "photos_confirmed": ["08", "11", "15", "19"]
+    },
+    "hips": {
+      "description": "well-rounded, firm, slightly curvier lower body",
+      "photos_confirmed": ["21", "24", "25"]
+    },
+    "legs": {
+      "description": "long, slim, with thigh gap",
+      "thigh_gap": true,
+      "muscle_tone": "subtle definition, especially calves",
+      "photos_confirmed": ["07", "14", "16", "24", "26"]
+    },
+    "side_profile": {
+      "description": "thin profile from side, natural S-curve body line",
+      "photos_confirmed": ["06", "21", "22"]
+    },
+
+    "ng_elements": [
+      "overweight / thick",
+      "muscular / bodybuilder",
+      "large bust",
+      "wide shoulders",
+      "stocky build"
+    ]
+  },
+
+  "signature_elements": {
+    "silver_watch": {
+      "description": "delicate thin vintage silver watch on left wrist",
+      "backstory": "mother's watch - emotional anchor item",
+      "variations": ["round-face watch with beige strap (photo 22)", "silver watch (photo 20)"],
+      "photos_confirmed": ["11", "20", "22"]
+    },
+    "jewelry": {
+      "earrings": ["silver hoop earrings (common)", "small hoop earrings"],
+      "necklaces": ["thin silver chain", "heart pendant", "choker (casual)"],
+      "rings": ["silver rings on fingers (multiple photos)"],
+      "photos_confirmed": ["01", "02", "09", "13", "14", "18", "20"]
+    }
+  },
+
+  "outfit_catalog": {
+    "athletic": [
+      {
+        "id": "gym_brown",
+        "description": "brown sports bra and brown bike shorts",
+        "scene": "gym/fitness studio",
+        "photo": "15"
+      },
+      {
+        "id": "ck_grey_sporty",
+        "description": "grey Calvin Klein crop top and grey shorts",
+        "scene": "outdoor ocean walkway",
+        "photos": ["24", "25"]
+      },
+      {
+        "id": "sports_bra_silhouette",
+        "description": "sports bra and low-rise pants, backlit silhouette",
+        "scene": "window/indoor",
+        "photo": "06"
+      }
+    ],
+    "casual": [
+      {
+        "id": "blue_croptop_jeans",
+        "description": "blue crop top, white jeans, crossbody bag",
+        "scene": "outdoor daylight",
+        "photos": ["02", "03"]
+      },
+      {
+        "id": "khaki_cami_miniskirt",
+        "description": "khaki olive camisole top with ruffle mini skirt, black choker",
+        "scene": "outdoor concrete building",
+        "photo": "18"
+      },
+      {
+        "id": "blue_ribknit_sleeveless",
+        "description": "blue ribbed knit sleeveless high-neck top",
+        "scene": "cafe",
+        "photo": "27"
+      },
+      {
+        "id": "black_ribknit_laceup",
+        "description": "black ribbed knit sleeveless top with side lace-up detail, blue jeans",
+        "scene": "studio",
+        "photo": "10"
+      }
+    ],
+    "elegant": [
+      {
+        "id": "dinner_dress_black",
+        "description": "black off-shoulder sheer organza dress, gold hoop earrings, updo",
+        "scene": "restaurant/dinner",
+        "photo": "04"
+      },
+      {
+        "id": "brown_vneck_knit",
+        "description": "brown v-neck knit dress, deep v-neckline",
+        "scene": "hotel lounge at night",
+        "photos": ["22", "23"]
+      },
+      {
+        "id": "black_vneck_dress",
+        "description": "black v-neck dress or jacket, thin necklace, rings",
+        "scene": "hotel lobby with cherry blossom",
+        "photo": "09"
+      },
+      {
+        "id": "floral_long_dress",
+        "description": "black floral print long dress with deep slit, boots",
+        "scene": "outdoor architectural wall",
+        "photo": "13"
+      }
+    ],
+    "swimwear": [
+      {
+        "id": "floral_bandeau_pool",
+        "description": "white and green floral bandeau bikini",
+        "scene": "poolside, blue sky",
+        "photo": "16"
+      },
+      {
+        "id": "black_triangle_rooftop",
+        "description": "black triangle string bikini",
+        "scene": "rooftop pool",
+        "photo": "19"
+      },
+      {
+        "id": "floral_bandeau_beach",
+        "description": "white and orange floral bandeau bikini with tie details",
+        "scene": "tropical beach, wet hair",
+        "photo": "26"
+      },
+      {
+        "id": "crochet_resort",
+        "description": "white cream crochet mesh cardigan over bikini",
+        "scene": "beach resort terrace",
+        "photo": "20"
+      }
+    ],
+    "intimate_loungewear": [
+      {
+        "id": "sheer_top_hotel",
+        "description": "black sleeveless sheer top, heart pendant necklace",
+        "scene": "hotel sofa",
+        "photo": "07"
+      },
+      {
+        "id": "sheer_blouse_silhouette",
+        "description": "beige nude sheer blouse tied at waist, bikini underneath",
+        "scene": "bathroom mirror, backlit",
+        "photo": "17"
+      },
+      {
+        "id": "grey_bodysuit",
+        "description": "grey off-shoulder long-sleeve bodysuit",
+        "scene": "white wall, artistic pose",
+        "photo": "21"
+      }
+    ],
+    "cosplay_special": [
+      {
+        "id": "spiderman_bodysuit",
+        "description": "black spiderman bodysuit cosplay",
+        "scene": "mirror selfie, white wall",
+        "photo": "05"
+      },
+      {
+        "id": "headphones_bodysuit",
+        "description": "black camisole bodysuit, black over-ear headphones",
+        "scene": "floor seated, concrete wall",
+        "photo": "14"
+      }
+    ]
+  },
+
+  "pose_catalog": {
+    "standing": [
+      "hands on head (confident, showing body line)",
+      "hand near face with head tilt (approachable)",
+      "looking to the side (mysterious/serene)",
+      "arching back against wall (S-curve emphasis)",
+      "arms raised to head (pool/beach)"
+    ],
+    "seated": [
+      "sitting on sofa, legs visible (hotel/lounge)",
+      "sitting on chair, off-shoulder (casual mirror)",
+      "sitting on floor, legs extended (artistic)",
+      "cafe seated, hand near face (approachable)"
+    ],
+    "mirror_selfie": [
+      "full body mirror selfie (showing figure)",
+      "holding phone, casual angle",
+      "gym mirror with squat pose"
+    ],
+    "profile_views": [
+      "side profile showing nose/jawline",
+      "three-quarter view (most flattering)",
+      "rear view showing back/hip line",
+      "side rear view, leaning on surface"
+    ]
+  },
+
+  "lighting_catalog": {
+    "warm_indoor": {
+      "description": "warm ambient lighting, golden tones",
+      "best_for": "portraits, hotel, cafe, dinner scenes",
+      "photos": ["01", "04", "07", "09", "22", "23", "27"]
+    },
+    "natural_daylight": {
+      "description": "bright natural outdoor light",
+      "best_for": "casual, athletic, outdoor scenes",
+      "photos": ["02", "03", "13", "16", "18", "24", "25", "26"]
+    },
+    "golden_hour": {
+      "description": "warm golden sunset/twilight backlight",
+      "best_for": "dramatic outdoor, silhouette shots",
+      "photos": ["06", "08"]
+    },
+    "cool_studio": {
+      "description": "cool-toned controlled studio lighting",
+      "best_for": "fashion, product-style shots",
+      "photos": ["10", "14"]
+    },
+    "bright_pool": {
+      "description": "bright sunlight with water reflection",
+      "best_for": "swimwear, pool, beach",
+      "photos": ["16", "19", "26"]
+    }
+  },
+
+  "consistency_rules": {
+    "always_maintain": [
+      "oval face shape with slim jawline",
+      "large dark brown sparkling eyes with double eyelids",
+      "very fair porcelain skin tone (even in sun)",
+      "medium brown hair (never black)",
+      "very slim waist as most prominent body feature",
+      "silver watch on left wrist (when wrist visible)",
+      "natural, non-exaggerated proportions"
+    ],
+    "never_include": [
+      "baby face / round face / childish features",
+      "idol-like cuteness",
+      "dimples",
+      "button nose",
+      "over-glossy plump lips",
+      "muscular / bodybuilder build",
+      "anime / cartoon / 3D render style",
+      "large bust",
+      "masculine jaw",
+      "aged / wrinkled features"
+    ],
+    "variable_elements": [
+      "hair style (waves, straight, ponytail, updo)",
+      "expression (smile, serene, mysterious, focused)",
+      "outfit and accessories",
+      "background and setting",
+      "lighting temperature",
+      "camera angle and distance"
+    ]
+  },
+
+  "prompt_templates": {
+    "core_identity_prompt": "extremely beautiful young Japanese woman, 24 years old, elegant refined face, half-Japanese aesthetic. Oval face with slim jawline and delicate small chin, soft rounded cheeks. Large round-almond dark brown eyes with big sparkling irises, slightly downturned outer corners, double eyelids, warm gentle gaze. Straight refined nose, natural height. Slightly full natural pink lips with rounded upper lip. Softly arched natural eyebrows. Flawless luminous very fair porcelain skin, semi-matte to dewy finish. Glossy medium brown (NOT black) hair, long past shoulders.",
+    "body_prompt": "Very slender with soft feminine curves, naturally slim but subtly toned, very slim waist with visible waistline, flat stomach with faint vertical line, medium natural bust, well-rounded firm hips, delicate sloping shoulders, prominent collarbones, very slim arms, long slim legs with thigh gap, long neck, thin profile from side. 168cm tall. Petite upper body with slightly curvier lower body — naturally slim Japanese model body type, NOT muscular.",
+    "signature_prompt": "Signature: delicate thin vintage silver watch on left wrist.",
+    "negative_prompt": "baby face, round face, childish, cute idol look, dimples, button nose, glossy plump lips, overweight, thick, muscular bodybuilder, cartoon, anime, illustration, 3D render, lowres, blurry, deformed, ugly, bad anatomy, masculine jaw, aged, wrinkles, sagging, large breasts, dark skin, tanned"
+  },
+
+  "photo_analysis_summary": {
+    "total_photos_analyzed": 32,
+    "caption_files_created": 27,
+    "key_findings": {
+      "most_consistent_features": [
+        "ウエストの細さ - 全写真で最も目立つ特徴",
+        "色白の肌 - 屋外/日光下でも一貫して色白",
+        "大きな瞳 - キラキラした暗褐色の目",
+        "鎖骨の目立ち - 多くの写真で確認",
+        "細い腕 - 全身写真で顕著"
+      ],
+      "face_consistency_score": "high - 顔の特徴は全写真で安定",
+      "body_consistency_score": "very high - 体型は全写真で極めて一貫",
+      "hair_variation_level": "medium - スタイルは変わるが色とテクスチャは一貫",
+      "style_range": "wide - アスレチックからエレガントまで幅広い",
+      "recommended_angles": [
+        "three-quarter view (最も映える角度)",
+        "soft close-up with head tilt (親しみやすさ)",
+        "full body profile (体のラインを強調)",
+        "mirror selfie (カジュアル/リアル感)"
+      ]
+    },
+    "additional_5_photos_notes": [
+      "Photo 28: workout_finish - post-workout glow, towel around neck, sweaty skin, gym background",
+      "Photo 29: morning_matcha - kitchen, white tank top, making matcha, natural morning light",
+      "Photo 30: cat_moment - orange tabby cat (Mochi), casual home clothes, warm room lighting",
+      "Photo 31: rooftop_evening - evening cityscape, black slip dress, wind in hair, city lights",
+      "Photo 32: yoga_outdoor - park setting, grey yoga outfit, stretching pose, green background"
+    ]
+  }
+}
