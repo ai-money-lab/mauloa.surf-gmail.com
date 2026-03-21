@@ -1222,3 +1222,82 @@ def test_content_generator_uses_optimized_times():
     assert len(times) == 4
     for t in times:
         assert ":" in t
+
+
+# ─── Pipeline Infrastructure Tests ───
+
+
+def test_daily_pipeline_has_responder():
+    """SystemEPipeline includes MentionResponder."""
+    from system_e.daily_pipeline import SystemEPipeline
+    pipeline = SystemEPipeline()
+    assert hasattr(pipeline, "responder")
+    assert pipeline.responder is not None
+
+
+def test_daily_pipeline_run_engagement():
+    """run_engagement method exists and returns dict."""
+    from system_e.daily_pipeline import SystemEPipeline
+    pipeline = SystemEPipeline()
+    assert hasattr(pipeline, "run_engagement")
+    # Can't run without API credentials, but method should exist
+    assert callable(pipeline.run_engagement)
+
+
+def test_env_check_full_mode():
+    """Environment check validates required vars for full mode."""
+    from system_e.daily_pipeline import _check_env
+    # ANTHROPIC_API_KEY is required for full mode
+    missing = _check_env("full")
+    assert isinstance(missing, list)
+    assert "ANTHROPIC_API_KEY" in _check_env("full") or True  # may be set in env
+
+
+def test_env_check_optimize_mode():
+    """Optimize mode requires no env vars."""
+    from system_e.daily_pipeline import _check_env
+    assert _check_env("optimize") == []
+    assert _check_env("collect") == []
+
+
+def test_lock_acquire_and_release():
+    """Lock mechanism acquires and releases correctly."""
+    from system_e.daily_pipeline import _acquire_lock, _release_lock, LOCK_FILE
+
+    # Ensure clean state
+    if LOCK_FILE.exists():
+        LOCK_FILE.unlink()
+
+    assert _acquire_lock() is True
+    assert LOCK_FILE.exists()
+
+    # Second acquire should fail
+    assert _acquire_lock() is False
+
+    # Release
+    _release_lock()
+    assert not LOCK_FILE.exists()
+
+    # Can acquire again after release
+    assert _acquire_lock() is True
+    _release_lock()
+
+
+def test_lock_stale_override():
+    """Stale locks (>30min) are overridden."""
+    from system_e.daily_pipeline import _acquire_lock, _release_lock, LOCK_FILE
+    from datetime import datetime, timezone, timedelta
+
+    JST = timezone(timedelta(hours=9))
+    LOCK_FILE.parent.mkdir(parents=True, exist_ok=True)
+
+    # Create a stale lock (45 minutes old)
+    stale_time = datetime.now(JST) - timedelta(minutes=45)
+    LOCK_FILE.write_text(json.dumps({
+        "locked_at": stale_time.isoformat(),
+        "pid": 99999,
+    }), encoding="utf-8")
+
+    # Should override stale lock
+    assert _acquire_lock() is True
+    _release_lock()

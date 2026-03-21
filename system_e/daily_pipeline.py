@@ -20,12 +20,25 @@ from system_e.analytics import Analytics
 from system_e.monetization_engine import MonetizationEngine
 from system_e.performance_optimizer import PerformanceOptimizer
 from system_e.engagement_collector import EngagementCollector
+from system_e.mention_responder import MentionResponder
 
 logger = logging.getLogger(__name__)
 
 JST = timezone(timedelta(hours=9))
-COST_LOG = Path(__file__).parent.parent / "data" / "system_e" / "analytics" / "cost_log.json"
+DATA_DIR = Path(__file__).parent.parent / "data" / "system_e"
+COST_LOG = DATA_DIR / "analytics" / "cost_log.json"
+LOCK_FILE = DATA_DIR / ".pipeline.lock"
 CONFIG_PATH = Path(__file__).parent.parent / "config" / "config.yaml"
+
+# Required env vars per mode (empty string = not set)
+REQUIRED_ENV = {
+    "generate": ["ANTHROPIC_API_KEY"],
+    "post": ["ANTHROPIC_API_KEY"],
+    "engage": [],
+    "collect": [],
+    "optimize": [],
+    "full": ["ANTHROPIC_API_KEY"],
+}
 
 
 class SystemEPipeline:
@@ -41,6 +54,7 @@ class SystemEPipeline:
         self.monetization = MonetizationEngine()
         self.optimizer = PerformanceOptimizer()
         self.collector = EngagementCollector()
+        self.responder = MentionResponder()
 
     def run_content_generation(self, date: str | None = None) -> list[dict]:
         """Phase 1: Generate tomorrow's content plan with captions."""
@@ -179,6 +193,14 @@ class SystemEPipeline:
         except Exception as e:
             logger.error("Posting failed: %s", e)
 
+        # Phase 3.5: Auto-reply to mentions (engagement loop)
+        try:
+            replies = self.responder.run()
+            summary["mentions_replied"] = len(replies)
+            logger.info("Mention replies: %d", len(replies))
+        except Exception as e:
+            logger.error("Mention responder failed: %s", e)
+
         # Phase 4: Check Fanvue queue
         fanvue_stats = self.fanvue.get_tier_stats()
         summary["fanvue_queued"] = sum(
@@ -228,6 +250,27 @@ class SystemEPipeline:
             json.dumps(summary),
             duration,
         )
+        return summary
+
+    def run_engagement(self) -> dict:
+        """Run engagement collection + mention replies."""
+        logger.info("=== Engagement Run ===")
+        summary = {"engagement_collected": 0, "mentions_replied": 0}
+        try:
+            summary["engagement_collected"] = self.collector.collect_tweet_metrics()
+            self.collector.collect_mentions()
+        except Exception as e:
+            logger.error("Engagement collection failed: %s", e)
+        try:
+            replies = self.responder.run()
+            summary["mentions_replied"] = len(replies)
+        except Exception as e:
+            logger.error("Mention responder failed: %s", e)
+        try:
+            self.optimizer.auto_feed_ab_tests()
+        except Exception as e:
+            logger.error("A/B feedback failed: %s", e)
+        logger.info("Engagement run complete: %s", summary)
         return summary
 
     def run_posting_only(self) -> list[dict]:
@@ -291,6 +334,60 @@ class SystemEPipeline:
             return 0.0
 
 
+def _check_env(mode: str) -> list[str]:
+    """Check that required environment variables are set for the given mode.
+
+    Returns:
+        List of missing variable names (empty = all good).
+    """
+    import os
+
+    required = REQUIRED_ENV.get(mode, [])
+    return [var for var in required if not os.getenv(var)]
+
+
+def _acquire_lock() -> bool:
+    """Acquire a file-based lock to prevent duplicate pipeline runs.
+
+    Returns:
+        True if lock acquired, False if another instance is running.
+    """
+    LOCK_FILE.parent.mkdir(parents=True, exist_ok=True)
+    if LOCK_FILE.exists():
+        try:
+            lock_data = json.loads(LOCK_FILE.read_text(encoding="utf-8"))
+            locked_at = datetime.fromisoformat(lock_data.get("locked_at", ""))
+            # Stale lock: older than 30 minutes
+            if datetime.now(JST) - locked_at > timedelta(minutes=30):
+                logger.warning("Stale lock detected (>30min), overriding")
+            else:
+                logger.warning(
+                    "Pipeline already running (locked at %s, pid=%s)",
+                    lock_data.get("locked_at"),
+                    lock_data.get("pid"),
+                )
+                return False
+        except Exception:
+            pass  # Corrupt lock file, override
+
+    import os
+
+    LOCK_FILE.write_text(
+        json.dumps({
+            "locked_at": datetime.now(JST).isoformat(),
+            "pid": os.getpid(),
+        }),
+        encoding="utf-8",
+    )
+    return True
+
+
+def _release_lock() -> None:
+    """Release the pipeline lock."""
+    if LOCK_FILE.exists():
+        LOCK_FILE.unlink()
+
+
 def main():
     import argparse
 
@@ -302,9 +399,9 @@ def main():
     parser = argparse.ArgumentParser(description="System E Daily Pipeline")
     parser.add_argument(
         "--mode",
-        choices=["full", "generate", "post", "monetize", "optimize", "collect"],
+        choices=["full", "generate", "post", "engage", "monetize", "optimize", "collect"],
         default="full",
-        help="Pipeline mode: full, generate, post, monetize, optimize, collect (engagement metrics)",
+        help="Pipeline mode: full, generate, post, engage, monetize, optimize, collect",
     )
     parser.add_argument(
         "--date",
@@ -314,29 +411,54 @@ def main():
         "--reference-image",
         help="URL of reference image for Kontext consistency",
     )
+    parser.add_argument(
+        "--no-lock",
+        action="store_true",
+        help="Skip execution lock (for parallel modes like collect/optimize)",
+    )
     args = parser.parse_args()
 
-    pipeline = SystemEPipeline()
+    # Environment validation
+    missing = _check_env(args.mode)
+    if missing:
+        logger.error("Missing required env vars for mode '%s': %s", args.mode, missing)
+        raise SystemExit(1)
 
-    if args.mode == "full":
-        pipeline.run_full_pipeline(args.date)
-    elif args.mode == "generate":
-        plan = pipeline.run_content_generation(args.date)
-        if args.reference_image:
-            pipeline.run_image_generation(plan, args.reference_image)
-    elif args.mode == "post":
-        pipeline.run_posting_only()
-    elif args.mode == "monetize":
-        report = pipeline.monetization.generate_monthly_report()
-        print(json.dumps(report, indent=2, ensure_ascii=False))
-    elif args.mode == "optimize":
-        report = pipeline.optimizer.generate_optimization_report()
-        print(json.dumps(report, indent=2, ensure_ascii=False))
-    elif args.mode == "collect":
-        count = pipeline.collector.collect_tweet_metrics()
-        print(f"Collected metrics for {count} tweets")
-        pipeline.optimizer.auto_feed_ab_tests()
-        print("A/B test feedback updated")
+    # Execution lock for modes that modify state
+    needs_lock = args.mode in ("full", "generate", "post", "engage")
+    if needs_lock and not args.no_lock:
+        if not _acquire_lock():
+            logger.error("Cannot acquire lock — another pipeline is running")
+            raise SystemExit(1)
+
+    try:
+        pipeline = SystemEPipeline()
+
+        if args.mode == "full":
+            pipeline.run_full_pipeline(args.date)
+        elif args.mode == "generate":
+            plan = pipeline.run_content_generation(args.date)
+            if args.reference_image:
+                pipeline.run_image_generation(plan, args.reference_image)
+        elif args.mode == "post":
+            pipeline.run_posting_only()
+        elif args.mode == "engage":
+            result = pipeline.run_engagement()
+            print(json.dumps(result, indent=2))
+        elif args.mode == "monetize":
+            report = pipeline.monetization.generate_monthly_report()
+            print(json.dumps(report, indent=2, ensure_ascii=False))
+        elif args.mode == "optimize":
+            report = pipeline.optimizer.generate_optimization_report()
+            print(json.dumps(report, indent=2, ensure_ascii=False))
+        elif args.mode == "collect":
+            count = pipeline.collector.collect_tweet_metrics()
+            print(f"Collected metrics for {count} tweets")
+            pipeline.optimizer.auto_feed_ab_tests()
+            print("A/B test feedback updated")
+    finally:
+        if needs_lock and not args.no_lock:
+            _release_lock()
 
 
 if __name__ == "__main__":
