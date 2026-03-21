@@ -28,6 +28,9 @@ $ProjectRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 Set-Location $ProjectRoot
 Write-Host "Project root: $ProjectRoot" -ForegroundColor Cyan
 
+# ─── PYTHONPATH設定（system_e等のパッケージimport解決） ───
+$env:PYTHONPATH = $ProjectRoot
+
 # ─── .envファイル読み込み ───
 if (Test-Path ".env") {
     Get-Content ".env" | ForEach-Object {
