@@ -5,6 +5,7 @@ config/google_credentials.json
 
 # Data
 data/
+!cits/data/
 reports/
 
 # Python

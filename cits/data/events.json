@@ -1,0 +1,319 @@
+{
+  "metadata": {
+    "description": "発言者-日経反応データベース",
+    "created": "2026-03-21",
+    "source": "初期値（Phase 1-Aで実データに差し替え予定）",
+    "fields": {
+      "date": "イベント日（YYYY-MM-DD）",
+      "speaker": "発言者",
+      "event_type": "イベント種別（FOMC/BOJ_MPM/TRUMP_TARIFF/TRUMP_OTHER）",
+      "description": "イベント概要",
+      "hawkish_score": "タカ派度 -100〜+100",
+      "surprise_score": "サプライズ度 0〜100",
+      "nikkei_prev_close": "前日終値",
+      "nikkei_open": "当日始値",
+      "nikkei_close": "当日終値",
+      "gap_yen": "ギャップ（円）= 始値 - 前日終値",
+      "intraday_move": "日中動き（円）= 終値 - 始値",
+      "reversion_pct": "戻し率（%）= -intraday_move / gap_yen * 100"
+    }
+  },
+  "events": [
+    {
+      "date": "2024-01-31",
+      "speaker": "powell",
+      "event_type": "FOMC",
+      "description": "据え置き5.25-5.50%、3月利下げ否定",
+      "hawkish_score": 30,
+      "surprise_score": 20
+    },
+    {
+      "date": "2024-03-20",
+      "speaker": "powell",
+      "event_type": "FOMC",
+      "description": "据え置き、年内3回利下げ見通し維持",
+      "hawkish_score": -10,
+      "surprise_score": 10
+    },
+    {
+      "date": "2024-05-01",
+      "speaker": "powell",
+      "event_type": "FOMC",
+      "description": "据え置き、QT減速発表",
+      "hawkish_score": -15,
+      "surprise_score": 15
+    },
+    {
+      "date": "2024-06-12",
+      "speaker": "powell",
+      "event_type": "FOMC",
+      "description": "据え置き、ドットプロット年内1回に修正",
+      "hawkish_score": 25,
+      "surprise_score": 30
+    },
+    {
+      "date": "2024-07-31",
+      "speaker": "powell",
+      "event_type": "FOMC",
+      "description": "据え置き、9月利下げ示唆",
+      "hawkish_score": -30,
+      "surprise_score": 20
+    },
+    {
+      "date": "2024-09-18",
+      "speaker": "powell",
+      "event_type": "FOMC",
+      "description": "50bp利下げ（4.75-5.00%）",
+      "hawkish_score": -50,
+      "surprise_score": 40
+    },
+    {
+      "date": "2024-11-07",
+      "speaker": "powell",
+      "event_type": "FOMC",
+      "description": "25bp利下げ（4.50-4.75%）",
+      "hawkish_score": -20,
+      "surprise_score": 5
+    },
+    {
+      "date": "2024-12-18",
+      "speaker": "powell",
+      "event_type": "FOMC",
+      "description": "25bp利下げ、2025年利下げ回数を4→2に修正",
+      "hawkish_score": 40,
+      "surprise_score": 50
+    },
+    {
+      "date": "2025-01-29",
+      "speaker": "powell",
+      "event_type": "FOMC",
+      "description": "据え置き4.25-4.50%",
+      "hawkish_score": 10,
+      "surprise_score": 5
+    },
+    {
+      "date": "2025-03-19",
+      "speaker": "powell",
+      "event_type": "FOMC",
+      "description": "据え置き、関税の不確実性強調",
+      "hawkish_score": 15,
+      "surprise_score": 15
+    },
+    {
+      "date": "2025-05-07",
+      "speaker": "powell",
+      "event_type": "FOMC",
+      "description": "据え置き、インフレ懸念継続",
+      "hawkish_score": 20,
+      "surprise_score": 10
+    },
+    {
+      "date": "2025-06-18",
+      "speaker": "powell",
+      "event_type": "FOMC",
+      "description": "25bp利下げ（4.00-4.25%）",
+      "hawkish_score": -25,
+      "surprise_score": 25
+    },
+    {
+      "date": "2025-07-30",
+      "speaker": "powell",
+      "event_type": "FOMC",
+      "description": "据え置き3.75-4.00%",
+      "hawkish_score": 5,
+      "surprise_score": 5
+    },
+    {
+      "date": "2025-09-17",
+      "speaker": "powell",
+      "event_type": "FOMC",
+      "description": "25bp利下げ（3.50-3.75%）",
+      "hawkish_score": -20,
+      "surprise_score": 15
+    },
+    {
+      "date": "2026-01-28",
+      "speaker": "powell",
+      "event_type": "FOMC",
+      "description": "据え置き3.50-3.75%",
+      "hawkish_score": 10,
+      "surprise_score": 5
+    },
+    {
+      "date": "2026-03-18",
+      "speaker": "powell",
+      "event_type": "FOMC",
+      "description": "据え置き、ドット7人利下げゼロ、持続的インフレ脅威",
+      "hawkish_score": 45,
+      "surprise_score": 55
+    },
+    {
+      "date": "2024-03-19",
+      "speaker": "ueda",
+      "event_type": "BOJ_MPM",
+      "description": "マイナス金利解除（-0.1%→0-0.1%）、YCC撤廃",
+      "hawkish_score": 50,
+      "surprise_score": 30
+    },
+    {
+      "date": "2024-04-26",
+      "speaker": "ueda",
+      "event_type": "BOJ_MPM",
+      "description": "現状維持、円安容認発言",
+      "hawkish_score": -20,
+      "surprise_score": 25
+    },
+    {
+      "date": "2024-07-31",
+      "speaker": "ueda",
+      "event_type": "BOJ_MPM",
+      "description": "利上げ0.25%、国債買入減額",
+      "hawkish_score": 60,
+      "surprise_score": 60
+    },
+    {
+      "date": "2024-09-20",
+      "speaker": "ueda",
+      "event_type": "BOJ_MPM",
+      "description": "現状維持0.25%",
+      "hawkish_score": 0,
+      "surprise_score": 5
+    },
+    {
+      "date": "2024-10-31",
+      "speaker": "ueda",
+      "event_type": "BOJ_MPM",
+      "description": "現状維持、利上げ慎重姿勢",
+      "hawkish_score": -15,
+      "surprise_score": 10
+    },
+    {
+      "date": "2024-12-19",
+      "speaker": "ueda",
+      "event_type": "BOJ_MPM",
+      "description": "現状維持、追加利上げ示唆なし",
+      "hawkish_score": -25,
+      "surprise_score": 30
+    },
+    {
+      "date": "2025-01-24",
+      "speaker": "ueda",
+      "event_type": "BOJ_MPM",
+      "description": "利上げ0.50%",
+      "hawkish_score": 45,
+      "surprise_score": 35
+    },
+    {
+      "date": "2025-03-14",
+      "speaker": "ueda",
+      "event_type": "BOJ_MPM",
+      "description": "現状維持0.50%",
+      "hawkish_score": 0,
+      "surprise_score": 5
+    },
+    {
+      "date": "2025-05-01",
+      "speaker": "ueda",
+      "event_type": "BOJ_MPM",
+      "description": "現状維持、関税影響見極め",
+      "hawkish_score": -10,
+      "surprise_score": 10
+    },
+    {
+      "date": "2025-07-31",
+      "speaker": "ueda",
+      "event_type": "BOJ_MPM",
+      "description": "利上げ0.75%",
+      "hawkish_score": 40,
+      "surprise_score": 25
+    },
+    {
+      "date": "2025-10-31",
+      "speaker": "ueda",
+      "event_type": "BOJ_MPM",
+      "description": "現状維持0.75%",
+      "hawkish_score": -5,
+      "surprise_score": 10
+    },
+    {
+      "date": "2026-01-24",
+      "speaker": "ueda",
+      "event_type": "BOJ_MPM",
+      "description": "利上げ1.00%",
+      "hawkish_score": 50,
+      "surprise_score": 40
+    },
+    {
+      "date": "2025-02-01",
+      "speaker": "trump",
+      "event_type": "TRUMP_TARIFF",
+      "description": "メキシコ25%・カナダ25%・中国10%関税発表",
+      "hawkish_score": null,
+      "surprise_score": 70,
+      "market_impact": "risk_off"
+    },
+    {
+      "date": "2025-02-04",
+      "speaker": "trump",
+      "event_type": "TRUMP_TARIFF",
+      "description": "メキシコ関税1ヶ月延期",
+      "hawkish_score": null,
+      "surprise_score": 50,
+      "market_impact": "risk_on"
+    },
+    {
+      "date": "2025-03-04",
+      "speaker": "trump",
+      "event_type": "TRUMP_TARIFF",
+      "description": "中国追加10%関税発動",
+      "hawkish_score": null,
+      "surprise_score": 40,
+      "market_impact": "risk_off"
+    },
+    {
+      "date": "2025-04-02",
+      "speaker": "trump",
+      "event_type": "TRUMP_TARIFF",
+      "description": "相互関税発表（日本24%含む）",
+      "hawkish_score": null,
+      "surprise_score": 90,
+      "market_impact": "risk_off"
+    },
+    {
+      "date": "2025-04-09",
+      "speaker": "trump",
+      "event_type": "TRUMP_TARIFF",
+      "description": "90日間関税停止（中国除く）",
+      "hawkish_score": null,
+      "surprise_score": 85,
+      "market_impact": "risk_on"
+    },
+    {
+      "date": "2025-05-12",
+      "speaker": "trump",
+      "event_type": "TRUMP_TARIFF",
+      "description": "米中関税115%→30%に引き下げ合意",
+      "hawkish_score": null,
+      "surprise_score": 75,
+      "market_impact": "risk_on"
+    },
+    {
+      "date": "2025-07-10",
+      "speaker": "trump",
+      "event_type": "TRUMP_TARIFF",
+      "description": "EU追加関税示唆",
+      "hawkish_score": null,
+      "surprise_score": 35,
+      "market_impact": "risk_off"
+    },
+    {
+      "date": "2026-02-15",
+      "speaker": "trump",
+      "event_type": "TRUMP_TARIFF",
+      "description": "イラン制裁強化・中東関連関税検討",
+      "hawkish_score": null,
+      "surprise_score": 45,
+      "market_impact": "risk_off"
+    }
+  ]
+}

@@ -1,0 +1,127 @@
+{
+  "all_events": {
+    "n_events": 34,
+    "reversion_pct": {
+      "mean": 15.43,
+      "median": -0.06,
+      "std": 153.31,
+      "min": -328.15,
+      "max": 613.79,
+      "pct_above_30": 29.41,
+      "pct_above_0": 41.18
+    },
+    "max_reversion_pct": {
+      "mean": 142.58,
+      "median": 94.24,
+      "std": 157.65,
+      "min": 14.62,
+      "max": 727.59
+    },
+    "t_test_vs_zero": {
+      "t_statistic": 0.5868,
+      "p_value": 0.561326,
+      "significant_5pct": false
+    }
+  },
+  "by_speaker": {
+    "powell": {
+      "n_events": 15,
+      "reversion_pct": {
+        "mean": 65.26,
+        "median": 20.21,
+        "std": 162.54,
+        "min": -64.38,
+        "max": 613.79,
+        "pct_above_30": 40.0,
+        "pct_above_0": 60.0
+      },
+      "max_reversion_pct": {
+        "mean": 175.34,
+        "median": 104.98,
+        "std": 200.05,
+        "min": 20.62,
+        "max": 727.59
+      },
+      "t_test_vs_zero": {
+        "t_statistic": 1.5551,
+        "p_value": 0.142233,
+        "significant_5pct": false
+      },
+      "gap_yen": {
+        "mean_abs": 357.87,
+        "mean": 30.27,
+        "std": 466.4
+      },
+      "drift_2d": {
+        "mean": -97.78,
+        "same_direction_pct": 88.89
+      }
+    },
+    "ueda": {
+      "n_events": 12,
+      "reversion_pct": {
+        "mean": 22.98,
+        "median": 0.0,
+        "std": 115.68,
+        "min": -197.57,
+        "max": 255.91,
+        "pct_above_30": 33.33,
+        "pct_above_0": 41.67
+      },
+      "max_reversion_pct": {
+        "mean": 112.36,
+        "median": 101.74,
+        "std": 52.13,
+        "min": 14.62,
+        "max": 187.96
+      },
+      "t_test_vs_zero": {
+        "t_statistic": 0.6881,
+        "p_value": 0.505666,
+        "significant_5pct": false
+      },
+      "gap_yen": {
+        "mean_abs": 357.0,
+        "mean": 83.17,
+        "std": 469.29
+      },
+      "drift_2d": {
+        "mean": 256.8,
+        "same_direction_pct": 80.0
+      }
+    },
+    "trump": {
+      "n_events": 7,
+      "reversion_pct": {
+        "mean": -104.3,
+        "median": -22.52,
+        "std": 141.6,
+        "min": -328.15,
+        "max": -15.87,
+        "pct_above_30": 0.0,
+        "pct_above_0": 0.0
+      },
+      "max_reversion_pct": {
+        "mean": 124.21,
+        "median": 47.52,
+        "std": 182.85,
+        "min": 19.11,
+        "max": 525.13
+      },
+      "t_test_vs_zero": {
+        "t_statistic": -1.9488,
+        "p_value": 0.09922,
+        "significant_5pct": false
+      },
+      "gap_yen": {
+        "mean_abs": 628.43,
+        "mean": -317.57,
+        "std": 699.92
+      },
+      "drift_2d": {
+        "mean": -129.5,
+        "same_direction_pct": 75.0
+      }
+    }
+  }
+}
