@@ -19,6 +19,7 @@ from system_e.fanvue_manager import FanvueManager
 from system_e.analytics import Analytics
 from system_e.monetization_engine import MonetizationEngine
 from system_e.performance_optimizer import PerformanceOptimizer
+from system_e.engagement_collector import EngagementCollector
 
 logger = logging.getLogger(__name__)
 
@@ -39,6 +40,7 @@ class SystemEPipeline:
         self.notifier = Notifier()
         self.monetization = MonetizationEngine()
         self.optimizer = PerformanceOptimizer()
+        self.collector = EngagementCollector()
 
     def run_content_generation(self, date: str | None = None) -> list[dict]:
         """Phase 1: Generate tomorrow's content plan with captions."""
@@ -127,12 +129,21 @@ class SystemEPipeline:
 
         summary = {
             "started_at": now.isoformat(),
+            "engagement_collected": 0,
             "content_generated": 0,
             "images_generated": 0,
             "posts_published": 0,
             "fanvue_queued": 0,
             "monetization_enriched": 0,
         }
+
+        # Phase 0: Collect engagement metrics (feeds optimizer)
+        try:
+            collected = self.collector.collect_tweet_metrics()
+            summary["engagement_collected"] = collected
+            logger.info("Engagement collection: %d tweets updated", collected)
+        except Exception as e:
+            logger.error("Engagement collection failed: %s", e)
 
         # Phase 1: Generate tomorrow's content
         try:
@@ -174,17 +185,25 @@ class SystemEPipeline:
             v.get("ready", 0) for v in fanvue_stats.values()
         )
 
-        # Phase 5: Performance optimization analysis
+        # Phase 5: Performance optimization + A/B feedback
         try:
+            # Feed engagement data into running A/B tests
+            self.optimizer.auto_feed_ab_tests()
+            # Generate optimization report
             opt_report = self.optimizer.generate_optimization_report()
             summary["optimization"] = {
                 "sample_size": opt_report.get("posting_times", {}).get("sample_size", 0),
                 "enough_data": opt_report.get("posting_times", {}).get("enough_data", False),
                 "actions": opt_report.get("actions", []),
+                "ab_tests_active": len([
+                    t for t in opt_report.get("ab_tests", [])
+                    if t.get("status") == "running"
+                ]),
             }
             logger.info(
-                "Optimization: %d samples, actions=%s",
+                "Optimization: %d samples, %d active A/B tests, actions=%s",
                 summary["optimization"]["sample_size"],
+                summary["optimization"]["ab_tests_active"],
                 summary["optimization"]["actions"][:2],
             )
         except Exception as e:
@@ -196,6 +215,7 @@ class SystemEPipeline:
 
         self.notifier.send_line(
             f"【System E】パイプライン完了\n"
+            f"エンゲージメント収集: {summary['engagement_collected']}件\n"
             f"コンテンツ生成: {summary['content_generated']}件\n"
             f"画像生成: {summary['images_generated']}件\n"
             f"X投稿: {summary['posts_published']}件\n"
@@ -282,9 +302,9 @@ def main():
     parser = argparse.ArgumentParser(description="System E Daily Pipeline")
     parser.add_argument(
         "--mode",
-        choices=["full", "generate", "post", "monetize", "optimize"],
+        choices=["full", "generate", "post", "monetize", "optimize", "collect"],
         default="full",
-        help="Pipeline mode: full, generate, post, monetize, optimize (performance report)",
+        help="Pipeline mode: full, generate, post, monetize, optimize, collect (engagement metrics)",
     )
     parser.add_argument(
         "--date",
@@ -312,6 +332,11 @@ def main():
     elif args.mode == "optimize":
         report = pipeline.optimizer.generate_optimization_report()
         print(json.dumps(report, indent=2, ensure_ascii=False))
+    elif args.mode == "collect":
+        count = pipeline.collector.collect_tweet_metrics()
+        print(f"Collected metrics for {count} tweets")
+        pipeline.optimizer.auto_feed_ab_tests()
+        print("A/B test feedback updated")
 
 
 if __name__ == "__main__":

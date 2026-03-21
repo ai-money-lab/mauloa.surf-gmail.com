@@ -1123,3 +1123,102 @@ def test_daily_pipeline_has_optimizer():
     pipeline = SystemEPipeline()
     assert hasattr(pipeline, "optimizer")
     assert pipeline.optimizer is not None
+
+
+def test_daily_pipeline_has_collector():
+    """SystemEPipeline includes EngagementCollector."""
+    from system_e.daily_pipeline import SystemEPipeline
+    pipeline = SystemEPipeline()
+    assert hasattr(pipeline, "collector")
+    assert pipeline.collector is not None
+
+
+# ─── Auto A/B Test Lifecycle Tests ───
+
+
+def test_optimizer_ensure_active_tests():
+    """ensure_active_tests returns existing running tests or creates new ones."""
+    from system_e.performance_optimizer import PerformanceOptimizer
+    optimizer = PerformanceOptimizer()
+
+    active = optimizer.ensure_active_tests()
+    assert len(active) >= 1
+    # Either returns existing running tests or auto-creates new ones
+    assert all(isinstance(name, str) and len(name) > 0 for name in active)
+
+
+def test_optimizer_assign_ab_variant():
+    """assign_ab_variant records assignment and returns variant."""
+    from system_e.performance_optimizer import PerformanceOptimizer, AB_TESTS_DIR
+    optimizer = PerformanceOptimizer()
+
+    optimizer.create_ab_test(
+        test_name="test_assign_unit",
+        variants=[{"name": "a"}, {"name": "b"}],
+    )
+
+    variant = optimizer.assign_ab_variant("test_assign_unit", "tweet_123")
+    assert variant in ("a", "b")
+
+    # Verify assignment was recorded
+    assignment = optimizer._get_ab_assignment("test_assign_unit", "tweet_123")
+    assert assignment == variant
+
+    # Clean up
+    for suffix in ("", "_assignments"):
+        f = AB_TESTS_DIR / f"test_assign_unit{suffix}.json"
+        if f.exists():
+            f.unlink()
+
+
+def test_optimizer_get_completed_winners():
+    """get_completed_winners returns map of test->winner."""
+    from system_e.performance_optimizer import PerformanceOptimizer, AB_TESTS_DIR
+    optimizer = PerformanceOptimizer()
+
+    optimizer.create_ab_test(
+        test_name="test_winners_unit",
+        variants=[{"name": "a"}, {"name": "b"}],
+    )
+    # Force a winner
+    optimizer.record_ab_result("test_winners_unit", "a", impressions=100, successes=50)
+    optimizer.record_ab_result("test_winners_unit", "b", impressions=100, successes=5)
+
+    winners = optimizer.get_completed_winners()
+    assert "test_winners_unit" in winners
+    assert winners["test_winners_unit"] == "a"
+
+    # Clean up
+    f = AB_TESTS_DIR / "test_winners_unit.json"
+    if f.exists():
+        f.unlink()
+
+
+def test_optimizer_auto_feed_no_data():
+    """auto_feed_ab_tests returns 0 with no posted data."""
+    from system_e.performance_optimizer import PerformanceOptimizer
+    optimizer = PerformanceOptimizer()
+    assert optimizer.auto_feed_ab_tests() == 0
+
+
+def test_optimizer_auto_ab_templates_valid():
+    """AUTO_AB_TEMPLATES have correct structure."""
+    from system_e.performance_optimizer import PerformanceOptimizer
+    for name, template in PerformanceOptimizer.AUTO_AB_TEMPLATES.items():
+        assert "variants" in template
+        assert len(template["variants"]) >= 2
+        assert "metric" in template
+        for v in template["variants"]:
+            assert "name" in v
+
+
+def test_content_generator_uses_optimized_times():
+    """ContentGenerator uses optimizer.get_optimized_schedule."""
+    from system_e.content_generator import ContentGenerator
+    gen = ContentGenerator()
+    assert hasattr(gen, "optimizer")
+    # Verify the method is callable
+    times = gen.optimizer.get_optimized_schedule()
+    assert len(times) == 4
+    for t in times:
+        assert ":" in t

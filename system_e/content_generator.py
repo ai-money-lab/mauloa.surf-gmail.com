@@ -261,7 +261,9 @@ JSON only, no explanation."""
             tomorrow = datetime.now(JST) + timedelta(days=1)
             date = tomorrow.strftime("%Y-%m-%d")
 
-        # Check optimizer for data-driven content mix
+        # Check optimizer for data-driven schedule and content mix
+        default_times = ["07:00", "12:00", "19:00", "23:00"]
+        optimized_times = self.optimizer.get_optimized_schedule(default_times)
         optimized_mix = self.optimizer.get_optimized_content_mix()
 
         # Determine day-of-month for alternating poll/engagement at noon
@@ -269,8 +271,8 @@ JSON only, no explanation."""
         noon_type = "poll" if day_of_month % 2 == 1 else "engagement"
 
         if optimized_mix:
-            # Use data-driven content mix
-            logger.info("Using optimized content mix: %s", optimized_mix)
+            # Use data-driven content mix + optimized times
+            logger.info("Using optimized times=%s mix=%s", optimized_times, optimized_mix)
             content_plan = [
                 {
                     "time_jst": time,
@@ -278,7 +280,7 @@ JSON only, no explanation."""
                     "scene": self._pick_scene_optimized(),
                     "note": f"Optimized: {optimized_mix.get(time, 'standard')}",
                 }
-                for time in ["07:00", "12:00", "19:00", "23:00"]
+                for time in optimized_times
             ]
         else:
             # Default content mix (pre-optimization baseline)

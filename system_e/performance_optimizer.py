@@ -472,7 +472,168 @@ class PerformanceOptimizer:
         return mix
 
     # ══════════════════════════════════════════════════════════
-    #  4. WEEKLY OPTIMIZATION REPORT
+    #  4. AUTO A/B TEST LIFECYCLE
+    # ══════════════════════════════════════════════════════════
+
+    # Predefined test templates that auto-create when no active test exists
+    AUTO_AB_TEMPLATES = {
+        "caption_tone": {
+            "variants": [
+                {"name": "casual", "content": "Hey! Morning routine time"},
+                {"name": "data_driven", "content": "Sleep score: 87. Here's my morning routine"},
+                {"name": "question", "content": "Anyone else obsess over their sleep data?"},
+            ],
+            "metric": "engagement_rate",
+        },
+        "hashtag_count": {
+            "variants": [
+                {"name": "zero_tags", "content": "No hashtags"},
+                {"name": "one_tag", "content": "One content tag + branded"},
+                {"name": "branded_only", "content": "Only #RienaWellness"},
+            ],
+            "metric": "impressions",
+        },
+        "thread_length": {
+            "variants": [
+                {"name": "short_3", "content": "3-tweet thread"},
+                {"name": "medium_5", "content": "5-tweet thread"},
+                {"name": "long_7", "content": "7-tweet thread"},
+            ],
+            "metric": "engagement_rate",
+        },
+    }
+
+    def auto_feed_ab_tests(self) -> int:
+        """Feed engagement data from recent posts into running A/B tests.
+
+        Matches posted content to active A/B test variants and records
+        engagement as successes/impressions.
+
+        Returns:
+            Number of test results recorded.
+        """
+        posted = self._load_posted_log()
+        if not posted:
+            return 0
+
+        running_tests = [
+            t for t in self.list_ab_tests() if t["status"] == "running"
+        ]
+        if not running_tests:
+            return 0
+
+        updated = 0
+        for test_info in running_tests:
+            test = self._load_test(test_info["test_name"])
+            if not test:
+                continue
+
+            # Check which posts match this test's variants
+            for record in posted:
+                tweet_id = record.get("tweet_id", "")
+                if not tweet_id:
+                    continue
+
+                engagement = self._get_engagement_for_tweet(tweet_id)
+                if not engagement:
+                    continue
+
+                # Match post to variant via A/B assignment log
+                assigned = self._get_ab_assignment(test["test_name"], tweet_id)
+                if not assigned:
+                    continue
+
+                impressions = engagement.get("impressions", 0)
+                interactions = (
+                    engagement.get("likes", 0)
+                    + engagement.get("retweets", 0)
+                    + engagement.get("replies", 0)
+                )
+                if impressions > 0:
+                    self.record_ab_result(
+                        test["test_name"],
+                        assigned,
+                        impressions=impressions,
+                        successes=interactions,
+                    )
+                    updated += 1
+
+        logger.info("A/B test feedback: %d results recorded", updated)
+        return updated
+
+    def ensure_active_tests(self) -> list[str]:
+        """Ensure at least one A/B test is running. Auto-create from templates if needed.
+
+        Returns:
+            List of active test names.
+        """
+        running = [t["test_name"] for t in self.list_ab_tests() if t["status"] == "running"]
+        if running:
+            return running
+
+        # No active tests — pick a template that hasn't been completed recently
+        completed = {t["test_name"] for t in self.list_ab_tests() if t["status"] == "completed"}
+        for name, template in self.AUTO_AB_TEMPLATES.items():
+            test_name = f"auto_{name}"
+            if test_name not in completed:
+                self.create_ab_test(
+                    test_name=test_name,
+                    variants=template["variants"],
+                    metric=template["metric"],
+                )
+                running.append(test_name)
+                logger.info("Auto-created A/B test: %s", test_name)
+                break  # One at a time
+
+        return running
+
+    def assign_ab_variant(self, test_name: str, tweet_id: str) -> str | None:
+        """Assign and record a variant for a specific tweet.
+
+        Args:
+            test_name: Active test name.
+            tweet_id: Tweet ID being posted.
+
+        Returns:
+            Selected variant name, or None.
+        """
+        variant = self.pick_variant(test_name)
+        if not variant:
+            return None
+
+        # Record assignment
+        assignments_file = AB_TESTS_DIR / f"{test_name}_assignments.json"
+        assignments = self._load_json_dict(assignments_file) or {}
+        assignments[tweet_id] = {
+            "variant": variant,
+            "assigned_at": datetime.now(JST).isoformat(),
+        }
+        self._save_json(assignments_file, assignments)
+        return variant
+
+    def get_completed_winners(self) -> dict[str, str]:
+        """Get winners from all completed A/B tests.
+
+        Returns:
+            Dict mapping test_name to winner variant name.
+        """
+        winners = {}
+        for test_info in self.list_ab_tests():
+            if test_info["status"] == "completed" and test_info.get("winner"):
+                winners[test_info["test_name"]] = test_info["winner"]
+        return winners
+
+    def _get_ab_assignment(self, test_name: str, tweet_id: str) -> str | None:
+        """Look up which variant was assigned to a tweet."""
+        assignments_file = AB_TESTS_DIR / f"{test_name}_assignments.json"
+        assignments = self._load_json_dict(assignments_file) or {}
+        entry = assignments.get(tweet_id)
+        if entry:
+            return entry.get("variant")
+        return None
+
+    # ══════════════════════════════════════════════════════════
+    #  5. WEEKLY OPTIMIZATION REPORT
     # ══════════════════════════════════════════════════════════
 
     def generate_optimization_report(self) -> dict:
