@@ -76,10 +76,10 @@ IMAGE_DIR = PROJECT_ROOT / "data" / "system_e" / "images"
 # ═══════════════════════════════════════════════════════════
 
 RIENA_IDENTITY = """extremely beautiful young Japanese woman, 24 years old, elegant refined face, half-Japanese aesthetic.
-Face: oval face with slim jawline and delicate chin, large almond-shaped dark brown eyes with soft intelligent gaze, double eyelids, straight elegant nose with slightly high bridge, slightly full natural pink lips, softly arched natural eyebrows. Serene confident expression with hint of mystery. Looks like a Japanese-Korean model or actress — refined beauty NOT cute idol type.
-Skin: flawless luminous fair porcelain skin, natural dewy glow, smooth and clear, does not tan easily.
-Hair: glossy dark brown to near-black, very long past shoulders, loose soft waves with natural volume, wispy face-framing pieces, natural movement.
-Body: slender with soft feminine curves, slim waist, flat stomach, long legs, delicate sloping shoulders, visible delicate collarbones, slim arms, graceful proportions. 168cm tall. Model-like silhouette — slim yet feminine, NOT muscular or athletic.
+Face: oval face with slim jawline and delicate small chin, large round-almond dark brown eyes with big irises, slightly downturned outer corners, double eyelids, straight refined nose with slightly upturned tip, slightly full natural pink lips with rounded upper lip, softly arched natural eyebrows partially hidden by sheer bangs. Calm serene expression, sometimes slightly pouty. Looks like a Japanese-Korean model or actress — refined beauty NOT cute idol type.
+Skin: flawless luminous very fair porcelain skin, semi-matte to dewy finish, smooth and clear, does not tan easily.
+Hair: glossy medium brown (NOT black), long past shoulders, loose soft waves or straight, wispy sheer bangs (see-through bangs), face-framing pieces, natural movement.
+Body: very slender with soft feminine curves, naturally slim but subtly toned, very slim waist with visible waistline, flat stomach with faint vertical line, medium natural bust, naturally rounded hips, delicate sloping shoulders, prominent collarbones, very slim arms, long slim legs with thigh gap, long neck, thin profile from side. 168cm tall. NOT muscular — naturally slim Japanese model body type.
 Signature: delicate thin vintage silver watch on left wrist.
 """.strip()
 
