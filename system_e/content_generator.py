@@ -13,6 +13,7 @@ from pathlib import Path
 import yaml
 
 from core.claude_client import ClaudeClient
+from system_e.performance_optimizer import PerformanceOptimizer
 
 logger = logging.getLogger(__name__)
 
@@ -34,6 +35,7 @@ class ContentGenerator:
         self.claude = ClaudeClient()
         self.config = load_character_config()
         self.character = self.config["character"]
+        self.optimizer = PerformanceOptimizer()
         GENERATED_DIR.mkdir(parents=True, exist_ok=True)
 
     def _build_system_prompt(self) -> str:
@@ -259,39 +261,53 @@ JSON only, no explanation."""
             tomorrow = datetime.now(JST) + timedelta(days=1)
             date = tomorrow.strftime("%Y-%m-%d")
 
+        # Check optimizer for data-driven content mix
+        optimized_mix = self.optimizer.get_optimized_content_mix()
+
         # Determine day-of-month for alternating poll/engagement at noon
         day_of_month = int(date.split("-")[2])
         noon_type = "poll" if day_of_month % 2 == 1 else "engagement"
 
-        # Content mix optimized for reach:
-        # - Threads get 40-60% more impressions than standalone posts
-        # - Polls get highest impressions on X
-        content_plan = [
-            {
-                "time_jst": "07:00",
-                "type": "standard",
-                "scene": "morning_routine",
-                "note": "Asia peak - morning ritual content",
-            },
-            {
-                "time_jst": "12:00",
-                "type": noon_type,
-                "scene": "lifestyle",
-                "note": f"Asia lunch - {'poll (odd day)' if noon_type == 'poll' else 'engagement (even day)'}",
-            },
-            {
-                "time_jst": "19:00",
-                "type": "thread",
-                "scene": self._pick_scene(),
-                "note": "EU morning + Asia evening - thread for 40-60% more reach",
-            },
-            {
-                "time_jst": "23:00",
-                "type": "story",
-                "scene": self._pick_scene(),
-                "note": "US West morning - story content",
-            },
-        ]
+        if optimized_mix:
+            # Use data-driven content mix
+            logger.info("Using optimized content mix: %s", optimized_mix)
+            content_plan = [
+                {
+                    "time_jst": time,
+                    "type": optimized_mix.get(time, "standard"),
+                    "scene": self._pick_scene_optimized(),
+                    "note": f"Optimized: {optimized_mix.get(time, 'standard')}",
+                }
+                for time in ["07:00", "12:00", "19:00", "23:00"]
+            ]
+        else:
+            # Default content mix (pre-optimization baseline)
+            content_plan = [
+                {
+                    "time_jst": "07:00",
+                    "type": "standard",
+                    "scene": "morning_routine",
+                    "note": "Asia peak - morning ritual content",
+                },
+                {
+                    "time_jst": "12:00",
+                    "type": noon_type,
+                    "scene": "lifestyle",
+                    "note": f"Asia lunch - {'poll (odd day)' if noon_type == 'poll' else 'engagement (even day)'}",
+                },
+                {
+                    "time_jst": "19:00",
+                    "type": "thread",
+                    "scene": self._pick_scene(),
+                    "note": "EU morning + Asia evening - thread for 40-60% more reach",
+                },
+                {
+                    "time_jst": "23:00",
+                    "type": "story",
+                    "scene": self._pick_scene(),
+                    "note": "US West morning - story content",
+                },
+            ]
 
         # Generate content for each slot
         results = []
@@ -401,6 +417,14 @@ JSON only, no explanation."""
             freq = cfg.get("frequency", "weekly")
             weight = freq_weights.get(freq, 1)
             weighted.extend([name] * weight)
+        return random.choice(weighted) if weighted else "lifestyle"
+
+    def _pick_scene_optimized(self) -> str:
+        """Pick a scene using performance-optimized weights."""
+        optimized_weights = self.optimizer.get_optimized_scene_weights()
+        weighted = []
+        for scene, weight in optimized_weights.items():
+            weighted.extend([scene] * weight)
         return random.choice(weighted) if weighted else "lifestyle"
 
 

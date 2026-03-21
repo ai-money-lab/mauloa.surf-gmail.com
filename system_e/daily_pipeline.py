@@ -18,6 +18,7 @@ from system_e.posting_scheduler import PostingScheduler
 from system_e.fanvue_manager import FanvueManager
 from system_e.analytics import Analytics
 from system_e.monetization_engine import MonetizationEngine
+from system_e.performance_optimizer import PerformanceOptimizer
 
 logger = logging.getLogger(__name__)
 
@@ -37,6 +38,7 @@ class SystemEPipeline:
         self.analytics = Analytics()
         self.notifier = Notifier()
         self.monetization = MonetizationEngine()
+        self.optimizer = PerformanceOptimizer()
 
     def run_content_generation(self, date: str | None = None) -> list[dict]:
         """Phase 1: Generate tomorrow's content plan with captions."""
@@ -172,6 +174,22 @@ class SystemEPipeline:
             v.get("ready", 0) for v in fanvue_stats.values()
         )
 
+        # Phase 5: Performance optimization analysis
+        try:
+            opt_report = self.optimizer.generate_optimization_report()
+            summary["optimization"] = {
+                "sample_size": opt_report.get("posting_times", {}).get("sample_size", 0),
+                "enough_data": opt_report.get("posting_times", {}).get("enough_data", False),
+                "actions": opt_report.get("actions", []),
+            }
+            logger.info(
+                "Optimization: %d samples, actions=%s",
+                summary["optimization"]["sample_size"],
+                summary["optimization"]["actions"][:2],
+            )
+        except Exception as e:
+            logger.error("Optimization analysis failed: %s", e)
+
         # Notify
         end = datetime.now(JST)
         duration = (end - now).total_seconds()
@@ -264,9 +282,9 @@ def main():
     parser = argparse.ArgumentParser(description="System E Daily Pipeline")
     parser.add_argument(
         "--mode",
-        choices=["full", "generate", "post", "monetize"],
+        choices=["full", "generate", "post", "monetize", "optimize"],
         default="full",
-        help="Pipeline mode: full (generate+post+monetize), generate (content only), post (due posts only), monetize (revenue report)",
+        help="Pipeline mode: full, generate, post, monetize, optimize (performance report)",
     )
     parser.add_argument(
         "--date",
@@ -290,6 +308,9 @@ def main():
         pipeline.run_posting_only()
     elif args.mode == "monetize":
         report = pipeline.monetization.generate_monthly_report()
+        print(json.dumps(report, indent=2, ensure_ascii=False))
+    elif args.mode == "optimize":
+        report = pipeline.optimizer.generate_optimization_report()
         print(json.dumps(report, indent=2, ensure_ascii=False))
 
 

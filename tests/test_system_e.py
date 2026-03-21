@@ -852,3 +852,274 @@ def test_run_due_posts_handles_poll_type():
     results = scheduler.run_due_posts()
     scheduler.post_poll.assert_called_once_with(poll_content)
     assert len(results) == 1
+
+
+# ─── Performance Optimizer Tests ───
+
+
+def test_optimizer_init():
+    """PerformanceOptimizer initializes without errors."""
+    from system_e.performance_optimizer import PerformanceOptimizer
+    optimizer = PerformanceOptimizer()
+    assert optimizer is not None
+
+
+def test_optimizer_analyze_empty():
+    """Analyzing with no data returns empty results."""
+    from system_e.performance_optimizer import PerformanceOptimizer
+    optimizer = PerformanceOptimizer()
+    result = optimizer.analyze_posting_times()
+    assert result["sample_size"] == 0
+    assert result["recommended_times"] == []
+
+
+def test_optimizer_get_optimized_schedule_defaults():
+    """Falls back to default times when not enough data."""
+    from system_e.performance_optimizer import PerformanceOptimizer
+    optimizer = PerformanceOptimizer()
+    defaults = ["07:00", "12:00", "19:00", "23:00"]
+    result = optimizer.get_optimized_schedule(defaults)
+    assert result == defaults
+
+
+def test_optimizer_content_patterns_empty():
+    """Content pattern analysis returns empty with no data."""
+    from system_e.performance_optimizer import PerformanceOptimizer
+    optimizer = PerformanceOptimizer()
+    result = optimizer.analyze_content_patterns()
+    assert result["sample_size"] == 0
+    assert result["content_types"] == {}
+    assert result["scenes"] == {}
+
+
+def test_optimizer_scene_weights_defaults():
+    """Scene weight optimization falls back to defaults with no data."""
+    from system_e.performance_optimizer import PerformanceOptimizer
+    optimizer = PerformanceOptimizer()
+    defaults = {"morning_routine": 7, "workout": 3}
+    result = optimizer.get_optimized_scene_weights(defaults)
+    assert result == defaults
+
+
+def test_optimizer_content_mix_not_enough_data():
+    """Content mix optimization returns None with insufficient data."""
+    from system_e.performance_optimizer import PerformanceOptimizer
+    optimizer = PerformanceOptimizer()
+    result = optimizer.get_optimized_content_mix()
+    assert result is None
+
+
+def test_optimizer_create_ab_test(tmp_path):
+    """A/B test creation works correctly."""
+    from system_e.performance_optimizer import PerformanceOptimizer, AB_TESTS_DIR
+    optimizer = PerformanceOptimizer()
+
+    test = optimizer.create_ab_test(
+        test_name="test_opt_unit",
+        variants=[
+            {"name": "variant_a", "content": "Hello A"},
+            {"name": "variant_b", "content": "Hello B"},
+        ],
+    )
+    assert test["test_name"] == "test_opt_unit"
+    assert len(test["variants"]) == 2
+    assert test["status"] == "running"
+    assert test["variants"][0]["impressions"] == 0
+
+    # Clean up
+    test_file = AB_TESTS_DIR / "test_opt_unit.json"
+    if test_file.exists():
+        test_file.unlink()
+
+
+def test_optimizer_pick_variant():
+    """Thompson Sampling picks a variant from running test."""
+    from system_e.performance_optimizer import PerformanceOptimizer, AB_TESTS_DIR
+    optimizer = PerformanceOptimizer()
+
+    optimizer.create_ab_test(
+        test_name="test_pick_unit",
+        variants=[
+            {"name": "a", "content": "A"},
+            {"name": "b", "content": "B"},
+        ],
+    )
+
+    variant = optimizer.pick_variant("test_pick_unit")
+    assert variant in ("a", "b")
+
+    # Clean up
+    test_file = AB_TESTS_DIR / "test_pick_unit.json"
+    if test_file.exists():
+        test_file.unlink()
+
+
+def test_optimizer_pick_variant_nonexistent():
+    """Picking variant from non-existent test returns None."""
+    from system_e.performance_optimizer import PerformanceOptimizer
+    optimizer = PerformanceOptimizer()
+    assert optimizer.pick_variant("nonexistent_test") is None
+
+
+def test_optimizer_record_ab_result(tmp_path):
+    """Recording A/B results updates variant stats."""
+    from system_e.performance_optimizer import PerformanceOptimizer, AB_TESTS_DIR
+    optimizer = PerformanceOptimizer()
+
+    optimizer.create_ab_test(
+        test_name="test_record_unit",
+        variants=[
+            {"name": "a", "content": "A"},
+            {"name": "b", "content": "B"},
+        ],
+    )
+
+    optimizer.record_ab_result("test_record_unit", "a", impressions=10, successes=3)
+
+    status = optimizer.get_ab_test_status("test_record_unit")
+    assert status is not None
+    assert status["variants"][0]["impressions"] == 10
+    assert status["variants"][0]["successes"] == 3
+
+    # Clean up
+    test_file = AB_TESTS_DIR / "test_record_unit.json"
+    if test_file.exists():
+        test_file.unlink()
+
+
+def test_optimizer_ab_winner_detection():
+    """A/B test detects winner when statistically significant."""
+    from system_e.performance_optimizer import PerformanceOptimizer, AB_TESTS_DIR
+    optimizer = PerformanceOptimizer()
+
+    optimizer.create_ab_test(
+        test_name="test_winner_unit",
+        variants=[
+            {"name": "a", "content": "A"},
+            {"name": "b", "content": "B"},
+        ],
+    )
+
+    # Give variant A a clear win: 50% vs 10% with 100 samples each
+    optimizer.record_ab_result("test_winner_unit", "a", impressions=100, successes=50)
+    optimizer.record_ab_result("test_winner_unit", "b", impressions=100, successes=10)
+
+    status = optimizer.get_ab_test_status("test_winner_unit")
+    assert status["status"] == "completed"
+    assert status["winner"] == "a"
+
+    # Clean up
+    test_file = AB_TESTS_DIR / "test_winner_unit.json"
+    if test_file.exists():
+        test_file.unlink()
+
+
+def test_optimizer_ab_no_winner_yet():
+    """A/B test doesn't declare winner with insufficient data."""
+    from system_e.performance_optimizer import PerformanceOptimizer, AB_TESTS_DIR
+    optimizer = PerformanceOptimizer()
+
+    optimizer.create_ab_test(
+        test_name="test_nowinner_unit",
+        variants=[
+            {"name": "a", "content": "A"},
+            {"name": "b", "content": "B"},
+        ],
+    )
+
+    # Only 5 impressions each — not enough
+    optimizer.record_ab_result("test_nowinner_unit", "a", impressions=5, successes=3)
+    optimizer.record_ab_result("test_nowinner_unit", "b", impressions=5, successes=2)
+
+    status = optimizer.get_ab_test_status("test_nowinner_unit")
+    assert status["status"] == "running"
+    assert "winner" not in status
+
+    # Clean up
+    test_file = AB_TESTS_DIR / "test_nowinner_unit.json"
+    if test_file.exists():
+        test_file.unlink()
+
+
+def test_optimizer_list_ab_tests():
+    """list_ab_tests returns test summaries."""
+    from system_e.performance_optimizer import PerformanceOptimizer
+    optimizer = PerformanceOptimizer()
+    tests = optimizer.list_ab_tests()
+    assert isinstance(tests, list)
+
+
+def test_optimizer_generate_report():
+    """Optimization report generates without errors."""
+    from system_e.performance_optimizer import PerformanceOptimizer
+    optimizer = PerformanceOptimizer()
+    report = optimizer.generate_optimization_report()
+    assert "posting_times" in report
+    assert "content_patterns" in report
+    assert "ab_tests" in report
+    assert "actions" in report
+
+
+def test_optimizer_analyze_with_posted_data(tmp_path):
+    """Analyzing with posted data computes stats correctly."""
+    from system_e.performance_optimizer import PerformanceOptimizer, POSTED_LOG
+
+    optimizer = PerformanceOptimizer()
+
+    # Create mock posted_log data
+    mock_posts = [
+        {"time": "07:15:00", "type": "standard", "scene": "morning_routine", "tweet_id": f"tw_{i}", "posted_at": f"2026-03-{15+i:02d}T07:15:00+09:00"}
+        for i in range(12)
+    ]
+    backup = None
+    if POSTED_LOG.exists():
+        backup = POSTED_LOG.read_text(encoding="utf-8")
+
+    POSTED_LOG.parent.mkdir(parents=True, exist_ok=True)
+    POSTED_LOG.write_text(json.dumps(mock_posts), encoding="utf-8")
+
+    try:
+        result = optimizer.analyze_posting_times()
+        assert result["sample_size"] == 12
+        assert "07" in result["by_hour"]
+        assert result["by_hour"]["07"]["count"] == 12
+
+        patterns = optimizer.analyze_content_patterns()
+        assert patterns["sample_size"] == 12
+        assert "standard" in patterns["content_types"]
+        assert patterns["content_types"]["standard"]["count"] == 12
+    finally:
+        # Restore
+        if backup:
+            POSTED_LOG.write_text(backup, encoding="utf-8")
+        elif POSTED_LOG.exists():
+            POSTED_LOG.unlink()
+
+
+def test_optimizer_extract_hour():
+    """Hour extraction handles various formats."""
+    from system_e.performance_optimizer import PerformanceOptimizer
+    optimizer = PerformanceOptimizer()
+
+    assert optimizer._extract_hour({"time": "19:30:00"}) == 19
+    assert optimizer._extract_hour({"time": "07:00:00"}) == 7
+    assert optimizer._extract_hour({"posted_at": "2026-03-20T23:15:00+09:00"}) == 23
+    assert optimizer._extract_hour({}) is None
+    assert optimizer._extract_hour({"time": "invalid"}) is None
+
+
+def test_content_generator_uses_optimized_scene():
+    """ContentGenerator has _pick_scene_optimized method."""
+    from system_e.content_generator import ContentGenerator
+    gen = ContentGenerator()
+    scene = gen._pick_scene_optimized()
+    assert isinstance(scene, str)
+    assert len(scene) > 0
+
+
+def test_daily_pipeline_has_optimizer():
+    """SystemEPipeline includes PerformanceOptimizer."""
+    from system_e.daily_pipeline import SystemEPipeline
+    pipeline = SystemEPipeline()
+    assert hasattr(pipeline, "optimizer")
+    assert pipeline.optimizer is not None
