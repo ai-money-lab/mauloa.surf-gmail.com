@@ -19,6 +19,10 @@ chcp 65001 | Out-Null
 
 $ErrorActionPreference = "Stop"
 
+# ─── Pythonコマンド検出（Windowsではpython、Linux/macではpython3） ───
+$PythonCmd = if (Get-Command python -ErrorAction SilentlyContinue) { "python" } elseif (Get-Command python3 -ErrorAction SilentlyContinue) { "python3" } else { Write-Host "ERROR: Python が見つかりません。Python 3.10+ をインストールしてください。" -ForegroundColor Red; exit 1 }
+Write-Host "Python: $PythonCmd ($(& $PythonCmd --version 2>&1))" -ForegroundColor Gray
+
 # ─── プロジェクトルートに移動 ───
 $ProjectRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 Set-Location $ProjectRoot
@@ -110,7 +114,7 @@ foreach ($scene in $scenes) {
     }
 
     try {
-        python3 @args
+        & $PythonCmd @args
         if ($LASTEXITCODE -eq 0) { $totalOk++ } else { $totalFail++ }
     } catch {
         Write-Host "  Error: $_" -ForegroundColor Red
@@ -135,7 +139,7 @@ Write-Host "  1. data\system_e\images\ の画像を確認、悪いものは削�
 Write-Host "  2. 良い画像を data\system_e\lora_training\images\ に移動:"
 Write-Host "     Move-Item data\system_e\images\riena_*.* data\system_e\lora_training\images\"
 Write-Host "  3. LoRA学習前処理:"
-Write-Host "     python3 system_e\scripts\train_lora.py prepare"
+Write-Host "     python system_e\scripts\train_lora.py prepare"
 Write-Host "  4. LoRA学習実行:"
-Write-Host "     python3 system_e\scripts\train_lora.py train"
+Write-Host "     python system_e\scripts\train_lora.py train"
 Write-Host "═══════════════════════════════════════════════════════════" -ForegroundColor Green
