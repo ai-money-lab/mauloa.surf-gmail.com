@@ -6,6 +6,8 @@ config/google_credentials.json
 # Data
 data/
 !cits/data/
+cits/data/market_data/nikkei225_daily.csv
+cits/data/market_data/dow_daily.csv
 reports/
 
 # Python
