@@ -1,4 +1,4 @@
-# ═══════════════════════════════════════════════════════════
+﻿# ═══════════════════════════════════════════════════════════
 # Riena LoRA Training Pipeline — Windows PowerShell版
 #
 # 使い方:
@@ -11,6 +11,11 @@
 #   - pip install requests python-dotenv
 #   - .env に GEMINI_API_KEY または FAL_API_KEY を設定済み
 # ═══════════════════════════════════════════════════════════
+
+# ─── UTF-8出力設定（文字化け防止） ───
+[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+$OutputEncoding = [System.Text.Encoding]::UTF8
+chcp 65001 | Out-Null
 
 $ErrorActionPreference = "Stop"
 
