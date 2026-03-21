@@ -123,14 +123,39 @@ character:
   visual_identity:
     style: "Athletic casual, clean aesthetic — but not curated-looking"
     color_palette: ["#E8D5C4", "#7BA69E", "#F5F0EB", "#2C3E50"]
+
+    # ─── 顔・体型の詳細定義（画像生成の一貫性用） ───
+    face:
+      type: "Elegant, refined — きれい系ハーフ顔"
+      shape: "Oval, slim jawline, delicate chin"
+      eyes: "Large almond-shaped, light brown/hazel, soft intelligent gaze, double eyelids, subtle natural eye makeup"
+      nose: "Straight, elegant, slightly high bridge — refined not cute"
+      lips: "Natural soft pink, slightly parted, elegant shape"
+      skin: "Flawless porcelain, luminous dewy glow, smooth"
+      eyebrows: "Natural, softly arched, well-groomed"
+      expression_default: "Serene confidence, slightly mysterious, calm beauty"
+      age_appearance: "Mid-20s, mature beauty (NOT youthful/idol-like)"
+      vibe: "Japanese-Korean beauty mix, model/actress quality, ハーフっぽい雰囲気"
+    hair: "Dark brown, long past shoulders, loose soft waves with volume, wispy face-framing pieces, natural movement"
+    body_type: "Slender and toned, graceful proportions, visible collarbones, slim waist, long legs"
+    height: "168cm"
+    ethnicity: "Japanese (with half/ハーフ aesthetic)"
+
+    # ─── NG要素（これは絶対に出さない） ───
+    never:
+      - "Baby face / round face / childish features"
+      - "Idol-like cuteness (アイドル系)"
+      - "Dimples"
+      - "Button nose"
+      - "Over-glossy/plump lips"
+      - "Overly muscular/bodybuilder build"
+      - "Anime/cartoon style"
+
     signature_elements:
-      - "Always wears her mother's minimal watch"
-      - "Hair often in a practical ponytail or messy bun"
+      - "Always wears her mother's delicate thin vintage silver watch on left wrist"
+      - "Hair often in loose waves or practical ponytail"
       - "Clean, bright backgrounds — but sometimes messy apartment reality"
       - "Mochi (cat) photobombing occasionally"
-    body_type: "Athletic, fit"
-    hair: "Dark brown, medium length"
-    ethnicity: "Japanese"
     visual_honesty:
       - "Not every photo is perfect lighting. Some are phone-quality, on purpose."
       - "Show the messy kitchen counter, the unfolded laundry in the background"

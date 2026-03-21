@@ -653,30 +653,48 @@ class ImagePipeline:
     def _build_character_prompt(self, scene: str, extra: str = "") -> str:
         """Build a prompt that maintains character consistency.
 
-        Combines character visual identity with scene description.
+        Uses detailed face/body definition from character_config.yaml
+        for consistent identity across all generated images.
         """
         char = self.character
         visual = char["visual_identity"]
+        face = visual.get("face", {})
         lora = self.image_config.get("lora", {})
         trigger = lora.get("trigger_word", "")
 
-        # Base character description
         parts = []
         if trigger:
             parts.append(trigger)
 
+        # Detailed face identity (critical for consistency)
+        if face:
+            parts.extend([
+                f"A {char['age']}-year-old {visual.get('ethnicity', 'Japanese')} woman",
+                f"{face.get('type', 'elegant refined face')}",
+                f"{face.get('shape', 'oval face')}",
+                f"eyes: {face.get('eyes', 'large almond-shaped light brown eyes')}",
+                f"nose: {face.get('nose', 'straight elegant nose')}",
+                f"lips: {face.get('lips', 'natural soft pink lips')}",
+                f"skin: {face.get('skin', 'flawless porcelain skin')}",
+                f"expression: {face.get('expression_default', 'serene confidence')}",
+            ])
+        else:
+            # Fallback for configs without face section
+            parts.append(
+                f"A {char['age']}-year-old {visual.get('ethnicity', '')} woman"
+            )
+
+        # Hair & body
         parts.extend([
-            f"A {char['age']}-year-old {visual.get('ethnicity', '')} woman",
-            f"with {visual.get('hair', 'dark hair')}",
-            f"{visual.get('body_type', 'fit')} build",
-            f"wearing {visual.get('style', 'casual athletic clothing')}",
+            f"hair: {visual.get('hair', 'dark brown long hair')}",
+            f"body: {visual.get('body_type', 'slender and toned')} build",
         ])
 
-        # Add signature elements
+        # Signature elements
         for elem in visual.get("signature_elements", []):
             parts.append(elem.lower())
 
-        # Add scene
+        # Scene
         scene_config = self.image_config.get("scene_categories", {}).get(scene, {})
         scene_prefix = scene_config.get("prompts_prefix", scene)
         parts.append(scene_prefix)
@@ -684,14 +702,19 @@ class ImagePipeline:
         if extra:
             parts.append(extra)
 
-        # Photo quality directives
+        # Photo quality
         parts.extend([
             "professional photography",
             "natural lighting",
-            "high quality",
+            "photorealistic",
             "sharp focus",
             "4K detail",
         ])
+
+        # NG elements
+        never = visual.get("never", [])
+        if never:
+            parts.append(f"Avoid: {', '.join(never)}")
 
         return ", ".join(parts)
 

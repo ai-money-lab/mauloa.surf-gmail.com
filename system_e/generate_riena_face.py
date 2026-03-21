@@ -57,99 +57,92 @@ IMAGE_DIR = PROJECT_ROOT / "data" / "system_e" / "images"
 #
 # Aitana Lopez ($10K+/月) の制作者が使うテクニック:
 # 1. 超具体的な顔の特徴（毎回同じ人物に見える）
-# 2. 不完全さ（完璧はAIっぽい。そばかす、肌質感、乱れ髪）
+# 2. 不完全さ（完璧はAIっぽい。肌質感、乱れ髪）
 # 3. フィルム感（Kodak Portra, Fuji Pro 400H = リアリティ）
 # 4. 実在する場所の空気感
-#
-# Source: https://www.theinfluencer.ai/blog/how-to-create-an-ai-influencer-like-aitana-lopez
-# Source: https://metricsmule.com/ai/create-ai-influencers/
 # ═══════════════════════════════════════════════════════════
 
 # ═══════════════════════════════════════════════════════════
-# Rienaのシグネチャー: 「かわいいのに強い」
+# Rienaのシグネチャー: 「きれい系ハーフ × アスリート体型」
 #
 # AI美女界のポジションマップ:
 #   凛、Aitana → かわいい/セクシー × ファッション（飽和）
 #   imma       → かわいい × ハイファッション（飽和）
-#   Riena       → かわいい × アスリート体型（空席！！）
+#   Riena       → きれい系ハーフ顔 × スレンダー体型（空席！！）
 #
-# ベビーフェイスなのに腹筋が割れている。
-# この「ギャップ」が0.5秒で人を止める。
+# 凛とした美しさ × 健康的なスレンダー体型。
+# この「知的な色気」が0.5秒で人を止める。
 # Nike/Adidas/Lululemonが組みたくなる唯一のAI美女。
 # ═══════════════════════════════════════════════════════════
 
-# ベンチマーク: @i.am_natsuki_ (186万フォロワー), @373off
-# あの超スレンダー体型 × ベビーフェイスが基準。それ以下は論外。
-RIENA_IDENTITY = """extremely beautiful young Japanese girl, 20 years old, baby face, full body shot from head to toe.
-Face: adorable small round baby face, big sparkling doe eyes, cute button nose, plump glossy pink lips, dimples, double eyelids. Looks like a Japanese idol.
-Skin: flawless glowing dewy skin, porcelain smooth, youthful.
-Hair: glossy dark brown, silky, long past shoulders, natural soft waves.
-Body: EXTREMELY slender and slim, super skinny tiny waist, very long slim legs, thigh gap, flat toned stomach, full bust, nice round perky hips, prominent collarbones, slim arms. 170cm tall with extremely long legs. Supermodel body proportions like a Victoria's Secret angel. Think Natsuki Abe body type — impossibly slim yet curvy.
-IMPORTANT: always show FULL BODY from head to feet. The body is the signature. Never crop at waist.
+RIENA_IDENTITY = """extremely beautiful young Japanese woman, 25 years old, elegant refined face, half-Japanese aesthetic.
+Face: oval face with slim jawline and delicate chin, large almond-shaped light brown hazel eyes with soft intelligent gaze, double eyelids, straight elegant nose with slightly high bridge, natural soft pink lips slightly parted, softly arched natural eyebrows. Serene confident expression with hint of mystery. Looks like a Japanese-Korean model or actress — refined beauty NOT cute idol type.
+Skin: flawless luminous porcelain skin, natural dewy glow, smooth and clear.
+Hair: glossy dark brown, long past shoulders, loose soft waves with natural volume, wispy face-framing pieces, natural movement.
+Body: slender and gracefully toned, slim waist, long elegant legs, visible delicate collarbones, slim arms, graceful proportions. 168cm tall. Model-like silhouette — slim yet feminine.
 Signature: delicate thin vintage silver watch on left wrist.
 """.strip()
 
-# おばさん化を防ぐ＋アスリート感を保つネガティブプロンプト
-NEGATIVE_PROMPT = "old, aged, wrinkles, mature face, sagging skin, dark circles, tired, rough skin, large pores, thick neck, overweight, soft body, no muscle definition, cartoon, anime, illustration, 3D render, lowres, blurry, deformed, ugly, bad anatomy, masculine jaw"
+# NG要素を防ぐネガティブプロンプト
+NEGATIVE_PROMPT = "baby face, round face, childish, cute idol look, dimples, button nose, glossy plump lips, overweight, thick, muscular bodybuilder, cartoon, anime, illustration, 3D render, lowres, blurry, deformed, ugly, bad anatomy, masculine jaw, aged, wrinkles, sagging"
 
-RIENA_FACE_PROMPT = f"""FULL BODY photograph from head to feet of {RIENA_IDENTITY}
-Long glossy dark brown hair down, soft waves, curtain bangs.
-Wearing white fitted crop top and high-waisted mini skirt showing her extremely slim waist, long bare legs from thigh to feet, white sneakers.
-Full body visible head to toe. Her super slender figure is the focus — impossibly thin waist, long model legs, perfect proportions.
-Adorable baby face smiling sweetly at camera, big doe eyes, dimples. Cute face, killer body.
-Bright Tokyo apartment, golden morning light, clean white aesthetic.
-Full body shot, 35mm lens, warm golden tones, photorealistic, 8K, fashion editorial.
+RIENA_FACE_PROMPT = f"""Close-up portrait photograph of {RIENA_IDENTITY}
+Hair down in loose soft waves with face-framing wispy pieces, natural volume.
+Wearing off-shoulder cream white blouse, showing elegant collarbones and shoulders.
+Serene confident expression, soft gaze directly at camera, slightly parted lips.
+Bright airy room, soft natural window light from behind, clean white background.
+Portrait shot, 85mm f/1.4, shallow depth of field, warm soft tones, photorealistic, 8K.
 Avoid: {NEGATIVE_PROMPT}
 """.strip()
 
 RIENA_SCENE_PROMPTS = {
     "portrait_warm": RIENA_FACE_PROMPT,
 
-    "selfie_cute": f"""FULL BODY mirror selfie from head to feet of {RIENA_IDENTITY}
-Long glossy hair down, soft waves. Dewy glowing skin.
-Wearing cropped tank top and tiny denim shorts — her entire super slender body visible in full length mirror: extremely thin waist, long slim legs, thigh gap, nice figure. Head to toe reflected.
-Adorable cute face, peace sign, sweet smile. Baby face on a supermodel body.
-Bright room, full length mirror, warm sunlight.
-iPhone selfie, full body visible, warm golden tones, photorealistic.
+    "selfie_natural": f"""Natural mirror selfie of {RIENA_IDENTITY}
+Long dark brown hair down, soft waves. Luminous dewy skin, minimal natural makeup.
+Wearing simple fitted white tank top and high-waisted jeans, her slender graceful figure visible in mirror. Delicate collarbones, slim waist.
+Calm confident expression, soft slight smile, one hand holding phone, elegant pose.
+Bright room, full length mirror, warm morning sunlight.
+iPhone selfie, natural tones, photorealistic. Elegant NOT cute.
 Avoid: {NEGATIVE_PROMPT}
 """.strip(),
 
-    "workout_power": f"""FULL BODY gym photograph from head to feet of {RIENA_IDENTITY}
-Hair in high ponytail.
-Wearing black sports bra and black leggings. Her ENTIRE body visible head to toe: super slender waist, flat toned stomach, full bust, round hips, very long slim toned legs. Think Natsuki Abe proportions.
-Standing full body, one hand on hip, cute confident smirk on her baby face.
-Premium gym, golden light, mirrors.
-Full body shot, 35mm f/1.8, dramatic lighting showing her incredible slim silhouette.
-Ultra photorealistic. Gymshark campaign quality.
+    "workout_power": f"""Gym photograph of {RIENA_IDENTITY}
+Hair in sleek high ponytail, showing her elegant jawline and neck.
+Wearing black sports bra and black leggings. Slender toned body: slim waist, toned stomach, graceful proportions, long legs.
+Standing with quiet confidence, one hand on hip, calm focused expression.
+Premium gym, golden warm light, mirrors reflecting.
+Full body shot, 35mm f/1.8, dramatic lighting on her slim silhouette.
+Ultra photorealistic. Nike campaign quality — athletic elegance.
 Avoid: {NEGATIVE_PROMPT}
 """.strip(),
 
-    "bikini_pool": f"""FULL BODY photograph from head to feet of {RIENA_IDENTITY}
-Long glossy hair down, slightly wet, sun-kissed.
-Wearing simple white bikini. Her full body visible: extremely slender tiny waist, flat stomach, full bust, beautiful hips, very long slim legs, thigh gap. Perfect supermodel proportions.
-Standing by infinity pool edge, one hand in hair. Adorable sweet smile on her baby face looking at camera.
-Bright blue sky, turquoise pool water, tropical resort setting, golden sunlight.
-Full body shot head to toe, 35mm lens, bright vivid colors, sun-kissed skin glow.
-Ultra photorealistic, Sports Illustrated swimsuit quality.
+    "bikini_pool": f"""Poolside photograph of {RIENA_IDENTITY}
+Long dark brown hair down, slightly tousled by breeze, sun-kissed glow.
+Wearing simple white bikini. Slender graceful body: slim waist, toned stomach, elegant proportions, long legs.
+Standing by infinity pool, one hand gently touching hair. Serene confident gaze at camera, soft natural expression.
+Bright blue sky, turquoise pool water, tropical resort, golden sunlight.
+Full body shot, 35mm lens, bright natural colors, warm sun-kissed skin.
+Ultra photorealistic. Refined elegance, NOT idol-like.
 Avoid: {NEGATIVE_PROMPT}
 """.strip(),
 
-    "evening_intimate": f"""FULL BODY photograph from head to feet of {RIENA_IDENTITY}
-Hair down, soft waves. Wearing oversized cream knit sweater as dress, barely covering her thighs, showing extremely long bare slim legs all the way down to bare feet.
-Even in cozy mode her super slender figure is obvious — tiny waist, long legs, model proportions.
-Standing by window in warm lamplight, hugging a mug, sweet innocent expression, big doe eyes.
-Cat at her feet. Warm golden tones, intimate evening light.
-Full body shot, 50mm f/1.4, warm tones. Photorealistic. Baby face, supermodel legs.
+    "evening_intimate": f"""Evening portrait photograph of {RIENA_IDENTITY}
+Hair down in loose waves, soft and natural. Wearing oversized cream knit sweater, off one shoulder, showing delicate collarbones. Bare legs, bare feet.
+Slender graceful figure visible even in cozy clothing.
+Standing by window, warm lamplight, holding a mug with both hands. Soft reflective expression, gentle slight smile, eyes looking slightly away.
+Orange tabby cat at her feet. Warm golden amber tones, intimate evening atmosphere.
+Medium shot, 50mm f/1.4, warm film tones, Kodak Portra feel. Photorealistic.
 Avoid: {NEGATIVE_PROMPT}
 """.strip(),
 
-    "tokyo_golden": f"""FULL BODY photograph from head to feet of {RIENA_IDENTITY}
-Long hair flowing in breeze, golden backlight halo.
-Wearing fitted cropped jacket, tiny waist belt, mini skirt showing her incredibly long slim legs, heeled boots.
-Walking through Tokyo at golden hour, full body visible, looking back over shoulder with adorable bright smile.
-Her silhouette from behind shows her super slender figure — impossibly thin waist, long legs, perfect proportions.
-Bokeh Tokyo street, warm golden tones.
-Full body shot, 50mm f/1.4, Kodak Portra warmth. Ultra photorealistic. Scroll-stopping.
+    "tokyo_golden": f"""Street photograph of {RIENA_IDENTITY}
+Long dark brown hair flowing in gentle breeze, golden backlight creating a soft halo.
+Wearing fitted beige trench coat, slim belt at waist, midi skirt, low heels. Elegant Tokyo street style.
+Walking through Tokyo at golden hour, looking back over shoulder with calm confident half-smile.
+Slender silhouette backlit, graceful proportions visible.
+Bokeh Tokyo street lights, warm golden tones, Shinjuku or Omotesando atmosphere.
+Full body shot, 50mm f/1.4, Kodak Portra warmth. Ultra photorealistic. Scroll-stopping refined beauty.
 Avoid: {NEGATIVE_PROMPT}
 """.strip(),
 }
