@@ -87,9 +87,9 @@ Signature: delicate thin vintage silver watch on left wrist.
 NEGATIVE_PROMPT = "baby face, round face, childish, cute idol look, dimples, button nose, glossy plump lips, overweight, thick, muscular bodybuilder, cartoon, anime, illustration, 3D render, lowres, blurry, deformed, ugly, bad anatomy, masculine jaw, aged, wrinkles, sagging"
 
 RIENA_FACE_PROMPT = f"""Close-up portrait photograph of {RIENA_IDENTITY}
-Hair down in loose soft waves with face-framing wispy pieces, natural volume.
-Wearing off-shoulder cream white blouse, showing elegant collarbones and shoulders.
-Serene confident expression, soft gaze directly at camera, slightly parted lips.
+Medium brown hair down in loose soft waves with face-framing wispy pieces, sheer bangs.
+Wearing off-shoulder cream white blouse, showing elegant collarbones and sloping shoulders.
+Warm soft closed-lip smile, gentle gaze directly at camera, head slightly tilted.
 Bright airy room, soft natural window light from behind, clean white background.
 Portrait shot, 85mm f/1.4, shallow depth of field, warm soft tones, photorealistic, 8K.
 Avoid: {NEGATIVE_PROMPT}
@@ -99,50 +99,142 @@ RIENA_SCENE_PROMPTS = {
     "portrait_warm": RIENA_FACE_PROMPT,
 
     "selfie_natural": f"""Natural mirror selfie of {RIENA_IDENTITY}
-Long dark brown hair down, soft waves. Luminous dewy skin, minimal natural makeup.
-Wearing simple fitted white tank top and high-waisted jeans, her slender graceful figure visible in mirror. Delicate collarbones, slim waist.
-Calm confident expression, soft slight smile, one hand holding phone, elegant pose.
+Medium brown hair down, soft waves, sheer bangs. Very fair luminous skin, minimal natural makeup.
+Wearing simple fitted white tank top and high-waisted jeans, slender figure visible in mirror. Prominent collarbones, very slim waist.
+Warm soft smile, one hand holding phone, elegant relaxed pose.
 Bright room, full length mirror, warm morning sunlight.
 iPhone selfie, natural tones, photorealistic. Elegant NOT cute.
 Avoid: {NEGATIVE_PROMPT}
 """.strip(),
 
     "workout_power": f"""Gym photograph of {RIENA_IDENTITY}
-Hair in sleek high ponytail, showing her elegant jawline and neck.
-Wearing black sports bra and black leggings. Slender toned body: slim waist, toned stomach, graceful proportions, long legs.
+Medium brown hair in sleek high ponytail, showing elegant jawline and long neck.
+Wearing brown sports bra and brown bike shorts. Very slender subtly toned body: very slim waist, flat stomach with faint vertical line, medium bust, long slim legs.
 Standing with quiet confidence, one hand on hip, calm focused expression.
 Premium gym, golden warm light, mirrors reflecting.
-Full body shot, 35mm f/1.8, dramatic lighting on her slim silhouette.
+Full body shot, 35mm f/1.8, dramatic lighting on slim silhouette.
 Ultra photorealistic. Nike campaign quality — athletic elegance.
 Avoid: {NEGATIVE_PROMPT}
 """.strip(),
 
     "bikini_pool": f"""Poolside photograph of {RIENA_IDENTITY}
-Long dark brown hair down, slightly tousled by breeze, sun-kissed glow.
-Wearing simple white bikini. Slender graceful body: slim waist, toned stomach, elegant proportions, long legs.
-Standing by infinity pool, one hand gently touching hair. Serene confident gaze at camera, soft natural expression.
-Bright blue sky, turquoise pool water, tropical resort, golden sunlight.
-Full body shot, 35mm lens, bright natural colors, warm sun-kissed skin.
+Medium brown hair down, slightly tousled by breeze, very fair porcelain skin.
+Wearing simple white bikini. Very slender body with soft feminine curves: very slim waist, flat stomach, medium natural bust, well-rounded hips, long slim legs with thigh gap.
+Standing by infinity pool, one hand gently touching hair. Warm soft smile at camera.
+Bright blue sky, turquoise pool water, tropical resort, bright natural sunlight.
+Full body shot, 35mm lens, bright natural colors, fair skin in sunlight.
 Ultra photorealistic. Refined elegance, NOT idol-like.
 Avoid: {NEGATIVE_PROMPT}
 """.strip(),
 
     "evening_intimate": f"""Evening portrait photograph of {RIENA_IDENTITY}
-Hair down in loose waves, soft and natural. Wearing oversized cream knit sweater, off one shoulder, showing delicate collarbones. Bare legs, bare feet.
-Slender graceful figure visible even in cozy clothing.
-Standing by window, warm lamplight, holding a mug with both hands. Soft reflective expression, gentle slight smile, eyes looking slightly away.
-Orange tabby cat at her feet. Warm golden amber tones, intimate evening atmosphere.
+Medium brown hair down in loose waves, soft and natural, sheer bangs. Wearing oversized cream knit sweater, off one shoulder, showing delicate collarbones and sloping shoulders. Bare legs, bare feet.
+Very slender figure visible even in cozy clothing.
+Standing by window, warm lamplight, holding a mug with both hands. Warm gentle smile, eyes looking slightly away.
+Warm golden amber tones, intimate evening atmosphere.
 Medium shot, 50mm f/1.4, warm film tones, Kodak Portra feel. Photorealistic.
 Avoid: {NEGATIVE_PROMPT}
 """.strip(),
 
     "tokyo_golden": f"""Street photograph of {RIENA_IDENTITY}
-Long dark brown hair flowing in gentle breeze, golden backlight creating a soft halo.
-Wearing fitted beige trench coat, slim belt at waist, midi skirt, low heels. Elegant Tokyo street style.
-Walking through Tokyo at golden hour, looking back over shoulder with calm confident half-smile.
-Slender silhouette backlit, graceful proportions visible.
+Medium brown hair flowing in gentle breeze, golden backlight creating a soft halo.
+Wearing fitted beige trench coat, slim belt at very slim waist, midi skirt, low heels. Elegant Tokyo street style.
+Walking through Tokyo at golden hour, looking back over shoulder with warm soft half-smile.
+Very slender silhouette backlit, slim waist and long legs visible.
 Bokeh Tokyo street lights, warm golden tones, Shinjuku or Omotesando atmosphere.
-Full body shot, 50mm f/1.4, Kodak Portra warmth. Ultra photorealistic. Scroll-stopping refined beauty.
+Full body shot, 50mm f/1.4, Kodak Portra warmth. Ultra photorealistic.
+Avoid: {NEGATIVE_PROMPT}
+""".strip(),
+
+    # ─── LoRA学習用追加シーン ───
+    "lora_front_neutral": f"""Front-facing portrait photograph of {RIENA_IDENTITY}
+Medium brown hair with sheer bangs, loose waves. Looking directly at camera.
+Wearing black turtleneck sweater. Warm soft closed-lip smile, head slightly tilted.
+Very fair porcelain skin, large dark brown eyes with sparkling irises.
+Plain white background, studio soft lighting, even illumination.
+Headshot, 85mm f/2.0, sharp focus on face, photorealistic, 8K.
+Avoid: {NEGATIVE_PROMPT}
+""".strip(),
+
+    "lora_threequarter_left": f"""Three-quarter left portrait of {RIENA_IDENTITY}
+Medium brown hair with sheer bangs, soft waves. Face turned slightly left, eyes at camera.
+Wearing simple grey crew neck t-shirt. Gentle serene expression.
+Very fair porcelain skin, visible jawline and chin profile.
+Plain light grey background, natural soft lighting.
+Portrait shot, 85mm f/1.8, shallow depth of field, photorealistic.
+Avoid: {NEGATIVE_PROMPT}
+""".strip(),
+
+    "lora_threequarter_right": f"""Three-quarter right portrait of {RIENA_IDENTITY}
+Medium brown hair with sheer bangs, soft waves. Face turned slightly right, warm gentle gaze.
+Wearing white off-shoulder knit top, collarbones visible, sloping shoulders.
+Warm soft smile, natural makeup, very fair skin.
+Plain cream background, warm studio lighting.
+Portrait shot, 85mm f/1.8, shallow depth of field, photorealistic.
+Avoid: {NEGATIVE_PROMPT}
+""".strip(),
+
+    "lora_profile_left": f"""Left profile portrait of {RIENA_IDENTITY}
+Medium brown hair down, showing left side profile. Straight refined nose, slim jawline, delicate chin, long neck.
+Wearing black sleeveless top. Serene calm expression.
+Very fair porcelain skin, prominent collarbones.
+Clean dark background, dramatic side lighting.
+Profile portrait, 85mm f/2.0, sharp focus, photorealistic.
+Avoid: {NEGATIVE_PROMPT}
+""".strip(),
+
+    "lora_full_body_casual": f"""Full body photograph of {RIENA_IDENTITY}
+Medium brown hair with sheer bangs, loose waves. Standing naturally, weight on one leg.
+Wearing blue crop t-shirt and white high-waisted jeans with crossbody bag. Flat stomach visible, very slim waist, sloping shoulders.
+Warm soft smile, looking slightly to the side.
+Tokyo street, overcast daylight, concrete building background.
+Full body shot, 35mm f/2.0, street photography style, photorealistic.
+Avoid: {NEGATIVE_PROMPT}
+""".strip(),
+
+    "lora_full_body_dress": f"""Full body photograph of {RIENA_IDENTITY}
+Medium brown hair down, loose waves. Standing elegantly.
+Wearing black off-shoulder midi dress and heels. Very slender figure: slim waist, long slim legs, sloping shoulders, medium bust.
+Serene confident expression, looking to the side.
+Tokyo alley at golden hour, warm backlight.
+Full body shot, 50mm f/1.4, warm tones, photorealistic.
+Avoid: {NEGATIVE_PROMPT}
+""".strip(),
+
+    "lora_bikini_beach": f"""Beach photograph of {RIENA_IDENTITY}
+Medium brown hair slightly wet from ocean, natural. Very fair porcelain skin.
+Wearing black triangle string bikini. Very slender body: very slim waist, flat stomach with faint line, medium bust, well-rounded firm hips, long slim legs, thigh gap.
+Standing in shallow water, natural relaxed pose. Calm serene expression.
+Tropical beach, turquoise water, bright daylight, blue sky.
+Full body shot, 35mm lens, natural bright colors, photorealistic.
+Avoid: {NEGATIVE_PROMPT}
+""".strip(),
+
+    "lora_gym_mirror": f"""Gym mirror selfie of {RIENA_IDENTITY}
+Medium brown hair in ponytail. Wearing black sports bra and black leggings.
+Very slender subtly toned body: flat stomach with faint vertical line, very slim waist, medium bust, slim arms, prominent collarbones.
+Holding phone in mirror, calm confident expression.
+Modern gym background, fluorescent lighting.
+Mirror selfie, iPhone quality, natural tones, photorealistic.
+Avoid: {NEGATIVE_PROMPT}
+""".strip(),
+
+    "lora_seated_cafe": f"""Cafe photograph of {RIENA_IDENTITY}
+Medium brown hair with sheer bangs, shoulder length with layers. Silver hoop earrings.
+Wearing blue ribbed knit sleeveless high-neck top. Sitting at cafe table.
+Warm soft closed-lip smile, head tilted, hand near face. Large dark brown sparkling eyes.
+Very fair luminous skin.
+Cozy cafe interior, warm ambient lighting.
+Close-up portrait, 50mm f/1.4, warm tones, photorealistic.
+Avoid: {NEGATIVE_PROMPT}
+""".strip(),
+
+    "lora_back_view_sporty": f"""Rear view photograph of {RIENA_IDENTITY}
+Medium brown hair down, natural. Wearing grey crop top and grey shorts.
+Slim back, very slim waist from behind, well-rounded firm hips and buttocks, slim thighs.
+Walking away, looking slightly over shoulder.
+Seaside walkway, bright overcast sky, ocean background.
+Full body rear view, 35mm lens, bright natural daylight, photorealistic.
 Avoid: {NEGATIVE_PROMPT}
 """.strip(),
 }
