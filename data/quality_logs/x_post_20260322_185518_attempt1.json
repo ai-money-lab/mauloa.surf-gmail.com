@@ -1,0 +1,35 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 3,
+    "persona_match": 6,
+    "pillar_alignment": 4,
+    "usefulness": 3,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 10,
+    "cta_ending": 2,
+    "originality": 7,
+    "tone_balance": 8,
+    "problem_solving": 2
+  },
+  "total_score": 75,
+  "threshold": 84,
+  "result": "rejected",
+  "usefulness_summary": "植物の世話と家の管理の共通点について気づきを共有している",
+  "rejection_reasons": [
+    "hook_powerが弱い：「コーデックスの水やり」は多くの人に関係ない導入",
+    "usefulness不足：読んだ人が具体的に何をすればいいかわからない",
+    "problem_solving不足：誰の何の問題を解決しているかが不明確",
+    "cta_endingが弱い：読み手のアクションを促す終わり方になっていない"
+  ],
+  "improvement_suggestions": [
+    "導入を「家のメンテナンスを忘れがちな方へ」など、より多くの人に関係する書き出しに変更",
+    "具体的なチェックポイントを提示（例：「月1回は屋根・外壁・水回りを見回る」など）",
+    "家の管理で見落としがちな箇所を具体的に列挙し、実用的な情報に",
+    "「皆さんはどんな場所をチェックしていますか？」ではなく「まずは◯◯から始めてみてください」のような行動提案で終わる"
+  ],
+  "checked_at": "2026-03-22T18:55:18.576209+09:00"
+}

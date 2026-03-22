@@ -1,0 +1,33 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 6,
+    "persona_match": 8,
+    "pillar_alignment": 7,
+    "usefulness": 4,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 10,
+    "cta_ending": 8,
+    "originality": 8,
+    "tone_balance": 8,
+    "problem_solving": 3
+  },
+  "total_score": 92,
+  "threshold": 84,
+  "result": "auto_approved",
+  "usefulness_summary": "リフォームは急激に変えすぎない方が良いという一般的な考え方を伝える",
+  "rejection_reasons": [
+    "具体的なアクションにつながらない抽象的な内容",
+    "読んだ人が何をすればいいかわからない",
+    "実際の問題に対する具体的な解決策がない"
+  ],
+  "improvement_suggestions": [
+    "「古い家のリフォームで失敗しないための具体的な順序」を示す（例：まず構造チェック→水回り→内装の順番など）",
+    "「急激な変化で負担がかかる具体例」を追加（例：断熱性能を急に上げすぎると結露問題が発生するなど）",
+    "読者が自分の家で実践できる「現状観察のチェックポイント」を3つ程度提示する"
+  ],
+  "checked_at": "2026-03-22T18:55:36.290812+09:00"
+}

@@ -1,0 +1,36 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 6,
+    "persona_match": 7,
+    "pillar_alignment": 4,
+    "usefulness": 3,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 10,
+    "cta_ending": 3,
+    "originality": 8,
+    "problem_solving": 3,
+    "tone_balance": 8
+  },
+  "total_score": 82,
+  "threshold": 84,
+  "result": "rejected",
+  "usefulness_summary": "植物の世話と家のメンテナンスの共通点について気づきを共有しているが、具体的なアクションにつながらない",
+  "rejection_reasons": [
+    "合計スコアが84未満（82点）",
+    "有用性が低い（3点）- 読んだ人が具体的に何をすればいいかわからない",
+    "問題解決性が低い（3点）- 誰の何の問題に答えているかが不明確",
+    "CTA要素が弱い（3点） - 読者の次のアクションを促す要素がない",
+    "pillar_alignment（4点）- 家のメンテナンスとの関連性が薄く、専門性が活かされていない"
+  ],
+  "improvement_suggestions": [
+    "家のメンテナンスで「やりすぎ注意」の具体例を追加（例：外壁の過度な高圧洗浄、頻繁すぎる点検など）",
+    "読者が判断できる具体的な基準やタイミングを提示する",
+    "「皆さんの家では〜」ではなく、「こんな症状があったら要注意」など具体的な気づきポイントを示す",
+    "HIROKIの専門知識を活かした家のメンテナンスの適切な頻度やタイミングについて言及する"
+  ],
+  "checked_at": "2026-03-22T18:55:28.233357+09:00"
+}
