@@ -47,3 +47,53 @@ python -m cits.main --mode paper --ticker 7203
 - `JQUANTS_API_KEY`: J-Quants API
 - `KABU_API_PASSWORD`: kabuステーションAPIパスワード
 - `EDINET_API_KEY`: EDINET API
+
+## 検証ルール（絶対遵守 — AIへの必須指示）
+
+### 原則
+- **「読んで確認した」は検証ではない。実行結果だけが事実。**
+- 「正しいはず」「問題ないはず」という報告は禁止。実行して証拠を出すこと。
+- コードを1行でも変更したら、必ず以下の検証を実行すること。
+
+### 変更後の必須検証チェックリスト
+```bash
+# 1. Lint — 全ファイル構文チェック
+ruff check cits/
+
+# 2. Import検証 — 変更したモジュールを実際にimport
+python -c "from cits.モジュール名 import クラス名"
+
+# 3. シグネチャ検証 — 呼び出しているメソッドの引数が正しいか
+python -c "import inspect; from cits.モジュール名 import クラス名; print(inspect.signature(クラス名.メソッド名))"
+
+# 4. スモークテスト — 全モジュール一括検証
+python cits/tests/smoke_test.py
+
+# 5. ユニットテスト
+pytest cits/tests/ -v --tb=short
+```
+
+### 完成の定義（これを全て満たさない限り「完成」と報告してはならない）
+- [ ] `ruff check cits/` がエラー0
+- [ ] 全モジュールが `python -c "import cits.xxx"` で読み込める
+- [ ] `python cits/tests/smoke_test.py` が全パス
+- [ ] `pytest cits/tests/ -v` が全パス
+- [ ] エントリーポイント `python -m cits.main --help` が起動する
+
+### 禁止事項
+- 存在しないモジュール・クラス・メソッドをimportするコードを書くこと
+- 呼び出し先のシグネチャを確認せずにメソッド呼び出しを書くこと
+- テストを実行せずに「テストは通るはず」と報告すること
+- エラーが出ているのに「軽微な問題」として無視すること
+
+### AI作業完了時の報告フォーマット
+```
+## 検証結果
+- ruff check: ✅ エラー0件
+- import検証: ✅ 全モジュール読み込み成功
+- smoke_test: ✅ 全XX件パス
+- pytest: ✅ 全XX件パス（XXs）
+- エントリーポイント: ✅ --help起動確認済み
+
+※上記は全て実際の実行結果です（実行ログ添付）
+```
