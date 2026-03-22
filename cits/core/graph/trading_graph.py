@@ -193,10 +193,22 @@ class TradingGraph:
         except Exception:
             self.logger.exception("PositionSizer failed — continuing without sizing")
 
+        # Assemble portfolio state for risk evaluation
+        portfolio_state: dict = {}
+        try:
+            from cits.portfolio.portfolio_manager import PortfolioManager
+
+            pm = PortfolioManager()
+            portfolio_state = pm.get_portfolio_summary()
+            portfolio_state["open_positions"] = pm.get_open_positions()
+        except Exception:
+            self.logger.warning("Could not load portfolio state for risk evaluation")
+
         risk_context = {
             **context,
             "trade_decision": trade_decision,
             "position_sizing": position_sizing,
+            "portfolio": portfolio_state,
         }
         risk_assessment = self.risk_manager.analyze(risk_context)
         risk_assessment["position_sizing"] = position_sizing
