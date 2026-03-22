@@ -4,8 +4,8 @@ config/credentials.json
 config/google_credentials.json
 
 # Data
-data/
-reports/
+/data/
+/reports/
 
 # Python
 __pycache__/
