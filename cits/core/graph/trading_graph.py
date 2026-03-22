@@ -27,7 +27,9 @@ from ..agents.bear_researcher import BearResearcher
 from ..agents.trader import Trader
 from ..agents.risk_manager import RiskManager
 from ..agents.fund_manager import FundManager
+from ..context_builder import ContextBuilder
 from ..debate.debate_engine import DebateEngine
+from cits.risk.position_sizer import PositionSizer
 
 logger = logging.getLogger(__name__)
 
@@ -79,6 +81,10 @@ class TradingGraph:
         self.trader = Trader()
         self.risk_manager = RiskManager()
         self.fund_manager = FundManager()
+
+        # Data enrichment & risk modules
+        self.context_builder = ContextBuilder()
+        self.position_sizer = PositionSizer()
 
         self.logger.info(
             "TradingGraph initialised: paper_mode=%s debate_rounds=%d",
@@ -165,8 +171,35 @@ class TradingGraph:
         """Stage IV: Risk Manager evaluates the trade."""
         self.logger.info("=== Stage IV: Risk Manager ===")
 
-        risk_context = {**context, "trade_decision": trade_decision}
+        # Calculate recommended position size
+        position_sizing: dict = {}
+        try:
+            entry_price = float(trade_decision.get("entry_price", 0))
+            stop_loss = float(trade_decision.get("stop_loss", 0))
+            if entry_price > 0 and stop_loss > 0 and entry_price != stop_loss:
+                position_sizing = self.position_sizer.calculate_size(
+                    entry_price=entry_price,
+                    stop_loss=stop_loss,
+                )
+                self.logger.info(
+                    "Position sizing: %d units, notional ¥%.0f",
+                    position_sizing.get("position_size", 0),
+                    position_sizing.get("notional_value", 0),
+                )
+            else:
+                self.logger.info(
+                    "Position sizing skipped — entry_price or stop_loss not provided"
+                )
+        except Exception:
+            self.logger.exception("PositionSizer failed — continuing without sizing")
+
+        risk_context = {
+            **context,
+            "trade_decision": trade_decision,
+            "position_sizing": position_sizing,
+        }
         risk_assessment = self.risk_manager.analyze(risk_context)
+        risk_assessment["position_sizing"] = position_sizing
         self.logger.info(
             "Risk assessment: approved=%s",
             risk_assessment.get("approved", "unknown"),
@@ -186,6 +219,7 @@ class TradingGraph:
             **context,
             "trade_decision": trade_decision,
             "risk_assessment": risk_assessment,
+            "circuit_breaker": context.get("circuit_breaker", {}),
         }
         final_decision = self.fund_manager.analyze(fm_context)
         self.logger.info(
@@ -229,6 +263,17 @@ class TradingGraph:
             "paper_mode": self.config["paper_mode"],
             "config": self.config,
         }
+
+        # Enrich context with real market data
+        self.logger.info("Enriching context via ContextBuilder...")
+        try:
+            enriched = self.context_builder.build(ticker, run_date)
+            context.update(enriched)
+            self.logger.info("Context enriched with %d data keys", len(enriched))
+        except Exception:
+            self.logger.exception(
+                "ContextBuilder.build() failed — continuing with base context"
+            )
 
         # Stage I
         analyst_reports = self._run_stage_1_analysts(context)

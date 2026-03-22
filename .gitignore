@@ -36,6 +36,7 @@ Thumbs.db
 
 # CITS Trading System
 cits/logs/trades.db
+cits/logs/portfolio.db
 cits/logs/debates/*.json
 cits/logs/agent_decisions/*.json
 cits/logs/cits.log

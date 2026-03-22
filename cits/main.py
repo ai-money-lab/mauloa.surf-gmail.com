@@ -94,8 +94,51 @@ def main():
 
     logger.info(f"詳細結果: {output_file}")
 
-    # Paper trade recording
-    if args.mode == "paper" and result.get("final_decision", {}).get("approved"):
+    # --- Execution bridge ---
+    final_decision = result.get("final_decision", {})
+    approved = final_decision.get("approved", False)
+
+    if approved:
+        try:
+            from cits.execution.bridge import ExecutionBridge
+
+            broker = None
+            if args.mode == "live":
+                from cits.japan.broker.kabu_api import KabuStationAPI
+                broker = KabuStationAPI()
+
+            bridge = ExecutionBridge(broker=broker, mode=args.mode)
+            exec_result = bridge.execute(result)
+
+            logger.info("=" * 60)
+            logger.info("執行結果:")
+            logger.info(f"  ステータス: {exec_result.get('status', 'N/A')}")
+            logger.info(f"  注文ID: {exec_result.get('order_id', 'N/A')}")
+            logger.info(f"  約定価格: {exec_result.get('fill_price', 'N/A')}")
+            logger.info(f"  数量: {exec_result.get('size', 'N/A')}")
+            logger.info(f"  OCO: {exec_result.get('oco_status', 'N/A')}")
+            logger.info("=" * 60)
+
+            result["execution"] = exec_result
+
+            # Portfolio summary
+            summary = bridge.portfolio.get_portfolio_summary()
+            logger.info("ポートフォリオ概要:")
+            logger.info(f"  総資産: ¥{summary['total_equity']:,.0f}")
+            logger.info(f"  現金: ¥{summary['cash']:,.0f}")
+            logger.info(f"  ポジション数: {summary['positions_count']}")
+            logger.info(f"  含み損益: ¥{summary['unrealized_pnl']:,.0f}")
+
+            result["portfolio_summary"] = summary
+
+        except Exception as e:
+            logger.error(f"執行エラー: {e}")
+            result["execution"] = {"status": "error", "message": str(e)}
+    else:
+        logger.info("最終判断: 未承認 — 執行なし")
+
+    # Paper trade recording (legacy)
+    if args.mode == "paper" and approved:
         _record_paper_trade(args.ticker, date, result)
 
     return result
