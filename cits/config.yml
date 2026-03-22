@@ -1,0 +1,38 @@
+llm:
+  provider: anthropic
+  deep_think: claude-opus-4-6
+  quick_think: claude-sonnet-4-20250514
+  analyst_temperature: 0.3
+  debate_temperature: 0.4
+  trader_temperature: 0.2
+
+trading:
+  mode: paper  # paper or live
+  max_debate_rounds: 2
+  watchlist:
+    - "7203"   # トヨタ
+    - "8306"   # 三菱UFJ
+    - "6758"   # ソニー
+    - "9984"   # ソフトバンクG
+    - "6861"   # キーエンス
+    - "7974"   # 任天堂
+    - "9432"   # NTT
+    - "4063"   # 信越化学
+
+risk:
+  daily_loss_limit_pct: 2.0
+  max_consecutive_losses: 3
+  max_daily_trades: 5
+  max_position_ratio: 0.1
+  volatility_threshold: 3.0
+
+broker:
+  kabu_station:
+    base_url: "http://localhost:18080"
+    exchange: 1  # 東証
+  oco:
+    poll_interval_sec: 5
+
+logging:
+  level: INFO
+  log_dir: cits/logs

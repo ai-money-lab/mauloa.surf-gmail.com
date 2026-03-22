@@ -4,7 +4,8 @@
 # ═══════════════════════════════════════════════════════════
 
 .PHONY: help setup test bot-start bot-stop bot-dev deploy-render deploy-docker \
-        report-daily report-monthly faq-check health logs clean
+        report-daily report-monthly faq-check health logs clean \
+        cits-paper cits-watchlist cits-test cits-lint cits-report
 
 # プロジェクトルートをPYTHONPATHに追加（core/ 等のimport解決）
 export PYTHONPATH := $(CURDIR):$(PYTHONPATH)
@@ -49,6 +50,13 @@ help:
 	@echo "   make system-a       X投稿パイプライン実行"
 	@echo "   make system-c       データ収集実行"
 	@echo "   make system-d       実績コンテンツ生成"
+	@echo ""
+	@echo " CITS Trading System:"
+	@echo "   make cits-paper     ペーパートレード (TICKER=7203)"
+	@echo "   make cits-watchlist ウォッチリスト全銘柄実行"
+	@echo "   make cits-test      CITSテスト実行"
+	@echo "   make cits-lint      CITSコード品質チェック"
+	@echo "   make cits-report    週次パフォーマンスレポート"
 	@echo ""
 	@echo " その他:"
 	@echo "   make clean          キャッシュ/一時ファイル削除"
@@ -164,6 +172,24 @@ cron-install:
 	) | crontab -
 	@echo "✅ crontab 登録完了"
 	@crontab -l | grep -A1 "AI Empire"
+
+# ─── CITS Trading System ───
+TICKER ?= 7203
+
+cits-paper:
+	python -m cits.main --mode paper --ticker $(TICKER)
+
+cits-watchlist:
+	python -m cits.scripts.run_watchlist --config cits/config.yml
+
+cits-test:
+	PYTHONPATH=. python -m pytest cits/tests/ -v --tb=short
+
+cits-lint:
+	ruff check cits/ --select E,W,F --ignore E501
+
+cits-report:
+	python -m cits.scripts.weekly_report
 
 # ─── クリーンアップ ───
 clean:
