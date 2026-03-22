@@ -137,11 +137,19 @@ def test_edinet_get_large_holdings():
     """get_large_holdings returns a list of filings."""
     client = EdinetClient()
     client._get = MagicMock(return_value={
-        "results": [{"holder": "BlackRock", "shares": 5000000}]
+        "results": [
+            {
+                "edinetCode": "E00001",
+                "filerName": "BlackRock",
+                "docDescription": "大量保有報告書 5.2% 5000000株",
+                "submitDateTime": "2026-03-01 10:00",
+                "docID": "DOC001",
+            }
+        ]
     })
     result = client.get_large_holdings("7203")
     assert len(result) == 1
-    assert result[0]["holder"] == "BlackRock"
+    assert result[0]["filer_name"] == "BlackRock"
 
 
 def test_edinet_get_large_holdings_empty():
@@ -186,7 +194,7 @@ def test_jpx_parse_short_ratio():
     """_parse_short_ratio returns expected keys."""
     result = JPXShortTracker._parse_short_ratio("<html>some html</html>")
     assert "total_short_ratio" in result
-    assert "margin_short_ratio" in result
+    assert "naked_short_ratio" in result
 
 
 @patch.object(JPXShortTracker, "_fetch_page", return_value="<html></html>")

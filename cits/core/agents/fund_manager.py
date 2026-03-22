@@ -65,7 +65,7 @@ class FundManager(BaseAgent):
     def analyze(self, context: dict) -> dict:
         """Convenience wrapper that delegates to ``approve``."""
         return self.approve(
-            trade_proposal=context.get("trade_proposal", {}),
+            trade_proposal=context.get("trade_decision", {}),
             risk_assessment=context.get("risk_assessment", {}),
         )
 
@@ -92,7 +92,11 @@ class FundManager(BaseAgent):
         )
 
         response = self._call_llm(self.SYSTEM_PROMPT, user_prompt)
-        result = self._parse_json_response(response)
+        result = self._validate_and_parse(
+            response,
+            required_fields={"approved": bool, "final_action": str, "final_size": float, "reasoning": str},
+            defaults={"approved": False, "final_action": "hold", "final_size": 0.0, "reasoning": "Decision unavailable"},
+        )
 
         self.logger.info(
             "Fund manager decision: approved=%s action=%s size=%s",

@@ -44,7 +44,10 @@ class Trader(BaseAgent):
         '  "action": one of "buy", "sell", "hold",\n'
         '  "size": float from 0.0 to 1.0 (percentage of portfolio),\n'
         '  "reasoning": string explaining your decision step by step,\n'
-        '  "confidence": float from 0.0 to 1.0\n'
+        '  "confidence": float from 0.0 to 1.0,\n'
+        '  "entry_price": float (recommended entry price),\n'
+        '  "stop_loss": float (stop-loss price level),\n'
+        '  "take_profit": float (take-profit price level)\n'
     )
 
     def __init__(self):
@@ -56,9 +59,15 @@ class Trader(BaseAgent):
 
     def analyze(self, context: dict) -> dict:
         """Convenience wrapper that delegates to ``decide``."""
+        market_data = {
+            "price_data": context.get("price_data", ""),
+            "technical_indicators": context.get("technical_indicators", ""),
+            "market_index": context.get("market_index", ""),
+            "ticker": context.get("ticker", ""),
+        }
         return self.decide(
             debate_result=context.get("debate_result", {}),
-            market_data=context.get("market_data", {}),
+            market_data=market_data,
         )
 
     def decide(self, debate_result: dict, market_data: dict) -> dict:
@@ -82,7 +91,18 @@ class Trader(BaseAgent):
         )
 
         response = self._call_llm(self.SYSTEM_PROMPT, user_prompt)
-        result = self._parse_json_response(response)
+        result = self._validate_and_parse(
+            response,
+            required_fields={
+                "action": str, "size": float, "reasoning": str,
+                "confidence": float, "entry_price": float,
+                "stop_loss": float, "take_profit": float,
+            },
+            defaults={
+                "action": "hold", "size": 0.0, "reasoning": "Decision unavailable",
+                "confidence": 0.0, "entry_price": 0.0, "stop_loss": 0.0, "take_profit": 0.0,
+            },
+        )
 
         self.logger.info(
             "Trading decision: action=%s size=%s confidence=%s",

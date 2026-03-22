@@ -98,6 +98,60 @@ class BaseAgent(ABC):
             )
             return {"raw_response": text, "parse_error": True}
 
+    def _validate_and_parse(
+        self,
+        text: str,
+        required_fields: dict[str, type] | None = None,
+        defaults: dict | None = None,
+    ) -> dict:
+        """Parse LLM JSON response with schema validation.
+
+        Args:
+            text: Raw LLM response text.
+            required_fields: Mapping of field name -> expected type.
+            defaults: Default values for missing fields.
+
+        Returns:
+            Validated dict with all required fields present.
+        """
+        result = self._parse_json_response(text)
+
+        if result.get("parse_error"):
+            self.logger.warning("JSON parse failed for %s; using defaults", self.name)
+            return {**(defaults or {}), "parse_error": True, "raw_response": text}
+
+        if required_fields:
+            for field, expected_type in required_fields.items():
+                if field not in result:
+                    default_val = (defaults or {}).get(field)
+                    if default_val is not None:
+                        result[field] = default_val
+                        self.logger.warning(
+                            "%s: missing field '%s', using default %s",
+                            self.name, field, default_val,
+                        )
+                    else:
+                        self.logger.warning(
+                            "%s: missing required field '%s'", self.name, field
+                        )
+                elif not isinstance(result[field], expected_type):
+                    # Try type coercion for common cases
+                    try:
+                        if expected_type in (int, float):
+                            result[field] = expected_type(result[field])
+                        elif expected_type is bool:
+                            result[field] = bool(result[field])
+                        elif expected_type is str:
+                            result[field] = str(result[field])
+                    except (TypeError, ValueError):
+                        self.logger.warning(
+                            "%s: field '%s' has wrong type (expected %s, got %s)",
+                            self.name, field, expected_type.__name__,
+                            type(result[field]).__name__,
+                        )
+
+        return result
+
     @abstractmethod
     def analyze(self, context: dict) -> dict:
         """Run this agent's analysis on the provided context.

@@ -14,19 +14,7 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
-import yaml
-
 logger = logging.getLogger("cits.scripts.run_watchlist")
-
-
-def load_config(config_path: str) -> dict:
-    """Load and return the YAML configuration file."""
-    path = Path(config_path)
-    if not path.exists():
-        logger.error("Config file not found: %s", config_path)
-        sys.exit(1)
-    with open(path, encoding="utf-8") as f:
-        return yaml.safe_load(f)
 
 
 def run_watchlist(config_path: str, date: str | None = None) -> list[dict]:
@@ -44,28 +32,15 @@ def run_watchlist(config_path: str, date: str | None = None) -> list[dict]:
     list[dict]
         Pipeline results for each ticker.
     """
-    config = load_config(config_path)
+    from cits.config_loader import load_config
+
+    graph_config = load_config(config_path)
     run_date = date or datetime.now().strftime("%Y-%m-%d")
 
-    watchlist = config.get("trading", {}).get("watchlist", [])
+    watchlist = graph_config.get("watchlist", [])
     if not watchlist:
         logger.warning("Watchlist is empty in %s", config_path)
         return []
-
-    llm_config = config.get("llm", {})
-    trading_config = config.get("trading", {})
-
-    graph_config = {
-        "llm_provider": llm_config.get("provider", "anthropic"),
-        "deep_think_llm": llm_config.get("deep_think", "claude-opus-4-6"),
-        "quick_think_llm": llm_config.get("quick_think", "claude-sonnet-4-20250514"),
-        "analyst_temperature": llm_config.get("analyst_temperature", 0.3),
-        "debate_temperature": llm_config.get("debate_temperature", 0.4),
-        "trader_temperature": llm_config.get("trader_temperature", 0.2),
-        "max_debate_rounds": trading_config.get("max_debate_rounds", 2),
-        "mode": trading_config.get("mode", "paper"),
-        "paper_mode": trading_config.get("mode", "paper") == "paper",
-    }
 
     # Check API key
     if not os.environ.get("ANTHROPIC_API_KEY"):
@@ -83,7 +58,7 @@ def run_watchlist(config_path: str, date: str | None = None) -> list[dict]:
     logger.info("=" * 60)
     logger.info("CITS Watchlist Run")
     logger.info("  Date: %s", run_date)
-    logger.info("  Mode: %s", trading_config.get("mode", "paper"))
+    logger.info("  Mode: %s", "paper" if graph_config.get("paper_mode", True) else "live")
     logger.info("  Tickers: %d", len(watchlist))
     logger.info("=" * 60)
 
@@ -111,7 +86,7 @@ def run_watchlist(config_path: str, date: str | None = None) -> list[dict]:
     logger.info("=" * 60)
 
     # Save summary
-    log_dir = config.get("logging", {}).get("log_dir", "cits/logs")
+    log_dir = graph_config.get("log_dir", "cits/logs")
     summary_dir = Path(log_dir) / "agent_decisions"
     summary_dir.mkdir(parents=True, exist_ok=True)
     summary_file = summary_dir / f"watchlist_{run_date}.json"

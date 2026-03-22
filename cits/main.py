@@ -64,15 +64,12 @@ def main():
         logger.error("ANTHROPIC_API_KEY が設定されていません")
         sys.exit(1)
 
+    from cits.config_loader import load_config
     from cits.core.graph.trading_graph import TradingGraph
 
-    config = {
-        "llm_provider": "anthropic",
-        "deep_think_llm": "claude-opus-4-6",
-        "quick_think_llm": "claude-sonnet-4-20250514",
-        "max_debate_rounds": 2,
-        "mode": args.mode,
-    }
+    config = load_config()
+    # CLI args override config file
+    config["paper_mode"] = args.mode == "paper"
 
     graph = TradingGraph(config=config)
     result = graph.run(ticker=args.ticker, date=date)
@@ -80,7 +77,7 @@ def main():
     # Output result
     logger.info("=" * 60)
     logger.info("パイプライン完了")
-    logger.info(f"  最終判断: {result.get('final_decision', {}).get('action', 'N/A')}")
+    logger.info(f"  最終判断: {result.get('final_decision', {}).get('final_action', 'N/A')}")
     logger.info(f"  承認: {result.get('final_decision', {}).get('approved', 'N/A')}")
     logger.info("=" * 60)
 
@@ -155,7 +152,7 @@ def _record_paper_trade(ticker: str, date: str, result: dict):
             {
                 "ticker": ticker,
                 "date": date,
-                "action": decision.get("action", "hold"),
+                "action": decision.get("final_action", decision.get("action", "hold")),
                 "size": decision.get("final_size", 0),
                 "reasoning": decision.get("reasoning", ""),
                 "mode": "paper",

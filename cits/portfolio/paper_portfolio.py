@@ -17,8 +17,32 @@ logger = logging.getLogger(__name__)
 class PaperPortfolio(PortfolioManager):
     """Paper trading portfolio that simulates order execution."""
 
-    def __init__(self, initial_capital: float = 10_000_000, **kwargs) -> None:
+    def __init__(
+        self,
+        initial_capital: float = 10_000_000,
+        slippage_bps: float = 5.0,
+        commission_per_trade: float = 0.0,
+        spread_bps: float = 3.0,
+        **kwargs,
+    ) -> None:
         super().__init__(initial_capital=initial_capital, **kwargs)
+        self.slippage_bps = slippage_bps  # basis points
+        self.commission_per_trade = commission_per_trade  # flat fee per trade
+        self.spread_bps = spread_bps  # bid-ask spread in bps
+
+    def _apply_execution_costs(self, price: float, side: str) -> float:
+        """Apply slippage and spread to simulate realistic fill price.
+
+        For buys: price is adjusted UP (worse fill).
+        For sells: price is adjusted DOWN (worse fill).
+        """
+        total_bps = self.slippage_bps + (self.spread_bps / 2)
+        adjustment = price * total_bps / 10000
+
+        if side in ("buy", "long"):
+            return round(price + adjustment, 2)
+        else:  # sell / short
+            return round(price - adjustment, 2)
 
     def execute_paper_trade(self, decision_dict: dict) -> dict:
         """Simulate trade execution from a TradingGraph pipeline decision.
@@ -64,16 +88,26 @@ class PaperPortfolio(PortfolioManager):
         size = final_decision.get("final_size") or final_decision.get("size", 100)
 
         if action == "buy":
+            # Apply execution costs
+            fill_price = self._apply_execution_costs(current_price, "buy")
             result = self.open_position(
                 ticker=ticker,
                 side="long",
                 size=size,
-                entry_price=current_price,
+                entry_price=fill_price,
                 stop_loss=stop_loss,
                 take_profit=take_profit,
             )
+            # Deduct commission
+            if self.commission_per_trade > 0:
+                self.cash -= self.commission_per_trade
+                logger.info(
+                    "Commission charged: %.2f (cash remaining: %.2f)",
+                    self.commission_per_trade, self.cash,
+                )
             logger.info(
-                "Paper BUY: %s x%d @ %.2f", ticker, size, current_price,
+                "Paper BUY: %s x%d @ %.2f (market %.2f, slippage %.2fbps)",
+                ticker, size, fill_price, current_price, self.slippage_bps,
             )
             return {
                 "status": "filled",
@@ -81,7 +115,9 @@ class PaperPortfolio(PortfolioManager):
                 "ticker": ticker,
                 "side": "long",
                 "size": size,
-                "fill_price": current_price,
+                "fill_price": fill_price,
+                "market_price": current_price,
+                "commission": self.commission_per_trade,
                 "stop_loss": stop_loss,
                 "take_profit": take_profit,
                 "position": result,
@@ -92,33 +128,54 @@ class PaperPortfolio(PortfolioManager):
             # Check for an existing open position to close
             existing = self.get_position_by_ticker(ticker)
             if existing:
-                result = self.close_position(existing["id"], exit_price=current_price)
+                # Apply execution costs
+                fill_price = self._apply_execution_costs(current_price, "sell")
+                result = self.close_position(existing["id"], exit_price=fill_price)
+                # Deduct commission
+                if self.commission_per_trade > 0:
+                    self.cash -= self.commission_per_trade
+                    logger.info(
+                        "Commission charged: %.2f (cash remaining: %.2f)",
+                        self.commission_per_trade, self.cash,
+                    )
                 logger.info(
-                    "Paper SELL (close): %s x%d @ %.2f  PnL=%.2f",
-                    ticker, existing["size"], current_price, result.get("pnl", 0),
+                    "Paper SELL (close): %s x%d @ %.2f (market %.2f)  PnL=%.2f",
+                    ticker, existing["size"], fill_price, current_price,
+                    result.get("pnl", 0),
                 )
                 return {
                     "status": "filled",
                     "action": "sell_close",
                     "ticker": ticker,
                     "size": existing["size"],
-                    "fill_price": current_price,
+                    "fill_price": fill_price,
+                    "market_price": current_price,
+                    "commission": self.commission_per_trade,
                     "pnl": result.get("pnl", 0),
                     "position": result,
                     "timestamp": datetime.now(timezone.utc).isoformat(),
                 }
             else:
                 # No existing position — open short
+                fill_price = self._apply_execution_costs(current_price, "short")
                 result = self.open_position(
                     ticker=ticker,
                     side="short",
                     size=size,
-                    entry_price=current_price,
+                    entry_price=fill_price,
                     stop_loss=stop_loss,
                     take_profit=take_profit,
                 )
+                # Deduct commission
+                if self.commission_per_trade > 0:
+                    self.cash -= self.commission_per_trade
+                    logger.info(
+                        "Commission charged: %.2f (cash remaining: %.2f)",
+                        self.commission_per_trade, self.cash,
+                    )
                 logger.info(
-                    "Paper SHORT: %s x%d @ %.2f", ticker, size, current_price,
+                    "Paper SHORT: %s x%d @ %.2f (market %.2f)",
+                    ticker, size, fill_price, current_price,
                 )
                 return {
                     "status": "filled",
@@ -126,7 +183,9 @@ class PaperPortfolio(PortfolioManager):
                     "ticker": ticker,
                     "side": "short",
                     "size": size,
-                    "fill_price": current_price,
+                    "fill_price": fill_price,
+                    "market_price": current_price,
+                    "commission": self.commission_per_trade,
                     "stop_loss": stop_loss,
                     "take_profit": take_profit,
                     "position": result,

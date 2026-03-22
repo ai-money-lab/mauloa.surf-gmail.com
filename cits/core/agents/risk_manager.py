@@ -63,8 +63,8 @@ class RiskManager(BaseAgent):
     def analyze(self, context: dict) -> dict:
         """Convenience wrapper that delegates to ``evaluate``."""
         return self.evaluate(
-            trade_proposal=context.get("trade_proposal", {}),
-            portfolio=context.get("portfolio", {}),
+            trade_proposal=context.get("trade_decision", {}),
+            portfolio=context.get("portfolio", context.get("position_sizing", {})),
         )
 
     def evaluate(self, trade_proposal: dict, portfolio: dict) -> dict:
@@ -93,7 +93,11 @@ class RiskManager(BaseAgent):
         )
 
         response = self._call_llm(self.SYSTEM_PROMPT, user_prompt)
-        result = self._parse_json_response(response)
+        result = self._validate_and_parse(
+            response,
+            required_fields={"approved": bool, "risk_score": float, "warnings": list, "adjusted_size": float},
+            defaults={"approved": False, "risk_score": 5.0, "warnings": ["Risk assessment unavailable"], "adjusted_size": 0.0},
+        )
 
         self.logger.info(
             "Risk evaluation: approved=%s risk_score=%s warnings=%d",

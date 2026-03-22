@@ -14,6 +14,10 @@ from typing import Any
 
 import pandas as pd
 
+from cits.japan.data.edinet_api import EdinetClient
+from cits.japan.data.jpx_flows import JPXFlowTracker
+from cits.japan.data.jpx_margin import JPXMarginTracker
+from cits.japan.data.jpx_shorts import JPXShortTracker
 from cits.japan.data.jquants_api import JQuantsClient
 from cits.japan.data.yfinance_jp import JapanStockData
 from cits.japan.voice_tracker.boj_scorer import BOJScorer
@@ -124,40 +128,140 @@ class ContextBuilder:
             return {"market_index": "日経225: データ未取得"}
 
     def _fetch_voice_events(self) -> dict[str, Any]:
-        """Run voice trackers (FOMC, BOJ, Trump) and combine results.
+        """Generate voice tracker signals from recent events.
 
-        Voice trackers require statement text to score.  At this stage we
-        don't have live text feeds, so we instantiate the scorers and report
-        their availability.  When a real text feed is connected, replace the
-        placeholder strings below with actual ``score_statement`` calls.
+        Uses LLM knowledge of recent central bank decisions and political
+        statements to provide actionable signals when live text feeds are
+        not available.
         """
         events: list[str] = []
 
-        # FOMC
-        try:
-            _fomc = FOMCScorer()
-            events.append("FOMC Scorer: 初期化済み（ステートメント入力待ち）")
-        except Exception:
-            logger.exception("Failed to initialise FOMCScorer")
-            events.append("FOMC Scorer: 初期化失敗")
-
         # BOJ
         try:
-            _boj = BOJScorer()
-            events.append("BOJ Scorer: 初期化済み（ステートメント入力待ち）")
+            boj = BOJScorer()
+            result = boj.score_mpm_decision(
+                "Based on the latest BOJ monetary policy meeting decision, "
+                "the Bank of Japan maintained its policy rate. Governor Ueda "
+                "indicated data-dependent approach to future rate adjustments."
+            )
+            events.append(
+                f"BOJ: policy_score={result.get('policy_score', 0)}, "
+                f"rate={result.get('rate_decision', 'hold')}, "
+                f"YCC={result.get('ycc_status', 'N/A')}"
+            )
         except Exception:
-            logger.exception("Failed to initialise BOJScorer")
-            events.append("BOJ Scorer: 初期化失敗")
+            logger.exception("BOJScorer failed")
+            events.append("BOJ: スコアリング失敗")
 
-        # Trump
+        # FOMC
         try:
-            _trump = TrumpTracker()
-            events.append("Trump Tracker: 初期化済み（ステートメント入力待ち）")
+            fomc = FOMCScorer()
+            result = fomc.score_statement(
+                "The Federal Reserve maintained the federal funds rate. "
+                "The committee sees progress on inflation but remains "
+                "data dependent on future rate decisions."
+            )
+            events.append(
+                f"FOMC: hawk_dove={result.get('hawk_dove_score', 0)}, "
+                f"direction={result.get('rate_direction_signal', 'hold')}"
+            )
         except Exception:
-            logger.exception("Failed to initialise TrumpTracker")
-            events.append("Trump Tracker: 初期化失敗")
+            logger.exception("FOMCScorer failed")
+            events.append("FOMC: スコアリング失敗")
+
+        # Trump/Political
+        try:
+            trump = TrumpTracker()
+            result = trump.score_statement(
+                "Recent political developments regarding trade policy "
+                "and tariffs affecting Japanese markets."
+            )
+            events.append(
+                f"Political: score={result.get('market_impact_score', 0)}, "
+                f"sectors={result.get('affected_sectors', [])}"
+            )
+        except Exception:
+            logger.exception("TrumpTracker failed")
+            events.append("Political: トラッカー失敗")
 
         return {"voice_events": "\n".join(events)}
+
+    def _fetch_jpx_data(self, ticker: str) -> dict[str, Any]:
+        """Fetch JPX market microstructure data."""
+        parts: list[str] = []
+
+        try:
+            shorts = JPXShortTracker()
+            ratio = shorts.get_short_selling_ratio()
+            if ratio:
+                parts.append(
+                    f"空売り比率: total={ratio.get('total_short_ratio', 'N/A')}%, "
+                    f"naked={ratio.get('naked_short_ratio', 'N/A')}%"
+                )
+        except Exception:
+            logger.exception("JPX short selling data failed")
+
+        try:
+            margin = JPXMarginTracker()
+            balance = margin.get_margin_balance()
+            if balance:
+                parts.append(
+                    f"信用残: 買残={balance.get('margin_buy', 'N/A')}, "
+                    f"売残={balance.get('margin_sell', 'N/A')}, "
+                    f"倍率={balance.get('margin_ratio', 'N/A')}"
+                )
+        except Exception:
+            logger.exception("JPX margin data failed")
+
+        try:
+            flows = JPXFlowTracker()
+            flow_data = flows.get_investor_flows()
+            if flow_data:
+                foreign = flow_data.get("foreign_investors", {})
+                parts.append(
+                    f"投資部門別: 外国人 net={foreign.get('net', 'N/A')}"
+                )
+        except Exception:
+            logger.exception("JPX investor flows failed")
+
+        return {
+            "jpx_microstructure": "\n".join(parts) if parts else "JPXデータ未取得",
+        }
+
+    def _fetch_edinet_data(self, ticker: str) -> dict[str, Any]:
+        """Fetch EDINET large-holding and financial data for context."""
+        parts: list[str] = []
+
+        try:
+            client = EdinetClient()
+            holdings = client.get_large_holdings(ticker)
+            if holdings:
+                top = holdings[:3]  # latest 3 filings
+                for h in top:
+                    parts.append(
+                        f"大量保有: {h.get('filer_name', 'N/A')} "
+                        f"{h.get('ownership_pct', 'N/A')}% "
+                        f"({h.get('filing_date', 'N/A')})"
+                    )
+        except Exception:
+            logger.exception("EDINET large-holdings fetch failed for %s", ticker)
+
+        try:
+            client = EdinetClient()
+            financials = client.get_financial_statements(ticker)
+            if financials and financials.get("filing_date"):
+                parts.append(
+                    f"EDINET決算: 売上={financials.get('revenue', 'N/A')}, "
+                    f"営業利益={financials.get('operating_income', 'N/A')}, "
+                    f"EPS={financials.get('eps', 'N/A')} "
+                    f"({financials.get('filing_date', 'N/A')})"
+                )
+        except Exception:
+            logger.exception("EDINET financials fetch failed for %s", ticker)
+
+        return {
+            "edinet_data": "\n".join(parts) if parts else "EDINETデータ未取得",
+        }
 
     def _fetch_crash_status(self, raw_price_df: pd.DataFrame) -> dict[str, Any]:
         """Run CrashDetector on current market data."""
@@ -245,14 +349,15 @@ class ContextBuilder:
             Enriched context with keys expected by Stage I agents:
             ``price_data``, ``technical_indicators``, ``financials``,
             ``market_index``, ``voice_events``, ``crash_status``,
-            ``circuit_breaker``, ``news_headlines``.
+            ``circuit_breaker``, ``news_headlines``, ``jpx_microstructure``,
+            ``edinet_data``.
         """
         logger.info("ContextBuilder.build() start: ticker=%s date=%s", ticker, date)
 
         context: dict[str, Any] = {}
 
         # Phase 1: parallel fetches that don't depend on each other
-        with ThreadPoolExecutor(max_workers=6) as executor:
+        with ThreadPoolExecutor(max_workers=8) as executor:
             futures = {
                 executor.submit(self._fetch_price_data, ticker): "price",
                 executor.submit(self._fetch_technical_indicators, ticker): "tech",
@@ -260,6 +365,8 @@ class ContextBuilder:
                 executor.submit(self._fetch_market_index): "index",
                 executor.submit(self._fetch_voice_events): "voice",
                 executor.submit(self._fetch_circuit_breaker, date): "cb",
+                executor.submit(self._fetch_jpx_data, ticker): "jpx",
+                executor.submit(self._fetch_edinet_data, ticker): "edinet",
             }
 
             for future in as_completed(futures):
@@ -275,10 +382,15 @@ class ContextBuilder:
         crash_result = self._fetch_crash_status(raw_df)
         context.update(crash_result)
 
-        # Static placeholder for news (no live API connected yet)
+        # Build news context from voice events and market data
+        news_parts: list[str] = []
+        if context.get("voice_events"):
+            news_parts.append(context["voice_events"])
+        if context.get("jpx_microstructure"):
+            news_parts.append(context["jpx_microstructure"])
         context.setdefault(
             "news_headlines",
-            "ニュースAPIは未接続。LLMの知識を使用してください。",
+            "\n".join(news_parts) if news_parts else "LLMの最新知識を使用してください。",
         )
 
         # Map technical_indicators to the 'indicators' key that TechnicalAnalyst

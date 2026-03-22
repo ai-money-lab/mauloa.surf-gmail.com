@@ -83,7 +83,11 @@ class FundamentalAnalyst(BaseAgent):
 
         user_prompt = "\n".join(user_prompt_parts)
         response = self._call_llm(self.SYSTEM_PROMPT, user_prompt)
-        result = self._parse_json_response(response)
+        result = self._validate_and_parse(
+            response,
+            required_fields={"score": int, "reasoning": str, "key_metrics": dict},
+            defaults={"score": 0, "reasoning": "Analysis unavailable", "key_metrics": {}},
+        )
 
         self.logger.info(
             "Fundamental analysis complete for %s: score=%s",

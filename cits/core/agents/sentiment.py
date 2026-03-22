@@ -82,7 +82,11 @@ class SentimentAnalyst(BaseAgent):
 
         user_prompt = "\n".join(user_prompt_parts)
         response = self._call_llm(self.SYSTEM_PROMPT, user_prompt)
-        result = self._parse_json_response(response)
+        result = self._validate_and_parse(
+            response,
+            required_fields={"sentiment_score": int, "reasoning": str, "sources": list},
+            defaults={"sentiment_score": 0, "reasoning": "Analysis unavailable", "sources": []},
+        )
 
         self.logger.info(
             "Sentiment analysis complete for %s: score=%s",

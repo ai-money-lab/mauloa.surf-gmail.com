@@ -1,7 +1,6 @@
 """Japan stock data via yfinance with technical indicator calculations."""
 
 import logging
-from typing import Optional
 
 import pandas as pd
 import yfinance as yf

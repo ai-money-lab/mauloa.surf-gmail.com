@@ -95,7 +95,11 @@ class TechnicalAnalyst(BaseAgent):
 
         user_prompt = "\n".join(user_prompt_parts)
         response = self._call_llm(self.SYSTEM_PROMPT, user_prompt)
-        result = self._parse_json_response(response)
+        result = self._validate_and_parse(
+            response,
+            required_fields={"technical_score": int, "signals": list, "support_resistance": dict},
+            defaults={"technical_score": 0, "signals": [], "support_resistance": {"support_levels": [], "resistance_levels": []}},
+        )
 
         self.logger.info(
             "Technical analysis complete for %s: score=%s",

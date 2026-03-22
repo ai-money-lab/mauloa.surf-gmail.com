@@ -98,7 +98,11 @@ class NewsAnalyst(BaseAgent):
 
         user_prompt = "\n".join(user_prompt_parts)
         response = self._call_llm(self.SYSTEM_PROMPT, user_prompt)
-        result = self._parse_json_response(response)
+        result = self._validate_and_parse(
+            response,
+            required_fields={"news_score": int, "key_events": list, "macro_outlook": str},
+            defaults={"news_score": 0, "key_events": [], "macro_outlook": "Unavailable"},
+        )
 
         self.logger.info(
             "News analysis complete for %s: score=%s",
