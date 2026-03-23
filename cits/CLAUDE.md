@@ -47,6 +47,52 @@ python -m cits.main --mode paper --ticker 7203
 - `JQUANTS_API_KEY`: J-Quants API
 - `KABU_API_PASSWORD`: kabuステーションAPIパスワード
 - `EDINET_API_KEY`: EDINET API
+- `TACHIBANA_USER_ID`: 立花証券ユーザーID（Stage 2）
+- `TACHIBANA_PASSWORD`: 立花証券パスワード（Stage 2）
+
+## 現在のステータス（2026-03-23更新）
+
+### 口座開設
+- 三菱UFJ eスマート証券: 申請済み、審査待ち（株式信用取引、特定口座源泉徴収あり）
+- 選択内容: NISA無し、FX口座あり
+
+### 実装完了済み
+- 5段階パイプライン（Stage I〜V）: 完全動作
+- Stage I アナリスト並列化（ThreadPoolExecutor 4workers）
+- kabuステーションAPI: 完全実装・テスト済み
+- 立花証券API（Stage 2）: 完全実装・テスト済み
+- Software OCO（TP/SL管理）: 完全実装
+- バックテストエンジン（3戦略: intraday_momentum, overnight_reversal, premarket_trio）
+- ペーパートレードシミュレーター（APIキー不要）
+- ポートフォリオダッシュボード（CLI）
+- 日本市場リスクパラメータ（値幅制限、SQ日、権利付最終日、TSE時間）
+- CircuitBreaker / CrashDetector / PositionSizer / WinRateEngine
+- SignalTracker（シグナル単位勝率追跡）
+- Voice Tracker（BOJ / FOMC / Trump）
+- データソース: yfinance, J-Quants, JPX(空売り/信用/フロー), EDINET
+- テスト: 157件全パス、smoke 84/84パス
+
+### 口座開設後のTODO
+1. kabuステーションをPCにインストール・起動
+2. KABU_API_PASSWORD 環境変数を設定
+3. ペーパーモードで動作確認: `python -m cits.main --mode paper --ticker 7203`
+4. バックテスト実行（ローカルで）: `python -c "from cits.backtest.engine import BacktestEngine; ..."`
+5. 少額（¥10万）でライブ移行: config.yml の mode: paper → mode: live
+
+### 追加コマンド
+```bash
+# バックテスト（ローカルのみ、yfinanceネットワーク必要）
+python -c "from cits.backtest.engine import BacktestEngine; eng = BacktestEngine(initial_capital=100_000); print(eng.run(['7203','8306','6758','9984'], '2025-09-01', '2026-03-21').summary())"
+
+# ペーパートレード
+python -m cits.scripts.paper_sim --days 5 --capital 100000
+
+# ダッシュボード
+python -m cits.scripts.dashboard --full
+
+# ウォッチリスト一括分析
+python -m cits.scripts.run_watchlist
+```
 
 ## 検証ルール（絶対遵守 — AIへの必須指示）
 
