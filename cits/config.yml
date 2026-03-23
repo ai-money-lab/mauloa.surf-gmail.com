@@ -25,6 +25,11 @@ risk:
   max_daily_trades: 5
   max_position_ratio: 0.1
   volatility_threshold: 3.0
+  lot_size: 100                  # 東証の売買単位
+  max_sector_exposure: 0.3       # 同一セクター最大30%
+  risk_per_trade: 0.02           # 1トレードあたりリスク2%
+  trailing_stop_trigger: 2.0     # 利益がリスクの2倍でトレーリングストップ発動
+  breakeven_stop: true           # トレーリングストップ発動時に損切りをブレークイーブンに移動
 
 broker:
   kabu_station:
@@ -32,6 +37,19 @@ broker:
     exchange: 1  # 東証
   oco:
     poll_interval_sec: 5
+
+execution:
+  slippage_bps: 5.0              # スリッページ（bps）
+  spread_bps: 3.0                # ビッド・アスクスプレッド（bps）
+  commission: 0                  # 三菱UFJ eスマート証券は現物手数料無料
+
+backtest:
+  default_period: "6mo"          # デフォルトバックテスト期間
+  benchmark: "^N225"             # ベンチマーク（日経225）
+  strategies:
+    - intraday_momentum
+    - overnight_reversal
+    - premarket_trio
 
 logging:
   level: INFO

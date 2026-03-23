@@ -80,6 +80,7 @@ MODULES = [
     "cits.risk.crash_detector",
     "cits.risk.position_sizer",
     "cits.risk.win_rate_engine",
+    "cits.risk.japan_risk_params",
     # Portfolio
     "cits.portfolio",
     "cits.portfolio.paper_portfolio",
