@@ -92,6 +92,9 @@ MODULES = [
     "cits.scripts",
     "cits.scripts.weekly_report",
     "cits.scripts.run_watchlist",
+    # Backtest
+    "cits.backtest",
+    "cits.backtest.engine",
 ]
 
 # ============================================================
