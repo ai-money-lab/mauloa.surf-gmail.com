@@ -148,14 +148,19 @@ def _record_paper_trade(ticker: str, date: str, result: dict):
 
         engine = WinRateEngine()
         decision = result.get("final_decision", {})
+        action = decision.get("final_action", decision.get("action", "hold"))
+        size = int(decision.get("final_size", decision.get("size", 0)))
+        entry = float(decision.get("entry_price", 0))
         engine.record_trade(
             {
-                "ticker": ticker,
-                "date": date,
-                "action": decision.get("final_action", decision.get("action", "hold")),
-                "size": decision.get("final_size", 0),
-                "reasoning": decision.get("reasoning", ""),
-                "mode": "paper",
+                "symbol": ticker,
+                "side": action if action in ("buy", "sell") else "hold",
+                "qty": size if size > 0 else 100,
+                "entry_price": entry,
+                "exit_price": entry,  # paper trade — no exit yet
+                "pnl": 0.0,
+                "strategy": "cits_pipeline",
+                "timestamp": date,
             }
         )
         logger.info("ペーパートレード記録完了")

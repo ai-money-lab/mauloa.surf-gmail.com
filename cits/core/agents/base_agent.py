@@ -78,25 +78,40 @@ class BaseAgent(ABC):
     def _parse_json_response(self, text: str) -> dict:
         """Extract a JSON object from the LLM response text.
 
-        The LLM may wrap the JSON in markdown code fences; this helper
-        strips them before parsing.
+        The LLM may wrap the JSON in markdown code fences or precede it
+        with reasoning text; this helper handles both cases.
         """
         cleaned = text.strip()
-        if cleaned.startswith("```"):
-            # Remove opening fence (possibly ```json)
-            first_newline = cleaned.index("\n")
-            cleaned = cleaned[first_newline + 1 :]
-        if cleaned.endswith("```"):
-            cleaned = cleaned[: cleaned.rfind("```")]
-        cleaned = cleaned.strip()
 
+        # Try 1: direct parse
         try:
             return json.loads(cleaned)
         except json.JSONDecodeError:
-            self.logger.warning(
-                "Failed to parse JSON from LLM response, returning raw text"
-            )
-            return {"raw_response": text, "parse_error": True}
+            pass
+
+        # Try 2: extract from ```json ... ``` fences
+        if "```" in cleaned:
+            import re
+            fence_match = re.search(r"```(?:json)?\s*\n(.*?)```", cleaned, re.DOTALL)
+            if fence_match:
+                try:
+                    return json.loads(fence_match.group(1).strip())
+                except json.JSONDecodeError:
+                    pass
+
+        # Try 3: find first { ... last } in the text
+        first_brace = cleaned.find("{")
+        last_brace = cleaned.rfind("}")
+        if first_brace != -1 and last_brace > first_brace:
+            try:
+                return json.loads(cleaned[first_brace:last_brace + 1])
+            except json.JSONDecodeError:
+                pass
+
+        self.logger.warning(
+            "Failed to parse JSON from LLM response, returning raw text"
+        )
+        return {"raw_response": text, "parse_error": True}
 
     def _validate_and_parse(
         self,
