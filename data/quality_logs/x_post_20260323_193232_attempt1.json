@@ -1,0 +1,25 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 7,
+    "persona_match": 8,
+    "pillar_alignment": 9,
+    "usefulness": 4,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 10,
+    "cta_ending": 3,
+    "originality": 8,
+    "problem_solving": 5,
+    "tone_balance": 9
+  },
+  "total_score": 93,
+  "threshold": 84,
+  "result": "auto_approved",
+  "usefulness_summary": "住まいの相談における「ちょっと気になる」レベルの悩みを持つ人に、そういう相談ができる人の価値を気づかせる",
+  "rejection_reasons": [],
+  "improvement_suggestions": [],
+  "checked_at": "2026-03-23T19:32:32.724596+09:00"
+}

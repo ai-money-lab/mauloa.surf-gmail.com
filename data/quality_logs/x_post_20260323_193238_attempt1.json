@@ -1,0 +1,29 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 6,
+    "persona_match": 7,
+    "pillar_alignment": 8,
+    "usefulness": 3,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 10,
+    "cta_ending": 4,
+    "originality": 7,
+    "tone_balance": 8,
+    "problem_solving": 2
+  },
+  "total_score": 85,
+  "threshold": 84,
+  "result": "auto_approved",
+  "usefulness_summary": "住宅の役割変化について気づきを与えるが、具体的なアクションには繋がらない",
+  "rejection_reasons": [],
+  "improvement_suggestions": [
+    "家の役割変化に対して具体的にどう対応すべきかのアドバイスを追加する",
+    "在宅ワーク環境での住宅の困りごと例を具体的に挙げる",
+    "相談できる関係性の重要性から、実際にどんな相談が多いかの事例を含める"
+  ],
+  "checked_at": "2026-03-23T19:32:38.654224+09:00"
+}
