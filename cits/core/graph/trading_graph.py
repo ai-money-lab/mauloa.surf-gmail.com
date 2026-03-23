@@ -16,6 +16,8 @@ Usage
 import argparse
 import json
 import logging
+import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone
 
 from ..agents.fundamental import FundamentalAnalyst
@@ -97,34 +99,50 @@ class TradingGraph:
     # ------------------------------------------------------------------
 
     def _run_stage_1_analysts(self, context: dict) -> dict:
-        """Stage I: Run the four analyst agents.
+        """Stage I: Run the four analyst agents in parallel.
 
-        Currently sequential; structured so each call is independent and
-        can be converted to ``asyncio.gather`` / thread-pool dispatch.
+        Uses ``concurrent.futures.ThreadPoolExecutor`` with *max_workers=4*
+        so all analysts execute concurrently.  If an individual analyst
+        raises, its slot is filled with an error-dict and the remaining
+        analysts still return normally.
         """
-        self.logger.info("=== Stage I: Analyst Team ===")
+        self.logger.info("=== Stage I: Analyst Team (parallel) ===")
 
-        # Each analyst receives the same base context
-        # Future: run via concurrent.futures.ThreadPoolExecutor
-        fundamental = self.fundamental_analyst.analyze(context)
-        self.logger.info("Fundamental analysis complete")
-
-        sentiment = self.sentiment_analyst.analyze(context)
-        self.logger.info("Sentiment analysis complete")
-
-        news = self.news_analyst.analyze(context)
-        self.logger.info("News analysis complete")
-
-        technical = self.technical_analyst.analyze(context)
-        self.logger.info("Technical analysis complete")
-
-        analyst_reports = {
-            "fundamental": fundamental,
-            "sentiment": sentiment,
-            "news": news,
-            "technical": technical,
+        analysts = {
+            "fundamental": self.fundamental_analyst,
+            "sentiment": self.sentiment_analyst,
+            "news": self.news_analyst,
+            "technical": self.technical_analyst,
         }
-        self.logger.info("Stage I complete: all analyst reports collected")
+
+        analyst_reports: dict = {}
+        t_start = time.monotonic()
+
+        with ThreadPoolExecutor(max_workers=4) as executor:
+            future_to_name = {
+                executor.submit(analyst.analyze, context): name
+                for name, analyst in analysts.items()
+            }
+
+            for future in as_completed(future_to_name):
+                name = future_to_name[future]
+                try:
+                    analyst_reports[name] = future.result()
+                    self.logger.info("%s analysis complete", name.capitalize())
+                except Exception:
+                    self.logger.exception(
+                        "%s analyst failed — storing error placeholder", name
+                    )
+                    analyst_reports[name] = {
+                        "error": True,
+                        "message": f"{name} analyst failed",
+                    }
+
+        elapsed = time.monotonic() - t_start
+        self.logger.info(
+            "Stage I complete: all analyst reports collected in %.2fs (parallel)",
+            elapsed,
+        )
         return analyst_reports
 
     def _run_stage_2_research(self, context: dict, analyst_reports: dict) -> dict:
