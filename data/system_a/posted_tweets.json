@@ -202,5 +202,17 @@
     "image_path": "",
     "has_image": false,
     "status": "posted"
+  },
+  {
+    "datetime": "2026-03-24T19:14:01.963502+09:00",
+    "tweet_id": "2036386044308770878",
+    "pillar": "2",
+    "pipeline": "P3",
+    "pattern": "A",
+    "text": "空室でお困りの大家さん\nちょっとした工夫で決まること多いです\n\n・洗面台の蛇口をおしゃれなものに交換\n・クローゼットに突っ張り棒を追加\n・玄関にちょっとした棚を設置\n\n見学者の「住んでるイメージ」が変わるんですよね。どれも5万円以内で済むものばかりです",
+    "quality_score": 107,
+    "image_path": "",
+    "has_image": false,
+    "status": "posted"
   }
 ]
