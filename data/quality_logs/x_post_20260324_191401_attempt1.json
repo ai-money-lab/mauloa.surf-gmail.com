@@ -1,0 +1,29 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 8,
+    "persona_match": 9,
+    "pillar_alignment": 10,
+    "usefulness": 9,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 0,
+    "cta_ending": 8,
+    "originality": 9,
+    "tone_balance": 9,
+    "problem_solving": 9
+  },
+  "total_score": 101,
+  "threshold": 84,
+  "result": "auto_approved",
+  "usefulness_summary": "空室に悩む大家さんが見落としがちな「におい」対策の重要性と具体的解決方法がわかる",
+  "rejection_reasons": [
+    "絶対不合格条件: 実績件数の誇張表現「何度か経験してます」が含まれている"
+  ],
+  "improvement_suggestions": [
+    "「何度か経験してます」を「最近このパターンが増えています」や「こういうケースもあります」などのニュアンス表現に変更する"
+  ],
+  "checked_at": "2026-03-24T19:14:01.660656+09:00"
+}
