@@ -214,5 +214,17 @@
     "image_path": "",
     "has_image": false,
     "status": "posted"
+  },
+  {
+    "datetime": "2026-03-25T19:14:19.024421+09:00",
+    "tweet_id": "2036748503829897502",
+    "pillar": "1",
+    "pipeline": "P3",
+    "pattern": "B",
+    "text": "「離婚で家を売ることになったんだけど、どうすればいい？」って友人に相談されました\n\n一番大事なのは感情的にならないこと\n\n売り急ぐと相場より安くなりがちです\n最低でも1ヶ月は余裕を持って\n複数の会社に相談してから決める\n\nこれだけで数百万円変わることもあるんですよね",
+    "quality_score": 108,
+    "image_path": "",
+    "has_image": false,
+    "status": "posted"
   }
 ]
