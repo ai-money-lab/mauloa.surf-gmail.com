@@ -1,0 +1,31 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 8,
+    "persona_match": 9,
+    "pillar_alignment": 10,
+    "usefulness": 9,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 0,
+    "cta_ending": 0,
+    "originality": 9,
+    "tone_balance": 9,
+    "problem_solving": 9
+  },
+  "total_score": 93,
+  "threshold": 84,
+  "result": "auto_approved",
+  "usefulness_summary": "急な家の売却が必要になった人が最初に取るべき行動を明確化できる",
+  "rejection_reasons": [
+    "「どう思いますか？」という直球質問で始まっており、リプライのハードルが高くエンゲージメントが下がる",
+    "文末が「他にもいくつかあるんですが、まずはこれだけでも」で中途半端に終わっており、適切なCTAがない"
+  ],
+  "improvement_suggestions": [
+    "冒頭を「急に家を売ることになったとき、多くの人が慌てて不動産会社に連絡しますが...」のような導入に変更",
+    "文末を「まずは売却理由をはっきりさせることから始めてみてください」のような具体的なアクションで締める"
+  ],
+  "checked_at": "2026-03-25T19:14:18.737694+09:00"
+}
