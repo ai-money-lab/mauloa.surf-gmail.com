@@ -1,0 +1,29 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 8,
+    "persona_match": 9,
+    "pillar_alignment": 10,
+    "usefulness": 9,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 0,
+    "cta_ending": 8,
+    "originality": 9,
+    "tone_balance": 9,
+    "problem_solving": 9
+  },
+  "total_score": 101,
+  "threshold": 84,
+  "result": "auto_approved",
+  "usefulness_summary": "空室対策で悩む大家さんが低コストで問い合わせを増やす具体的な方法を知ることができる",
+  "rejection_reasons": [
+    "「2倍になることもあります」という数字表現に「約」「体感では」等のクッション表現がない"
+  ],
+  "improvement_suggestions": [
+    "「体感では2倍になることもあります」または「約2倍になることもあります」のように数字を柔らかく表現する"
+  ],
+  "checked_at": "2026-03-26T19:30:15.974591+09:00"
+}
