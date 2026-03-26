@@ -226,5 +226,17 @@
     "image_path": "",
     "has_image": false,
     "status": "posted"
+  },
+  {
+    "datetime": "2026-03-26T19:30:16.195639+09:00",
+    "tweet_id": "2037114906395230219",
+    "pillar": "2",
+    "pipeline": "P3",
+    "pattern": "B",
+    "text": "空室が埋まらないときにやる3つのこと\n\n①写真を明るく撮り直す\n（カーテン外して昼間に撮影）\n\n②家具を全部出す\n（広く見えるのが一番大事）\n\n③水回りをピカピカにする\n（キッチン・お風呂・トイレ）\n\n費用をかけるより\nまずこの基本をやってみてください。",
+    "quality_score": 113,
+    "image_path": "",
+    "has_image": false,
+    "status": "posted"
   }
 ]

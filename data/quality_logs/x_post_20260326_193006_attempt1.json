@@ -1,0 +1,29 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 8,
+    "persona_match": 9,
+    "pillar_alignment": 9,
+    "usefulness": 9,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 0,
+    "cta_ending": 7,
+    "originality": 8,
+    "tone_balance": 9,
+    "problem_solving": 9
+  },
+  "total_score": 98,
+  "threshold": 84,
+  "result": "auto_approved",
+  "usefulness_summary": "空室に悩む大家さんが写真撮影の改善で問い合わせを増やす具体的方法がわかる",
+  "rejection_reasons": [
+    "「問い合わせが倍になったりします」という数字表現に「約」「体感では」等のクッション表現がない"
+  ],
+  "improvement_suggestions": [
+    "「問い合わせが倍になったりします」を「問い合わせが体感で倍くらいになったりします」に修正する"
+  ],
+  "checked_at": "2026-03-26T19:30:06.259231+09:00"
+}
