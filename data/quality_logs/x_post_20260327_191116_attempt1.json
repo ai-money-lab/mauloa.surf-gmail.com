@@ -1,0 +1,29 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 9,
+    "persona_match": 8,
+    "pillar_alignment": 9,
+    "usefulness": 9,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 0,
+    "cta_ending": 8,
+    "originality": 8,
+    "tone_balance": 8,
+    "problem_solving": 9
+  },
+  "total_score": 98,
+  "threshold": 84,
+  "result": "auto_approved",
+  "usefulness_summary": "退去時の原状回復で優先すべき箇所を教えることで、大家さんがコストを抑えながら効率的にリフォームできる",
+  "rejection_reasons": [
+    "数字が含まれていない（number_included: 0点）"
+  ],
+  "improvement_suggestions": [
+    "具体的な費用感や期間の目安を数字で追加する（例：「水回り修繕で入居率が約8割改善」「床の傷修繕は壁紙の3倍くらい効果的」等）"
+  ],
+  "checked_at": "2026-03-27T19:11:16.326168+09:00"
+}
