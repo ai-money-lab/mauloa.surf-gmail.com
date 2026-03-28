@@ -98,7 +98,39 @@ FAST_GRID = {
 # Data fetcher
 # ---------------------------------------------------------------
 
-TICKERS = ["7203", "8306", "6758", "9984"]
+# 日経225主要30銘柄 (時価総額上位 + セクター分散)
+TICKERS = [
+    "7203",  # トヨタ自動車
+    "8306",  # 三菱UFJ
+    "6758",  # ソニーG
+    "9984",  # ソフトバンクG
+    "6861",  # キーエンス
+    "7974",  # 任天堂
+    "9432",  # NTT
+    "4063",  # 信越化学
+    "8035",  # 東京エレクトロン
+    "6902",  # デンソー
+    "6501",  # 日立製作所
+    "4519",  # 中外製薬
+    "6098",  # リクルートHD
+    "9433",  # KDDI
+    "4502",  # 武田薬品
+    "8766",  # 東京海上HD
+    "6367",  # ダイキン工業
+    "7741",  # HOYA
+    "4661",  # OLC
+    "9983",  # ファーストリテイリング
+    "2914",  # JT
+    "3382",  # セブン&アイ
+    "8001",  # 伊藤忠商事
+    "5020",  # ENEOS
+    "7267",  # ホンダ
+    "6301",  # コマツ
+    "4503",  # アステラス製薬
+    "8411",  # みずほFG
+    "1605",  # INPEX
+    "2802",  # 味の素
+]
 MARKET_SYMBOLS = ["^VIX", "USDJPY=X", "^N225"]
 
 
@@ -163,6 +195,7 @@ class OptResult:
     sharpe: float = 0.0
     profit_factor: float = 0.0
     pnl_by_strategy: dict = field(default_factory=dict)
+    all_trades: list = field(default_factory=list)
 
     @property
     def win_rate(self) -> float:
@@ -579,6 +612,7 @@ def run_single_backtest(
         for s in strat_pnl
     }
 
+    result.all_trades = trades
     return result
 
 
@@ -701,6 +735,37 @@ def run_optimization(
         print("戦略別:")
         for s, info in r.pnl_by_strategy.items():
             print(f"  {s}: {info['count']}取引 勝率{info['win_rate']:.0f}% PnL ¥{info['pnl']:+,.0f}")
+
+        # Ticker breakdown
+        if r.all_trades:
+            print("銘柄別:")
+            ticker_stats: dict[str, dict] = {}
+            for t in r.all_trades:
+                if t.ticker not in ticker_stats:
+                    ticker_stats[t.ticker] = {"count": 0, "wins": 0, "pnl": 0.0}
+                ticker_stats[t.ticker]["count"] += 1
+                ticker_stats[t.ticker]["pnl"] += t.pnl
+                if t.pnl > 0:
+                    ticker_stats[t.ticker]["wins"] += 1
+            for tk, ts in sorted(ticker_stats.items(), key=lambda x: x[1]["pnl"], reverse=True):
+                wr = ts["wins"] / ts["count"] * 100 if ts["count"] > 0 else 0
+                print(f"  {tk}: {ts['count']}取引 勝率{wr:.0f}% PnL ¥{ts['pnl']:+,.0f}")
+
+            # Monthly breakdown
+            print("月別:")
+            monthly: dict[str, dict] = {}
+            for t in r.all_trades:
+                month = t.trade_date[:7]  # YYYY-MM
+                if month not in monthly:
+                    monthly[month] = {"count": 0, "wins": 0, "pnl": 0.0}
+                monthly[month]["count"] += 1
+                monthly[month]["pnl"] += t.pnl
+                if t.pnl > 0:
+                    monthly[month]["wins"] += 1
+            for m in sorted(monthly.keys()):
+                ms = monthly[m]
+                wr = ms["wins"] / ms["count"] * 100 if ms["count"] > 0 else 0
+                print(f"  {m}: {ms['count']}取引 勝率{wr:.0f}% PnL ¥{ms['pnl']:+,.0f}")
 
     # Worst results for comparison
     print(f"\n{'=' * 60}")
