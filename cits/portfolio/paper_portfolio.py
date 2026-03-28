@@ -19,7 +19,7 @@ class PaperPortfolio(PortfolioManager):
 
     def __init__(
         self,
-        initial_capital: float = 10_000_000,
+        initial_capital: float = 100_000,
         slippage_bps: float = 5.0,
         commission_per_trade: float = 0.0,
         spread_bps: float = 3.0,

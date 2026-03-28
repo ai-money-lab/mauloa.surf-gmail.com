@@ -51,7 +51,7 @@ class PortfolioManager:
 
     def __init__(
         self,
-        initial_capital: float = 10_000_000,
+        initial_capital: float = 100_000,
         db_path: str | Path | None = None,
     ) -> None:
         """

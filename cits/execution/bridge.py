@@ -45,7 +45,7 @@ class ExecutionBridge:
             else:
                 self.portfolio = PaperPortfolio(
                     initial_capital=(
-                        portfolio_manager.initial_capital if portfolio_manager else 10_000_000
+                        portfolio_manager.initial_capital if portfolio_manager else 100_000
                     ),
                 )
         else:
