@@ -149,10 +149,12 @@ class PaperSimulation:
             db_path=self._db_path,
         )
 
+        # Small accounts (<¥1M) need a higher ratio to afford 100-share lots
+        _pos_ratio = 0.9 if capital < 1_000_000 else 0.2
         self.sizer = PositionSizer(
             account_size=capital,
             max_risk_per_trade=0.02,
-            max_position_ratio=0.20,
+            max_position_ratio=_pos_ratio,
         )
         self.breaker = CircuitBreaker(
             max_daily_loss=capital * 0.05,

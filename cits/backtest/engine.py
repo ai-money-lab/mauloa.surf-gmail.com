@@ -106,14 +106,18 @@ class BacktestEngine:
         self,
         initial_capital: float = 100_000,
         risk_per_trade: float = 0.02,
-        max_position_ratio: float = 0.1,
+        max_position_ratio: float | None = None,
         slippage_bps: float = 5.0,
         spread_bps: float = 3.0,
         overnight_gap_threshold: float = 1.0,
     ) -> None:
         self.initial_capital = initial_capital
         self.risk_per_trade = risk_per_trade
-        self.max_position_ratio = max_position_ratio
+        # Small accounts (<¥1M) need a higher ratio to afford 100-share lots
+        if max_position_ratio is not None:
+            self.max_position_ratio = max_position_ratio
+        else:
+            self.max_position_ratio = 0.9 if initial_capital < 1_000_000 else 0.1
         self.slippage_bps = slippage_bps
         self.spread_bps = spread_bps
         self.overnight_gap_threshold = overnight_gap_threshold
@@ -121,7 +125,7 @@ class BacktestEngine:
         self.sizer = PositionSizer(
             account_size=initial_capital,
             max_risk_per_trade=risk_per_trade,
-            max_position_ratio=max_position_ratio,
+            max_position_ratio=self.max_position_ratio,
         )
         self.breaker = CircuitBreaker(
             max_daily_loss=initial_capital * 0.02,

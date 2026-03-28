@@ -23,7 +23,7 @@ risk:
   daily_loss_limit_pct: 2.0
   max_consecutive_losses: 3
   max_daily_trades: 5
-  max_position_ratio: 0.1
+  max_position_ratio: 0.1          # ¥1M以上の場合。¥1M未満はコード側で0.9に自動調整
   volatility_threshold: 30.0
   lot_size: 100                  # 東証の売買単位
   max_sector_exposure: 0.3       # 同一セクター最大30%
