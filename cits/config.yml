@@ -21,13 +21,14 @@ trading:
 
 risk:
   daily_loss_limit_pct: 2.0
-  max_consecutive_losses: 3
+  max_consecutive_losses: 10       # 最適化結果: 10が最適
   max_daily_trades: 5
   max_position_ratio: 0.1          # ¥1M以上の場合。¥1M未満はコード側で0.9に自動調整
   volatility_threshold: 30.0
-  lot_size: 100                  # 東証の売買単位
+  lot_size: 100                  # 東証の売買単位（¥50万未満はプチ株1株単位）
   max_sector_exposure: 0.3       # 同一セクター最大30%
   risk_per_trade: 0.02           # 1トレードあたりリスク2%
+  stop_distance_pct: 2.0         # ストップ距離2%（最適化結果）
   trailing_stop_trigger: 2.0     # 利益がリスクの2倍でトレーリングストップ発動
   breakeven_stop: true           # トレーリングストップ発動時に損切りをブレークイーブンに移動
 
@@ -43,13 +44,24 @@ execution:
   spread_bps: 3.0                # ビッド・アスクスプレッド（bps）
   commission: 0                  # 三菱UFJ eスマート証券は現物手数料無料
 
+strategy:
+  # 最適化結果（2026-03-29）: mean_reversion単体が最強
+  # 6ヶ月バックテスト: +16.1%, 勝率71%, PF>1
+  primary: mean_reversion
+  mean_reversion:
+    period: 20                    # ボリンジャーバンド期間
+    entry_z: 2.0                  # 2σ逸脱でエントリー
+  # 以下は無効（全てマイナス）
+  disabled:
+    - intraday_momentum           # -30% (勝率49%)
+    - overnight_reversal          # -73% (勝率47%)
+    - premarket_trio              # マイナス
+
 backtest:
   default_period: "6mo"          # デフォルトバックテスト期間
   benchmark: "^N225"             # ベンチマーク（日経225）
   strategies:
-    - intraday_momentum
-    - overnight_reversal
-    - premarket_trio
+    - mean_reversion
 
 logging:
   level: INFO
