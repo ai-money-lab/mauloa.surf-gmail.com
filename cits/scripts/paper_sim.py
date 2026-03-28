@@ -300,6 +300,7 @@ class PaperSimulation:
         self.breaker.reset_daily()
         self._daily_pnl = 0.0
         self._daily_trade_count = 0
+        self._consecutive_losses = 0  # Reset per day
 
         day_signals: list[dict] = []
         day_trades: list[TradeRecord] = []
