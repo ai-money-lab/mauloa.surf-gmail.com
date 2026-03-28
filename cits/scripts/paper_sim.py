@@ -31,7 +31,8 @@ logger = logging.getLogger(__name__)
 # Default TSE ticker watchlist
 DEFAULT_WATCHLIST = ["7203", "8306", "6758", "9984"]
 
-LOT_SIZE = 100  # Standard TSE trading lot
+LOT_SIZE_STANDARD = 100  # Standard TSE trading lot (単元株)
+LOT_SIZE_PETIT = 1       # プチ株 (単元未満株)
 
 
 # ------------------------------------------------------------------
@@ -161,6 +162,9 @@ class PaperSimulation:
             max_consecutive_losses=3,
             max_daily_trades=10,
         )
+
+        # Small accounts use プチ株 (1-share lots)
+        self.lot_size = LOT_SIZE_PETIT if capital < 500_000 else LOT_SIZE_STANDARD
 
         self.trades: list[TradeRecord] = []
         self.daily_reports: list[dict] = []
@@ -413,9 +417,10 @@ class PaperSimulation:
 
             raw_size = sizing["position_size"]
             # Apply regime multiplier and round to lot size
+            lot = self.lot_size
             adjusted_size = int(raw_size * regime.position_size_multiplier)
-            lot_count = max(adjusted_size // LOT_SIZE, 1)
-            trade_size = lot_count * LOT_SIZE
+            lot_count = max(adjusted_size // lot, 1)
+            trade_size = lot_count * lot
 
             # Check if we can afford this trade
             state = self.portfolio._latest_state()
@@ -423,14 +428,14 @@ class PaperSimulation:
             if notional > state["cash"] * 0.95:
                 # Reduce to fit
                 affordable = int(state["cash"] * 0.95 / day_open)
-                lot_count = max(affordable // LOT_SIZE, 0)
+                lot_count = max(affordable // lot, 0)
                 if lot_count == 0:
                     if self.verbose:
                         print(
                             f"  {day} {ticker}: 資金不足 → SKIP"
                         )
                     continue
-                trade_size = lot_count * LOT_SIZE
+                trade_size = lot_count * lot
 
             # Execute trade: buy at open, sell at close (intraday)
             action = "buy" if direction > 0 else "sell"

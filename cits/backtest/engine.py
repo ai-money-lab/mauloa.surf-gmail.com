@@ -26,7 +26,8 @@ from cits.risk.win_rate_engine import WinRateEngine
 
 logger = logging.getLogger(__name__)
 
-LOT_SIZE = 100  # 東証売買単位
+LOT_SIZE_STANDARD = 100  # 東証売買単位（単元株）
+LOT_SIZE_PETIT = 1       # プチ株（単元未満株）
 
 
 # ------------------------------------------------------------------
@@ -121,6 +122,8 @@ class BacktestEngine:
         self.slippage_bps = slippage_bps
         self.spread_bps = spread_bps
         self.overnight_gap_threshold = overnight_gap_threshold
+        # Small accounts use プチ株 (1-share lots) since 100-share lots are too expensive
+        self.lot_size = LOT_SIZE_PETIT if initial_capital < 500_000 else LOT_SIZE_STANDARD
 
         self.sizer = PositionSizer(
             account_size=initial_capital,
@@ -244,14 +247,15 @@ class BacktestEngine:
             stop_loss=stop_loss,
         )
         raw_size = sizing["position_size"]
-        adjusted_size = max(int(raw_size * size_mult / LOT_SIZE) * LOT_SIZE, LOT_SIZE)
+        lot = self.lot_size
+        adjusted_size = max(int(raw_size * size_mult / lot) * lot, lot)
 
         # Check we can afford it
         notional = adjusted_size * open_price
         if notional > equity * self.max_position_ratio:
             adjusted_size = max(
-                int(equity * self.max_position_ratio / open_price / LOT_SIZE) * LOT_SIZE,
-                LOT_SIZE,
+                int(equity * self.max_position_ratio / open_price / lot) * lot,
+                lot,
             )
             notional = adjusted_size * open_price
 
