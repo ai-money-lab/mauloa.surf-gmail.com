@@ -67,24 +67,25 @@ PARAM_GRID = {
 }
 
 # Reduce grid for initial fast sweep (most impactful params only)
+# Ultra-fast grid (~60 combos, < 30 seconds)
 FAST_GRID = {
-    "im_confidence_threshold": [0.15, 0.25, 0.35, 0.5],
-    "pm_min_aligned": [1, 2],
-    "overnight_gap_threshold": [0.5, 1.0, 2.0, 3.0],
-    "enable_im": [True],
-    "enable_pm": [True, False],
-    "enable_or": [True, False],
+    "im_confidence_threshold": [0.25],
+    "pm_min_aligned": [2],
+    "overnight_gap_threshold": [1.0],
+    "enable_im": [True, False],
+    "enable_pm": [False],
+    "enable_or": [False],
     "enable_trend_mom": [True, False],
     "enable_mean_rev": [True, False],
     "enable_vol_breakout": [True, False],
     "mr_entry_z": [1.5, 2.0, 2.5],
-    "mr_period": [10, 20],
-    "trend_short_period": [3, 5, 10],
-    "trend_long_period": [10, 20, 40],
-    "vol_min_ratio": [0.8, 1.0, 1.2],
-    "risk_per_trade": [0.02, 0.03],
+    "mr_period": [20],
+    "trend_short_period": [5],
+    "trend_long_period": [20],
+    "vol_min_ratio": [1.0],
+    "risk_per_trade": [0.02],
     "stop_distance_pct": [1.0, 2.0],
-    "max_consecutive_losses": [5, 10],
+    "max_consecutive_losses": [10],
 }
 
 
