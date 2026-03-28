@@ -14,6 +14,7 @@ import argparse
 import itertools
 import json
 import logging
+from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import date, timedelta
 from pathlib import Path
@@ -40,10 +41,22 @@ PARAM_GRID = {
     # Overnight reversal
     "overnight_gap_threshold": [0.5, 0.8, 1.0, 1.5, 2.0, 2.5, 3.0],
 
-    # Strategy enable/disable
+    # Strategy enable/disable (original)
     "enable_im": [True, False],
     "enable_pm": [True, False],
     "enable_or": [True, False],
+
+    # Strategy enable/disable (new)
+    "enable_trend_mom": [True, False],
+    "enable_mean_rev": [True, False],
+    "enable_vol_breakout": [True, False],
+
+    # New strategy parameters
+    "mr_entry_z": [1.5, 2.0, 2.5, 3.0],
+    "mr_period": [10, 15, 20],
+    "trend_short_period": [3, 5, 8, 10],
+    "trend_long_period": [10, 20, 30, 40],
+    "vol_min_ratio": [0.8, 1.0, 1.2, 1.5],
 
     # Risk
     "risk_per_trade": [0.01, 0.02, 0.03, 0.05],
@@ -61,6 +74,14 @@ FAST_GRID = {
     "enable_im": [True],
     "enable_pm": [True, False],
     "enable_or": [True, False],
+    "enable_trend_mom": [True, False],
+    "enable_mean_rev": [True, False],
+    "enable_vol_breakout": [True, False],
+    "mr_entry_z": [1.5, 2.0, 2.5],
+    "mr_period": [10, 20],
+    "trend_short_period": [3, 5, 10],
+    "trend_long_period": [10, 20, 40],
+    "vol_min_ratio": [0.8, 1.0, 1.2],
     "risk_per_trade": [0.02, 0.03],
     "stop_distance_pct": [1.0, 2.0],
     "max_consecutive_losses": [5, 10],
@@ -155,7 +176,10 @@ def run_single_backtest(
 ) -> OptResult:
     """Run a single fast backtest with given parameters."""
     from cits.core.signals.intraday_momentum import compute_intraday_momentum
+    from cits.core.signals.mean_reversion import compute_mean_reversion
     from cits.core.signals.premarket_trio import compute_premarket_trio
+    from cits.core.signals.trend_filter import compute_trend_filter
+    from cits.core.signals.volume_confirm import compute_volume_confirmation
 
     lot_size = 1 if capital < 500_000 else 100
     equity = capital
@@ -170,6 +194,10 @@ def run_single_backtest(
     cost_bps = 5.0 + 1.5  # slippage + half spread
     cost_mult = cost_bps / 10000
 
+    # Historical price/volume per ticker for new signal modules
+    closes_history: dict[str, list[float]] = defaultdict(list)
+    volumes_history: dict[str, list[float]] = defaultdict(list)
+
     for ticker in tickers:
         df = data.get(ticker)
         if df is None:
@@ -180,6 +208,10 @@ def run_single_backtest(
         n225_df = data.get("^N225")
 
         dates = sorted(df.index)
+
+        # Reset history for each ticker
+        closes_history[ticker] = []
+        volumes_history[ticker] = []
 
         for i in range(1, len(dates)):
             dt = dates[i]
@@ -195,7 +227,14 @@ def run_single_backtest(
             prev_volume = float(prev_row.get("Volume", 1)) or 1
 
             if open_price <= 0 or close_price <= 0 or prev_close <= 0:
+                # Still record history for signal lookback
+                closes_history[ticker].append(close_price if close_price > 0 else 0)
+                volumes_history[ticker].append(volume)
                 continue
+
+            # Build historical arrays for new signal modules
+            closes_history[ticker].append(prev_close)  # append prev day close first
+            volumes_history[ticker].append(prev_volume)
 
             # Circuit breaker: consecutive losses
             if consecutive_losses >= max_consec:
@@ -306,6 +345,99 @@ def run_single_backtest(
                         pnl = (entry - exit_) * trade_size
                     day_trades.append(TradeResult(pnl, "premarket_trio", ticker, trade_date))
 
+            # --- Strategy 4: Trend Momentum (trend filter + IM combined) ---
+            closes_list = closes_history[ticker]
+            volumes_list = volumes_history[ticker]
+
+            trend_signal = None  # cache for reuse in vol_breakout
+            if params.get("enable_trend_mom", True):
+                trend_short_p = params.get("trend_short_period", 5)
+                trend_long_p = params.get("trend_long_period", 20)
+                trend_signal = compute_trend_filter(
+                    closes_list,
+                    short_period=trend_short_p,
+                    long_period=trend_long_p,
+                )
+                if trend_signal.direction != 0:
+                    im_signal = compute_intraday_momentum(
+                        prev_close=prev_close,
+                        price_at_930=open_price,
+                        avg_volume_ratio=vol_ratio,
+                        nikkei_vi=vix_level,
+                    )
+                    im_thresh = params.get("im_confidence_threshold", 0.3)
+                    if (
+                        im_signal.direction == trend_signal.direction
+                        and im_signal.confidence >= im_thresh
+                    ):
+                        d = trend_signal.direction
+                        if d > 0:
+                            entry = open_price * (1 + cost_mult)
+                            exit_ = close_price * (1 - cost_mult)
+                            pnl = (exit_ - entry) * trade_size
+                        else:
+                            entry = open_price * (1 - cost_mult)
+                            exit_ = close_price * (1 + cost_mult)
+                            pnl = (entry - exit_) * trade_size
+                        day_trades.append(
+                            TradeResult(pnl, "trend_momentum", ticker, trade_date)
+                        )
+
+            # --- Strategy 5: Mean Reversion (Bollinger Band) ---
+            if params.get("enable_mean_rev", True) and vix_level > 20:
+                mr_period = params.get("mr_period", 20)
+                mr_entry_z = params.get("mr_entry_z", 2.0)
+                mr_signal = compute_mean_reversion(
+                    closes_list,
+                    period=mr_period,
+                    entry_z=mr_entry_z,
+                )
+                if mr_signal.direction != 0 and mr_signal.confidence >= 0.3:
+                    d = mr_signal.direction
+                    if d > 0:
+                        entry = open_price * (1 + cost_mult)
+                        exit_ = close_price * (1 - cost_mult)
+                        pnl = (exit_ - entry) * trade_size
+                    else:
+                        entry = open_price * (1 - cost_mult)
+                        exit_ = close_price * (1 + cost_mult)
+                        pnl = (entry - exit_) * trade_size
+                    day_trades.append(
+                        TradeResult(pnl, "mean_reversion", ticker, trade_date)
+                    )
+
+            # --- Strategy 6: Volume Breakout (trend + volume confirm) ---
+            if params.get("enable_vol_breakout", True):
+                # Reuse trend_signal if already computed, else compute now
+                if trend_signal is None:
+                    trend_short_p = params.get("trend_short_period", 5)
+                    trend_long_p = params.get("trend_long_period", 20)
+                    trend_signal = compute_trend_filter(
+                        closes_list,
+                        short_period=trend_short_p,
+                        long_period=trend_long_p,
+                    )
+                if trend_signal.direction != 0:
+                    vol_confirm = compute_volume_confirmation(
+                        closes_list,
+                        volumes_list,
+                        trend_signal.direction,
+                        min_ratio=params.get("vol_min_ratio", 1.0),
+                    )
+                    if vol_confirm.confirmed:
+                        d = trend_signal.direction
+                        if d > 0:
+                            entry = open_price * (1 + cost_mult)
+                            exit_ = close_price * (1 - cost_mult)
+                            pnl = (exit_ - entry) * trade_size
+                        else:
+                            entry = open_price * (1 - cost_mult)
+                            exit_ = close_price * (1 + cost_mult)
+                            pnl = (entry - exit_) * trade_size
+                        day_trades.append(
+                            TradeResult(pnl, "volume_breakout", ticker, trade_date)
+                        )
+
             # Update equity and stats
             for t in day_trades:
                 equity += t.pnl
@@ -389,7 +521,8 @@ def generate_param_combos(grid: dict) -> list[dict]:
     for combo in itertools.product(*values):
         params = dict(zip(keys, combo))
         # Skip if all strategies disabled
-        if not any(params.get(f"enable_{s}", True) for s in ["im", "pm", "or"]):
+        all_strat_keys = ["im", "pm", "or", "trend_mom", "mean_rev", "vol_breakout"]
+        if not any(params.get(f"enable_{s}", True) for s in all_strat_keys):
             continue
         combos.append(params)
     return combos
@@ -460,6 +593,12 @@ def run_optimization(
             strategies.append("PM")
         if r.params.get("enable_or", True):
             strategies.append("OR")
+        if r.params.get("enable_trend_mom", True):
+            strategies.append("TM")
+        if r.params.get("enable_mean_rev", True):
+            strategies.append("MR")
+        if r.params.get("enable_vol_breakout", True):
+            strategies.append("VB")
         strat_str = "+".join(strategies)
 
         print(
@@ -498,6 +637,12 @@ def run_optimization(
             strategies.append("PM")
         if r.params.get("enable_or", True):
             strategies.append("OR")
+        if r.params.get("enable_trend_mom", True):
+            strategies.append("TM")
+        if r.params.get("enable_mean_rev", True):
+            strategies.append("MR")
+        if r.params.get("enable_vol_breakout", True):
+            strategies.append("VB")
         print(
             f"  ¥{r.total_pnl:>+9,.0f} {r.pnl_pct:>+6.1f}% "
             f"取引{r.trade_count} 勝率{r.win_rate:.0f}% PF{r.profit_factor:.2f} "
@@ -553,6 +698,12 @@ trading:
             print(f"    - premarket_trio     # min_aligned >= {best.params.get('pm_min_aligned', 2)}")
         if best.params.get("enable_or", True):
             print(f"    - overnight_reversal # gap >= {best.params.get('overnight_gap_threshold', 1.0)}%")
+        if best.params.get("enable_trend_mom", True):
+            print(f"    - trend_momentum     # short={best.params.get('trend_short_period', 5)} long={best.params.get('trend_long_period', 20)}")
+        if best.params.get("enable_mean_rev", True):
+            print(f"    - mean_reversion     # period={best.params.get('mr_period', 20)} entry_z={best.params.get('mr_entry_z', 2.0)}")
+        if best.params.get("enable_vol_breakout", True):
+            print(f"    - volume_breakout    # min_ratio={best.params.get('vol_min_ratio', 1.0)}")
         print(f"""
 risk:
   risk_per_trade: {best.params.get('risk_per_trade', 0.02)}
