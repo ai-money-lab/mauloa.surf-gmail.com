@@ -67,7 +67,7 @@ PARAM_GRID = {
 }
 
 # Reduce grid for initial fast sweep (most impactful params only)
-# 100% WIN RATE GRID: maximum filter, zero losses
+# BALANCED GRID: high WR (85%+) with enough trades (24+/year)
 FAST_GRID = {
     "im_confidence_threshold": [0.25],
     "pm_min_aligned": [2],
@@ -79,10 +79,10 @@ FAST_GRID = {
     "enable_mean_rev": [True],
     "enable_vol_breakout": [False],
     "enable_ensemble": [False],
-    "mr_entry_z": [2.0, 2.5, 3.0, 3.5],
-    "mr_period": [20],
+    "mr_entry_z": [1.5, 2.0, 2.5],
+    "mr_period": [10, 20],
     "mr_require_volume": [True, False],
-    "mr_require_trend_align": [True],
+    "mr_require_trend_align": [True, False],
     "mr_require_ensemble": [True, False],
     "ensemble_min_confirms": [3, 4, 5],
     "trend_short_period": [5],
@@ -424,7 +424,7 @@ def run_single_backtest(
                         )
 
             # --- Strategy 5: Mean Reversion (Bollinger Band) ---
-            if params.get("enable_mean_rev", True) and vix_level > 20:
+            if params.get("enable_mean_rev", True):
                 mr_period = params.get("mr_period", 20)
                 mr_entry_z = params.get("mr_entry_z", 2.0)
                 mr_signal = compute_mean_reversion(
