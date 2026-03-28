@@ -43,7 +43,7 @@ def compute_trend_filter(
         TrendFilterSignal with direction, strength, and detail.
     """
     if len(closes) < long_period:
-        logger.warning(
+        logger.debug(
             "Not enough data for trend filter: %d < %d", len(closes), long_period
         )
         return TrendFilterSignal(
