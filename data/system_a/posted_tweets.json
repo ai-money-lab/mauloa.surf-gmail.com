@@ -250,5 +250,17 @@
     "image_path": "",
     "has_image": false,
     "status": "posted"
+  },
+  {
+    "datetime": "2026-03-28T19:00:11.249081+09:00",
+    "tweet_id": "2037832111604826163",
+    "pillar": "4",
+    "pipeline": "P3",
+    "pattern": "B",
+    "text": "「賃貸と持ち家、どっちが得ですか？」\n\nよく聞かれるんですが、計算だけじゃ答えが出ないんですよね。\n\n同じ年収の人でも、転勤の可能性や家族の将来を考えると、全然違う答えになります。\n\n数字より先に、自分の生活スタイルを整理するのが一番大事かもしれません。",
+    "quality_score": 97,
+    "image_path": "",
+    "has_image": false,
+    "status": "posted"
   }
 ]

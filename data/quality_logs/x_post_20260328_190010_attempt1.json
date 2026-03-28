@@ -1,0 +1,25 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 6,
+    "persona_match": 7,
+    "pillar_alignment": 8,
+    "usefulness": 4,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 10,
+    "cta_ending": 8,
+    "originality": 7,
+    "tone_balance": 7,
+    "problem_solving": 3
+  },
+  "total_score": 90,
+  "threshold": 84,
+  "result": "auto_approved",
+  "usefulness_summary": "賃貸vs持ち家で悩む人に対して、損得計算よりも現在の快適性を重視する判断基準を提示している",
+  "rejection_reasons": [],
+  "improvement_suggestions": [],
+  "checked_at": "2026-03-28T19:00:10.960353+09:00"
+}

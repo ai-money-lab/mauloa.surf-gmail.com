@@ -1,0 +1,32 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 7,
+    "persona_match": 8,
+    "pillar_alignment": 9,
+    "usefulness": 4,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 10,
+    "cta_ending": 10,
+    "originality": 8,
+    "tone_balance": 8,
+    "problem_solving": 3
+  },
+  "total_score": 97,
+  "threshold": 84,
+  "result": "auto_approved",
+  "usefulness_summary": "賃貸vs持ち家の判断において数字以外の要素も重要だと気づかせる",
+  "rejection_reasons": [
+    "具体的なアクションにつながらない一般論にとどまっている",
+    "実際の問題解決につながる具体的な回答がない"
+  ],
+  "improvement_suggestions": [
+    "生活スタイルを整理する具体的な方法やチェックポイントを3-5個提示する",
+    "転勤可能性や家族構成別の判断基準例を具体的に示す",
+    "読者が実際に判断できる簡単なフローチャートや質問リストを提供する"
+  ],
+  "checked_at": "2026-03-28T19:00:07.070943+09:00"
+}
