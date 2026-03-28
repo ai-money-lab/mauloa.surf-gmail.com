@@ -127,7 +127,7 @@ class BacktestEngine:
             max_daily_loss=initial_capital * 0.02,
             max_consecutive_losses=3,
             max_daily_trades=10,
-            volatility_threshold=3.0,
+            volatility_threshold=30.0,
         )
 
         # Use temp DB to avoid polluting live data

@@ -35,7 +35,7 @@ class CircuitBreaker:
         max_daily_loss: float = 50000,
         max_consecutive_losses: int = 3,
         max_daily_trades: int = 10,
-        volatility_threshold: float = 3.0,
+        volatility_threshold: float = 30.0,
     ) -> None:
         """
         Args:

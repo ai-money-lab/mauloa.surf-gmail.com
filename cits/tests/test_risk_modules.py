@@ -55,10 +55,10 @@ def test_cb_max_trades_halt():
 
 def test_cb_volatility_reduce():
     """CircuitBreaker triggers reduce on high volatility."""
-    cb = CircuitBreaker(volatility_threshold=3.0)
+    cb = CircuitBreaker(volatility_threshold=30.0)
     result = cb.check(
         portfolio={"daily_pnl": 0, "consecutive_losses": 0, "daily_trade_count": 0},
-        market_data={"volatility": 4.0},
+        market_data={"volatility": 35.0},
     )
     assert result["is_triggered"] is True
     assert result["action"] == "reduce"
