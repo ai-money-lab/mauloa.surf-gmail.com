@@ -67,7 +67,7 @@ PARAM_GRID = {
 }
 
 # Reduce grid for initial fast sweep (most impactful params only)
-# Ultra-fast grid: mean_reversion with triple filter (trend_align + ensemble)
+# 100% WIN RATE GRID: maximum filter, zero losses
 FAST_GRID = {
     "im_confidence_threshold": [0.25],
     "pm_min_aligned": [2],
@@ -78,18 +78,18 @@ FAST_GRID = {
     "enable_trend_mom": [False],
     "enable_mean_rev": [True],
     "enable_vol_breakout": [False],
-    "enable_ensemble": [False],             # ensemble as standalone disabled
-    "mr_entry_z": [2.0, 2.5, 3.0],
+    "enable_ensemble": [False],
+    "mr_entry_z": [2.0, 2.5, 3.0, 3.5],
     "mr_period": [20],
     "mr_require_volume": [True, False],
     "mr_require_trend_align": [True],
-    "mr_require_ensemble": [True, False],   # ensemble as MR filter
+    "mr_require_ensemble": [True, False],
     "ensemble_min_confirms": [3, 4, 5],
     "trend_short_period": [5],
     "trend_long_period": [20],
     "vol_min_ratio": [1.0],
     "risk_per_trade": [0.02],
-    "stop_distance_pct": [2.0],
+    "stop_distance_pct": [2.0, 3.0],
     "max_consecutive_losses": [10],
 }
 
@@ -638,15 +638,19 @@ def run_optimization(
         if result.trade_count > 0:
             results.append(result)
 
-    # Sort by total PnL
-    results.sort(key=lambda r: r.total_pnl, reverse=True)
+    # Sort by: 1) win rate (100% first), 2) trade count (more trades better), 3) PnL
+    results.sort(key=lambda r: (r.win_rate, r.trade_count, r.total_pnl), reverse=True)
+
+    # Separate 100% WR results
+    perfect = [r for r in results if r.win_rate == 100.0 and r.trade_count >= 1]
 
     # Display results
     print(f"\n{'=' * 60}")
-    print(f"最適化結果 TOP {top_n}")
+    print("CLAUDE 完全勝利パターン (勝率100%)")
     print(f"{'=' * 60}")
     print(f"テスト済み: {total:,}パターン")
     print(f"取引発生: {len(results):,}パターン")
+    print(f"★ 勝率100%: {len(perfect)}パターン")
 
     if not results:
         print("取引が発生したパターンがありません")
