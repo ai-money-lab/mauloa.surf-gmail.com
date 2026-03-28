@@ -67,24 +67,26 @@ PARAM_GRID = {
 }
 
 # Reduce grid for initial fast sweep (most impactful params only)
-# Ultra-fast grid (~60 combos, < 30 seconds)
+# Ultra-fast grid: mean_reversion variants with filters
 FAST_GRID = {
     "im_confidence_threshold": [0.25],
     "pm_min_aligned": [2],
     "overnight_gap_threshold": [1.0],
-    "enable_im": [True, False],
+    "enable_im": [False],
     "enable_pm": [False],
     "enable_or": [False],
-    "enable_trend_mom": [True, False],
-    "enable_mean_rev": [True, False],
-    "enable_vol_breakout": [True, False],
-    "mr_entry_z": [1.5, 2.0, 2.5],
-    "mr_period": [20],
+    "enable_trend_mom": [False],
+    "enable_mean_rev": [True],
+    "enable_vol_breakout": [False],
+    "mr_entry_z": [2.0, 2.5, 3.0],
+    "mr_period": [15, 20],
+    "mr_require_volume": [True, False],     # volume confirmation filter
+    "mr_require_trend_align": [True, False], # trend must be recovering
     "trend_short_period": [5],
     "trend_long_period": [20],
     "vol_min_ratio": [1.0],
     "risk_per_trade": [0.02],
-    "stop_distance_pct": [1.0, 2.0],
+    "stop_distance_pct": [2.0, 3.0],
     "max_consecutive_losses": [10],
 }
 
@@ -394,18 +396,45 @@ def run_single_backtest(
                     entry_z=mr_entry_z,
                 )
                 if mr_signal.direction != 0 and mr_signal.confidence >= 0.3:
-                    d = mr_signal.direction
-                    if d > 0:
-                        entry = open_price * (1 + cost_mult)
-                        exit_ = close_price * (1 - cost_mult)
-                        pnl = (exit_ - entry) * trade_size
-                    else:
-                        entry = open_price * (1 - cost_mult)
-                        exit_ = close_price * (1 + cost_mult)
-                        pnl = (entry - exit_) * trade_size
-                    day_trades.append(
-                        TradeResult(pnl, "mean_reversion", ticker, trade_date)
-                    )
+                    # Optional filter: volume confirmation
+                    mr_pass = True
+                    if params.get("mr_require_volume", False):
+                        vol_confirm = compute_volume_confirmation(
+                            closes_list,
+                            volumes_list,
+                            mr_signal.direction,
+                            min_ratio=params.get("vol_min_ratio", 1.0),
+                        )
+                        if not vol_confirm.confirmed:
+                            mr_pass = False
+
+                    # Optional filter: trend recovering (price moving back toward mean)
+                    if mr_pass and params.get("mr_require_trend_align", False):
+                        if len(closes_list) >= 3:
+                            # Price should be moving back toward mean
+                            prev2 = closes_list[-3]
+                            prev1 = closes_list[-2]
+                            curr = closes_list[-1]
+                            if mr_signal.direction > 0:
+                                # Buying oversold: price should be recovering (going up)
+                                mr_pass = curr > prev1 or prev1 > prev2
+                            else:
+                                # Selling overbought: price should be falling
+                                mr_pass = curr < prev1 or prev1 < prev2
+
+                    if mr_pass:
+                        d = mr_signal.direction
+                        if d > 0:
+                            entry = open_price * (1 + cost_mult)
+                            exit_ = close_price * (1 - cost_mult)
+                            pnl = (exit_ - entry) * trade_size
+                        else:
+                            entry = open_price * (1 - cost_mult)
+                            exit_ = close_price * (1 + cost_mult)
+                            pnl = (entry - exit_) * trade_size
+                        day_trades.append(
+                            TradeResult(pnl, "mean_reversion", ticker, trade_date)
+                        )
 
             # --- Strategy 6: Volume Breakout (trend + volume confirm) ---
             if params.get("enable_vol_breakout", True):
