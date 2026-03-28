@@ -1,0 +1,29 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 8,
+    "persona_match": 8,
+    "pillar_alignment": 9,
+    "usefulness": 9,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 0,
+    "cta_ending": 6,
+    "originality": 8,
+    "tone_balance": 8,
+    "problem_solving": 9
+  },
+  "total_score": 95,
+  "threshold": 84,
+  "result": "auto_approved",
+  "usefulness_summary": "賃貸vs持ち家で悩む人が計算以外の判断軸を知ることで自分に合った選択ができる",
+  "rejection_reasons": [
+    "数字が含まれていない（number_included: 0点）"
+  ],
+  "improvement_suggestions": [
+    "「3つのポイント」を「いくつかのポイント」に変更するか、他の箇所に数字を追加する"
+  ],
+  "checked_at": "2026-03-28T19:00:01.019051+09:00"
+}
