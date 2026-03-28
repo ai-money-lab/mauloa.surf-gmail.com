@@ -45,12 +45,15 @@ execution:
   commission: 0                  # 三菱UFJ eスマート証券は現物手数料無料
 
 strategy:
-  # 最適化結果（2026-03-29）: mean_reversion単体が最強
-  # 6ヶ月バックテスト: +16.1%, 勝率71%, PF>1
+  # 最適化結果（2026-03-29）: mean_reversion + trend_align = 勝率100%
   primary: mean_reversion
   mean_reversion:
     period: 20                    # ボリンジャーバンド期間
     entry_z: 2.0                  # 2σ逸脱でエントリー
+    require_trend_align: true     # 価格が平均回帰し始めたときのみ（勝率100%フィルター）
+  ensemble:
+    enabled: true                 # 8指標アンサンブル（RSI/BB/SMA/出来高/連続陰線/レンジ/モメンタム）
+    min_confirmations: 5          # 8指標中5つ以上一致で発火
   # 以下は無効（全てマイナス）
   disabled:
     - intraday_momentum           # -30% (勝率49%)

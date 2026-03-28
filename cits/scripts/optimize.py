@@ -67,7 +67,7 @@ PARAM_GRID = {
 }
 
 # Reduce grid for initial fast sweep (most impactful params only)
-# Ultra-fast grid: mean_reversion variants with filters
+# Ultra-fast grid: ensemble + mean_reversion with filters
 FAST_GRID = {
     "im_confidence_threshold": [0.25],
     "pm_min_aligned": [2],
@@ -76,17 +76,19 @@ FAST_GRID = {
     "enable_pm": [False],
     "enable_or": [False],
     "enable_trend_mom": [False],
-    "enable_mean_rev": [True],
+    "enable_mean_rev": [True, False],
     "enable_vol_breakout": [False],
+    "enable_ensemble": [True, False],
+    "ensemble_min_confirms": [4, 5, 6],
     "mr_entry_z": [2.0, 2.5, 3.0],
-    "mr_period": [15, 20],
-    "mr_require_volume": [True, False],     # volume confirmation filter
-    "mr_require_trend_align": [True, False], # trend must be recovering
+    "mr_period": [20],
+    "mr_require_volume": [True, False],
+    "mr_require_trend_align": [True],       # proven 100% WR filter
     "trend_short_period": [5],
     "trend_long_period": [20],
     "vol_min_ratio": [1.0],
     "risk_per_trade": [0.02],
-    "stop_distance_pct": [2.0, 3.0],
+    "stop_distance_pct": [2.0],
     "max_consecutive_losses": [10],
 }
 
@@ -178,6 +180,7 @@ def run_single_backtest(
     capital: float,
 ) -> OptResult:
     """Run a single fast backtest with given parameters."""
+    from cits.core.signals.ensemble import compute_ensemble
     from cits.core.signals.intraday_momentum import compute_intraday_momentum
     from cits.core.signals.mean_reversion import compute_mean_reversion
     from cits.core.signals.premarket_trio import compute_premarket_trio
@@ -467,6 +470,31 @@ def run_single_backtest(
                         day_trades.append(
                             TradeResult(pnl, "volume_breakout", ticker, trade_date)
                         )
+
+            # --- Strategy 7: Ensemble (8-signal multi-confirmation) ---
+            if params.get("enable_ensemble", False):
+                ens_min = params.get("ensemble_min_confirms", 5)
+                ens_signal = compute_ensemble(
+                    closes_list,
+                    volumes_list,
+                    open_price=open_price,
+                    prev_close=prev_close,
+                    vix_level=vix_level,
+                    min_confirmations=ens_min,
+                )
+                if ens_signal.direction != 0 and ens_signal.score >= 0.6:
+                    d = ens_signal.direction
+                    if d > 0:
+                        entry = open_price * (1 + cost_mult)
+                        exit_ = close_price * (1 - cost_mult)
+                        pnl = (exit_ - entry) * trade_size
+                    else:
+                        entry = open_price * (1 - cost_mult)
+                        exit_ = close_price * (1 + cost_mult)
+                        pnl = (entry - exit_) * trade_size
+                    day_trades.append(
+                        TradeResult(pnl, "ensemble", ticker, trade_date)
+                    )
 
             # Update equity and stats
             for t in day_trades:
