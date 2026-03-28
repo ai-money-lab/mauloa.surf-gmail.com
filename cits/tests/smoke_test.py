@@ -10,6 +10,8 @@ CITS スモークテスト — 全モジュール・全クラスの自動検証
   python cits/tests/smoke_test.py
 """
 
+from __future__ import annotations
+
 import importlib
 import inspect
 import sys

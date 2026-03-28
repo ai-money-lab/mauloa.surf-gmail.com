@@ -6,6 +6,8 @@ a neutral judge.  The final output summarises the winner, a numeric
 conviction score, and the full debate transcript.
 """
 
+from __future__ import annotations
+
 import json
 import logging
 import os

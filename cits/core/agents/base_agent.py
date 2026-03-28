@@ -1,5 +1,7 @@
 """Base agent class for CITS multi-agent trading pipeline."""
 
+from __future__ import annotations
+
 import json
 import logging
 import os

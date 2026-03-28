@@ -1,5 +1,7 @@
 """JPX investor flow tracking (投資部門別売買動向)."""
 
+from __future__ import annotations
+
 import csv
 import io
 import logging

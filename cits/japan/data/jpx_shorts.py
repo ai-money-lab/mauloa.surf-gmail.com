@@ -1,5 +1,7 @@
 """JPX short selling data tracker (空売り比率・空売り残高)."""
 
+from __future__ import annotations
+
 import csv
 import io
 import logging

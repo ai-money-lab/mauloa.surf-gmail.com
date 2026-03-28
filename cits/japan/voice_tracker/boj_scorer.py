@@ -1,5 +1,7 @@
 """Bank of Japan MPM decision and Governor speech scorer for CITS trading system."""
 
+from __future__ import annotations
+
 import logging
 import os
 from typing import Any

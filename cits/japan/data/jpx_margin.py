@@ -1,5 +1,7 @@
 """JPX margin trading balance tracker (信用取引残高)."""
 
+from __future__ import annotations
+
 import csv
 import io
 import logging

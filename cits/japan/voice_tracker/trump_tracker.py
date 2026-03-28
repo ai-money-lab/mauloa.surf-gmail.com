@@ -1,5 +1,7 @@
 """Trump statement tracker for market-relevant policy signals in CITS trading system."""
 
+from __future__ import annotations
+
 import logging
 import os
 from typing import Any
