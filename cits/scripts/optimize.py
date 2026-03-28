@@ -67,7 +67,7 @@ PARAM_GRID = {
 }
 
 # Reduce grid for initial fast sweep (most impactful params only)
-# Ultra-fast grid: ensemble + mean_reversion with filters
+# Ultra-fast grid: mean_reversion with triple filter (trend_align + ensemble)
 FAST_GRID = {
     "im_confidence_threshold": [0.25],
     "pm_min_aligned": [2],
@@ -76,14 +76,15 @@ FAST_GRID = {
     "enable_pm": [False],
     "enable_or": [False],
     "enable_trend_mom": [False],
-    "enable_mean_rev": [True, False],
+    "enable_mean_rev": [True],
     "enable_vol_breakout": [False],
-    "enable_ensemble": [True, False],
-    "ensemble_min_confirms": [4, 5, 6],
+    "enable_ensemble": [False],             # ensemble as standalone disabled
     "mr_entry_z": [2.0, 2.5, 3.0],
     "mr_period": [20],
     "mr_require_volume": [True, False],
-    "mr_require_trend_align": [True],       # proven 100% WR filter
+    "mr_require_trend_align": [True],
+    "mr_require_ensemble": [True, False],   # ensemble as MR filter
+    "ensemble_min_confirms": [3, 4, 5],
     "trend_short_period": [5],
     "trend_long_period": [20],
     "vol_min_ratio": [1.0],
@@ -424,6 +425,20 @@ def run_single_backtest(
                             else:
                                 # Selling overbought: price should be falling
                                 mr_pass = curr < prev1 or prev1 < prev2
+
+                    # Optional filter: ensemble multi-confirmation
+                    if mr_pass and params.get("mr_require_ensemble", False):
+                        ens_min = params.get("ensemble_min_confirms", 5)
+                        ens_signal = compute_ensemble(
+                            closes_list,
+                            volumes_list,
+                            open_price=open_price,
+                            prev_close=prev_close,
+                            vix_level=vix_level,
+                            min_confirmations=ens_min,
+                        )
+                        if ens_signal.direction != mr_signal.direction:
+                            mr_pass = False
 
                     if mr_pass:
                         d = mr_signal.direction
