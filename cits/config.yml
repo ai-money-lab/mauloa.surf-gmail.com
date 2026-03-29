@@ -7,32 +7,57 @@ llm:
   trader_temperature: 0.2
 
 trading:
-  mode: paper  # paper or live
+  mode: paper
   max_debate_rounds: 2
+  strategy_mode: hybrid  # hybrid = auto-switch (BNF style), cis = momentum, bnf = mean_reversion
   watchlist:
-    # ETF（個別株リスクなし、流動性高、¥10万で複数口購入可能）
-    - "1321"   # 日経225連動ETF      (1口≒¥4万)
-    - "1306"   # TOPIX連動ETF        (1口≒¥3千)
-    - "1570"   # 日経レバレッジ2倍    (1口≒¥2万, 値動き大)
-    - "1357"   # 日経ダブルインバース  (1口≒¥300, 下落で利益)
-    - "1489"   # 日経高配当50 ETF    (1口≒¥2千)
-    - "2644"   # GX半導体ETF         (1口≒¥3千)
-    - "1343"   # REIT ETF            (1口≒¥2千)
-    - "1540"   # 金ETF               (1口≒¥1万)
-    - "2558"   # S&P500連動ETF       (1口≒¥2万)
+    # ETF: kabuステーションで取引可能、¥10万以内、流動性高
+    # 銘柄は固定リストではなく条件で選定すべき（将来的にスキャナー実装）
+    - "1357"   # 日経ダブルインバース
+    - "2558"   # S&P500連動ETF
+    - "1570"   # 日経レバレッジ2倍
+    - "1540"   # 金ETF
+    - "1489"   # 日経高配当50 ETF
+
+pro_strategy:
+  # プロトレーダー研究（テスタ・CIS・BNF）に基づく設計
+  # 1. シンプルなルール（CIS: 出来高+価格のみ）
+  # 2. レジーム適応（BNF: 上げ=順張り、下げ=逆張り）
+  # 3. 高速損切り（テスタ: 取引の30-40%は損切り）
+
+  regime_detection:
+    method: ma_crossover    # MA20 vs MA50
+    volatile_atr_pct: 3.0   # ATR > 3% = stay out
+
+  ny_nikkei:
+    enabled: true            # NYダウ→日経 相関0.898
+    min_correlation: 0.5
+    min_change_pct: 0.3      # 0.3%以上の動きでシグナル
+
+  stop_loss:
+    pct: 1.5                 # テスタ方式: 小さく損切り
+    trailing: true           # 利益確保のトレーリングストップ
+
+  target:
+    pct: 3.0                 # 損失の2倍 = PF2.0以上
+
+  hold_days: 5               # スイング: 3-10日保持
+  risk_per_trade: 0.03       # 1トレード3%リスク
+
+  # 月利目標: 2-3%（プロの現実的水準）
+  # 複利10年: ¥100K → ¥1.9M (月利2.5%の場合)
 
 risk:
   daily_loss_limit_pct: 2.0
-  max_consecutive_losses: 10       # 最適化結果: 10が最適
+  max_consecutive_losses: 10
   max_daily_trades: 5
-  max_position_ratio: 0.1          # ¥1M以上の場合。¥1M未満はコード側で0.9に自動調整
   volatility_threshold: 30.0
-  lot_size: 100                  # 東証の売買単位（¥50万未満はプチ株1株単位）
-  max_sector_exposure: 0.3       # 同一セクター最大30%
-  risk_per_trade: 0.02           # 1トレードあたりリスク2%
-  stop_distance_pct: 2.0         # ストップ距離2%（最適化結果）
-  trailing_stop_trigger: 2.0     # 利益がリスクの2倍でトレーリングストップ発動
-  breakeven_stop: true           # トレーリングストップ発動時に損切りをブレークイーブンに移動
+  risk_per_trade: 0.03
+  stop_distance_pct: 1.5
+  # マクロリスク管理
+  boj_meeting_reduce: true     # BOJ会合前日はポジション半減
+  sq_week_reduce: true         # SQ週はポジション縮小
+  monthly_target_pct: 2.5      # 現実的月利目標
 
 broker:
   kabu_station:
