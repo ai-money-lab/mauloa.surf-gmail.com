@@ -20,7 +20,10 @@ from datetime import date, timedelta
 import pandas as pd
 import yfinance as yf
 
+from cits.core.signals.candlestick_patterns import analyze_candlesticks
+from cits.core.signals.chart_formations import analyze_formations
 from cits.core.signals.mean_reversion import compute_mean_reversion
+from cits.core.signals.support_resistance import analyze_support_resistance
 
 logging.basicConfig(level=logging.WARNING)
 
@@ -43,11 +46,14 @@ TICKERS = [
 # Parameter grid (focused on monthly consistency)
 # ---------------------------------------------------------------
 GRID = {
-    "mr_entry_z": [1.0, 1.5, 2.0, 2.5],
-    "mr_period": [5, 10, 15, 20],
+    "mr_entry_z": [1.0, 1.5, 2.0],
+    "mr_period": [5, 10, 20],
     "trend_align": [True, False],
-    "stop_pct": [1.0, 1.5, 2.0, 3.0],
-    "risk_pct": [0.02, 0.03, 0.05],
+    "require_candle_confirm": [True, False],  # ローソク足パターン確認
+    "require_sr_confirm": [True, False],      # 支持線・抵抗線確認
+    "require_formation": [True, False],       # チャート形状確認
+    "stop_pct": [1.5, 2.0, 3.0],
+    "risk_pct": [0.02, 0.03],
 }
 
 
@@ -170,6 +176,9 @@ def run_backtest(params: dict, data: dict, capital: float) -> Result:
         dates = sorted(df.index)
         closes_history[ticker] = []
         volumes_history[ticker] = []
+        opens_history: list[float] = []
+        highs_history: list[float] = []
+        lows_history: list[float] = []
 
         for i in range(1, len(dates)):
             dt = dates[i]
@@ -178,20 +187,24 @@ def run_backtest(params: dict, data: dict, capital: float) -> Result:
             prev_row = df.loc[prev_dt]
 
             open_p = float(row["Open"])
+            high_p = float(row["High"])
+            low_p = float(row["Low"])
             close_p = float(row["Close"])
             prev_close = float(prev_row["Close"])
             volume = float(row.get("Volume", 0))
 
             closes_history[ticker].append(prev_close)
             volumes_history[ticker].append(volume)
+            opens_history.append(open_p)
+            highs_history.append(high_p)
+            lows_history.append(low_p)
 
             if open_p <= 0 or close_p <= 0 or prev_close <= 0:
                 continue
 
             closes_list = closes_history[ticker]
-            volumes_history[ticker]
 
-            # Mean reversion signal
+            # === STEP 1: Mean Reversion signal (base signal) ===
             mr_period = params["mr_period"]
             mr_entry_z = params["mr_entry_z"]
 
@@ -201,18 +214,57 @@ def run_backtest(params: dict, data: dict, capital: float) -> Result:
             if mr_signal.direction == 0 or mr_signal.confidence < 0.3:
                 continue
 
-            # Trend align filter
+            d = mr_signal.direction
+
+            # === STEP 2: Trend align filter ===
             if params.get("trend_align", False):
                 if len(closes_list) >= 3:
-                    prev2 = closes_list[-3] if len(closes_list) >= 3 else closes_list[0]
-                    prev1 = closes_list[-2] if len(closes_list) >= 2 else closes_list[0]
+                    prev2 = closes_list[-3]
+                    prev1 = closes_list[-2]
                     curr = closes_list[-1]
-                    if mr_signal.direction > 0:
+                    if d > 0:
                         if not (curr > prev1 or prev1 > prev2):
                             continue
                     else:
                         if not (curr < prev1 or prev1 < prev2):
                             continue
+
+            # === STEP 3: Candlestick pattern confirmation ===
+            if params.get("require_candle_confirm", False):
+                if len(opens_history) >= 5:
+                    candle = analyze_candlesticks(
+                        opens_history[-5:], highs_history[-5:],
+                        lows_history[-5:], closes_list[-5:],
+                    )
+                    # Candle pattern must agree with MR direction
+                    if candle.signal_direction != 0 and candle.signal_direction != d:
+                        continue
+
+            # === STEP 4: Support/Resistance confirmation ===
+            if params.get("require_sr_confirm", False):
+                if len(closes_list) >= 20:
+                    sr = analyze_support_resistance(
+                        closes_list[-50:] if len(closes_list) >= 50 else closes_list,
+                        highs_history[-50:] if len(highs_history) >= 50 else highs_history,
+                        lows_history[-50:] if len(lows_history) >= 50 else lows_history,
+                    )
+                    # Buy only near support, sell only near resistance
+                    if d > 0 and sr.position not in ("near_support", "mid_range"):
+                        continue
+                    if d < 0 and sr.position not in ("near_resistance", "mid_range"):
+                        continue
+
+            # === STEP 5: Chart formation confirmation ===
+            if params.get("require_formation", False):
+                if len(closes_list) >= 20:
+                    formation = analyze_formations(
+                        closes_list[-30:] if len(closes_list) >= 30 else closes_list,
+                        highs_history[-30:] if len(highs_history) >= 30 else highs_history,
+                        lows_history[-30:] if len(lows_history) >= 30 else lows_history,
+                    )
+                    # Formation must agree with direction
+                    if formation.signal_direction != 0 and formation.signal_direction != d:
+                        continue
 
             # Position sizing
             risk_amt = equity * params["risk_pct"]
