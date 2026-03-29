@@ -1,7 +1,9 @@
-"""CITS Success Equation Solver
+"""CITS Success Equation Solver v2 -- Japanese Pro Trader Edition
 
-月利5%複利の成功方程式を解く。
-全パラメータを網羅的に分析し、月次安定リターンを最大化する設定を特定する。
+TESTA / CIS / BNF の手法をモデル化:
+  A. CIS Mode (Momentum):  20-day breakout + volume spike
+  B. BNF Mode (Mean Reversion): oversold bounce near support
+  C. Hybrid Mode: regime detection -> auto switch A/B
 
 Usage:
     python3 -m cits.scripts.solve_equation --capital 100000
@@ -20,42 +22,54 @@ from datetime import date, timedelta
 import pandas as pd
 import yfinance as yf
 
+from cits.core.signals.mean_reversion import compute_mean_reversion
 from cits.core.signals.candlestick_patterns import analyze_candlesticks
 from cits.core.signals.chart_formations import analyze_formations
-from cits.core.signals.mean_reversion import compute_mean_reversion
 from cits.core.signals.support_resistance import analyze_support_resistance
+
+try:
+    from cits.core.signals.ny_nikkei_correlation import compute_ny_nikkei_signal
+
+    HAS_NY_SIGNAL = True
+except ImportError:
+    HAS_NY_SIGNAL = False
+
+try:
+    from cits.core.signals.market_regime import detect_regime
+
+    HAS_REGIME = True
+except ImportError:
+    HAS_REGIME = False
 
 logging.basicConfig(level=logging.WARNING)
 
 # ---------------------------------------------------------------
-# ETFs (curated for mean reversion)
+# ETFs (curated for mean reversion + momentum)
 # ---------------------------------------------------------------
 TICKERS = [
-    "1357",  # 日経ダブルインバース
-    "2558",  # S&P500連動ETF
-    "1570",  # 日経レバレッジ2倍
-    "1540",  # 金ETF
-    "1489",  # 日経高配当50 ETF
-    "1321",  # 日経225 ETF
+    "1357",  # Nikkei Double Inverse
+    "2558",  # S&P500 ETF
+    "1570",  # Nikkei Leverage 2x
+    "1540",  # Gold ETF
+    "1489",  # Nikkei High Dividend 50 ETF
+    "1321",  # Nikkei 225 ETF
     "1306",  # TOPIX ETF
-    "2644",  # 半導体ETF
+    "2644",  # Semiconductor ETF
     "1343",  # REIT ETF
 ]
 
 # ---------------------------------------------------------------
-# Parameter grid (focused on monthly consistency)
+# Parameter grid -- CIS/BNF/Hybrid
 # ---------------------------------------------------------------
 GRID = {
-    "mr_entry_z": [1.0, 1.5, 2.0],
-    "mr_period": [5, 10, 20],
-    "trend_align": [True, False],
-    "require_candle_confirm": [True],        # ローソク足確認ON固定（実証済み）
-    "require_sr_confirm": [True],            # S/R確認ON固定（実証済み）
-    "require_formation": [False],
-    "hold_days": [3, 5, 10],               # スイング保持日数
-    "target_pct": [2.0, 3.0, 5.0],         # 利確ターゲット%
-    "stop_pct": [1.5, 2.0],
-    "risk_pct": [0.03, 0.05],
+    "mode": ["cis", "bnf", "hybrid"],
+    "stop_pct": [1.0, 1.5],
+    "target_pct": [3.0, 5.0],
+    "hold_days": [5, 10],
+    "risk_pct": [0.05],
+    "use_ny_signal": [True, False],
+    "use_volume_confirm": [True],
+    "use_chart_datsu": [True, False],       # チャート打法: ローソク足+S/R+形状確認
 }
 
 
@@ -65,22 +79,101 @@ GRID = {
 def fetch_data() -> dict[str, pd.DataFrame]:
     end = date.today()
     start = end - timedelta(days=500)
-    data = {}
-    symbols = [f"{t}.T" for t in TICKERS] + ["^VIX", "USDJPY=X", "^N225"]
-    print("データ取得中...")
+    data: dict[str, pd.DataFrame] = {}
+    symbols = [f"{t}.T" for t in TICKERS] + ["^VIX", "USDJPY=X", "^N225", "^GSPC"]
+    print("Fetching data...")
     for s in symbols:
         key = s.replace(".T", "") if s.endswith(".T") else s
         try:
-            df = yf.download(s, start=str(start), end=str(end),
-                             auto_adjust=True, progress=False)
+            df = yf.download(
+                s, start=str(start), end=str(end),
+                auto_adjust=True, progress=False,
+            )
             if df is not None and not df.empty:
                 if isinstance(df.columns, pd.MultiIndex):
                     df.columns = df.columns.get_level_values(0)
                 data[key] = df
-                print(f"  {key}: {len(df)}行")
+                print(f"  {key}: {len(df)} rows")
         except Exception as e:
-            print(f"  {key}: エラー {e}")
+            print(f"  {key}: error {e}")
     return data
+
+
+# ---------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------
+
+def _sma(values: list[float], period: int) -> float:
+    seg = values[-period:]
+    return sum(seg) / len(seg)
+
+
+def _rsi(closes: list[float], period: int = 14) -> float:
+    """Compute RSI from closing prices."""
+    if len(closes) < period + 1:
+        return 50.0  # neutral default
+    gains: list[float] = []
+    losses: list[float] = []
+    for i in range(-period, 0):
+        diff = closes[i] - closes[i - 1]
+        if diff > 0:
+            gains.append(diff)
+            losses.append(0.0)
+        else:
+            gains.append(0.0)
+            losses.append(abs(diff))
+    avg_gain = sum(gains) / period
+    avg_loss = sum(losses) / period
+    if avg_loss == 0:
+        return 100.0
+    rs = avg_gain / avg_loss
+    return 100.0 - (100.0 / (1.0 + rs))
+
+
+# ---------------------------------------------------------------
+# NY signal helper (uses previous day's ^GSPC and ^N225)
+# ---------------------------------------------------------------
+
+def _get_ny_signal_direction(
+    data: dict[str, pd.DataFrame],
+    current_date: pd.Timestamp,
+) -> int:
+    """Return +1 (bullish), -1 (bearish), or 0 (neutral) from NY-Nikkei signal."""
+    if not HAS_NY_SIGNAL:
+        return 0
+    sp_df = data.get("^GSPC")
+    nk_df = data.get("^N225")
+    if sp_df is None or nk_df is None:
+        return 0
+    sp_before = sp_df[sp_df.index <= current_date]
+    nk_before = nk_df[nk_df.index <= current_date]
+    if len(sp_before) < 22 or len(nk_before) < 22:
+        return 0
+    sp_closes = [float(x) for x in sp_before["Close"].iloc[-25:]]
+    nk_closes = [float(x) for x in nk_before["Close"].iloc[-25:]]
+    sig = compute_ny_nikkei_signal(sp_closes, nk_closes, lookback=20)
+    return sig.direction
+
+
+# ---------------------------------------------------------------
+# Regime helper
+# ---------------------------------------------------------------
+
+def _get_regime(
+    closes: list[float],
+    highs: list[float],
+    lows: list[float],
+) -> str:
+    """Return regime string: uptrend / downtrend / range / volatile."""
+    if not HAS_REGIME:
+        return "range"
+    if len(closes) < 51 or len(highs) < 51 or len(lows) < 51:
+        return "range"
+    try:
+        regime = detect_regime(closes[-60:], highs[-60:], lows[-60:])
+        return regime.regime
+    except (ValueError, Exception):
+        return "range"
 
 
 # ---------------------------------------------------------------
@@ -95,6 +188,7 @@ class Trade:
     exit: float
     size: int
     pnl: float
+    mode: str  # "cis" or "bnf"
 
 
 @dataclass
@@ -156,10 +250,57 @@ class Result:
         if mean_r <= 0:
             return 0
         std_r = statistics.stdev(returns) if len(returns) > 1 else 1
-        # Sharpe-like: mean / std, penalize negative months
         neg_months = sum(1 for r in returns if r < 0)
         penalty = 1 - (neg_months / len(returns)) * 0.5
         return (mean_r / (std_r + 0.01)) * penalty * (self.trade_count ** 0.3)
+
+    @property
+    def mode_breakdown(self) -> dict[str, int]:
+        """Count trades per mode (cis/bnf)."""
+        counts: dict[str, int] = defaultdict(int)
+        for t in self.trades:
+            counts[t.mode] += 1
+        return dict(counts)
+
+
+def _check_cis_entry(
+    closes: list[float],
+    volumes: list[float],
+    use_volume_confirm: bool,
+) -> bool:
+    """CIS mode: price breakout above 20-day high with volume spike."""
+    if len(closes) < 21 or len(volumes) < 21:
+        return False
+    current_price = closes[-1]
+    high_20 = max(closes[-21:-1])
+    if current_price <= high_20:
+        return False
+    if use_volume_confirm:
+        avg_vol = sum(volumes[-21:-1]) / 20
+        if avg_vol <= 0:
+            return False
+        if volumes[-1] < 1.5 * avg_vol:
+            return False
+    return True
+
+
+def _check_bnf_entry(
+    closes: list[float],
+) -> bool:
+    """BNF mode: oversold bounce near 20-day low. RSI<30 or z_score<-1.5."""
+    if len(closes) < 21:
+        return False
+    current_price = closes[-1]
+    low_20 = min(closes[-21:-1])
+    # Price near 20-day low (within 2%)
+    if current_price > low_20 * 1.02:
+        return False
+    # Check RSI or z-score
+    rsi_val = _rsi(closes, period=14)
+    mr = compute_mean_reversion(closes, period=20, entry_z=1.5)
+    if rsi_val < 30 or mr.z_score < -1.5:
+        return True
+    return False
 
 
 def run_backtest(params: dict, data: dict, capital: float) -> Result:
@@ -167,8 +308,7 @@ def run_backtest(params: dict, data: dict, capital: float) -> Result:
     lot_size = 1 if capital < 500_000 else 100
     equity = capital
     result = Result(params={**params, "capital": capital})
-    closes_history: dict[str, list] = defaultdict(list)
-    volumes_history: dict[str, list] = defaultdict(list)
+    mode = params["mode"]
 
     for ticker in TICKERS:
         df = data.get(ticker)
@@ -176,158 +316,201 @@ def run_backtest(params: dict, data: dict, capital: float) -> Result:
             continue
 
         dates = sorted(df.index)
-        closes_history[ticker] = []
-        volumes_history[ticker] = []
-        opens_history: list[float] = []
-        highs_history: list[float] = []
-        lows_history: list[float] = []
+        opens_hist: list[float] = []
+        closes_hist: list[float] = []
+        volumes_hist: list[float] = []
+        highs_hist: list[float] = []
+        lows_hist: list[float] = []
 
-        for i in range(1, len(dates)):
+        i = 0
+        while i < len(dates):
             dt = dates[i]
-            prev_dt = dates[i - 1]
             row = df.loc[dt]
-            prev_row = df.loc[prev_dt]
-
             open_p = float(row["Open"])
             high_p = float(row["High"])
             low_p = float(row["Low"])
             close_p = float(row["Close"])
-            prev_close = float(prev_row["Close"])
             volume = float(row.get("Volume", 0))
 
-            closes_history[ticker].append(prev_close)
-            volumes_history[ticker].append(volume)
-            opens_history.append(open_p)
-            highs_history.append(high_p)
-            lows_history.append(low_p)
+            opens_hist.append(open_p)
+            closes_hist.append(close_p)
+            volumes_hist.append(volume)
+            highs_hist.append(high_p)
+            lows_hist.append(low_p)
 
-            if open_p <= 0 or close_p <= 0 or prev_close <= 0:
+            if open_p <= 0 or close_p <= 0:
+                i += 1
                 continue
 
-            closes_list = closes_history[ticker]
-
-            # === STEP 1: Mean Reversion signal (base signal) ===
-            mr_period = params["mr_period"]
-            mr_entry_z = params["mr_entry_z"]
-
-            mr_signal = compute_mean_reversion(
-                closes_list, period=mr_period, entry_z=mr_entry_z,
-            )
-            if mr_signal.direction == 0 or mr_signal.confidence < 0.3:
+            # Need enough history
+            if len(closes_hist) < 22:
+                i += 1
                 continue
 
-            d = mr_signal.direction
+            # --- NY signal filter ---
+            ny_direction = 0
+            if params["use_ny_signal"]:
+                ny_direction = _get_ny_signal_direction(data, dt)
 
-            # === STEP 2: Trend align filter ===
-            if params.get("trend_align", False):
-                if len(closes_list) >= 3:
-                    prev2 = closes_list[-3]
-                    prev1 = closes_list[-2]
-                    curr = closes_list[-1]
-                    if d > 0:
-                        if not (curr > prev1 or prev1 > prev2):
-                            continue
-                    else:
-                        if not (curr < prev1 or prev1 < prev2):
-                            continue
+            # --- Determine active mode ---
+            active_mode = mode
+            if mode == "hybrid":
+                regime = _get_regime(closes_hist, highs_hist, lows_hist)
+                if regime == "uptrend":
+                    active_mode = "cis"
+                elif regime in ("downtrend", "range"):
+                    active_mode = "bnf"
+                else:
+                    # volatile -> stay out
+                    i += 1
+                    continue
 
-            # === STEP 3: Candlestick pattern confirmation ===
-            if params.get("require_candle_confirm", False):
-                if len(opens_history) >= 5:
+            # --- Entry check ---
+            entry_signal = False
+            direction = 0
+
+            if active_mode == "cis":
+                if _check_cis_entry(
+                    closes_hist, volumes_hist, params["use_volume_confirm"],
+                ):
+                    entry_signal = True
+                    direction = 1  # always long for momentum breakout
+                    # NY filter: must be bullish or no filter
+                    if params["use_ny_signal"] and ny_direction < 0:
+                        entry_signal = False
+
+            elif active_mode == "bnf":
+                if _check_bnf_entry(closes_hist):
+                    entry_signal = True
+                    direction = 1  # buy oversold bounce
+                    # NY filter: skip if NY strongly bearish
+                    if params["use_ny_signal"] and ny_direction < -0:
+                        # Allow neutral, block only explicit bearish
+                        if ny_direction < 0:
+                            entry_signal = False
+
+            if not entry_signal or direction == 0:
+                i += 1
+                continue
+
+            # --- チャート打法: ローソク足 + S/R + チャート形状 ---
+            if params.get("use_chart_datsu", False):
+                chart_pass = True
+
+                # ローソク足パターン確認
+                if len(opens_hist) >= 5:
                     candle = analyze_candlesticks(
-                        opens_history[-5:], highs_history[-5:],
-                        lows_history[-5:], closes_list[-5:],
+                        opens_hist[-5:], highs_hist[-5:],
+                        lows_hist[-5:], closes_hist[-5:],
                     )
-                    # Candle pattern must agree with MR direction
-                    if candle.signal_direction != 0 and candle.signal_direction != d:
-                        continue
+                    if candle.signal_direction != 0 and candle.signal_direction != direction:
+                        chart_pass = False
 
-            # === STEP 4: Support/Resistance confirmation ===
-            if params.get("require_sr_confirm", False):
-                if len(closes_list) >= 20:
+                # 支持線・抵抗線確認
+                if chart_pass and len(closes_hist) >= 20:
                     sr = analyze_support_resistance(
-                        closes_list[-50:] if len(closes_list) >= 50 else closes_list,
-                        highs_history[-50:] if len(highs_history) >= 50 else highs_history,
-                        lows_history[-50:] if len(lows_history) >= 50 else lows_history,
+                        closes_hist[-50:] if len(closes_hist) >= 50 else closes_hist,
+                        highs_hist[-50:] if len(highs_hist) >= 50 else highs_hist,
+                        lows_hist[-50:] if len(lows_hist) >= 50 else lows_hist,
                     )
-                    # Buy only near support, sell only near resistance
-                    if d > 0 and sr.position not in ("near_support", "mid_range"):
-                        continue
-                    if d < 0 and sr.position not in ("near_resistance", "mid_range"):
-                        continue
+                    if direction > 0 and sr.position == "near_resistance":
+                        chart_pass = False
+                    if direction < 0 and sr.position == "near_support":
+                        chart_pass = False
 
-            # === STEP 5: Chart formation confirmation ===
-            if params.get("require_formation", False):
-                if len(closes_list) >= 20:
+                # チャート形状確認
+                if chart_pass and len(closes_hist) >= 20:
                     formation = analyze_formations(
-                        closes_list[-30:] if len(closes_list) >= 30 else closes_list,
-                        highs_history[-30:] if len(highs_history) >= 30 else highs_history,
-                        lows_history[-30:] if len(lows_history) >= 30 else lows_history,
+                        closes_hist[-30:] if len(closes_hist) >= 30 else closes_hist,
+                        highs_hist[-30:] if len(highs_hist) >= 30 else highs_hist,
+                        lows_hist[-30:] if len(lows_hist) >= 30 else lows_hist,
                     )
-                    # Formation must agree with direction
-                    if formation.signal_direction != 0 and formation.signal_direction != d:
-                        continue
+                    if formation.signal_direction != 0 and formation.signal_direction != direction:
+                        chart_pass = False
 
-            # Position sizing
+                if not chart_pass:
+                    i += 1
+                    continue
+
+            # --- Position sizing (TESTA: fast stops, tight risk) ---
             risk_amt = equity * params["risk_pct"]
             stop_dist = open_p * params["stop_pct"] / 100
             if stop_dist <= 0:
+                i += 1
                 continue
             raw_size = int(risk_amt / stop_dist)
             size = max(raw_size // lot_size * lot_size, lot_size)
             notional = size * open_p
             if notional > equity * 0.9:
-                size = max(int(equity * 0.9 / open_p / lot_size) * lot_size, lot_size)
+                size = max(
+                    int(equity * 0.9 / open_p / lot_size) * lot_size, lot_size,
+                )
                 notional = size * open_p
             if notional > equity:
+                i += 1
                 continue
 
-            # === SWING TRADE: hold for N days, exit at target or stop ===
-            entry_price = open_p * (1 + cost_bps) if d > 0 else open_p * (1 - cost_bps)
-            target_pct = params.get("target_pct", 3.0)
-            target_price = entry_price * (1 + target_pct / 100) if d > 0 \
-                else entry_price * (1 - target_pct / 100)
-            stop_price = entry_price * (1 - params["stop_pct"] / 100) if d > 0 \
-                else entry_price * (1 + params["stop_pct"] / 100)
+            # --- Entry price ---
+            entry_price = open_p * (1 + cost_bps)
 
-            max_hold = params.get("hold_days", 5)
+            # --- Target and stop ---
+            target_pct = params["target_pct"]
+            if active_mode == "bnf":
+                # BNF: target = SMA20 (mean reversion target)
+                sma20 = _sma(closes_hist, 20)
+                target_price = max(sma20, entry_price * (1 + target_pct / 100))
+            else:
+                target_price = entry_price * (1 + target_pct / 100)
+            stop_price = entry_price * (1 - params["stop_pct"] / 100)
+
+            # --- Trailing stop for CIS mode ---
+            max_hold = params["hold_days"]
             exit_price = None
+            trailing_stop = stop_price
 
-            for j in range(i, min(i + max_hold, len(dates))):
+            for j in range(i + 1, min(i + max_hold + 1, len(dates))):
                 future_row = df.loc[dates[j]]
                 f_high = float(future_row["High"])
                 f_low = float(future_row["Low"])
 
-                if d > 0:  # Long
-                    if f_low <= stop_price:
-                        exit_price = stop_price
-                        break
-                    if f_high >= target_price:
-                        exit_price = target_price
-                        break
-                else:  # Short
-                    if f_high >= stop_price:
-                        exit_price = stop_price
-                        break
-                    if f_low <= target_price:
-                        exit_price = target_price
-                        break
+                # Check stop first (TESTA: fast stop loss)
+                if f_low <= trailing_stop:
+                    exit_price = trailing_stop
+                    break
+                # Check target
+                if f_high >= target_price:
+                    exit_price = target_price
+                    break
+                # CIS: update trailing stop
+                if active_mode == "cis":
+                    new_stop = f_high * (1 - params["stop_pct"] / 100)
+                    if new_stop > trailing_stop:
+                        trailing_stop = new_stop
 
             if exit_price is None:
-                last_idx = min(i + max_hold - 1, len(dates) - 1)
+                last_idx = min(i + max_hold, len(dates) - 1)
                 last_close = float(df.loc[dates[last_idx]]["Close"])
-                exit_price = last_close * (1 - cost_bps) if d > 0 \
-                    else last_close * (1 + cost_bps)
+                exit_price = last_close * (1 - cost_bps)
 
-            pnl = (exit_price - entry_price) * size if d > 0 \
-                else (entry_price - exit_price) * size
+            pnl = (exit_price - entry_price) * size
 
             trade_date = dt.strftime("%Y-%m-%d") if hasattr(dt, "strftime") else str(dt)
-            result.trades.append(Trade(ticker, trade_date, d, entry_price, exit_price, size, pnl))
+            result.trades.append(
+                Trade(ticker, trade_date, direction, entry_price, exit_price,
+                      size, pnl, active_mode),
+            )
             equity += pnl
 
             month = trade_date[:7]
             result.monthly_pnl[month] = result.monthly_pnl.get(month, 0) + pnl
+
+            # Skip ahead past hold period to avoid overlapping trades
+            i += max_hold + 1
+            continue
+
+            i += 1  # noqa: E501 -- unreachable but kept for clarity
+
+        # end while
 
     return result
 
@@ -338,7 +521,7 @@ def run_backtest(params: dict, data: dict, capital: float) -> Result:
 def solve(capital: float = 100_000):
     data = fetch_data()
     if len(data) < 3:
-        print("データ不足")
+        print("Insufficient data")
         return
 
     keys = list(GRID.keys())
@@ -347,70 +530,80 @@ def solve(capital: float = 100_000):
     total = len(combos)
 
     print(f"\n{'=' * 70}")
-    print("CITS 成功方程式ソルバー")
+    print("CITS Success Equation Solver v2 -- CIS/BNF/Hybrid")
     print(f"{'=' * 70}")
-    print(f"ETF: {len(TICKERS)}銘柄")
-    print(f"パラメータ: {total}パターン")
-    print(f"初期資金: ¥{capital:,.0f}")
-    print("目標: 月利5%複利")
+    print(f"ETFs: {len(TICKERS)} tickers")
+    print(f"Parameters: {total} combinations")
+    print(f"Initial capital: Y{capital:,.0f}")
+    print("Strategy modes: CIS (momentum) / BNF (mean-reversion) / Hybrid")
+    print(f"NY-Nikkei signal: {'available' if HAS_NY_SIGNAL else 'N/A'}")
+    print(f"Regime detection: {'available' if HAS_REGIME else 'N/A'}")
     print(f"{'=' * 70}\n")
 
     results: list[Result] = []
-    for i, combo in enumerate(combos):
-        if (i + 1) % 50 == 0 or i == 0:
-            print(f"  進捗: {i + 1}/{total}")
+    for idx, combo in enumerate(combos):
+        if (idx + 1) % 50 == 0 or idx == 0:
+            print(f"  Progress: {idx + 1}/{total}")
         params = dict(zip(keys, combo))
         r = run_backtest(params, data, capital)
         if r.trade_count >= 5:
             results.append(r)
 
-    # Sort by consistency score
     results.sort(key=lambda r: r.consistency_score, reverse=True)
 
     # === RESULTS ===
     print(f"\n{'=' * 70}")
-    print("成功方程式 — 解")
+    print("Success Equation -- Solutions")
     print(f"{'=' * 70}")
-    print(f"有効パターン: {len(results)} / {total}")
+    print(f"Valid patterns: {len(results)} / {total}")
 
     if not results:
-        print("取引が発生したパターンがありません")
+        print("No patterns generated enough trades")
         return
 
     # Top 10
-    print(f"\n{'─' * 90}")
-    print(f"{'#':>3} {'PnL':>9} {'PnL%':>6} {'取引':>5} {'勝率':>5} {'PF':>5} "
-          f"{'月勝率':>6} {'平均月利':>7} {'最悪月':>7} {'Score':>6}")
-    print(f"{'─' * 90}")
+    print(f"\n{'~' * 100}")
+    print(
+        f"{'#':>3} {'Mode':>6} {'PnL':>9} {'PnL%':>6} {'Trades':>6} {'WR':>5} "
+        f"{'PF':>5} {'MoWR':>6} {'AvgMo':>7} {'Worst':>7} {'Score':>6}",
+    )
+    print(f"{'~' * 100}")
 
     for rank, r in enumerate(results[:10], 1):
         pnl_pct = r.total_pnl / capital * 100
         pf = min(r.profit_factor, 99.9)
+        mode_label = r.params["mode"].upper()
         print(
-            f"{rank:>3} ¥{r.total_pnl:>+8,.0f} {pnl_pct:>+5.1f}% "
-            f"{r.trade_count:>4} {r.win_rate:>4.0f}% {pf:>5.2f} "
+            f"{rank:>3} {mode_label:>6} Y{r.total_pnl:>+8,.0f} {pnl_pct:>+5.1f}% "
+            f"{r.trade_count:>5} {r.win_rate:>4.0f}% {pf:>5.2f} "
             f"{r.monthly_win_rate:>5.0f}% {r.avg_monthly_return_pct:>+6.2f}% "
-            f"{r.worst_month_pct:>+6.2f}% {r.consistency_score:>5.1f}"
+            f"{r.worst_month_pct:>+6.2f}% {r.consistency_score:>5.1f}",
         )
 
     # Detailed #1
     best = results[0]
     print(f"\n{'=' * 70}")
-    print("★ 最適設定（成功方程式の解）")
+    mode_names = {"cis": "CIS (Momentum)", "bnf": "BNF (Mean Reversion)", "hybrid": "Hybrid"}
+    print(f"BEST: {mode_names.get(best.params['mode'], best.params['mode'])}")
     print(f"{'=' * 70}")
-    print(f"総損益: ¥{best.total_pnl:+,.0f} ({best.total_pnl / capital * 100:+.2f}%)")
-    print(f"取引数: {best.trade_count}  勝率: {best.win_rate:.1f}%  PF: {best.profit_factor:.2f}")
-    print(f"月次勝率: {best.monthly_win_rate:.0f}%")
-    print(f"平均月利: {best.avg_monthly_return_pct:+.2f}%")
-    print(f"最悪月: {best.worst_month_pct:+.2f}%")
+    print(f"Total PnL: Y{best.total_pnl:+,.0f} ({best.total_pnl / capital * 100:+.2f}%)")
+    print(f"Trades: {best.trade_count}  WinRate: {best.win_rate:.1f}%  PF: {best.profit_factor:.2f}")
+    print(f"Monthly WR: {best.monthly_win_rate:.0f}%")
+    print(f"Avg Monthly Return: {best.avg_monthly_return_pct:+.2f}%")
+    print(f"Worst Month: {best.worst_month_pct:+.2f}%")
 
-    print("\nパラメータ:")
+    # Mode breakdown
+    mb = best.mode_breakdown
+    if mb:
+        print(f"\nMode breakdown: {mb}")
+
+    print("\nParameters:")
     for k, v in best.params.items():
         if k != "capital":
             print(f"  {k}: {v}")
 
     # Ticker breakdown
-    print("\n銘柄別:")
+    print("\nTicker breakdown:")
     ticker_stats: dict[str, dict] = {}
     for t in best.trades:
         if t.ticker not in ticker_stats:
@@ -421,24 +614,27 @@ def solve(capital: float = 100_000):
             ticker_stats[t.ticker]["wins"] += 1
     for tk, ts in sorted(ticker_stats.items(), key=lambda x: x[1]["pnl"], reverse=True):
         wr = ts["wins"] / ts["count"] * 100 if ts["count"] > 0 else 0
-        print(f"  {tk}: {ts['count']}取引 勝率{wr:.0f}% PnL ¥{ts['pnl']:+,.0f}")
+        print(f"  {tk}: {ts['count']} trades WR {wr:.0f}% PnL Y{ts['pnl']:+,.0f}")
 
     # Monthly breakdown
-    print("\n月別損益:")
+    print("\nMonthly PnL:")
     compound = capital
-    print(f"  {'月':>8} {'取引':>4} {'損益':>10} {'月利':>7} {'複利残高':>12}")
-    print(f"  {'─' * 50}")
+    print(f"  {'Month':>8} {'Trades':>6} {'PnL':>10} {'Return':>7} {'Balance':>12}")
+    print(f"  {'~' * 50}")
     for m in sorted(best.monthly_pnl.keys()):
         pnl = best.monthly_pnl[m]
         monthly_trades = sum(1 for t in best.trades if t.date.startswith(m))
         ret_pct = pnl / capital * 100
         compound += compound * (pnl / capital)
-        hit = "★" if ret_pct >= 5.0 else ("○" if ret_pct > 0 else "×")
-        print(f"  {m} {monthly_trades:>4} ¥{pnl:>+9,.0f} {ret_pct:>+6.2f}% ¥{compound:>11,.0f} {hit}")
+        hit = "(*)" if ret_pct >= 5.0 else ("(+)" if ret_pct > 0 else "(-)")
+        print(
+            f"  {m} {monthly_trades:>6} Y{pnl:>+9,.0f} {ret_pct:>+6.2f}% "
+            f"Y{compound:>11,.0f} {hit}",
+        )
 
     # Compound growth simulation
     print(f"\n{'=' * 70}")
-    print("複利シミュレーション（月利{:.2f}%で継続した場合）".format(best.avg_monthly_return_pct))
+    print(f"Compound simulation (monthly {best.avg_monthly_return_pct:.2f}%)")
     print(f"{'=' * 70}")
     avg_mr = best.avg_monthly_return_pct / 100
     bal = capital
@@ -446,40 +642,42 @@ def solve(capital: float = 100_000):
         for _ in range(12):
             bal *= (1 + avg_mr)
         monthly_income = bal * avg_mr
-        print(f"  {year}年後: ¥{bal:>12,.0f}  月収: ¥{monthly_income:>10,.0f}")
+        print(f"  Year {year}: Y{bal:>12,.0f}  Monthly: Y{monthly_income:>10,.0f}")
         if monthly_income >= 500_000:
-            print("  → ★ 月収50万円達成!")
+            print("  -> Monthly income Y500K achieved!")
             break
 
     # Success equation summary
     print(f"\n{'=' * 70}")
-    print("成功の方程式")
+    print("Success Equation")
     print(f"{'=' * 70}")
+    tickers_used = ", ".join(tk for tk in ticker_stats.keys())
+    avg_trades_mo = best.trade_count / max(len(best.monthly_pnl), 1)
     print(f"""
-  戦略: ミーンリバージョン（ボリンジャーバンド）
-  銘柄: {', '.join(tk for tk in ticker_stats.keys())}
-  entry_z: {best.params['mr_entry_z']}σ (ボリンジャーバンド逸脱)
-  period: {best.params['mr_period']}日
-  trend_align: {best.params.get('trend_align', False)}
+  Mode: {mode_names.get(best.params['mode'], best.params['mode'])}
+  Tickers: {tickers_used}
   stop: {best.params['stop_pct']}%
+  target: {best.params['target_pct']}%
+  hold_days: {best.params['hold_days']}
   risk/trade: {best.params['risk_pct'] * 100}%
+  NY signal: {best.params['use_ny_signal']}
+  Volume confirm: {best.params['use_volume_confirm']}
 
-  勝率: {best.win_rate:.0f}% × PF: {best.profit_factor:.2f} × 月{best.trade_count / max(len(best.monthly_pnl), 1):.1f}回
-  = 月利{best.avg_monthly_return_pct:+.2f}%
-  = 複利8年で月収50万円ペース（月利5%の場合）
+  WinRate {best.win_rate:.0f}% x PF {best.profit_factor:.2f} x {avg_trades_mo:.1f} trades/mo
+  = Monthly {best.avg_monthly_return_pct:+.2f}%
 """)
 
     # Reality check
     target_gap = 5.0 - best.avg_monthly_return_pct
     if target_gap > 0:
-        print(f"  ⚠ 月利5%まであと{target_gap:.2f}%不足")
-        print("  → 資金増額 or レバレッジETF(1570)の比重UP で補完可能")
+        print(f"  Gap to 5%/mo target: {target_gap:.2f}%")
+        print("  -> Increase capital or leverage ETF (1570) weight")
     else:
-        print("  ★ 月利5%目標達成!")
+        print("  (*) Monthly 5% target achieved!")
 
 
 def main():
-    parser = argparse.ArgumentParser(description="CITS 成功方程式ソルバー")
+    parser = argparse.ArgumentParser(description="CITS Success Equation Solver v2")
     parser.add_argument("--capital", type=float, default=100_000)
     args = parser.parse_args()
     solve(capital=args.capital)
