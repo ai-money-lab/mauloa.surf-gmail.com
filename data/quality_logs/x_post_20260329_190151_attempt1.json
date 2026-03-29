@@ -1,0 +1,25 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 8,
+    "persona_match": 8,
+    "pillar_alignment": 9,
+    "usefulness": 5,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 0,
+    "cta_ending": 3,
+    "originality": 7,
+    "tone_balance": 8,
+    "problem_solving": 6
+  },
+  "total_score": 84,
+  "threshold": 84,
+  "result": "auto_approved",
+  "usefulness_summary": "実家の処分で兄弟間の意見が分かれた際の具体的な解決アプローチを提示している",
+  "rejection_reasons": [],
+  "improvement_suggestions": [],
+  "checked_at": "2026-03-29T19:01:51.356096+09:00"
+}
