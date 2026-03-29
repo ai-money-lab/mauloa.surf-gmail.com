@@ -11,6 +11,16 @@ import logging
 import os
 import sys
 from datetime import datetime
+from pathlib import Path
+
+# .envファイルの自動読み込み
+try:
+    from dotenv import load_dotenv
+    env_path = Path(__file__).parent / ".env"
+    if env_path.exists():
+        load_dotenv(env_path)
+except ImportError:
+    pass  # python-dotenvがなくても環境変数で直接設定可能
 
 logging.basicConfig(
     level=logging.INFO,
