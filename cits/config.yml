@@ -5,6 +5,7 @@ llm:
   analyst_temperature: 0.3
   debate_temperature: 0.4
   trader_temperature: 0.2
+  use_api: false                    # false=ルール版（API不要）、true=AI版（API消費）
 
 trading:
   mode: paper  # paper or live
