@@ -49,11 +49,13 @@ GRID = {
     "mr_entry_z": [1.0, 1.5, 2.0],
     "mr_period": [5, 10, 20],
     "trend_align": [True, False],
-    "require_candle_confirm": [True, False],  # ローソク足パターン確認
-    "require_sr_confirm": [True, False],      # 支持線・抵抗線確認
-    "require_formation": [True, False],       # チャート形状確認
-    "stop_pct": [1.5, 2.0, 3.0],
-    "risk_pct": [0.02, 0.03],
+    "require_candle_confirm": [True],        # ローソク足確認ON固定（実証済み）
+    "require_sr_confirm": [True],            # S/R確認ON固定（実証済み）
+    "require_formation": [False],
+    "hold_days": [3, 5, 10],               # スイング保持日数
+    "target_pct": [2.0, 3.0, 5.0],         # 利確ターゲット%
+    "stop_pct": [1.5, 2.0],
+    "risk_pct": [0.03, 0.05],
 }
 
 
@@ -280,19 +282,48 @@ def run_backtest(params: dict, data: dict, capital: float) -> Result:
             if notional > equity:
                 continue
 
-            # Execute
-            d = mr_signal.direction
-            if d > 0:
-                entry = open_p * (1 + cost_bps)
-                exit_ = close_p * (1 - cost_bps)
-                pnl = (exit_ - entry) * size
-            else:
-                entry = open_p * (1 - cost_bps)
-                exit_ = close_p * (1 + cost_bps)
-                pnl = (entry - exit_) * size
+            # === SWING TRADE: hold for N days, exit at target or stop ===
+            entry_price = open_p * (1 + cost_bps) if d > 0 else open_p * (1 - cost_bps)
+            target_pct = params.get("target_pct", 3.0)
+            target_price = entry_price * (1 + target_pct / 100) if d > 0 \
+                else entry_price * (1 - target_pct / 100)
+            stop_price = entry_price * (1 - params["stop_pct"] / 100) if d > 0 \
+                else entry_price * (1 + params["stop_pct"] / 100)
+
+            max_hold = params.get("hold_days", 5)
+            exit_price = None
+
+            for j in range(i, min(i + max_hold, len(dates))):
+                future_row = df.loc[dates[j]]
+                f_high = float(future_row["High"])
+                f_low = float(future_row["Low"])
+
+                if d > 0:  # Long
+                    if f_low <= stop_price:
+                        exit_price = stop_price
+                        break
+                    if f_high >= target_price:
+                        exit_price = target_price
+                        break
+                else:  # Short
+                    if f_high >= stop_price:
+                        exit_price = stop_price
+                        break
+                    if f_low <= target_price:
+                        exit_price = target_price
+                        break
+
+            if exit_price is None:
+                last_idx = min(i + max_hold - 1, len(dates) - 1)
+                last_close = float(df.loc[dates[last_idx]]["Close"])
+                exit_price = last_close * (1 - cost_bps) if d > 0 \
+                    else last_close * (1 + cost_bps)
+
+            pnl = (exit_price - entry_price) * size if d > 0 \
+                else (entry_price - exit_price) * size
 
             trade_date = dt.strftime("%Y-%m-%d") if hasattr(dt, "strftime") else str(dt)
-            result.trades.append(Trade(ticker, trade_date, d, entry, exit_, size, pnl))
+            result.trades.append(Trade(ticker, trade_date, d, entry_price, exit_price, size, pnl))
             equity += pnl
 
             month = trade_date[:7]
