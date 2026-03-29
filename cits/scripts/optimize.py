@@ -67,7 +67,7 @@ PARAM_GRID = {
 }
 
 # Reduce grid for initial fast sweep (most impactful params only)
-# BALANCED GRID: high WR (85%+) with enough trades (24+/year)
+# PRO GRID: PF2.0+ × monthly trades × curated ETFs
 FAST_GRID = {
     "im_confidence_threshold": [0.25],
     "pm_min_aligned": [2],
@@ -79,17 +79,17 @@ FAST_GRID = {
     "enable_mean_rev": [True],
     "enable_vol_breakout": [False],
     "enable_ensemble": [False],
-    "mr_entry_z": [1.5, 2.0, 2.5],
-    "mr_period": [10, 20],
-    "mr_require_volume": [True, False],
+    "mr_entry_z": [1.0, 1.5, 2.0],         # lower z = more trades
+    "mr_period": [5, 10, 15, 20],           # faster mean reversion
+    "mr_require_volume": [False],
     "mr_require_trend_align": [True, False],
-    "mr_require_ensemble": [True, False],
-    "ensemble_min_confirms": [3, 4, 5],
+    "mr_require_ensemble": [False],
+    "ensemble_min_confirms": [5],
     "trend_short_period": [5],
     "trend_long_period": [20],
     "vol_min_ratio": [1.0],
-    "risk_per_trade": [0.02],
-    "stop_distance_pct": [2.0, 3.0],
+    "risk_per_trade": [0.02, 0.03],
+    "stop_distance_pct": [1.5, 2.0, 3.0],
     "max_consecutive_losses": [10],
 }
 
@@ -98,17 +98,13 @@ FAST_GRID = {
 # Data fetcher
 # ---------------------------------------------------------------
 
-# ETF中心（個別株リスクなし、流動性高、¥10万で複数口購入可能）
+# 勝てるETFに集中 + 取引頻度重視
 TICKERS = [
-    "1321",  # 日経225連動ETF
-    "1306",  # TOPIX連動ETF
-    "1570",  # 日経レバレッジ2倍
-    "1357",  # 日経ダブルインバース
-    "1489",  # 日経高配当50 ETF
-    "2644",  # GX半導体ETF
-    "1343",  # REIT ETF
-    "1540",  # 金ETF
-    "2558",  # S&P500連動ETF
+    "1357",  # 日経ダブルインバース (100% WR実証)
+    "2558",  # S&P500連動ETF       (100% WR実証)
+    "1570",  # 日経レバレッジ2倍    (値動き大=MR向き)
+    "1540",  # 金ETF               (安全資産、MR向き)
+    "1489",  # 日経高配当50 ETF    (安定性高)
 ]
 MARKET_SYMBOLS = ["^VIX", "USDJPY=X", "^N225"]
 
@@ -651,18 +647,23 @@ def run_optimization(
         if result.trade_count > 0:
             results.append(result)
 
-    # Sort by: 1) win rate (100% first), 2) trade count (more trades better), 3) PnL
-    results.sort(key=lambda r: (r.win_rate, r.trade_count, r.total_pnl), reverse=True)
+    # Sort by: PF × sqrt(trade_count) — balances quality and quantity
+    def sort_score(r):
+        pf = min(r.profit_factor, 10.0)  # cap inf
+        return pf * (r.trade_count ** 0.5) if r.trade_count > 0 else 0
+    results.sort(key=sort_score, reverse=True)
 
-    # Separate 100% WR results
+    # Categorize
+    high_pf = [r for r in results if r.profit_factor >= 2.0 and r.trade_count >= 10]
     perfect = [r for r in results if r.win_rate == 100.0 and r.trade_count >= 1]
 
     # Display results
     print(f"\n{'=' * 60}")
-    print("CLAUDE 完全勝利パターン (勝率100%)")
+    print("CLAUDE TRADER — 最適戦略レポート")
     print(f"{'=' * 60}")
     print(f"テスト済み: {total:,}パターン")
     print(f"取引発生: {len(results):,}パターン")
+    print(f"★ PF2.0+かつ10取引以上: {len(high_pf)}パターン")
     print(f"★ 勝率100%: {len(perfect)}パターン")
 
     if not results:
