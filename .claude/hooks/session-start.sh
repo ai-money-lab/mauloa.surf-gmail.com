@@ -9,7 +9,7 @@ fi
 echo "=== SessionStart: 依存パッケージをインストール ==="
 
 # Python依存パッケージ
-echo "[1/3] pip install..."
+echo "[1/4] pip install..."
 pip install -r "$CLAUDE_PROJECT_DIR/requirements.txt" --quiet
 
 # CITS依存パッケージ (pytest環境にも追加)
@@ -34,5 +34,10 @@ npm install --no-fund --no-audit 2>/dev/null || true
 
 # PYTHONPATHをセッションに設定
 echo "export PYTHONPATH=\"$CLAUDE_PROJECT_DIR:\${PYTHONPATH:-}\"" >> "$CLAUDE_ENV_FILE"
+
+# CITS スモークテスト（バックグラウンド検証）
+echo "[CITS] スモークテスト実行..."
+cd "$CLAUDE_PROJECT_DIR"
+python cits/tests/smoke_test.py 2>/dev/null && echo "[CITS] ✅ スモークテスト完了" || echo "[CITS] ⚠ スモークテスト失敗"
 
 echo "=== SessionStart: 完了 ==="
