@@ -262,5 +262,17 @@
     "image_path": "",
     "has_image": false,
     "status": "posted"
+  },
+  {
+    "datetime": "2026-03-29T19:01:57.943348+09:00",
+    "tweet_id": "2038194946998436217",
+    "pillar": "1",
+    "pipeline": "P3",
+    "pattern": "A",
+    "text": "兄弟で実家を相続したとき\n話を進める前にやること3つ\n\n① みんなで現地を見に行く\n② 売却価格の目安を調べる\n③ それぞれの考えを聞く\n\n意外と②をやらずに話し合いして\n話がまとまらないことが多いです。\n\n相場を知ってから話すと\n現実的な選択肢が見えてきます",
+    "quality_score": 110,
+    "image_path": "",
+    "has_image": false,
+    "status": "posted"
   }
 ]

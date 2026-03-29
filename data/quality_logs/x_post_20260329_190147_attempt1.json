@@ -1,0 +1,25 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 8,
+    "persona_match": 9,
+    "pillar_alignment": 10,
+    "usefulness": 9,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 10,
+    "cta_ending": 8,
+    "originality": 8,
+    "tone_balance": 9,
+    "problem_solving": 9
+  },
+  "total_score": 110,
+  "threshold": 84,
+  "result": "auto_approved",
+  "usefulness_summary": "兄弟間での実家相続時に具体的に取るべき3つのステップを示し、話し合いを円滑に進める方法を提供している",
+  "rejection_reasons": [],
+  "improvement_suggestions": [],
+  "checked_at": "2026-03-29T19:01:47.434043+09:00"
+}
