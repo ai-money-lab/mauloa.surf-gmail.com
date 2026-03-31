@@ -286,5 +286,17 @@
     "image_path": "",
     "has_image": false,
     "status": "posted"
+  },
+  {
+    "datetime": "2026-03-31T19:34:24.791023+09:00",
+    "tweet_id": "2038927888410431498",
+    "pillar": "3",
+    "pipeline": "P3",
+    "pattern": "A",
+    "text": "退去のとき、余計なお金を払わないための3つのこと\n\n1. 入居時の写真を残しておく\n（最初からあった傷や汚れの証拠に）\n\n2. 普通に生活してできた汚れは借主負担じゃない\n（日焼けや家具の跡など）\n\n3. 見積もりに疑問があったら遠慮なく質問\n\n知ってるだけで全然違います",
+    "quality_score": 110,
+    "image_path": "",
+    "has_image": false,
+    "status": "posted"
   }
 ]
