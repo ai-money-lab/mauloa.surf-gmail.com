@@ -298,5 +298,17 @@
     "image_path": "",
     "has_image": false,
     "status": "posted"
+  },
+  {
+    "datetime": "2026-04-01T19:34:38.680625+09:00",
+    "tweet_id": "2039290334388125870",
+    "pillar": "1",
+    "pipeline": "P3",
+    "pattern": "A",
+    "text": "遠くの実家を相続したとき、まずやる3つのこと\n\n①名義変更だけは済ませる\n（売るかどうかは後で決めて大丈夫）\n\n②近所の不動産屋に相場だけ聞いてみる\n（査定じゃなくて雑談程度で）\n\n③定期的に風を通す人を見つける\n（親戚や近所の方にお願い）\n\n全部を一度にやろうとしなくて大丈夫です",
+    "quality_score": 108,
+    "image_path": "",
+    "has_image": false,
+    "status": "posted"
   }
 ]

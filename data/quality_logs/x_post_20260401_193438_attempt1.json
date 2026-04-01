@@ -1,0 +1,25 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 8,
+    "persona_match": 8,
+    "pillar_alignment": 9,
+    "usefulness": 6,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 0,
+    "cta_ending": 7,
+    "originality": 8,
+    "tone_balance": 8,
+    "problem_solving": 6
+  },
+  "total_score": 90,
+  "threshold": 84,
+  "result": "auto_approved",
+  "usefulness_summary": "相続した遠方の実家について、慌てて売却を決めずに名義変更後に時間をかけて検討するという選択肢を提示している",
+  "rejection_reasons": [],
+  "improvement_suggestions": [],
+  "checked_at": "2026-04-01T19:34:38.326822+09:00"
+}

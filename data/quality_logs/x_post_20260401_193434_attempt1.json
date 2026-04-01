@@ -1,0 +1,29 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 8,
+    "persona_match": 9,
+    "pillar_alignment": 9,
+    "usefulness": 9,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 0,
+    "cta_ending": 7,
+    "originality": 8,
+    "tone_balance": 9,
+    "problem_solving": 9
+  },
+  "total_score": 98,
+  "threshold": 84,
+  "result": "auto_approved",
+  "usefulness_summary": "遠方の実家相続で困っている人が、急がず名義変更から始めればよいという具体的な行動指針を得られる",
+  "rejection_reasons": [
+    "絶対不合格条件: 数字表現「本当に多いです」が柔らかいクッション表現なしに断定されている"
+  ],
+  "improvement_suggestions": [
+    "「本当に多いです」を「最近よく聞きます」「増えている印象です」「体感では多いです」等のニュアンス表現に変更する"
+  ],
+  "checked_at": "2026-04-01T19:34:34.493548+09:00"
+}
