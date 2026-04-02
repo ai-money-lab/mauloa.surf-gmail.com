@@ -310,5 +310,17 @@
     "image_path": "",
     "has_image": false,
     "status": "posted"
+  },
+  {
+    "datetime": "2026-04-02T19:30:41.640096+09:00",
+    "tweet_id": "2039651727855730721",
+    "pillar": "2",
+    "pipeline": "P3",
+    "pattern": "B",
+    "text": "先日、半年空室だった物件の相談を受けました\n\n「写真も綺麗に撮ったし、家賃も下げたのに決まらない」って\n\n3Dスキャンで部屋全体を撮影したところ、2週間で入居が決定\n\n写真だと伝わらない「住んでる感じ」が3Dだと分かるんですよね\n\n部屋探しの人も、実際に歩き回ってる気分になれるみたいです",
+    "quality_score": 106,
+    "image_path": "",
+    "has_image": false,
+    "status": "posted"
   }
 ]
