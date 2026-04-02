@@ -1,0 +1,30 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 9,
+    "persona_match": 8,
+    "pillar_alignment": 9,
+    "usefulness": 9,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 0,
+    "cta_ending": 8,
+    "originality": 8,
+    "tone_balance": 8,
+    "problem_solving": 9
+  },
+  "total_score": 98,
+  "threshold": 84,
+  "result": "auto_approved",
+  "usefulness_summary": "空室に困る大家さんが3Dスキャン導入を検討する際の判断材料になる",
+  "rejection_reasons": [
+    "絶対不合格条件: 確認できない数字・統計が断定的に使用されている（「最近は部屋探しの人も3D対応物件を探してる印象です」の部分で、統計的根拠のない断定表現が使用されている）"
+  ],
+  "improvement_suggestions": [
+    "「最近は部屋探しの人も3D対応物件を探してる印象です」を「体感では3D対応物件への関心が高まっているように感じます」等のより柔らかい表現に変更する",
+    "「印象です」ではなく「気がします」「感じています」等のより主観的なニュアンスを強調する表現を使用する"
+  ],
+  "checked_at": "2026-04-02T19:30:41.282745+09:00"
+}
