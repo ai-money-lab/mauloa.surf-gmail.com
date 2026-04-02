@@ -50,11 +50,44 @@ python -m cits.main --mode paper --ticker 7203
 - `TACHIBANA_USER_ID`: 立花証券ユーザーID（Stage 2）
 - `TACHIBANA_PASSWORD`: 立花証券パスワード（Stage 2）
 
-## 現在のステータス（2026-03-23更新）
+## 現在のステータス（2026-04-02更新）
 
-### 口座開設
-- 三菱UFJ eスマート証券: 申請済み、審査待ち（株式信用取引、特定口座源泉徴収あり）
-- 選択内容: NISA無し、FX口座あり
+### 口座・稼働状況
+- 三菱UFJ eスマート証券: **開設完了・入金完了・取引開始済み**
+- 口座番号: 02210320
+- APIユーザID: 10074931
+- APIパスワード(本番): `hiroki0380` / 注文パスワード: `hiroki0380HM`
+- ¥100,000で稼働中
+
+### 本番VPS (CITS専用)
+- IP: 150.66.3.162 (ABLENET 3VOBDHFE, Win1 SSD, 2GB RAM)
+- SSH: `ssh -i ~/.ssh/id_ed25519 Administrator@150.66.3.162`（鍵認証のみ）
+- CITSコード: `C:\cits\repo\cits\`
+- kabuStation: インストール済み・自動ログイン構築済み（5/5テスト成功）
+- 自動ログイン方式: Chrome MCP→noVNC→スタートメニュー→ログイン→Gmail 2FA自動取得
+- TightVNC: ポート5900稼働（パスワード: cits2026）
+- check_readiness: ALL PASS (21/21)
+
+### VPSタスクスケジューラ
+| タスク | 時間 | 内容 |
+|--------|------|------|
+| CITS_KabuStation_Start | 08:25 | kabuStation起動 |
+| CITS_LiveTrader | 08:30 | 朝CIS ETFスキャン |
+| CITS_Prefetch | 14:00 | データ収集 |
+| CITS_Afternoon | 15:00 | Kei-kun + ETFフォールバック |
+
+### Claude Code scheduled-task
+| タスク | スケジュール | 内容 |
+|--------|------------|------|
+| cits-kabu-login | 平日08:27 | kabuStation自動ログイン+2FA |
+
+### 絶対遵守ルール
+1. 損をするような発注は絶対禁止。購入根拠を明確にしてから発注
+2. 1分1秒の時間意識。全報告に現在時刻明記。dateコマンドで曜日確認必須
+3. 「問題ない」と嘘をつくな。実行結果のみが事実
+4. 自立しろ。毎回HIROKIに確認するな
+5. PLAN B/C必須。CIS式だけに依存しない
+6. 取引した日は mauloa.surf@gmail.com にレポートをメール送信
 
 ### 実装完了済み
 - 5段階パイプライン（Stage I〜V）: 完全動作
@@ -72,12 +105,12 @@ python -m cits.main --mode paper --ticker 7203
 - データソース: yfinance, J-Quants, JPX(空売り/信用/フロー), EDINET
 - テスト: 157件全パス、smoke 84/84パス
 
-### 口座開設後のTODO
-1. kabuステーションをPCにインストール・起動
-2. KABU_API_PASSWORD 環境変数を設定
-3. ペーパーモードで動作確認: `python -m cits.main --mode paper --ticker 7203`
-4. バックテスト実行（ローカルで）: `python -c "from cits.backtest.engine import BacktestEngine; ..."`
-5. 少額（¥10万）でライブ移行: config.yml の mode: paper → mode: live
+### 残TODO
+1. **全銘柄スキャン機能**追加（9 ETFだけでなく全銘柄。機会損失するな）
+2. **Kei-kun戦略**のバックテスト・検証・組み込み（林僚著・小林昌裕監修）
+3. **出口戦略の高度化**（チャート分析ベース、固定日数ではない）
+4. **取引日メールレポート** → mauloa.surf@gmail.com
+5. **VPS障害時ローカルPC自動起動**（モニターOFF・起動音なし）
 
 ### 追加コマンド
 ```bash
