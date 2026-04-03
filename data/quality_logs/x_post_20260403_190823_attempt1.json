@@ -1,0 +1,25 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 8,
+    "persona_match": 8,
+    "pillar_alignment": 9,
+    "usefulness": 9,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 10,
+    "cta_ending": 6,
+    "originality": 8,
+    "tone_balance": 8,
+    "problem_solving": 8
+  },
+  "total_score": 104,
+  "threshold": 84,
+  "result": "auto_approved",
+  "usefulness_summary": "不動産売却を検討している人が査定額と実際の売却価格の差を理解し、現実的な期待値を持てるようになる",
+  "rejection_reasons": [],
+  "improvement_suggestions": [],
+  "checked_at": "2026-04-03T19:08:23.967592+09:00"
+}
