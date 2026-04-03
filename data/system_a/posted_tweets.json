@@ -322,5 +322,17 @@
     "image_path": "",
     "has_image": false,
     "status": "posted"
+  },
+  {
+    "datetime": "2026-04-03T19:08:32.098539+09:00",
+    "tweet_id": "2040008539524014517",
+    "pillar": "1",
+    "pipeline": "P3",
+    "pattern": "A",
+    "text": "不動産の査定額より実際の売却価格が下がる3つの理由\n\n① 査定は理想的な条件での算出\n② 市場の需要と供給のタイミング\n③ 実際の内覧での印象の違い\n\n査定は「売れる可能性がある価格」で、実際は相場と買主の気持ち次第なんですよね。",
+    "quality_score": 104,
+    "image_path": "",
+    "has_image": false,
+    "status": "posted"
   }
 ]
