@@ -334,5 +334,17 @@
     "image_path": "",
     "has_image": false,
     "status": "posted"
+  },
+  {
+    "datetime": "2026-04-04T19:01:24.914004+09:00",
+    "tweet_id": "2040369118000398445",
+    "pillar": "2",
+    "pipeline": "P3",
+    "pattern": "B",
+    "text": "家賃を高く設定しすぎて\n3ヶ月空室が続いた物件があって | 1万円下げたら1週間で決まりました\n\n計算してみると\n・高い家賃で3ヶ月空室：0円\n・安い家賃ですぐ決まる：年間120万\n\n「高く貸したい」気持ちはわかるんですが\n空室リスクを考えると適正価格って大事ですね",
+    "quality_score": 108,
+    "image_path": "",
+    "has_image": false,
+    "status": "posted"
   }
 ]
