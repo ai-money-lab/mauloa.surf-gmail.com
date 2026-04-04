@@ -134,9 +134,9 @@ STYLE_DIRECTIVE = (
     "Clean, modern Japanese infographic style illustration. "
     "Soft warm color palette (beige, light blue, soft green). "
     "Minimalist design, no text overlay, no words, no letters. "
-    "Suitable for social media post. "
+    "Suitable for Instagram Reels. "
     "Friendly and approachable mood, NOT corporate or cold. "
-    "16:9 aspect ratio."
+    "9:16 vertical aspect ratio, 1080x1920 pixels."
 )
 
 

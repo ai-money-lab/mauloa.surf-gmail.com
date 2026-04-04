@@ -26,7 +26,7 @@ class TestBuildImagePrompt:
 
     def test_includes_style_directive(self):
         prompt = build_image_prompt("テスト", pillar=3)
-        assert "16:9" in prompt
+        assert "9:16" in prompt
         assert "no text overlay" in prompt
 
     def test_unknown_pillar_uses_default_hint(self):
