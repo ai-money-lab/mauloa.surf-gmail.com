@@ -6,7 +6,7 @@ from unittest.mock import patch, MagicMock
 
 import pytest
 
-from core.image_generator import ImageGenerator, build_image_prompt, PILLAR_VISUAL_HINTS
+from core.image_generator import ImageGenerator, build_image_prompt, PILLAR_VISUAL_HINTS, STYLE_DIRECTIVE_REEL
 
 
 # ===========================================================================
@@ -28,6 +28,17 @@ class TestBuildImagePrompt:
         prompt = build_image_prompt("テスト", pillar=3)
         assert "16:9" in prompt
         assert "no text overlay" in prompt
+
+    def test_ig_reel_uses_vertical_aspect_ratio(self):
+        prompt = build_image_prompt("テスト", pillar=1, platform="ig_reel")
+        assert "9:16" in prompt
+        assert "1080x1920" in prompt
+        assert "16:9" not in prompt
+
+    def test_x_platform_default(self):
+        prompt = build_image_prompt("テスト", pillar=1)
+        assert "16:9" in prompt
+        assert "9:16" not in prompt
 
     def test_unknown_pillar_uses_default_hint(self):
         prompt = build_image_prompt("テスト", pillar=99)

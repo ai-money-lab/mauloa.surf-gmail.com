@@ -102,20 +102,22 @@ class ImageGenerator:
             logger.error("Image generation failed: %s", e)
             return None
 
-    def generate_for_post(self, post_text: str, pillar: int = 0) -> str | None:
-        """Generate an image suitable for an X post.
+    def generate_for_post(self, post_text: str, pillar: int = 0, platform: str = "x") -> str | None:
+        """Generate an image suitable for a social media post.
 
         Creates an image prompt from the post text and pillar,
         then generates the image.
 
         Args:
-            post_text: The X post text content.
+            post_text: The post text content.
             pillar: The content pillar number (1-5).
+            platform: Target platform - "x" for X/Twitter (16:9),
+                      "ig_reel" for Instagram Reels (9:16).
 
         Returns:
             Path to the saved image file, or None on failure.
         """
-        image_prompt = build_image_prompt(post_text, pillar)
+        image_prompt = build_image_prompt(post_text, pillar, platform=platform)
         logger.info("Image prompt: %s", image_prompt[:100])
         return self.generate_image(image_prompt)
 
@@ -139,21 +141,38 @@ STYLE_DIRECTIVE = (
     "16:9 aspect ratio."
 )
 
+STYLE_DIRECTIVE_REEL = (
+    "Clean, modern Japanese infographic style illustration. "
+    "Soft warm color palette (beige, light blue, soft green). "
+    "Minimalist design, no text overlay, no words, no letters. "
+    "Suitable for Instagram Reel / vertical video thumbnail. "
+    "Friendly and approachable mood, NOT corporate or cold. "
+    "9:16 vertical aspect ratio (1080x1920)."
+)
 
-def build_image_prompt(post_text: str, pillar: int = 0) -> str:
+
+def build_image_prompt(post_text: str, pillar: int = 0, platform: str = "x") -> str:
     """Build an image generation prompt from post text and pillar.
 
     Extracts the core concept from the post and combines it with
     pillar-specific visual hints and a consistent style directive.
+
+    Args:
+        post_text: The post text content.
+        pillar: The content pillar number (1-5).
+        platform: Target platform - "x" for X/Twitter (16:9),
+                  "ig_reel" for Instagram Reels (9:16).
     """
     # Get pillar visual hint
     visual_hint = PILLAR_VISUAL_HINTS.get(pillar, "lifestyle, housing, daily life")
+
+    style = STYLE_DIRECTIVE_REEL if platform == "ig_reel" else STYLE_DIRECTIVE
 
     # Build the prompt
     prompt = (
         f"Create an illustration about: {visual_hint}. "
         f"The topic is related to: {post_text[:200]}. "
-        f"{STYLE_DIRECTIVE}"
+        f"{style}"
     )
 
     return prompt
