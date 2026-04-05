@@ -346,5 +346,17 @@
     "image_path": "",
     "has_image": false,
     "status": "posted"
+  },
+  {
+    "datetime": "2026-04-05T19:03:04.612384+09:00",
+    "tweet_id": "2040731941360869693",
+    "pillar": "3",
+    "pipeline": "P3",
+    "pattern": "A",
+    "text": "管理会社に連絡したのに\n返事がない、対応してくれない...\n\nそんなときは3つのことを\n意識して伝え直してみてください\n\n✓ 日時と写真で状況を記録\n✓「生活に支障がある」と具体的に\n✓ 書面（メールでもOK）で履歴を残す\n\n急に対応が変わることが多いです",
+    "quality_score": 99,
+    "image_path": "",
+    "has_image": false,
+    "status": "posted"
   }
 ]
