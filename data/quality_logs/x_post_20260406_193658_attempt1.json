@@ -1,0 +1,25 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 9,
+    "persona_match": 9,
+    "pillar_alignment": 10,
+    "usefulness": 9,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 10,
+    "cta_ending": 8,
+    "originality": 8,
+    "tone_balance": 9,
+    "problem_solving": 9
+  },
+  "total_score": 111,
+  "threshold": 84,
+  "result": "auto_approved",
+  "usefulness_summary": "住宅ローンを検討している人が安全な返済計画を立てるための具体的な判断基準を提供している",
+  "rejection_reasons": [],
+  "improvement_suggestions": [],
+  "checked_at": "2026-04-06T19:36:58.935876+09:00"
+}
