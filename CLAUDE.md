@@ -82,6 +82,48 @@ Claude Code のキーバインドをカスタマイズしたいときに使う�
 |---------|------|
 | `2026-03-03-nano-banana-setup.md` | nano-banana/floorplan-render スキル構築、岩崎402レンダリング、マネタイズエンジン |
 
+## AI美女コンテンツパイプライン
+
+`monetize/ai_beauty/` にAI美女マネタイズ用の制作パイプラインがある。
+Claudeに自然言語で指示するだけで、キャラ管理・画像生成・投稿スケジュールを操作できる。
+
+### 指示例
+
+```
+「キャラ一覧を見せて」
+「Mioのカフェ写真を5枚生成して」
+「Fanvue用のビキニセットを10枚作って」
+「FANZA用CG集をOLシチュで50枚作って」
+「Mioの今週のX投稿スケジュールを作って」
+「今日のタスクを見せて」
+「新キャラ Runaを追加して — 22歳、ショートヘア、ボーイッシュ」
+```
+
+### ファイル構成
+
+| ファイル | 役割 |
+|---------|------|
+| `monetize/ai_beauty/characters.yaml` | キャラクター定義（ペルソナ・ビジュアル・LoRA・プラットフォーム設定） |
+| `monetize/ai_beauty/prompts.yaml` | プロンプトテンプレート（SFW/NSFW・シチュ別・差分定義） |
+| `monetize/ai_beauty/pipeline.py` | 生成パイプライン（ComfyUI連携・nano-bananaフォールバック・スケジュール管理） |
+
+### 対象プラットフォーム
+
+| プラットフォーム | コンテンツ | 自動化レベル |
+|---|---|---|
+| **X（Twitter）** | SFW美女画像 + 投稿文 | プロンプト生成→手動投稿 |
+| **Instagram** | SFWグラビア + Reels | プロンプト生成→手動投稿 |
+| **Fanvue** | NSFW含むサブスクコンテンツ | セット生成→手動アップロード |
+| **FANZA同人** | R18 CG集（50-100枚） | プロンプト一括生成→ComfyUIで実行 |
+
+### キャラ一貫性の技術スタック
+
+```
+Layer 1: カスタムLoRA（体型・髪型・雰囲気）
+Layer 2: PuLID / IP-Adapter FaceID Plus v2（顔の特徴ロック）
+Layer 3: ControlNet OpenPose（ポーズ指定）
+```
+
 ## 推奨ワークフロー
 
 1. **実装** → コードを書く

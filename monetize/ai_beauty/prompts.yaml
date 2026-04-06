@@ -1,0 +1,150 @@
+# ═══════════════════════════════════════════════════════════
+# プロンプトテンプレート集
+# Claude に「グラビア系で10枚生成して」と指示するとここから選ばれる
+# ═══════════════════════════════════════════════════════════
+
+# ─── 品質ベース（全プロンプトに共通付与） ───
+quality_base:
+  positive: >-
+    (8k, RAW photo, best quality, masterpiece:1.2),
+    (realistic, photo-realistic:1.4),
+    sharp focus, depth of field, film grain,
+    professional photography, natural lighting,
+    detailed skin texture
+  negative: >-
+    (worst quality:1.4), (low quality:1.4),
+    painting, drawing, illustration, cartoon, anime,
+    CGI, 3d render, deformed, blurry, watermark,
+    bad hands, missing fingers, extra digits,
+    oversaturated, plastic skin, doll-like,
+    text, logo, signature
+
+# ─── シチュエーション別テンプレート ───
+templates:
+
+  # --- SNS日常系（SFW） ---
+  cafe:
+    category: "sfw"
+    description: "カフェでくつろぐ日常ショット"
+    positive: >-
+      {character_visual}, sitting at cozy cafe,
+      {character_style}, holding coffee cup,
+      warm interior lighting, bokeh background, 85mm lens,
+      gentle smile, looking at viewer
+    aspect_ratio: "3:4"
+    platforms: ["x_twitter", "instagram"]
+
+  street_snap:
+    category: "sfw"
+    description: "街中でのストリートスナップ"
+    positive: >-
+      {character_visual}, walking on urban street,
+      {character_style}, candid photography,
+      golden hour sunlight, shallow depth of field,
+      natural expression, hair blowing in wind
+    aspect_ratio: "3:4"
+    platforms: ["x_twitter", "instagram"]
+
+  morning_selfie:
+    category: "sfw"
+    description: "朝の自撮り風ショット"
+    positive: >-
+      {character_visual}, morning selfie in bedroom,
+      casual pajama, messy hair, natural morning light,
+      soft smile, smartphone POV, warm tones
+    aspect_ratio: "3:4"
+    platforms: ["x_twitter", "fanvue"]
+
+  office:
+    category: "sfw"
+    description: "オフィスでの仕事風ショット"
+    positive: >-
+      {character_visual}, office lady, pencil skirt, white blouse,
+      modern office interior, standing by window,
+      professional look, confident expression, 50mm lens
+    aspect_ratio: "3:4"
+    platforms: ["x_twitter", "instagram"]
+
+  # --- グラビア系（Fanvue向け） ---
+  bikini_beach:
+    category: "nsfw_soft"
+    description: "ビーチでのビキニショット"
+    positive: >-
+      {character_visual}, bikini, beach,
+      sunset golden hour, wet skin glistening,
+      standing in shallow water, looking over shoulder,
+      ocean background, warm color palette
+    aspect_ratio: "3:4"
+    platforms: ["fanvue"]
+
+  lingerie_bedroom:
+    category: "nsfw"
+    description: "ベッドルームでのランジェリーショット"
+    positive: >-
+      {character_visual}, lace lingerie,
+      bedroom, soft window light from side,
+      sitting on bed, intimate atmosphere,
+      gentle expression, warm tones, 85mm f/1.8
+    aspect_ratio: "3:4"
+    platforms: ["fanvue"]
+
+  fitness:
+    category: "sfw"
+    description: "フィットネス・スポーツウェア"
+    positive: >-
+      {character_visual}, sports bra and leggings,
+      gym interior, energetic pose,
+      athletic body, light sweat, determined expression,
+      professional sports photography
+    aspect_ratio: "3:4"
+    platforms: ["x_twitter", "instagram", "fanvue"]
+
+  # --- FANZA CG集向け ---
+  fanza_cover:
+    category: "r18"
+    description: "FANZA CG集の表紙用"
+    positive: >-
+      {character_visual}, {situation},
+      extremely detailed, 8k wallpaper,
+      cinematic lighting, dramatic composition,
+      looking at viewer, alluring expression
+    aspect_ratio: "1:1.4"
+    platforms: ["fanza"]
+
+  fanza_scene:
+    category: "r18"
+    description: "FANZA CG集の本文用"
+    positive: >-
+      {character_visual}, {situation},
+      detailed skin texture, realistic lighting,
+      emotional expression, intimate atmosphere,
+      high detail, sharp focus
+    aspect_ratio: "3:4"
+    platforms: ["fanza"]
+
+# ─── 差分（バリエーション）定義 ───
+variations:
+  expressions:
+    - "gentle smile"
+    - "shy blush, looking away"
+    - "surprised expression, open mouth"
+    - "seductive gaze, half-closed eyes"
+    - "laughing, eyes closed"
+    - "serious expression, looking at viewer"
+
+  camera_angles:
+    - "close-up face portrait"
+    - "upper body shot"
+    - "full body shot"
+    - "from above, looking up at camera"
+    - "from below, looking down"
+    - "side profile"
+    - "from behind, looking over shoulder"
+
+  lighting:
+    - "natural window light"
+    - "golden hour sunset"
+    - "studio softbox lighting"
+    - "neon light, cyberpunk atmosphere"
+    - "candlelight, warm intimate"
+    - "overcast soft diffused light"

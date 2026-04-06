@@ -1,0 +1,73 @@
+# ═══════════════════════════════════════════════════════════
+# AI美女キャラクター定義
+# Claude に「キャラ一覧を見せて」「Mioで投稿を作って」と指示できる
+# ═══════════════════════════════════════════════════════════
+
+characters:
+
+  mio:
+    name: "Mio"
+    name_jp: "ミオ"
+    age: 24
+    personality: "明るくて甘えん坊。カフェ巡りが好き。ちょっとドジ。"
+    visual:
+      ethnicity: "japanese"
+      hair: "long straight black hair"
+      eyes: "dark brown, large"
+      body_type: "slim, 162cm"
+      distinguishing: "small mole under left eye"
+    default_style: "casual chic, earth tones"
+    lora:
+      model_path: ""  # LoRA学習後にパスを設定
+      weight: 0.7
+    ip_adapter:
+      reference_image: ""  # 参照画像パスを設定
+      weight: 0.8
+    platforms:
+      fanvue:
+        enabled: true
+        subscription_price_usd: 9.99
+        content_rating: "nsfw"
+      x_twitter:
+        enabled: true
+        handle: ""  # @ハンドルを設定
+        content_rating: "sfw"
+      instagram:
+        enabled: true
+        handle: ""
+        content_rating: "sfw"
+      fanza:
+        enabled: true
+        circle_name: ""  # サークル名を設定
+        content_rating: "r18"
+    hashtags:
+      sfw: ["#AI美女", "#AIグラビア", "#AIart", "#AIgirl", "#AI写真"]
+      nsfw: ["#AIbeauty", "#virtualmodel", "#aigirlfriend"]
+
+  # 追加キャラはこのフォーマットで定義
+  # runa:
+  #   name: "Runa"
+  #   ...
+
+# ─── グローバル設定 ───
+defaults:
+  image_size: "1K"
+  aspect_ratio: "3:4"
+  upscale: true
+  upscale_factor: 2
+  watermark: false
+
+# ─── ComfyUI接続設定 ───
+comfyui:
+  host: "127.0.0.1"
+  port: 8188
+  workflows_dir: "monetize/ai_beauty/workflows"
+
+# ─── LoRA学習設定 ───
+lora_training:
+  base_model: "juggernaut_xl_v10"
+  training_images_min: 15
+  training_images_max: 30
+  steps: 1500
+  learning_rate: 0.0001
+  output_dir: "data/ai_beauty/loras"
