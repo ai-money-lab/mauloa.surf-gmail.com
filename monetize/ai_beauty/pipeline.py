@@ -214,6 +214,10 @@ class ContentPipeline:
         else:
             prompts = self.prompt_builder.build_variations(char_id, template_id, count, situation)
 
+        # ComfyUI連携用にキャラIDをメタデータとして付与
+        for p in prompts:
+            p["_char_id"] = char_id
+
         # プロンプトをJSONで保存（再現性のため）
         prompts_file = output_dir / "prompts.json"
         prompts_file.write_text(
@@ -255,23 +259,57 @@ class ContentPipeline:
 
     def _generate_via_comfyui(self, prompts: list[dict], output_dir: Path) -> list[Path]:
         """ComfyUI API経由で画像生成."""
+        from monetize.ai_beauty.comfyui_client import (
+            ComfyUIClient, build_sdxl_workflow, build_flux_workflow, aspect_to_size,
+        )
+
         host = self.comfyui_config.get("host", "127.0.0.1")
         port = self.comfyui_config.get("port", 8188)
+        client = ComfyUIClient(host, port)
 
-        # ComfyUIが起動しているかチェック
-        try:
-            import urllib.request
-            url = f"http://{host}:{port}/system_stats"
-            req = urllib.request.Request(url, method="GET")
-            urllib.request.urlopen(req, timeout=3)
-        except Exception:
+        if not client.is_available():
             logger.info("ComfyUI未起動。nano-bananaにフォールバック")
             return []
 
-        # TODO: ComfyUI APIワークフロー実行の実装
-        # 現時点ではプロンプトとワークフローJSONをキューに入れる仕組みを構築予定
-        logger.info("ComfyUI APIでの生成は今後実装予定")
-        return []
+        # キャラのLoRA情報を取得
+        char_id = prompts[0].get("_char_id", "") if prompts else ""
+        char = self.char_manager.get_character(char_id) if char_id else None
+        lora_name = ""
+        lora_weight = 0.7
+        if char:
+            lora_name = char.get("lora", {}).get("model_path", "")
+            lora_weight = char.get("lora", {}).get("weight", 0.7)
+
+        # 使用モデルを決定（FLUXが利用可能ならFLUX、なければSDXL）
+        use_flux = self.comfyui_config.get("prefer_flux", False)
+
+        workflows = []
+        for prompt_data in prompts:
+            positive = prompt_data.get("positive", "")
+            negative = prompt_data.get("negative", "")
+            aspect_ratio = prompt_data.get("aspect_ratio", "3:4")
+            w, h = aspect_to_size(aspect_ratio)
+
+            if use_flux:
+                wf = build_flux_workflow(
+                    positive_prompt=positive,
+                    width=w, height=h,
+                )
+            else:
+                wf = build_sdxl_workflow(
+                    positive_prompt=positive,
+                    negative_prompt=negative,
+                    width=w, height=h,
+                    lora_name=lora_name,
+                    lora_weight=lora_weight,
+                )
+            workflows.append(wf)
+
+        return client.batch_generate(
+            workflows=workflows,
+            output_dir=output_dir,
+            filename_prefix="img",
+        )
 
     def _generate_via_nano_banana(self, prompts: list[dict], output_dir: Path) -> list[Path]:
         """nano-banana CLI経由で画像生成（フォールバック）."""
@@ -305,9 +343,9 @@ class ContentPipeline:
     ) -> dict:
         """Fanvue投稿用のコンテンツセットを生成.
 
-        SFWティーザー3枚 + NSFW本体を生成。
+        SNSティーザー（SFW）3枚 + Fanvue本体を生成。
+        キャプションも自動生成。
         """
-        # テーマからテンプレートを自動選択
         template_map = {
             "casual": "street_snap",
             "cafe": "cafe",
@@ -319,11 +357,46 @@ class ContentPipeline:
         }
         template_id = template_map.get(theme, "cafe")
 
-        return self.generate_content(
+        # メイン画像を生成
+        result = self.generate_content(
             char_id=char_id,
             template_id=template_id,
             count=count,
         )
+
+        # SNSティーザー用に別途SFW画像を生成（テーマがNSFWの場合）
+        sfw_teaser_templates = ["cafe", "street_snap", "morning_selfie"]
+        nsfw_themes = {"bikini", "lingerie"}
+        if theme in nsfw_themes and result.get("generated_count", 0) > 0:
+            teaser_template = sfw_teaser_templates[hash(result["batch_id"]) % len(sfw_teaser_templates)]
+            teaser_result = self.generate_content(
+                char_id=char_id,
+                template_id=teaser_template,
+                count=3,
+            )
+            result["sfw_teasers"] = teaser_result.get("files", [])
+
+        # キャプション自動生成
+        try:
+            from monetize.ai_beauty.caption_generator import CaptionGenerator
+            caption_gen = CaptionGenerator()
+            char = self.char_manager.get_character(char_id)
+            personality = char.get("personality", "") if char else ""
+            char_name = char.get("name", char_id) if char else char_id
+
+            result["captions"] = {
+                "fanvue": caption_gen.generate_fanvue_caption(
+                    char_name, personality, theme, is_ppv=False, count=1,
+                ),
+                "x_twitter": caption_gen.generate_x_caption(
+                    char_name, personality, theme, lang="ja", count=1,
+                ),
+            }
+        except Exception as e:
+            logger.warning("キャプション生成スキップ: %s", e)
+            result["captions"] = {}
+
+        return result
 
     def generate_fanza_cg_set(
         self,
@@ -332,39 +405,71 @@ class ContentPipeline:
         cover_count: int = 3,
         scene_count: int = 50,
     ) -> dict:
-        """FANZA同人CG集を生成.
+        """FANZA同人CG集を生成（実画像生成込み）.
 
-        表紙候補（cover_count枚）+ 本文シーン（scene_count枚）
+        表紙候補（cover_count枚）+ 本文シーン（scene_count枚）+ 紹介文
         """
         batch_id = f"fanza_{char_id}_{datetime.now(JST).strftime('%Y%m%d_%H%M%S')}"
         output_dir = DATA_DIR / "generated" / char_id / batch_id
-        output_dir.mkdir(parents=True, exist_ok=True)
 
-        results = {"covers": [], "scenes": [], "batch_id": batch_id, "output_dir": str(output_dir)}
+        results = {
+            "covers": [], "scenes": [], "cover_files": [], "scene_files": [],
+            "batch_id": batch_id, "output_dir": str(output_dir),
+        }
 
         # 表紙候補を生成
+        cover_dir = output_dir / "covers"
         cover_prompts = self.prompt_builder.build_variations(
             char_id, "fanza_cover", cover_count, situation,
         )
-        for i, p in enumerate(cover_prompts):
-            p_file = output_dir / "covers"
-            p_file.mkdir(exist_ok=True)
-            # 保存のみ（実際の生成はComfyUI/nano-banana）
-            results["covers"].append(p)
+        for p in cover_prompts:
+            p["_char_id"] = char_id
+        results["covers"] = cover_prompts
+
+        cover_files = self._generate_via_comfyui(cover_prompts, cover_dir)
+        if not cover_files:
+            cover_files = self._generate_via_nano_banana(cover_prompts, cover_dir)
+        results["cover_files"] = [str(f) for f in cover_files]
 
         # 本文シーンを生成
+        scene_dir = output_dir / "scenes"
         scene_prompts = self.prompt_builder.build_variations(
             char_id, "fanza_scene", scene_count, situation,
         )
-        for i, p in enumerate(scene_prompts):
-            results["scenes"].append(p)
+        for p in scene_prompts:
+            p["_char_id"] = char_id
+        results["scenes"] = scene_prompts
 
-        # プロンプトを保存
-        prompts_file = output_dir / "all_prompts.json"
+        scene_files = self._generate_via_comfyui(scene_prompts, scene_dir)
+        if not scene_files:
+            scene_files = self._generate_via_nano_banana(scene_prompts, scene_dir)
+        results["scene_files"] = [str(f) for f in scene_files]
+
+        # 作品紹介文を自動生成
+        try:
+            from monetize.ai_beauty.caption_generator import CaptionGenerator
+            caption_gen = CaptionGenerator()
+            char = self.char_manager.get_character(char_id)
+            char_name = char.get("name", char_id) if char else char_id
+            total_images = len(cover_files) + len(scene_files)
+            results["description"] = caption_gen.generate_fanza_description(
+                char_name, situation, total_images,
+            )
+        except Exception as e:
+            logger.warning("FANZA紹介文生成スキップ: %s", e)
+
+        # プロンプト+結果を保存
+        prompts_file = output_dir / "batch_record.json"
         prompts_file.write_text(
-            json.dumps(results, ensure_ascii=False, indent=2),
+            json.dumps(results, ensure_ascii=False, indent=2, default=str),
             encoding="utf-8",
         )
+        self._append_log({
+            "batch_id": batch_id, "type": "fanza_cg_set",
+            "character": char_id, "situation": situation,
+            "cover_count": len(cover_files), "scene_count": len(scene_files),
+            "created_at": datetime.now(JST).isoformat(),
+        })
 
         return results
 
@@ -532,18 +637,85 @@ def generate_fanvue(char_id: str, theme: str = "casual", count: int = 10) -> str
 
 
 def generate_fanza(char_id: str, situation: str, scene_count: int = 50) -> str:
-    """FANZA CG集を生成."""
+    """FANZA CG集を生成（画像+紹介文）."""
     pipeline = ContentPipeline()
     result = pipeline.generate_fanza_cg_set(char_id, situation, scene_count=scene_count)
+    desc = result.get("description", {})
+    title = desc.get("title", "（未生成）") if desc else "（未生成）"
     return (
-        f"## FANZA CG集プロンプト生成完了\n\n"
+        f"## FANZA CG集 生成完了\n\n"
         f"- バッチID: `{result['batch_id']}`\n"
         f"- シチュエーション: {situation}\n"
-        f"- 表紙候補: {len(result['covers'])}枚\n"
-        f"- 本文シーン: {len(result['scenes'])}枚\n"
-        f"- 出力先: `{result['output_dir']}`\n\n"
-        f"ComfyUIでワークフローを実行してください。"
+        f"- 表紙: {len(result.get('cover_files', []))}枚\n"
+        f"- 本文: {len(result.get('scene_files', []))}枚\n"
+        f"- タイトル案: {title}\n"
+        f"- 出力先: `{result['output_dir']}`"
     )
+
+
+def generate_captions(char_id: str, platform: str, situation: str, count: int = 3) -> str:
+    """指定プラットフォーム向けキャプションを生成."""
+    from monetize.ai_beauty.caption_generator import CaptionGenerator
+    caption_gen = CaptionGenerator()
+    char_mgr = CharacterManager()
+    char = char_mgr.get_character(char_id)
+    if not char:
+        return f"キャラ '{char_id}' が見つかりません"
+    name = char.get("name", char_id)
+    personality = char.get("personality", "")
+
+    if platform == "x_twitter":
+        results = caption_gen.generate_x_caption(name, personality, situation, count=count)
+    elif platform == "instagram":
+        results = caption_gen.generate_instagram_caption(name, personality, situation, lang="both", count=count)
+    elif platform == "fanvue":
+        results = caption_gen.generate_fanvue_caption(name, personality, situation, count=count)
+    else:
+        return f"未対応プラットフォーム: {platform}"
+
+    lines = [f"## {name} の {platform} キャプション（{count}本）\n"]
+    for i, r in enumerate(results, 1):
+        text = r.get("text") or r.get("caption") or str(r)
+        lines.append(f"### {i}.\n{text}\n")
+    return "\n".join(lines)
+
+
+def show_system_status() -> str:
+    """システム全体のステータスを表示."""
+    from monetize.ai_beauty.comfyui_client import ComfyUIClient
+    char_mgr = CharacterManager()
+    chars = char_mgr.list_characters()
+
+    lines = ["## AI美女パイプライン ステータス\n"]
+
+    # ComfyUI接続
+    config = _load_yaml(BEAUTY_DIR / "characters.yaml").get("comfyui", {})
+    client = ComfyUIClient(config.get("host", "127.0.0.1"), config.get("port", 8188))
+    if client.is_available():
+        stats = client.get_system_stats()
+        gpu_info = stats.get("devices", [{}])[0] if stats.get("devices") else {}
+        vram_total = gpu_info.get("vram_total", 0) / (1024**3)
+        vram_free = gpu_info.get("vram_free", 0) / (1024**3)
+        lines.append(f"- ComfyUI: **接続済み** | VRAM: {vram_free:.1f}/{vram_total:.1f} GB")
+    else:
+        lines.append("- ComfyUI: **未接続**（nano-bananaフォールバック）")
+
+    # キャラクター
+    lines.append(f"- キャラクター: **{len(chars)}体**登録済み")
+    for c in chars:
+        lora = "LoRA済" if c["has_lora"] else "未学習"
+        lines.append(f"  - {c['name']}: {lora}")
+
+    # 生成ログ
+    log_dir = DATA_DIR / "logs"
+    if log_dir.exists():
+        log_files = sorted(log_dir.glob("*.jsonl"))
+        if log_files:
+            latest = log_files[-1]
+            line_count = sum(1 for _ in open(latest, encoding="utf-8"))
+            lines.append(f"- 今月の生成ログ: **{line_count}バッチ**")
+
+    return "\n".join(lines)
 
 
 def show_schedule(char_id: str) -> str:

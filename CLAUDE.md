@@ -97,6 +97,10 @@ Claudeに自然言語で指示するだけで、キャラ管理・画像生成�
 「Mioの今週のX投稿スケジュールを作って」
 「今日のタスクを見せて」
 「新キャラ Runaを追加して — 22歳、ショートヘア、ボーイッシュ」
+「MioのX投稿キャプションを5本作って」
+「Fanvue用のキャプションを英語で書いて」
+「FANZA用の作品紹介文を書いて」
+「システムステータスを見せて」
 ```
 
 ### ファイル構成
@@ -106,6 +110,8 @@ Claudeに自然言語で指示するだけで、キャラ管理・画像生成�
 | `monetize/ai_beauty/characters.yaml` | キャラクター定義（ペルソナ・ビジュアル・LoRA・プラットフォーム設定） |
 | `monetize/ai_beauty/prompts.yaml` | プロンプトテンプレート（SFW/NSFW・シチュ別・差分定義） |
 | `monetize/ai_beauty/pipeline.py` | 生成パイプライン（ComfyUI連携・nano-bananaフォールバック・スケジュール管理） |
+| `monetize/ai_beauty/comfyui_client.py` | ComfyUI API クライアント（ワークフロー実行・バッチ処理・SDXL/FLUX対応） |
+| `monetize/ai_beauty/caption_generator.py` | SNS投稿文自動生成（X/Instagram/Fanvue/FANZA紹介文） |
 
 ### 対象プラットフォーム
 
