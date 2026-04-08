@@ -72,9 +72,9 @@ python -m cits.main --mode paper --ticker 7203
 | タスク | 時間 | 内容 |
 |--------|------|------|
 | CITS_KabuStation_Start | 08:25 | kabuStation起動 |
-| CITS_LiveTrader | 08:30 | 朝CIS ETFスキャン |
-| CITS_Prefetch | 14:00 | データ収集 |
-| CITS_Afternoon | 15:00 | Kei-kun + ETFフォールバック |
+| CITS_LiveTrader | 08:30 | 朝CIS+全銘柄スキャン |
+| CITS_Prefetch | 14:00 | 全銘柄データ収集 |
+| CITS_Afternoon | 15:20 | CIS+KEI全銘柄スキャン+メールレポート |
 
 ### Claude Code scheduled-task
 | タスク | スケジュール | 内容 |
