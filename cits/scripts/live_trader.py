@@ -138,6 +138,147 @@ CIS_PARAMS, KEI_PARAMS = _load_strategy_params()
 MAX_DAILY_LOSS_PCT = 3.0
 MAX_POSITIONS = 3
 MAX_SINGLE_POSITION_PCT = 50  # 300K * 50% = 150K max per position
+GAP_DOWN_BLOCK_PCT = 2.0      # 前日比-2%以上のギャップダウンで買い停止
+
+
+# ---------------------------------------------------------------
+# Risk guard: 日次損失上限チェック
+# ---------------------------------------------------------------
+def _check_daily_loss_limit(capital: float) -> bool:
+    """今日の実現損失がMAX_DAILY_LOSS_PCTを超えていたらTrueを返す."""
+    today_str = date.today().strftime("%Y-%m-%d")
+    daily_pnl = 0.0
+    if LOG_DIR.exists():
+        for f in LOG_DIR.glob(f"trades_{today_str}_*.json"):
+            try:
+                log = json.loads(f.read_text(encoding="utf-8"))
+                for ex in log.get("executions", []):
+                    if ex.get("status") == "filled":
+                        daily_pnl += ex.get("pnl", 0)
+            except Exception:
+                pass
+    if daily_pnl < 0 and abs(daily_pnl) > capital * MAX_DAILY_LOSS_PCT / 100:
+        logger.error(
+            "DAILY LOSS LIMIT: Y%.0f loss (%.1f%%) > limit %.1f%%. TRADING HALTED.",
+            abs(daily_pnl), abs(daily_pnl) / capital * 100, MAX_DAILY_LOSS_PCT,
+        )
+        return True
+    return False
+
+
+# ---------------------------------------------------------------
+# Risk guard: 祝日判定（日本市場）
+# ---------------------------------------------------------------
+_JP_HOLIDAYS_2026 = {
+    "2026-01-01", "2026-01-02", "2026-01-03", "2026-01-12",
+    "2026-02-11", "2026-02-23", "2026-03-20",
+    "2026-04-29", "2026-05-03", "2026-05-04", "2026-05-05", "2026-05-06",
+    "2026-07-20", "2026-08-11", "2026-09-21", "2026-09-22", "2026-09-23",
+    "2026-10-12", "2026-11-03", "2026-11-23",
+    "2026-12-31",
+}
+
+
+def _is_market_holiday() -> bool:
+    """土日+祝日チェック."""
+    today = date.today()
+    if today.weekday() >= 5:
+        return True
+    return today.strftime("%Y-%m-%d") in _JP_HOLIDAYS_2026
+
+
+# ---------------------------------------------------------------
+# Risk guard: BOJ会合/SQ週リスク削減
+# ---------------------------------------------------------------
+_BOJ_MEETING_DATES_2026 = {
+    "2026-01-23", "2026-01-24", "2026-03-13", "2026-03-14",
+    "2026-04-30", "2026-05-01", "2026-06-12", "2026-06-13",
+    "2026-07-16", "2026-07-17", "2026-09-17", "2026-09-18",
+    "2026-10-29", "2026-10-30", "2026-12-17", "2026-12-18",
+}
+
+
+def _is_boj_or_sq_week() -> float:
+    """BOJ会合前日 or SQ週なら0.5（ポジション半減）、通常は1.0."""
+    today = date.today()
+    tomorrow = today + timedelta(days=1)
+    # BOJ会合前日
+    if tomorrow.strftime("%Y-%m-%d") in _BOJ_MEETING_DATES_2026:
+        logger.warning("BOJ会合前日: ポジション半減")
+        return 0.5
+    # SQ日 = 毎月第2金曜日。SQ週（月〜金）はリスク削減
+    first_day = today.replace(day=1)
+    first_friday = first_day + timedelta(days=(4 - first_day.weekday()) % 7)
+    sq_friday = first_friday + timedelta(days=7)  # 第2金曜
+    sq_monday = sq_friday - timedelta(days=4)
+    if sq_monday <= today <= sq_friday:
+        logger.warning("SQ週: ポジション半減")
+        return 0.5
+    return 1.0
+
+
+# ---------------------------------------------------------------
+# Risk guard: 実残高ベース資金管理
+# ---------------------------------------------------------------
+def _get_actual_capital(default_capital: float) -> float:
+    """オープンポジションを差し引いた利用可能資金を返す."""
+    pos_path = DATA_DIR / "positions.json"
+    if not pos_path.exists():
+        return default_capital
+    try:
+        positions = json.loads(pos_path.read_text(encoding="utf-8"))
+        locked = sum(
+            p["entry_price"] * p["size"]
+            for p in positions if p.get("status") == "open"
+        )
+        available = default_capital - locked
+        if available < default_capital * 0.1:
+            logger.warning("資金残高少: 利用可能Y%.0f / 総資金Y%.0f", available, default_capital)
+        return max(available, 0)
+    except Exception:
+        return default_capital
+
+
+# ---------------------------------------------------------------
+# File lock: positions.json排他制御 (Windows/Linux対応)
+# ---------------------------------------------------------------
+_LOCK_PATH = DATA_DIR / ".positions.lock"
+
+
+def _locked_read_positions(path: Path) -> list[dict]:
+    """ロックファイル付きでpositions.jsonを読む."""
+    if not path.exists():
+        return []
+    _LOCK_PATH.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        # Simple lock: create lock file, read, delete lock
+        for _ in range(10):
+            if not _LOCK_PATH.exists():
+                break
+            import time
+            time.sleep(0.1)
+        _LOCK_PATH.write_text(str(os.getpid()))
+        data = json.loads(path.read_text(encoding="utf-8"))
+        _LOCK_PATH.unlink(missing_ok=True)
+        return data
+    except Exception:
+        _LOCK_PATH.unlink(missing_ok=True)
+        return []
+
+
+def _locked_write_positions(path: Path, positions: list[dict]) -> None:
+    """ロックファイル付きでpositions.jsonを書く."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    _LOCK_PATH.parent.mkdir(parents=True, exist_ok=True)
+    for _ in range(10):
+        if not _LOCK_PATH.exists():
+            break
+        import time
+        time.sleep(0.1)
+    _LOCK_PATH.write_text(str(os.getpid()))
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(positions, f, ensure_ascii=False, indent=2, default=str)
+    _LOCK_PATH.unlink(missing_ok=True)
 
 
 # ---------------------------------------------------------------
@@ -337,6 +478,7 @@ def _is_shite_stock(volumes: list[float], price: float) -> bool:
 def scan_cis(data: dict[str, pd.DataFrame], capital: float) -> list[dict]:
     """CIS strategy: 20-day breakout + volume spike."""
     signals = []
+    risk_mult = _is_boj_or_sq_week()  # BOJ/SQ週はサイズ半減
     for ticker, df in data.items():
         if len(df) < 22:
             continue
@@ -345,6 +487,14 @@ def scan_cis(data: dict[str, pd.DataFrame], capital: float) -> list[dict]:
         price = closes[-1]
         if price < 100 or _is_shite_stock(volumes, price):
             continue
+
+        # ギャップダウンフィルター: 前日比-2%以上で買い見送り
+        if len(closes) >= 2:
+            prev_close = closes[-2]
+            if prev_close > 0:
+                gap_pct = (price - prev_close) / prev_close * 100
+                if gap_pct < -GAP_DOWN_BLOCK_PCT:
+                    continue
 
         # ---- WINNING PATTERN FILTER (CIS版) ----
         # 直近5日の出来高異常チェック（思惑買い排除）
@@ -365,7 +515,7 @@ def scan_cis(data: dict[str, pd.DataFrame], capital: float) -> list[dict]:
             continue
 
         lot_size = _get_lot_size(ticker)
-        risk_amt = capital * CIS_PARAMS["risk_pct"]
+        risk_amt = capital * CIS_PARAMS["risk_pct"] * risk_mult  # BOJ/SQ半減
         size = max(int(risk_amt / stop_dist) // lot_size * lot_size, lot_size)
         notional = size * entry
         max_notional = capital * MAX_SINGLE_POSITION_PCT / 100
@@ -403,6 +553,7 @@ def scan_keikun(data: dict[str, pd.DataFrame], capital: float) -> list[dict]:
     """Kei-kun strategy: 60-day sideways + breakout + 7-day new high exit."""
     signals = []
     sd = KEI_PARAMS["sideways_days"]
+    risk_mult = _is_boj_or_sq_week()
 
     for ticker, df in data.items():
         if len(df) < sd + 5:
@@ -410,6 +561,12 @@ def scan_keikun(data: dict[str, pd.DataFrame], capital: float) -> list[dict]:
         closes = [float(x) for x in df["Close"]]
         volumes = [float(x) for x in df["Volume"]]
         price = closes[-1]
+
+        # ギャップダウンフィルター
+        if len(closes) >= 2 and closes[-2] > 0:
+            gap_pct = (price - closes[-2]) / closes[-2] * 100
+            if gap_pct < -GAP_DOWN_BLOCK_PCT:
+                continue
         if price < 100 or _is_shite_stock(volumes, price):
             continue
 
@@ -451,7 +608,7 @@ def scan_keikun(data: dict[str, pd.DataFrame], capital: float) -> list[dict]:
             continue
 
         lot_size = _get_lot_size(ticker)
-        risk_amt = capital * KEI_PARAMS["risk_pct"]
+        risk_amt = capital * KEI_PARAMS["risk_pct"] * risk_mult  # BOJ/SQ半減
         size = max(int(risk_amt / stop_dist) // lot_size * lot_size, lot_size)
         notional = size * entry
         max_notional = capital * MAX_SINGLE_POSITION_PCT / 100
@@ -691,8 +848,10 @@ def run_prefetch() -> None:
 # ---------------------------------------------------------------
 def run_morning(capital: float, dry_run: bool) -> None:
     """Morning scan: CIS on 9 ETFs + full market if cached."""
+    # 実残高ベース資金管理
+    capital = _get_actual_capital(capital)
     logger.info("=" * 60)
-    logger.info("MORNING MODE -- CIS scan (ETFs + cached full market)")
+    logger.info("MORNING MODE -- CIS scan (available capital: Y%.0f)", capital)
     logger.info("=" * 60)
 
     etf_data = fetch_etf_data()
@@ -805,6 +964,8 @@ def run_afternoon(capital: float, dry_run: bool) -> None:
     Uses 14:00 prefetch cache for kei-kun (60-day sideways needs history).
     Fetches FRESH ETF data for CIS (needs latest closing pattern).
     """
+    # 実残高ベース資金管理
+    capital = _get_actual_capital(capital)
     logger.info("=" * 60)
     logger.info("AFTERNOON MODE -- Kei-kun (cached) + FRESH CIS ETF (15:20)")
     logger.info("=" * 60)
@@ -930,12 +1091,15 @@ def _print_summary(all_signals: list[dict], results: list[dict]) -> None:
 # ---------------------------------------------------------------
 # Pre-flight checks
 # ---------------------------------------------------------------
-def preflight_check(dry_run: bool) -> bool:
+def preflight_check(dry_run: bool, capital: float = 300_000) -> bool:
     """Validate environment before trading. Returns True if OK."""
-    # Market day check
-    today = date.today()
-    if today.weekday() >= 5:
-        logger.error("TODAY IS %s. Market closed. Exiting.", today.strftime("%A"))
+    # Market day + holiday check
+    if _is_market_holiday():
+        logger.error("TODAY IS HOLIDAY/WEEKEND. Market closed. Exiting.")
+        return False
+
+    # Daily loss limit check
+    if _check_daily_loss_limit(capital):
         return False
 
     if dry_run:
@@ -1016,7 +1180,7 @@ def main() -> None:
         return
 
     # Morning / Afternoon: full pre-flight check
-    if not preflight_check(args.dry_run):
+    if not preflight_check(args.dry_run, args.capital):
         return
 
     if args.mode == "morning":
