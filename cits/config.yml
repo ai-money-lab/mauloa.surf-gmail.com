@@ -23,84 +23,63 @@ trading:
     - "1306"   # TOPIX ETF           (勝率62%, +¥11,223)
     - "2558"   # S&P500連動ETF       (勝率40%, +¥1,043)
 
-# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-# CIS式 成功方程式（2026-03-29 バックテスト確定）
-#
-# 本質:
-#   株価 = 需要と供給
-#   20日高値ブレイク = 売りたい人が全員売り終わった
-#   出来高1.5倍 = 新しい買い手（大口）が参入した
-#   → 需要 >>> 供給 → 上がるしかない
-#
-# 結果:
-#   勝率68% × PF5.58 × 月5.9回 = 月利16.06%
-#   16ヶ月中15ヶ月プラス（月次勝率94%）
-#   ¥100,000 → ¥939,219（15ヶ月で9.4倍）
-#   2年で月収50万円達成
-# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
+# CIS式 成功方程式
 strategy:
-  # CIS式順張りモメンタム（確定版）
   mode: cis
   entry:
-    breakout_days: 20             # 20日高値ブレイクでエントリー
-    volume_confirm: true          # 出来高1.5倍以上で確認
+    breakout_days: 20
+    volume_confirm: true
     volume_ratio: 1.5
   exit:
-    stop_pct: 1.5                 # 損切り1.5%（テスタ方式: 小さく切る）
-    target_pct: 5.0               # 利確5.0%（大きく取る）
-    hold_days: 5                  # スイング5日保持
-  risk_per_trade: 0.05            # 1トレード5%リスク
-
-  # なぜこの設定か:
-  # - リスクリワード比 1:3.3（勝率30%でもトントン、実際68%で大幅黒字）
-  # - 5日保持 = モメンタム継続のスイートスポット
-  # - 出来高確認 = 大口参入の証拠（偽ブレイクアウト排除）
-  # - チャート打法OFF = シンプルが勝つ（CIS哲学）
-
-  # チャート打法（chart_datsu）: バックテストではOFFが最適
-  # ただし、フルAIパイプライン（cits.main）でのコンテキスト分析には活用
+    stop_pct: 1.5
+    target_pct: 5.0
+    hold_days: 5
+  risk_per_trade: 0.05
   chart_datsu:
-    enabled: false                # 自動売買ではOFF
-    # 利用可能なエンジン:
-    # - candlestick_patterns (15種): 包み足、明けの明星、三兵 等
-    # - chart_formations (9種): ダブルボトム、三角持ち合い、H&S 等
-    # - support_resistance: 支持線・抵抗線の自動検出
-    # - ensemble (8指標): RSI、ボリンジャー、SMA、出来高 等
-
-  # レジーム判定（BNF式）: 将来のHybridモード用
+    enabled: false
   regime:
-    method: ma_crossover          # MA20 vs MA50
-    volatile_atr_pct: 3.0         # ATR > 3% = 取引停止
+    method: ma_crossover
+    volatile_atr_pct: 3.0
 
 risk:
   daily_loss_limit_pct: 2.0
   max_consecutive_losses: 10
   max_daily_trades: 5
   volatility_threshold: 30.0
-  risk_per_trade: 0.05            # CIS式: 5%リスク
-  stop_distance_pct: 1.5          # テスタ方式: 小さく切る
-  # マクロリスク管理
-  boj_meeting_reduce: true        # BOJ会合前日はポジション半減
-  sq_week_reduce: true            # SQ週はポジション縮小
+  risk_per_trade: 0.05
+  stop_distance_pct: 1.5
+  boj_meeting_reduce: true
+  sq_week_reduce: true
 
 broker:
   kabu_station:
     base_url: "http://localhost:18080"
-    exchange: 1  # 東証
+    exchange: 1
   oco:
     poll_interval_sec: 5
 
 execution:
   slippage_bps: 5.0
   spread_bps: 3.0
-  commission: 0                   # 三菱UFJ eスマート証券は現物手数料無料
+  commission: 0
+
+  # Kei-kun戦略
+  keikun:
+    enabled: true
+    sideways_days: 60
+    sideways_range_pct: 15
+    new_high_exit_days: 7
+    stop_pct: 5.0
+    max_hold_days: 30
+    min_price: 100
+    min_avg_volume: 5000
 
 backtest:
   default_period: "1y"
   benchmark: "^N225"
   strategies:
     - cis_momentum
+    - keikun
 
 logging:
   level: INFO
