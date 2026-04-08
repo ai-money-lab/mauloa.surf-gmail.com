@@ -96,11 +96,23 @@ execution:
   spread_bps: 3.0
   commission: 0                   # 三菱UFJ eスマート証券は現物手数料無料
 
+  # Kei-kun戦略（山下勁式: 3ヶ月横ばい→ブレイク→7日新高値で利確）
+  keikun:
+    enabled: true
+    sideways_days: 60             # 横ばい判定期間（日）
+    sideways_range_pct: 15        # 横ばい範囲上限（%）
+    new_high_exit_days: 7         # 新高値N日連続で利確
+    stop_pct: 5.0                 # 損切り5%
+    max_hold_days: 30             # 最大保持30日
+    min_price: 100                # 最低株価
+    min_avg_volume: 5000          # 最低平均出来高
+
 backtest:
   default_period: "1y"
   benchmark: "^N225"
   strategies:
     - cis_momentum
+    - keikun
 
 logging:
   level: INFO

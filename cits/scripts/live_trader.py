@@ -49,7 +49,6 @@ except ImportError:
 from cits.scripts.solve_equation import (
     TICKERS as ETF_TICKERS,
     _check_cis_entry,
-    _sma,
 )
 
 # ---------------------------------------------------------------
@@ -655,12 +654,12 @@ def run_prefetch() -> None:
 
 
 # ---------------------------------------------------------------
-# Mode: morning (08:30 -- CIS on ETFs only)
+# Mode: morning (08:30 -- CIS on ETFs + optional full scan)
 # ---------------------------------------------------------------
 def run_morning(capital: float, dry_run: bool) -> None:
-    """Morning scan: CIS on 9 ETFs. Fast execution."""
+    """Morning scan: CIS on 9 ETFs + full market if cached."""
     logger.info("=" * 60)
-    logger.info("MORNING MODE -- CIS ETF scan (9 tickers, ~10 seconds)")
+    logger.info("MORNING MODE -- CIS scan (ETFs + cached full market)")
     logger.info("=" * 60)
 
     etf_data = fetch_etf_data()
@@ -668,21 +667,99 @@ def run_morning(capital: float, dry_run: bool) -> None:
         logger.error("Insufficient ETF data (%d). Aborting.", len(etf_data))
         return
 
-    cis_signals = scan_cis(etf_data, capital)
-    logger.info("[CIS-ETF] %d signals from %d tickers", len(cis_signals), len(etf_data))
-    for i, s in enumerate(cis_signals[:5], 1):
+    all_cis: list[dict] = []
+
+    # 1) CIS on ETFs (always, ~10 seconds)
+    cis_etf = scan_cis(etf_data, capital)
+    logger.info("[CIS-ETF] %d signals from %d tickers", len(cis_etf), len(etf_data))
+    all_cis.extend(cis_etf)
+
+    # 2) CIS on full market if yesterday's cache exists
+    yesterday_cache = _market_cache_path(date.today() - timedelta(days=1))
+    market_data = load_cache(yesterday_cache) if yesterday_cache.exists() else None
+    if market_data:
+        cis_full = scan_cis(market_data, capital)
+        logger.info("[CIS-FULL] %d signals from %d cached tickers", len(cis_full), len(market_data))
+        etf_tickers = {s["ticker"] for s in all_cis}
+        for s in cis_full:
+            if s["ticker"] not in etf_tickers:
+                all_cis.append(s)
+
+    all_cis.sort(key=lambda s: s["score"], reverse=True)
+    for i, s in enumerate(all_cis[:5], 1):
         logger.info(
             "  CIS #%d %s Y%.1f lot=%d x%d notional=Y%.0f breakout=+%.2f%% vol=%.1fx score=%.1f",
             i, s["ticker"], s["price"], s["lot_size"], s["size"],
             s["notional"], s["breakout_pct"], s["vol_ratio"], s["score"],
         )
 
-    # Execute top 3 ETF signals
-    top_signals = cis_signals[:MAX_POSITIONS]
+    # Execute top signals
+    top_signals = all_cis[:MAX_POSITIONS]
     results = execute_signals(top_signals, capital, dry_run)
-    save_trade_log(cis_signals, results, "morning")
+    save_trade_log(all_cis, results, "morning")
 
-    _print_summary(cis_signals, results)
+    _print_summary(all_cis, results)
+
+
+# ---------------------------------------------------------------
+# Mode: full_scan (standalone -- CIS+KEI on all tickers, dry-run report)
+# ---------------------------------------------------------------
+def run_full_scan(capital: float, dry_run: bool) -> None:
+    """Full market scan: CIS + KEI on all ~3,950 tickers. Fetch + scan."""
+    logger.info("=" * 60)
+    logger.info("FULL SCAN MODE -- CIS + KEI on all TSE tickers")
+    logger.info("=" * 60)
+
+    # Try cache first, fetch if missing
+    market_data = load_cache(_market_cache_path())
+    if market_data is None:
+        logger.info("No cache found. Fetching full market data...")
+        market_data = fetch_full_data()
+        if market_data:
+            save_cache(market_data, _market_cache_path())
+
+    if not market_data:
+        logger.error("No market data available. Aborting.")
+        return
+
+    cis_signals = scan_cis(market_data, capital)
+    kei_signals = scan_keikun(market_data, capital)
+
+    logger.info("[CIS] %d signals from %d tickers", len(cis_signals), len(market_data))
+    logger.info("[KEI] %d signals from %d tickers", len(kei_signals), len(market_data))
+
+    # Report top CIS signals
+    logger.info("\n--- TOP CIS SIGNALS ---")
+    for i, s in enumerate(cis_signals[:10], 1):
+        logger.info(
+            "  #%d %s Y%.1f lot=%d x%d notional=Y%.0f "
+            "breakout=+%.2f%% vol=%.1fx score=%.1f",
+            i, s["ticker"], s["price"], s["lot_size"], s["size"],
+            s["notional"], s["breakout_pct"], s["vol_ratio"], s["score"],
+        )
+
+    # Report top KEI signals
+    logger.info("\n--- TOP KEI SIGNALS ---")
+    for i, s in enumerate(kei_signals[:10], 1):
+        logger.info(
+            "  #%d %s Y%.1f lot=%d x%d notional=Y%.0f "
+            "sideways=%dd range=%.1f%% breakout=+%.2f%% score=%.1f",
+            i, s["ticker"], s["price"], s["lot_size"], s["size"],
+            s["notional"], s["sideways_days"],
+            s["sideways_range_pct"], s["breakout_pct"], s["score"],
+        )
+
+    # Combine: KEI priority, then CIS fill
+    all_signals: list[dict] = []
+    all_signals.extend(kei_signals[:2])
+    kei_tickers = {s["ticker"] for s in all_signals}
+    cis_unique = [s for s in cis_signals if s["ticker"] not in kei_tickers]
+    remaining = MAX_POSITIONS - len(all_signals)
+    all_signals.extend(cis_unique[:remaining])
+
+    results = execute_signals(all_signals, capital, dry_run)
+    save_trade_log(cis_signals + kei_signals, results, "full_scan")
+    _print_summary(all_signals, results)
 
 
 # ---------------------------------------------------------------
@@ -734,18 +811,34 @@ def run_afternoon(capital: float, dry_run: bool) -> None:
         logger.warning("[KEI] Skipped -- no cached market data")
         kei_signals = []
 
-    # 4) CIS scan on ETFs (instant)
-    if etf_cache:
-        cis_signals = scan_cis(etf_cache, capital)
-        logger.info("[CIS-ETF] %d signals from %d ETFs", len(cis_signals), len(etf_cache))
-        for i, s in enumerate(cis_signals[:5], 1):
+    # 4) CIS scan on ALL tickers (full market + ETFs)
+    cis_signals = []
+    if market_data:
+        cis_full = scan_cis(market_data, capital)
+        logger.info("[CIS-FULL] %d signals from %d tickers", len(cis_full), len(market_data))
+        for i, s in enumerate(cis_full[:5], 1):
             logger.info(
-                "  CIS #%d %s Y%.1f lot=%d x%d notional=Y%.0f "
+                "  CIS-FULL #%d %s Y%.1f lot=%d x%d notional=Y%.0f "
                 "breakout=+%.2f%% vol=%.1fx score=%.1f",
                 i, s["ticker"], s["price"], s["lot_size"], s["size"],
                 s["notional"], s["breakout_pct"], s["vol_ratio"], s["score"],
             )
+        cis_signals.extend(cis_full)
 
+    # Also scan fresh ETF data (may have more recent data than cache)
+    if etf_cache:
+        cis_etf = scan_cis(etf_cache, capital)
+        logger.info("[CIS-ETF] %d signals from %d ETFs", len(cis_etf), len(etf_cache))
+        # Merge: add ETF signals not already in full scan
+        full_tickers = {s["ticker"] for s in cis_signals}
+        for s in cis_etf:
+            if s["ticker"] not in full_tickers:
+                cis_signals.append(s)
+
+    cis_signals.sort(key=lambda s: s["score"], reverse=True)
+    logger.info("[CIS-COMBINED] %d total CIS signals", len(cis_signals))
+
+    if cis_signals:
         # Avoid duplicates with KEI
         kei_tickers = {s["ticker"] for s in all_signals}
         cis_unique = [s for s in cis_signals if s["ticker"] not in kei_tickers]
@@ -761,8 +854,7 @@ def run_afternoon(capital: float, dry_run: bool) -> None:
 
         all_signals.extend(cis_unique[:remaining])
     else:
-        cis_signals = []
-        logger.warning("[CIS-ETF] Skipped -- no ETF data")
+        logger.warning("[CIS] No CIS signals found")
 
     # Sort combined signals by score
     all_signals.sort(key=lambda s: s["score"], reverse=True)
@@ -865,9 +957,9 @@ def main() -> None:
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument(
         "--mode",
-        choices=["morning", "afternoon", "prefetch"],
+        choices=["morning", "afternoon", "prefetch", "full_scan"],
         required=True,
-        help="morning=CIS ETF 8:30, prefetch=data cache 14:00, afternoon=KEI+ETF 15:00",
+        help="morning=CIS 8:30, prefetch=cache 14:00, afternoon=KEI+CIS 15:00, full_scan=all tickers",
     )
     args = parser.parse_args()
 
@@ -898,6 +990,21 @@ def main() -> None:
         run_morning(args.capital, args.dry_run)
     elif args.mode == "afternoon":
         run_afternoon(args.capital, args.dry_run)
+        # Send daily report after afternoon session (end of day)
+        _send_daily_report(args.dry_run)
+    elif args.mode == "full_scan":
+        run_full_scan(args.capital, args.dry_run)
+
+
+def _send_daily_report(dry_run: bool) -> None:
+    """Send daily email report after trading session."""
+    try:
+        from cits.scripts.daily_report import generate_report, send_report
+        logger.info("Generating daily report...")
+        report = generate_report()
+        send_report(report, dry_run=dry_run)
+    except Exception as e:
+        logger.error("Daily report failed: %s", e)
 
 
 if __name__ == "__main__":

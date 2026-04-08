@@ -12,7 +12,7 @@ import random
 import statistics
 import warnings
 from collections import defaultdict
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import date, timedelta
 from pathlib import Path
 
@@ -379,7 +379,7 @@ def run_orb(data: dict[str, pd.DataFrame], vix_df=None, use_vix=False) -> list[T
         if len(df) < 30:
             continue
         closes = [_safe_float(x) for x in df["Close"]]
-        opens = [_safe_float(x) for x in df["Open"]]
+        [_safe_float(x) for x in df["Open"]]
         highs = [_safe_float(x) for x in df["High"]]
         lows = [_safe_float(x) for x in df["Low"]]
         volumes = [_safe_float(x) for x in df["Volume"]]

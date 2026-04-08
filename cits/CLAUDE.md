@@ -105,17 +105,17 @@ python -m cits.main --mode paper --ticker 7203
 - データソース: yfinance, J-Quants, JPX(空売り/信用/フロー), EDINET
 - テスト: 157件全パス、smoke 84/84パス
 
-### 残TODO
-1. **全銘柄スキャン機能**追加（9 ETFだけでなく全銘柄。機会損失するな）
-2. **Kei-kun戦略**のバックテスト・検証・組み込み（林僚著・小林昌裕監修）
-3. **出口戦略の高度化**（チャート分析ベース、固定日数ではない）
-4. **取引日メールレポート** → mauloa.surf@gmail.com
-5. **VPS障害時ローカルPC自動起動**（モニターOFF・起動音なし）
+### 完了済みTODO（2026-04-08）
+1. ✅ **全銘柄スキャン機能** -- morning/afternoon/full_scanモードで全TSE銘柄CIS+KEIスキャン
+2. ✅ **Kei-kun戦略** -- BacktestEngineに統合（`strategies=["keikun"]`で実行可能）
+3. ✅ **出口戦略の高度化** -- `cits/core/chart_exit.py`（チャートベース出口スコアリング）
+4. ✅ **取引日メールレポート** -- `cits/scripts/daily_report.py`、afternoon後に自動送信
+5. ✅ **VPS障害時ローカルPC自動起動** -- `cits/scripts/vps_failover.py`
 
 ### 追加コマンド
 ```bash
-# バックテスト（ローカルのみ、yfinanceネットワーク必要）
-python -c "from cits.backtest.engine import BacktestEngine; eng = BacktestEngine(initial_capital=100_000); print(eng.run(['7203','8306','6758','9984'], '2025-09-01', '2026-03-21').summary())"
+# バックテスト -- CIS+Kei-kun（ローカルのみ、yfinanceネットワーク必要）
+python -c "from cits.backtest.engine import BacktestEngine; eng = BacktestEngine(initial_capital=100_000); print(eng.run(['7203','8306','6758','9984'], '2025-09-01', '2026-03-21', strategies=['cis_momentum','keikun']).summary())"
 
 # ペーパートレード
 python -m cits.scripts.paper_sim --days 5 --capital 100000
@@ -125,6 +125,16 @@ python -m cits.scripts.dashboard --full
 
 # ウォッチリスト一括分析
 python -m cits.scripts.run_watchlist
+
+# 全銘柄スキャン（CIS+KEI on all TSE tickers）
+python -m cits.scripts.live_trader --mode full_scan --capital 300000 --dry-run
+
+# 取引日レポート
+python -m cits.scripts.daily_report --dry-run
+
+# VPS障害モニター
+python -m cits.scripts.vps_failover --check
+python -m cits.scripts.vps_failover --monitor --dry-run
 ```
 
 ## 検証ルール（絶対遵守 — AIへの必須指示）
