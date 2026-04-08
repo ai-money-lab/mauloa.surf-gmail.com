@@ -6,6 +6,10 @@ REM ================================================================
 
 cd /d C:\cits\repo
 set PYTHONPATH=C:\cits\repo
+
+REM Auto-update code from GitHub
+git pull origin claude/japanese-stock-trading-agent-kJBwp --quiet 2>nul
+
 set CITS_SCHEDULED_RUN=TASKSCHEDULER
 
 for /f "usebackq tokens=1,2 delims==" %%a in ("C:\cits\repo\cits\.env") do (
