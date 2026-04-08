@@ -1,17 +1,18 @@
 """CITS Live Trader v3 -- Two-Stage Scan Architecture
 
-Three execution modes per day:
-  08:30  morning   -- CIS on 9 ETFs only (instant, 10 seconds)
-  14:00  prefetch  -- Fetch 3,950 tickers + 9 ETFs, cache to disk (no trading)
-  15:00  afternoon -- Kei-kun on cached data + CIS ETF fallback (instant, orders by 15:01)
+Four execution modes per day:
+  08:30  morning    -- CIS on ETFs + cached full market
+  14:00  prefetch   -- Fetch ~3,950 tickers + 9 ETFs, cache to disk (no trading)
+  15:20  afternoon  -- CIS+KEI on all cached tickers + fresh ETFs
+  any    full_scan  -- CIS+KEI on all tickers (fetch or cached), dry-run report
 
-Key fixes over v2:
-  - Two-stage scan: prefetch at 14:00, signal scan at 15:00 on cached data
+Key features:
+  - Two-stage scan: prefetch at 14:00, signal scan at 15:20 on cached data
+  - Full market CIS scan: all TSE tickers (not just 9 ETFs)
   - ETF lot_size=1, individual stock lot_size=100
-  - Capital 300K (from 100K)
-  - ETF fallback: if kei-kun signals are all too expensive, CIS on 9 ETFs
+  - Strategy params loaded from config.yml (fallback to hardcoded defaults)
   - Exchange=9 (SOR), AccountType=4, FundType="AA"
-  - Order password separate from API password
+  - Daily email report after afternoon session
 
 Usage:
     python -m cits.scripts.live_trader --mode morning   --capital 300000
@@ -82,22 +83,48 @@ logger = logging.getLogger("cits.live_trader")
 # ---------------------------------------------------------------
 # Strategy Parameters
 # ---------------------------------------------------------------
-CIS_PARAMS = {
-    "stop_pct": 1.5,
-    "target_pct": 5.0,
-    "hold_days": 5,
-    "risk_pct": 0.05,
-    "use_volume_confirm": True,
-}
+# Load from config.yml, fallback to hardcoded defaults
+# ---------------------------------------------------------------
+def _load_strategy_params() -> tuple[dict, dict]:
+    """Load CIS and KEI params from config.yml."""
+    cis_defaults = {
+        "stop_pct": 1.5, "target_pct": 5.0, "hold_days": 5,
+        "risk_pct": 0.05, "use_volume_confirm": True,
+    }
+    kei_defaults = {
+        "sideways_days": 60, "sideways_range_pct": 15,
+        "new_high_exit_days": 7, "stop_pct": 5.0,
+        "max_hold_days": 30, "risk_pct": 0.05,
+    }
+    try:
+        from cits.config_loader import load_config
+        cfg = load_config()
+        strategy = cfg.get("strategy", {})
+        # CIS from strategy.exit + strategy.entry
+        entry = strategy.get("entry", {})
+        exit_cfg = strategy.get("exit", {})
+        if exit_cfg:
+            cis_defaults["stop_pct"] = exit_cfg.get("stop_pct", cis_defaults["stop_pct"])
+            cis_defaults["target_pct"] = exit_cfg.get("target_pct", cis_defaults["target_pct"])
+            cis_defaults["hold_days"] = exit_cfg.get("hold_days", cis_defaults["hold_days"])
+        if entry:
+            cis_defaults["use_volume_confirm"] = entry.get("volume_confirm", True)
+        cis_defaults["risk_pct"] = strategy.get("risk_per_trade", cis_defaults["risk_pct"])
+        # KEI from strategy.keikun
+        keikun = cfg.get("keikun", {})
+        if keikun:
+            kei_defaults["sideways_days"] = keikun.get("sideways_days", kei_defaults["sideways_days"])
+            kei_defaults["sideways_range_pct"] = keikun.get("sideways_range_pct", kei_defaults["sideways_range_pct"])
+            kei_defaults["new_high_exit_days"] = keikun.get("new_high_exit_days", kei_defaults["new_high_exit_days"])
+            kei_defaults["stop_pct"] = keikun.get("stop_pct", kei_defaults["stop_pct"])
+            kei_defaults["max_hold_days"] = keikun.get("max_hold_days", kei_defaults["max_hold_days"])
+        logger.info("Strategy params loaded from config.yml")
+    except Exception as e:
+        logger.warning("Config load failed (%s), using defaults", e)
+    return cis_defaults, kei_defaults
 
-KEI_PARAMS = {
-    "sideways_days": 60,
-    "sideways_range_pct": 15,
-    "new_high_exit_days": 7,
-    "stop_pct": 5.0,
-    "max_hold_days": 30,
-    "risk_pct": 0.05,
-}
+
+CIS_PARAMS, KEI_PARAMS = _load_strategy_params()
 
 # ---------------------------------------------------------------
 # Safety limits

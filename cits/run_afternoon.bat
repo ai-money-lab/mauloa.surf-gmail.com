@@ -1,8 +1,8 @@
 @echo off
 REM ================================================================
-REM CITS Afternoon -- Kei-kun + ETF Fallback (15:00)
-REM Kei-kun on cached data (instant) + CIS ETF fallback
-REM Orders placed by 15:01, well before 15:25 pre-closing
+REM CITS Afternoon -- CIS+KEI Full Market Scan (15:20)
+REM CIS on all cached tickers + KEI on cached data + fresh ETFs
+REM Task Scheduler: 15:20 (after chart patterns finalize)
 REM ================================================================
 
 cd /d C:\cits\repo

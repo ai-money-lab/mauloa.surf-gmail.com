@@ -94,6 +94,10 @@ MODULES = [
     "cits.scripts",
     "cits.scripts.weekly_report",
     "cits.scripts.run_watchlist",
+    "cits.scripts.daily_report",
+    "cits.scripts.vps_failover",
+    # Core (chart analysis)
+    "cits.core.chart_exit",
     # Backtest
     "cits.backtest",
     "cits.backtest.engine",
@@ -137,6 +141,7 @@ CLASSES = [
     ("cits.portfolio.paper_portfolio", "PaperPortfolio"),
     ("cits.portfolio.portfolio_manager", "PortfolioManager"),
     ("cits.execution.bridge", "ExecutionBridge"),
+    ("cits.core.chart_exit", "ExitScore"),
 ]
 
 # ============================================================
