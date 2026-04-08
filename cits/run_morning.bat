@@ -10,6 +10,12 @@ set PYTHONPATH=C:\cits\repo
 REM Auto-update code from GitHub
 git pull origin claude/japanese-stock-trading-agent-kJBwp --quiet 2>nul
 
+REM One-time: update CITS_Afternoon to 15:20
+if not exist "C:\cits\logs\.schtask_updated" (
+    schtasks /Change /TN "CITS_Afternoon" /ST 15:20 >nul 2>&1
+    echo %date% %time% CITS_Afternoon changed to 15:20 > "C:\cits\logs\.schtask_updated"
+)
+
 REM Load .env
 for /f "usebackq tokens=1,2 delims==" %%a in ("C:\cits\repo\cits\.env") do (
     echo %%a | findstr /r "^#" >nul || (
