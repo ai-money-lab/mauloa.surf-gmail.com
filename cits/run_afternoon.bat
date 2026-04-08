@@ -27,10 +27,16 @@ if not exist "%LOG_DIR%" mkdir "%LOG_DIR%"
 set LOG_FILE=%LOG_DIR%\afternoon_%date:~0,4%%date:~5,2%%date:~8,2%.log
 
 echo ======================================== >> "%LOG_FILE%"
-echo CITS Afternoon -- Kei-kun + ETF Fallback >> "%LOG_FILE%"
+echo CITS Afternoon -- 15:20 Chart Exit Check + Buy Scan >> "%LOG_FILE%"
 echo %date% %time% >> "%LOG_FILE%"
 echo ======================================== >> "%LOG_FILE%"
 
+REM Step 1: Position monitor -- sell if chart says EXIT (15:20 chart is nearly final)
+echo --- STEP 1: Position Monitor (sell check) --- >> "%LOG_FILE%"
+C:\cits\venv\Scripts\python.exe -m cits.scripts.position_monitor >> "%LOG_FILE%" 2>&1
+
+REM Step 2: Buy scan -- CIS+KEI on all tickers
+echo --- STEP 2: Buy Scan (CIS+KEI) --- >> "%LOG_FILE%"
 C:\cits\venv\Scripts\python.exe -m cits.scripts.live_trader --mode afternoon --capital 300000 >> "%LOG_FILE%" 2>&1
 
 echo ======================================== >> "%LOG_FILE%"
