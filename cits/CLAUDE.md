@@ -50,7 +50,7 @@ python -m cits.main --mode paper --ticker 7203
 - `TACHIBANA_USER_ID`: 立花証券ユーザーID（Stage 2）
 - `TACHIBANA_PASSWORD`: 立花証券パスワード（Stage 2）
 
-## 現在のステータス（2026-04-02更新）
+## 現在のステータス（2026-04-09 JST更新）
 
 ### 口座・稼働状況
 - 三菱UFJ eスマート証券: **開設完了・入金完了・取引開始済み**
@@ -101,7 +101,7 @@ TZ=Asia/Tokyo date '+%Y-%m-%d %H:%M:%S %Z (%A)'
 - kabuステーションAPI: 完全実装・テスト済み
 - 立花証券API（Stage 2）: 完全実装・テスト済み
 - Software OCO（TP/SL管理）: 完全実装
-- バックテストエンジン（3戦略: intraday_momentum, overnight_reversal, premarket_trio）
+- バックテストエンジン（5戦略: intraday_momentum, overnight_reversal, premarket_trio, **cis_momentum, keikun**）
 - ペーパートレードシミュレーター（APIキー不要）
 - ポートフォリオダッシュボード（CLI）
 - 日本市場リスクパラメータ（値幅制限、SQ日、権利付最終日、TSE時間）
@@ -109,14 +109,30 @@ TZ=Asia/Tokyo date '+%Y-%m-%d %H:%M:%S %Z (%A)'
 - SignalTracker（シグナル単位勝率追跡）
 - Voice Tracker（BOJ / FOMC / Trump）
 - データソース: yfinance, J-Quants, JPX(空売り/信用/フロー), EDINET
-- テスト: 157件全パス、smoke 84/84パス
+- テスト: 172件全パス、smoke 88/88パス
 
-### 完了済みTODO（2026-04-08）
-1. ✅ **全銘柄スキャン機能** -- morning/afternoon/full_scanモードで全TSE銘柄CIS+KEIスキャン
-2. ✅ **Kei-kun戦略** -- BacktestEngineに統合（`strategies=["keikun"]`で実行可能）
-3. ✅ **出口戦略の高度化** -- `cits/core/chart_exit.py`（チャートベース出口スコアリング）
-4. ✅ **取引日メールレポート** -- `cits/scripts/daily_report.py`、afternoon後に自動送信
-5. ✅ **VPS障害時ローカルPC自動起動** -- `cits/scripts/vps_failover.py`
+### 2026-04-09セッションで実装（VPSデプロイ済み）
+- **全銘柄CISスキャン**: morning/afternoon/full_scanで全TSE銘柄スキャン
+- **Kei-kun戦略統合**: BacktestEngine + live_traderに完全統合
+- **チャートベース出口戦略**: `cits/core/chart_exit.py`（ローソク足・モメンタム・ATRトレイリング・ステージ分析）
+- **取引日メールレポート**: `cits/scripts/daily_report.py`（afternoon後自動送信）
+- **VPSフェイルオーバー**: `cits/scripts/vps_failover.py`
+- **config.yml駆動パラメータ**: CIS/KEI paramsをconfig.ymlから読み込み
+- **position_monitor chart_exit統合**: 重複ロジック解消
+- **全bat自動git pull**: VPSコード自動更新
+- **6リスクガード**:
+  1. ギャップダウンフィルター（前日比-2%で買い停止）
+  2. 日次損失上限（累計-3%でトレード停止）
+  3. 実残高ベース資金管理（オープンポジション差引）
+  4. positions.json排他制御（ロックファイル方式）
+  5. BOJ会合/SQ週リスク削減（ポジション半減）
+  6. 祝日判定（土日+2026年祝日）
+- **タスクスケジューラ自動設定**: afternoon 15:20変更 + position_monitor 30分毎登録（初回bat実行時自動）
+
+### 残作業（次セッション）
+- `.env`に`GMAIL_APP_PASSWORD`設定 → メールレポート送信有効化
+- 2027年の祝日リスト追加（`_JP_HOLIDAYS_2026`を更新）
+- 実弾トレード実績の検証・パラメータ調整
 
 ### 追加コマンド
 ```bash
