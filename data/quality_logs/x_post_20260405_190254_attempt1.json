@@ -1,0 +1,29 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 8,
+    "persona_match": 9,
+    "pillar_alignment": 9,
+    "usefulness": 9,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 0,
+    "cta_ending": 8,
+    "originality": 8,
+    "tone_balance": 9,
+    "problem_solving": 9
+  },
+  "total_score": 99,
+  "threshold": 84,
+  "result": "auto_approved",
+  "usefulness_summary": "管理会社から返事がない入居者が具体的な対応方法を知ることができる",
+  "rejection_reasons": [
+    "数字が含まれていない（「3つのこと」という表現があるが、絶対不合格条件の数字表現に該当）"
+  ],
+  "improvement_suggestions": [
+    "「3つのこと」を「いくつかのポイント」「以下のこと」「次のような方法」などに変更する"
+  ],
+  "checked_at": "2026-04-05T19:02:54.021046+09:00"
+}

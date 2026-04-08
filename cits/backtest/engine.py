@@ -5,6 +5,8 @@ Strategies:
   1. Intraday Momentum: Open as 9:30 proxy, entry at Open, exit at Close
   2. Overnight Reversal: large gap reversal, entry at Open, exit at Close
   3. Premarket Trio: CME/USDJPY/VIX alignment, entry at Open, exit at Close
+  4. CIS Momentum: 20-day breakout + volume 1.5x, hold 5 days (swing)
+  5. Kei-kun: 60-day sideways breakout, exit on 7 new highs (swing)
 
 All trades use 100-share lots (売買単位) and apply execution costs.
 """
@@ -17,6 +19,7 @@ import tempfile
 from dataclasses import dataclass, field
 import pandas as pd
 
+from cits.core.chart_exit import compute_exit_score
 from cits.core.signals.intraday_momentum import compute_intraday_momentum
 from cits.core.signals.premarket_trio import compute_premarket_trio
 from cits.core.signals.regime_filter import compute_regime
@@ -416,19 +419,323 @@ class BacktestEngine:
         return trades
 
     # ------------------------------------------------------------------
+    # CIS Momentum (swing: 20-day breakout + volume, hold 5 days)
+    # ------------------------------------------------------------------
+
+    def _run_cis_swing(
+        self,
+        ticker: str,
+        df: pd.DataFrame,
+        equity: float,
+        stop_pct: float = 1.5,
+        target_pct: float = 5.0,
+        hold_days: int = 5,
+    ) -> list[dict]:
+        """CIS式: 20日高値ブレイク+出来高1.5倍→スイング5日保持."""
+        trades: list[dict] = []
+        dates = sorted(df.index)
+        closes: list[float] = []
+        volumes: list[float] = []
+        opens_list: list[float] = []
+        highs_list: list[float] = []
+        lows_list: list[float] = []
+
+        i = 0
+        while i < len(dates):
+            dt = dates[i]
+            row = df.loc[dt]
+            close_p = float(row["Close"])
+            open_p = float(row["Open"])
+            high_p = float(row["High"])
+            low_p = float(row["Low"])
+            vol = float(row.get("Volume", 0))
+            closes.append(close_p)
+            volumes.append(vol)
+            opens_list.append(open_p)
+            highs_list.append(high_p)
+            lows_list.append(low_p)
+
+            if open_p <= 0 or close_p <= 0 or len(closes) < 22:
+                i += 1
+                continue
+
+            # Check CIS entry: price > 20-day high + volume > 1.5x avg
+            high_20 = max(closes[-21:-1])
+            avg_vol = sum(volumes[-21:-1]) / 20
+            if close_p <= high_20 or avg_vol <= 0 or vol < 1.5 * avg_vol:
+                i += 1
+                continue
+
+            # Position sizing
+            entry_price = self._apply_cost(open_p, "buy")
+            stop_dist = entry_price * stop_pct / 100
+            if stop_dist <= 0:
+                i += 1
+                continue
+            lot = self.lot_size
+            raw_size = int(equity * 0.05 / stop_dist)
+            size = max(raw_size // lot * lot, lot)
+            notional = size * entry_price
+            if notional > equity * self.max_position_ratio:
+                size = max(int(equity * self.max_position_ratio / entry_price / lot) * lot, lot)
+                notional = size * entry_price
+            if notional > equity:
+                i += 1
+                continue
+
+            # Simulate hold period with trailing stop + chart exit
+            stop_price = entry_price * (1 - stop_pct / 100)
+            target_price = entry_price * (1 + target_pct / 100)
+            trailing_stop = stop_price
+            exit_price = None
+            current_high = entry_price
+            hold_opens: list[float] = list(opens_list[max(0, i - 20):i + 1])
+            hold_highs: list[float] = list(highs_list[max(0, i - 20):i + 1])
+            hold_lows: list[float] = list(lows_list[max(0, i - 20):i + 1])
+            hold_closes: list[float] = list(closes[max(0, i - 20):i + 1])
+            hold_vols: list[float] = list(volumes[max(0, i - 20):i + 1])
+
+            for j in range(i + 1, min(i + hold_days + 1, len(dates))):
+                f_row = df.loc[dates[j]]
+                f_high = float(f_row["High"])
+                f_low = float(f_row["Low"])
+                f_close = float(f_row["Close"])
+                f_open = float(f_row["Open"])
+                f_vol = float(f_row.get("Volume", 0))
+
+                hold_opens.append(f_open)
+                hold_highs.append(f_high)
+                hold_lows.append(f_low)
+                hold_closes.append(f_close)
+                hold_vols.append(f_vol)
+
+                if f_high > current_high:
+                    current_high = f_high
+
+                if f_low <= trailing_stop:
+                    exit_price = trailing_stop
+                    break
+                if f_high >= target_price:
+                    exit_price = target_price
+                    break
+                new_stop = f_high * (1 - stop_pct / 100)
+                if new_stop > trailing_stop:
+                    trailing_stop = new_stop
+
+                # Chart-based exit: check after day 2 for early exit signals
+                if j - i >= 2 and len(hold_closes) >= 10:
+                    exit_eval = compute_exit_score(
+                        hold_opens, hold_highs, hold_lows, hold_closes, hold_vols,
+                        entry_price, current_high, j - i, strategy="CIS",
+                    )
+                    if exit_eval.recommendation == "EXIT_NOW":
+                        exit_price = self._apply_cost(f_close, "sell")
+                        break
+
+            if exit_price is None:
+                last_idx = min(i + hold_days, len(dates) - 1)
+                exit_price = self._apply_cost(float(df.loc[dates[last_idx]]["Close"]), "sell")
+
+            pnl = (exit_price - entry_price) * size
+            trade_date = dt.strftime("%Y-%m-%d") if hasattr(dt, "strftime") else str(dt)
+            trade = {
+                "date": trade_date, "ticker": ticker, "strategy": "cis_momentum",
+                "side": "buy", "size": size, "entry_price": round(entry_price, 2),
+                "exit_price": round(exit_price, 2), "pnl": round(pnl, 2),
+                "symbol": ticker, "qty": size,
+            }
+            trades.append(trade)
+            self.win_engine.record_trade(trade)
+            equity += pnl
+            i += hold_days + 1
+            continue
+
+            i += 1  # noqa: E501 -- unreachable
+
+        return trades
+
+    # ------------------------------------------------------------------
+    # Kei-kun (swing: 60-day sideways breakout, exit on 7 new highs)
+    # ------------------------------------------------------------------
+
+    def _run_keikun_swing(
+        self,
+        ticker: str,
+        df: pd.DataFrame,
+        equity: float,
+        sideways_days: int = 60,
+        sideways_range_pct: float = 15.0,
+        stop_pct: float = 5.0,
+        max_hold: int = 30,
+        new_high_exit_days: int = 7,
+    ) -> list[dict]:
+        """Kei-kun式: 60日横ばい→ブレイク→7日新高値で利確."""
+        trades: list[dict] = []
+        dates = sorted(df.index)
+        closes: list[float] = []
+        volumes: list[float] = []
+        opens_list: list[float] = []
+        highs_list: list[float] = []
+        lows_list: list[float] = []
+
+        i = 0
+        while i < len(dates):
+            dt = dates[i]
+            row = df.loc[dt]
+            close_p = float(row["Close"])
+            open_p = float(row["Open"])
+            high_p = float(row["High"])
+            low_p = float(row["Low"])
+            vol = float(row.get("Volume", 0))
+            closes.append(close_p)
+            volumes.append(vol)
+            opens_list.append(open_p)
+            highs_list.append(high_p)
+            lows_list.append(low_p)
+
+            if close_p <= 0 or len(closes) < sideways_days + 2:
+                i += 1
+                continue
+
+            # Check sideways condition
+            window = closes[-(sideways_days + 1):-1]
+            w_min, w_max = min(window), max(window)
+            if w_min <= 0:
+                i += 1
+                continue
+            range_pct = (w_max - w_min) / w_min * 100
+            if range_pct > sideways_range_pct:
+                i += 1
+                continue
+
+            # Breakout check
+            if close_p <= w_max * 1.005:
+                i += 1
+                continue
+
+            # Filter: price >= 100, avg volume >= 5000
+            if close_p < 100:
+                i += 1
+                continue
+            avg_vol = sum(volumes[-21:-1]) / 20 if len(volumes) >= 21 else 0
+            if avg_vol < 5000:
+                i += 1
+                continue
+
+            # Position sizing
+            entry_price = self._apply_cost(close_p, "buy")
+            stop_dist = entry_price * stop_pct / 100
+            lot = self.lot_size
+            raw_size = int(equity * 0.05 / stop_dist)
+            size = max(raw_size // lot * lot, lot)
+            notional = size * entry_price
+            if notional > equity * self.max_position_ratio:
+                size = max(int(equity * self.max_position_ratio / entry_price / lot) * lot, lot)
+                notional = size * entry_price
+            if notional > equity:
+                i += 1
+                continue
+
+            # Simulate hold with new-high exit + chart scoring
+            stop_price = entry_price * (1 - stop_pct / 100)
+            trade_high = entry_price
+            new_high_count = 0
+            exit_price = None
+            exit_j = i
+            hold_opens: list[float] = list(opens_list[max(0, i - 20):i + 1])
+            hold_highs: list[float] = list(highs_list[max(0, i - 20):i + 1])
+            hold_lows: list[float] = list(lows_list[max(0, i - 20):i + 1])
+            hold_closes: list[float] = list(closes[max(0, i - 20):i + 1])
+            hold_vols: list[float] = list(volumes[max(0, i - 20):i + 1])
+
+            for j in range(i + 1, min(i + max_hold + 1, len(dates))):
+                f_row = df.loc[dates[j]]
+                f_close = float(f_row["Close"])
+                f_low = float(f_row["Low"])
+                f_open = float(f_row["Open"])
+                f_high = float(f_row["High"])
+                f_vol = float(f_row.get("Volume", 0))
+
+                hold_opens.append(f_open)
+                hold_highs.append(f_high)
+                hold_lows.append(f_low)
+                hold_closes.append(f_close)
+                hold_vols.append(f_vol)
+
+                if f_low <= stop_price:
+                    exit_price = stop_price
+                    exit_j = j
+                    break
+                if f_close > trade_high:
+                    trade_high = f_close
+                    new_high_count += 1
+                if new_high_count >= new_high_exit_days:
+                    exit_price = self._apply_cost(f_close, "sell")
+                    exit_j = j
+                    break
+
+                # Chart-based early exit: check after 5 days
+                if j - i >= 5 and len(hold_closes) >= 10:
+                    exit_eval = compute_exit_score(
+                        hold_opens, hold_highs, hold_lows, hold_closes, hold_vols,
+                        entry_price, trade_high, j - i, strategy="KEI",
+                    )
+                    if exit_eval.recommendation == "EXIT_NOW":
+                        exit_price = self._apply_cost(f_close, "sell")
+                        exit_j = j
+                        break
+
+                exit_j = j
+
+            if exit_price is None:
+                last_idx = min(i + max_hold, len(dates) - 1)
+                exit_price = self._apply_cost(float(df.loc[dates[last_idx]]["Close"]), "sell")
+
+            pnl = (exit_price - entry_price) * size
+            trade_date = dt.strftime("%Y-%m-%d") if hasattr(dt, "strftime") else str(dt)
+            trade = {
+                "date": trade_date, "ticker": ticker, "strategy": "keikun",
+                "side": "buy", "size": size, "entry_price": round(entry_price, 2),
+                "exit_price": round(exit_price, 2), "pnl": round(pnl, 2),
+                "symbol": ticker, "qty": size,
+            }
+            trades.append(trade)
+            self.win_engine.record_trade(trade)
+            equity += pnl
+            i = exit_j + 1
+            continue
+
+            i += 1  # noqa: E501 -- unreachable
+
+        return trades
+
+    # ------------------------------------------------------------------
     # Main run
     # ------------------------------------------------------------------
+
+    # Available strategy names
+    INTRADAY_STRATEGIES = {"intraday_momentum", "overnight_reversal", "premarket_trio"}
+    SWING_STRATEGIES = {"cis_momentum", "keikun"}
+    ALL_STRATEGIES = INTRADAY_STRATEGIES | SWING_STRATEGIES
 
     def run(
         self,
         tickers: list[str],
         start_date: str,
         end_date: str,
+        strategies: list[str] | None = None,
     ) -> BacktestResult:
-        """Run backtest across all tickers and date range."""
+        """Run backtest across all tickers and date range.
+
+        Args:
+            strategies: List of strategy names to run. If None, runs all.
+                Available: intraday_momentum, overnight_reversal, premarket_trio,
+                           cis_momentum, keikun
+        """
+        active = set(strategies) if strategies else self.ALL_STRATEGIES
         logger.info(
-            "Backtest: %s → %s  tickers=%s  capital=¥%,.0f",
-            start_date, end_date, tickers, self.initial_capital,
+            "Backtest: %s → %s  tickers=%s  capital=¥%,.0f  strategies=%s",
+            start_date, end_date, tickers, self.initial_capital, active,
         )
 
         data = self._fetch_data(tickers, start_date, end_date)
@@ -443,70 +750,103 @@ class BacktestEngine:
             logger.error("No ticker data available")
             return BacktestResult(initial_capital=self.initial_capital)
 
-        # Build unified date index from first available ticker
-        ref_ticker = available_tickers[0]
-        all_dates = sorted(data[ref_ticker].index)
-
         equity = self.initial_capital
         all_trades: list[dict] = []
-        equity_curve: list[dict] = []
 
-        for i, dt in enumerate(all_dates):
-            trade_date = dt.strftime("%Y-%m-%d") if hasattr(dt, "strftime") else str(dt)
-
-            # Reset daily circuit breaker
-            self.breaker.daily_pnl = 0.0
-            self.breaker.daily_trade_count = 0
-
-            day_pnl = 0.0
-
+        # --- Swing strategies (CIS, Kei-kun): full-series per ticker ---
+        run_swing = bool(active & self.SWING_STRATEGIES)
+        if run_swing:
             for ticker in available_tickers:
-                ticker_df = data[ticker]
-                if dt not in ticker_df.index:
-                    continue
+                df = data[ticker]
+                if "cis_momentum" in active:
+                    cis_trades = self._run_cis_swing(ticker, df, equity)
+                    for t in cis_trades:
+                        equity += t["pnl"]
+                    all_trades.extend(cis_trades)
+                if "keikun" in active:
+                    kei_trades = self._run_keikun_swing(ticker, df, equity)
+                    for t in kei_trades:
+                        equity += t["pnl"]
+                    all_trades.extend(kei_trades)
 
-                row = ticker_df.loc[dt]
-                if pd.isna(row.get("Open")) or pd.isna(row.get("Close")):
-                    continue
+        # --- Intraday strategies: day-by-day ---
+        run_intraday = bool(active & self.INTRADAY_STRATEGIES)
+        if run_intraday:
+            # Reset equity for intraday pass (they run independently)
+            if run_swing:
+                # If swing also ran, intraday starts from swing's ending equity
+                pass
 
-                # Previous day
-                prev_dates = [d for d in ticker_df.index if d < dt]
-                prev_row = ticker_df.loc[prev_dates[-1]] if prev_dates else None
+            ref_ticker = available_tickers[0]
+            all_dates = sorted(data[ref_ticker].index)
 
-                # Market data rows
-                vix_row = self._safe_row(data, "^VIX", dt)
-                usdjpy_row = self._safe_row(data, "USDJPY=X", dt)
-                n225_row = self._safe_row(data, "^N225", dt)
+            for i, dt in enumerate(all_dates):
+                trade_date = dt.strftime("%Y-%m-%d") if hasattr(dt, "strftime") else str(dt)
 
-                prev_usdjpy_row = self._safe_prev_row(data, "USDJPY=X", dt)
-                prev_n225_row = self._safe_prev_row(data, "^N225", dt)
+                # Reset daily circuit breaker
+                self.breaker.daily_pnl = 0.0
+                self.breaker.daily_trade_count = 0
 
-                day_trades = self._run_day(
-                    ticker=ticker,
-                    row=row,
-                    prev_row=prev_row,
-                    vix_row=vix_row,
-                    usdjpy_row=usdjpy_row,
-                    prev_usdjpy_row=prev_usdjpy_row,
-                    n225_row=n225_row,
-                    prev_n225_row=prev_n225_row,
-                    trade_date=trade_date,
-                    equity=equity,
-                )
-                for t in day_trades:
-                    day_pnl += t["pnl"]
-                    all_trades.append(t)
+                day_pnl = 0.0
 
-            equity += day_pnl
-            self.breaker.daily_pnl = day_pnl
+                for ticker in available_tickers:
+                    ticker_df = data[ticker]
+                    if dt not in ticker_df.index:
+                        continue
 
-            equity_curve.append({
-                "date": trade_date,
-                "equity": round(equity, 2),
-                "daily_pnl": round(day_pnl, 2),
-            })
+                    row = ticker_df.loc[dt]
+                    if pd.isna(row.get("Open")) or pd.isna(row.get("Close")):
+                        continue
+
+                    # Previous day
+                    prev_dates = [d for d in ticker_df.index if d < dt]
+                    prev_row = ticker_df.loc[prev_dates[-1]] if prev_dates else None
+
+                    # Market data rows
+                    vix_row = self._safe_row(data, "^VIX", dt)
+                    usdjpy_row = self._safe_row(data, "USDJPY=X", dt)
+                    n225_row = self._safe_row(data, "^N225", dt)
+
+                    prev_usdjpy_row = self._safe_prev_row(data, "USDJPY=X", dt)
+                    prev_n225_row = self._safe_prev_row(data, "^N225", dt)
+
+                    day_trades = self._run_day(
+                        ticker=ticker,
+                        row=row,
+                        prev_row=prev_row,
+                        vix_row=vix_row,
+                        usdjpy_row=usdjpy_row,
+                        prev_usdjpy_row=prev_usdjpy_row,
+                        n225_row=n225_row,
+                        prev_n225_row=prev_n225_row,
+                        trade_date=trade_date,
+                        equity=equity,
+                    )
+                    for t in day_trades:
+                        day_pnl += t["pnl"]
+                        all_trades.append(t)
+
+                equity += day_pnl
+                self.breaker.daily_pnl = day_pnl
+
+        # Build equity curve from sorted trades
+        all_trades.sort(key=lambda t: t["date"])
+        equity_curve = self._build_equity_curve(all_trades)
 
         return self._build_result(all_trades, equity_curve)
+
+    def _build_equity_curve(self, trades: list[dict]) -> list[dict]:
+        """Build equity curve from chronologically sorted trades."""
+        curve: list[dict] = []
+        eq = self.initial_capital
+        daily_pnl: dict[str, float] = {}
+        for t in trades:
+            d = t["date"]
+            daily_pnl[d] = daily_pnl.get(d, 0.0) + t["pnl"]
+        for d in sorted(daily_pnl.keys()):
+            eq += daily_pnl[d]
+            curve.append({"date": d, "equity": round(eq, 2), "daily_pnl": round(daily_pnl[d], 2)})
+        return curve
 
     # ------------------------------------------------------------------
     # Helpers

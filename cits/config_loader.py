@@ -67,6 +67,19 @@ def _flatten_yaml(raw: dict[str, Any]) -> dict[str, Any]:
     if broker:
         flat["broker"] = broker
 
+    # Strategy parameters
+    strategy = raw.get("strategy", {})
+    if strategy:
+        flat["strategy"] = strategy
+
+    # Execution parameters (includes keikun config)
+    execution = raw.get("execution", {})
+    if execution:
+        flat["execution"] = execution
+    keikun = execution.get("keikun", {})
+    if keikun:
+        flat["keikun"] = keikun
+
     return flat
 
 

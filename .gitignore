@@ -4,8 +4,8 @@ config/credentials.json
 config/google_credentials.json
 
 # Data
-/data/
-/reports/
+data/
+reports/
 
 # Python
 __pycache__/
@@ -34,12 +34,5 @@ Thumbs.db
 # Logs
 *.log
 
-# CITS Trading System
-cits/logs/trades.db
-cits/logs/portfolio.db
-cits/logs/signals.db
-cits/logs/debates/*.json
-cits/logs/agent_decisions/*.json
-cits/logs/cits.log
-cits/logs/reports/
-cits/.env
+# CITS runtime databases
+cits/logs/*.db

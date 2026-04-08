@@ -17,7 +17,6 @@ import logging
 import statistics
 from collections import defaultdict
 from dataclasses import dataclass, field
-from datetime import date, timedelta
 
 import pandas as pd
 import yfinance as yf
@@ -240,11 +239,16 @@ def backtest_orb(data: dict[str, pd.DataFrame], capital: float) -> StrategyResul
                 if isinstance(val, pd.Series):
                     val = val.iloc[0]
 
-            if isinstance(o, pd.Series): o = o.iloc[0]
-            if isinstance(h, pd.Series): h = h.iloc[0]
-            if isinstance(low, pd.Series): low = low.iloc[0]
-            if isinstance(c, pd.Series): c = c.iloc[0]
-            if isinstance(sma_val, pd.Series): sma_val = sma_val.iloc[0]
+            if isinstance(o, pd.Series):
+                o = o.iloc[0]
+            if isinstance(h, pd.Series):
+                h = h.iloc[0]
+            if isinstance(low, pd.Series):
+                low = low.iloc[0]
+            if isinstance(c, pd.Series):
+                c = c.iloc[0]
+            if isinstance(sma_val, pd.Series):
+                sma_val = sma_val.iloc[0]
 
             if pd.isna(sma_val) or (h - low) == 0:
                 continue
@@ -291,11 +295,16 @@ def backtest_intraday_momentum(data: dict[str, pd.DataFrame], capital: float) ->
             low = df["Low"].iloc[i]
             c = df["Close"].iloc[i]
 
-            if isinstance(prev_close, pd.Series): prev_close = prev_close.iloc[0]
-            if isinstance(o, pd.Series): o = o.iloc[0]
-            if isinstance(h, pd.Series): h = h.iloc[0]
-            if isinstance(low, pd.Series): low = low.iloc[0]
-            if isinstance(c, pd.Series): c = c.iloc[0]
+            if isinstance(prev_close, pd.Series):
+                prev_close = prev_close.iloc[0]
+            if isinstance(o, pd.Series):
+                o = o.iloc[0]
+            if isinstance(h, pd.Series):
+                h = h.iloc[0]
+            if isinstance(low, pd.Series):
+                low = low.iloc[0]
+            if isinstance(c, pd.Series):
+                c = c.iloc[0]
 
             if prev_close <= 0 or o <= 0:
                 continue

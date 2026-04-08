@@ -1,0 +1,30 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 8,
+    "persona_match": 9,
+    "pillar_alignment": 9,
+    "usefulness": 9,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 0,
+    "cta_ending": 6,
+    "originality": 8,
+    "tone_balance": 8,
+    "problem_solving": 9
+  },
+  "total_score": 96,
+  "threshold": 84,
+  "result": "auto_approved",
+  "usefulness_summary": "管理会社が対応してくれない住民が書面で記録を残すことで効果的に対応を促せる",
+  "rejection_reasons": [
+    "絶対不合格条件: 数字が含まれていない（number_included = 0）"
+  ],
+  "improvement_suggestions": [
+    "具体的な数字を追加する（例：「対応が3倍早くなる」「通常1週間かかるところが2-3日で」等のニュアンス表現を含める）",
+    "体験談として「実際に◯日で対応してもらえた」等の具体例を数字とともに追加"
+  ],
+  "checked_at": "2026-04-05T19:03:04.243006+09:00"
+}

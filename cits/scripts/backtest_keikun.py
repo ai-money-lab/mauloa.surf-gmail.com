@@ -123,7 +123,7 @@ def main():
 
     trades = backtest(data)
     print(f"\n{'=' * 60}")
-    print(f"  RESULTS")
+    print("  RESULTS")
     print(f"{'=' * 60}")
     print(f"  Total trades: {len(trades)}")
 
@@ -161,25 +161,25 @@ def main():
     reasons = defaultdict(int)
     for t in trades:
         reasons[t["exit_reason"]] += 1
-    print(f"\n  Exit reasons:")
+    print("\n  Exit reasons:")
     for r, c in sorted(reasons.items()):
         print(f"    {r}: {c}")
 
     top = sorted(trades, key=lambda t: t["pnl_pct"], reverse=True)[:10]
-    print(f"\n  Top 10:")
+    print("\n  Top 10:")
     for t in top:
         print(f"    {t['ticker']} {t['entry_date']}->{t['exit_date']} {t['pnl_pct']:+.1f}% hold={t['hold_days']}d")
 
     worst = sorted(trades, key=lambda t: t["pnl_pct"])[:5]
-    print(f"\n  Worst 5:")
+    print("\n  Worst 5:")
     for t in worst:
         print(f"    {t['ticker']} {t['entry_date']}->{t['exit_date']} {t['pnl_pct']:+.1f}% reason={t['exit_reason']}")
 
     print(f"\n{'=' * 60}")
-    print(f"  KEI-KUN vs CIS")
+    print("  KEI-KUN vs CIS")
     print(f"{'=' * 60}")
     print(f"  KEI-KUN: {len(trades)} trades, WR={win_rate:.1f}%, PF={pf:.2f}, MonRet={avg_monthly:.2f}%")
-    print(f"  CIS 9ETF: 81 trades, WR=50.6%, PF=1.81, MonRet=0.37%")
+    print("  CIS 9ETF: 81 trades, WR=50.6%, PF=1.81, MonRet=0.37%")
 
 if __name__ == "__main__":
     main()

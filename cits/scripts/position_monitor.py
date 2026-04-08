@@ -33,7 +33,7 @@ import logging
 import os
 import sys
 from dataclasses import dataclass, field
-from datetime import date, datetime, timedelta
+from datetime import date, datetime
 from pathlib import Path
 
 import pandas as pd
@@ -784,12 +784,35 @@ def analyze_position(pos: dict, df: pd.DataFrame,
     # Compute all signal scores
     signals: list[ExitSignal] = []
 
-    # 1. Chart pattern score
-    chart_sig = score_chart_patterns(df)
-    signals.append(chart_sig)
+    # 1-2. Chart pattern + Momentum via shared chart_exit module
+    try:
+        from cits.core.chart_exit import compute_exit_score as _chart_exit
+        opens = [float(x) for x in df["Open"]]
+        highs_list = [float(x) for x in df["High"]]
+        lows_list = [float(x) for x in df["Low"]]
+        closes_list = [float(x) for x in df["Close"]]
+        vols_list = [float(x) for x in df["Volume"]]
+        high_since = pos.get("high_since_entry", current_price)
 
-    # 2. Momentum score
-    momentum_sig = score_momentum(df, entry_price)
+        exit_eval = _chart_exit(
+            opens, highs_list, lows_list, closes_list, vols_list,
+            entry_price=entry_price, current_high=high_since,
+            hold_days=hold_days, strategy=strategy,
+        )
+        chart_sig = ExitSignal(
+            name="chart_pattern", score=exit_eval.bearish_pattern, weight=1.0,
+            reason=f"chart_exit bearish={exit_eval.bearish_pattern:.0f}",
+        )
+        momentum_sig = ExitSignal(
+            name="momentum", score=exit_eval.momentum_decay, weight=1.0,
+            reason=f"chart_exit momentum_decay={exit_eval.momentum_decay:.0f}",
+        )
+    except Exception:
+        # Fallback to local scoring if chart_exit unavailable
+        chart_sig = score_chart_patterns(df)
+        momentum_sig = score_momentum(df, entry_price)
+
+    signals.append(chart_sig)
     signals.append(momentum_sig)
 
     # 3. Market regime (shared, computed once for all positions)
@@ -799,12 +822,24 @@ def analyze_position(pos: dict, df: pd.DataFrame,
         regime_sig = score_market_regime()
         signals.append(regime_sig)
 
-    # 4. Trailing stop
+    # 4. Trailing stop (use chart_exit result if available, else local)
     high_since = pos.get("high_since_entry", current_price)
-    trail_sig = score_trailing_stop(
-        df, entry_price, current_price, original_sl,
-        high_since_entry=high_since,
-    )
+    try:
+        if exit_eval.trailing_hit:
+            trail_sig = ExitSignal(
+                name="trailing_stop", score=100.0, weight=1.0,
+                reason="chart_exit: TRAILING STOP BREACHED",
+            )
+        else:
+            trail_sig = score_trailing_stop(
+                df, entry_price, current_price, original_sl,
+                high_since_entry=high_since,
+            )
+    except NameError:
+        trail_sig = score_trailing_stop(
+            df, entry_price, current_price, original_sl,
+            high_since_entry=high_since,
+        )
     signals.append(trail_sig)
 
     # 5. Time
