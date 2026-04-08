@@ -39,12 +39,15 @@ from pathlib import Path
 import pandas as pd
 import yfinance as yf
 
-# .env auto-load
+# .env auto-load (handle Japanese Windows cp932 encoding)
 try:
     from dotenv import load_dotenv
     env_path = Path(__file__).resolve().parent.parent / ".env"
     if env_path.exists():
-        load_dotenv(env_path, override=True)
+        try:
+            load_dotenv(env_path, override=True)
+        except UnicodeDecodeError:
+            load_dotenv(env_path, override=True, encoding="cp932")
 except ImportError:
     pass
 

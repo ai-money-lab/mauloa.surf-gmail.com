@@ -13,12 +13,15 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
-# .envファイルの自動読み込み
+# .envファイルの自動読み込み (handle Japanese Windows cp932 encoding)
 try:
     from dotenv import load_dotenv
     env_path = Path(__file__).parent / ".env"
     if env_path.exists():
-        load_dotenv(env_path)
+        try:
+            load_dotenv(env_path)
+        except UnicodeDecodeError:
+            load_dotenv(env_path, encoding="cp932")
 except ImportError:
     pass  # python-dotenvがなくても環境変数で直接設定可能
 

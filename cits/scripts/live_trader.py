@@ -35,15 +35,21 @@ from pathlib import Path
 import pandas as pd
 import yfinance as yf
 
-# .env auto-load
+# .env auto-load (handle Japanese Windows cp932 encoding)
 try:
     from dotenv import load_dotenv
     env_path = Path(__file__).resolve().parent.parent / ".env"
     if env_path.exists():
-        load_dotenv(env_path, override=True)
+        try:
+            load_dotenv(env_path, override=True)
+        except UnicodeDecodeError:
+            load_dotenv(env_path, override=True, encoding="cp932")
     root_env = Path(__file__).resolve().parent.parent.parent / ".env"
     if root_env.exists():
-        load_dotenv(root_env, override=False)
+        try:
+            load_dotenv(root_env, override=False)
+        except UnicodeDecodeError:
+            load_dotenv(root_env, override=False, encoding="cp932")
 except ImportError:
     pass
 
