@@ -10,10 +10,12 @@ set PYTHONPATH=C:\cits\repo
 REM Auto-update code from GitHub
 git pull origin claude/japanese-stock-trading-agent-kJBwp --quiet 2>nul
 
-REM One-time: update CITS_Afternoon to 15:20
-if not exist "C:\cits\logs\.schtask_updated" (
+REM One-time: update CITS_Afternoon to 15:20 + register position monitor
+if not exist "C:\cits\logs\.schtask_v2" (
     schtasks /Change /TN "CITS_Afternoon" /ST 15:20 >nul 2>&1
-    echo %date% %time% CITS_Afternoon changed to 15:20 > "C:\cits\logs\.schtask_updated"
+    REM Position monitor: every 30 min from 09:30 to 15:00 on weekdays
+    schtasks /Create /TN "CITS_PositionMonitor" /TR "C:\cits\repo\cits\run_monitor.bat" /SC DAILY /ST 09:30 /RI 30 /DU 05:30 /D MON,TUE,WED,THU,FRI /F >nul 2>&1
+    echo %date% %time% Tasks updated: Afternoon=15:20, Monitor=every30min > "C:\cits\logs\.schtask_v2"
 )
 
 REM Load .env
