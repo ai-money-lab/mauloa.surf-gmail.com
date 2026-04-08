@@ -87,31 +87,37 @@ def compute_exit_score(
             elif profit_pct >= 3:
                 trail_pct = 0.0  # breakeven
             else:
-                trail_pct = None  # use original stop
+                # ATR-based trailing: 2x ATR from high (adapts to volatility)
+                trail_pct = (2.0 * atr / current_high) * 100
 
-            if trail_pct is not None:
-                trail_level = current_high * (1 - trail_pct / 100)
-                if current_price <= trail_level:
-                    trail_hit = True
-                    trail_score = 100.0
-                else:
-                    # Score based on proximity to trail
-                    dist_to_trail = (current_price - trail_level) / current_price * 100
-                    trail_score = max(0, 50 - dist_to_trail * 20)
+            trail_level = current_high * (1 - trail_pct / 100)
+            if current_price <= trail_level:
+                trail_hit = True
+                trail_score = 100.0
+            else:
+                # Score based on proximity to trail
+                dist_to_trail = (current_price - trail_level) / current_price * 100
+                trail_score = max(0, 50 - dist_to_trail * 20)
 
     # --- 4. Stage analysis (Minervini) ---
     stage_breakdown = False
     stage_score = 0.0
-    if len(closes) >= 50:
-        sma50 = sum(closes[-50:]) / 50
+    # Use SMA20 when insufficient data for SMA50
+    min_ma_period = 20
+    if len(closes) >= min_ma_period:
         sma20 = sum(closes[-20:]) / 20
+        if len(closes) >= 50:
+            sma50 = sum(closes[-50:]) / 50
+        else:
+            sma50 = sma20  # fallback: use SMA20 as proxy
+
         # Stage 2 requires: price > SMA50, SMA20 > SMA50
         if current_price < sma50:
             stage_breakdown = True
             stage_score = 80.0
         elif current_price < sma20:
             stage_score = 40.0
-        elif sma20 < sma50:
+        elif len(closes) >= 50 and sma20 < sma50:
             stage_score = 60.0
             stage_breakdown = True
 
