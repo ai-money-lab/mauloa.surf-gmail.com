@@ -1,0 +1,53 @@
+# GitHub Actions — CITS 週次パフォーマンスレポート
+# 毎週日曜 12:00 JST (03:00 UTC) に自動生成 + 手動実行対応
+
+name: CITS Weekly Report
+
+on:
+  schedule:
+    # cron は UTC で指定（JST = UTC+9）
+    - cron: '0 3 * * 0'   # 12:00 JST, Sunday
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: pip install -r cits/requirements.txt
+
+      - name: Generate weekly report
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          JQUANTS_API_KEY: ${{ secrets.JQUANTS_API_KEY }}
+        run: PYTHONPATH=. python -m cits.scripts.weekly_report
+
+      - name: Upload report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cits-weekly-report-${{ github.run_id }}
+          path: cits/reports/
+          retention-days: 90
+
+      - name: Commit report
+        if: success()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -f cits/reports/ || true
+          git diff --cached --quiet || git commit -m "auto: CITS weekly report $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          git push

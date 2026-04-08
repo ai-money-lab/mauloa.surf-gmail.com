@@ -1,0 +1,76 @@
+# GitHub Actions — CITS ペーパートレード自動実行
+# 平日 09:00 JST (00:00 UTC) に自動実行 + 手動実行対応
+
+name: CITS Daily Paper Trading
+
+on:
+  schedule:
+    # cron は UTC で指定（JST = UTC+9）
+    - cron: '00 0 * * 1-5'   # 09:00 JST, weekdays
+  workflow_dispatch:
+    inputs:
+      tickers:
+        description: 'Comma-separated ticker codes'
+        required: false
+        type: string
+        default: '7203,8306,6758,9984'
+      date:
+        description: 'Trading date (YYYY-MM-DD, empty=today)'
+        required: false
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  paper-trade:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: pip install -r cits/requirements.txt
+
+      - name: Run paper trading
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          JQUANTS_API_KEY: ${{ secrets.JQUANTS_API_KEY }}
+          KABU_API_PASSWORD: ${{ secrets.KABU_API_PASSWORD }}
+          EDINET_API_KEY: ${{ secrets.EDINET_API_KEY }}
+        run: |
+          TICKERS="${{ inputs.tickers || '7203,8306,6758,9984' }}"
+          DATE_ARG=""
+          if [ -n "${{ inputs.date }}" ]; then
+            DATE_ARG="--date ${{ inputs.date }}"
+          fi
+
+          IFS=',' read -ra TICKER_LIST <<< "$TICKERS"
+          for TICKER in "${TICKER_LIST[@]}"; do
+            echo "=== Trading: $TICKER ==="
+            PYTHONPATH=. python -m cits.main --mode paper --ticker "$TICKER" $DATE_ARG || true
+          done
+
+      - name: Upload logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cits-paper-logs-${{ github.run_id }}
+          path: cits/logs/
+          retention-days: 30
+
+      - name: Commit data changes
+        if: success()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -f cits/logs/ cits/data/ || true
+          git diff --cached --quiet || git commit -m "auto: CITS paper trade $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          git push
