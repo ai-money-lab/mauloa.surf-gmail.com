@@ -30,15 +30,21 @@ CITS_ROOT = Path(__file__).resolve().parent.parent
 DATA_DIR = CITS_ROOT / "data"
 SCRIPTS_DIR = CITS_ROOT / "scripts"
 
-# Load .env
+# Load .env (handle Japanese Windows cp932 encoding)
 try:
     from dotenv import load_dotenv
     env_path = CITS_ROOT / ".env"
     if env_path.exists():
-        load_dotenv(env_path, override=True)
+        try:
+            load_dotenv(env_path, override=True)
+        except UnicodeDecodeError:
+            load_dotenv(env_path, override=True, encoding="cp932")
     root_env = PROJECT_ROOT / ".env"
     if root_env.exists():
-        load_dotenv(root_env, override=False)
+        try:
+            load_dotenv(root_env, override=False)
+        except UnicodeDecodeError:
+            load_dotenv(root_env, override=False, encoding="cp932")
 except ImportError:
     pass
 
