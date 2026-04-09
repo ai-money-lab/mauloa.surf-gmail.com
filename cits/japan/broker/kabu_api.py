@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import logging
 import os
+from datetime import date, timedelta
 
 import requests
 
@@ -160,6 +161,16 @@ class KabuStationAPI:
             raise ValueError("price is required for limit orders")
 
         url = f"{self.BASE_URL}/kabusapi/sendorder"
+
+        # ExpireDay: 0=当日, YYYYMMDD=指定日まで有効
+        # 指値注文は5営業日有効（当日限りだと失効リスクあり）
+        if order_type == "market":
+            expire_day = 0  # 成行は当日
+        else:
+            # 指値: 5営業日後まで有効
+            expire_date = date.today() + timedelta(days=7)  # 土日含めて7日=約5営業日
+            expire_day = int(expire_date.strftime("%Y%m%d"))
+
         payload = {
             "Password": self.password,
             "Symbol": symbol,
@@ -172,7 +183,7 @@ class KabuStationAPI:
             "Qty": qty,
             "FrontOrderType": 10 if order_type == "market" else 20,  # 10=成行, 20=指値
             "Price": 0 if order_type == "market" else price,
-            "ExpireDay": 0,      # 0=当日 (today)
+            "ExpireDay": expire_day,
         }
 
         logger.info(
