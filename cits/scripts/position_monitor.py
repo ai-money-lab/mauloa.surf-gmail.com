@@ -1082,6 +1082,9 @@ def main():
 
     results = check_positions(dry_run=args.dry_run)
 
+    # Write status for remote monitoring
+    _write_monitor_status(results)
+
     # Summary
     if results:
         logger.info("=" * 60)
@@ -1092,6 +1095,46 @@ def main():
                 "  %s [%s] Score=%.0f -> %s",
                 r.ticker, r.strategy, r.total_score, r.recommendation,
             )
+
+
+def _write_monitor_status(results: list[ExitAnalysis]) -> None:
+    """Write monitor status to vps_status.json for remote monitoring."""
+    status_path = Path(__file__).resolve().parent.parent / "data" / "vps_status.json"
+    positions = load_positions()
+    open_pos = [p for p in positions if p.get("status") == "open"]
+    status = {
+        "timestamp": datetime.now().isoformat(),
+        "date": str(date.today()),
+        "source": "position_monitor",
+        "open_positions": len(open_pos),
+        "positions": [
+            {
+                "ticker": p.get("ticker"),
+                "strategy": p.get("strategy"),
+                "entry_price": p.get("entry_price"),
+                "size": p.get("size"),
+                "hold_days": p.get("hold_days", 0),
+                "status": p.get("status"),
+            }
+            for p in open_pos
+        ],
+        "exit_analyses": [
+            {
+                "ticker": r.ticker,
+                "strategy": r.strategy,
+                "score": r.total_score,
+                "recommendation": r.recommendation,
+            }
+            for r in results
+        ],
+    }
+    try:
+        status_path.write_text(
+            json.dumps(status, ensure_ascii=False, indent=2, default=str),
+            encoding="utf-8",
+        )
+    except Exception:
+        pass
 
 
 if __name__ == "__main__":
