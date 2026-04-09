@@ -24,3 +24,6 @@ set LOG_FILE=%LOG_DIR%\monitor_%date:~0,4%%date:~5,2%%date:~8,2%.log
 
 echo %date% %time% MONITOR >> "%LOG_FILE%"
 C:\cits\venv\Scripts\python.exe -m cits.scripts.position_monitor >> "%LOG_FILE%" 2>&1
+
+REM Push status to GitHub every 30 min for remote monitoring
+call C:\cits\repo\cits\report_status.bat "MONITOR" "Position check complete"
