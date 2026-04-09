@@ -1083,9 +1083,47 @@ def _print_summary(all_signals: list[dict], results: list[dict]) -> None:
     logger.info("  Executed: %d (CIS: %d, KEI: %d)", len(executed), len(cis_exec), len(kei_exec))
     if executed:
         total_notional = sum(r.get("notional", 0) for r in executed)
-        logger.info("  Total notional: Y%s / Y%s capital",
-                     f"{total_notional:,.0f}",
-                     f"{sum(1 for _ in []):,.0f}" if False else "300,000")
+        logger.info("  Total notional: Y%s", f"{total_notional:,.0f}")
+
+    # Write status file for remote monitoring via GitHub
+    _write_status(all_signals, results)
+
+
+def _write_status(signals: list[dict], results: list[dict]) -> None:
+    """Write execution status to vps_status.json for GitHub monitoring."""
+    status_path = DATA_DIR / "vps_status.json"
+    executed = [r for r in results if r.get("status") in ("filled", "dry_run")]
+    blocked = [r for r in results if "blocked" in r.get("status", "")]
+    status = {
+        "timestamp": datetime.now().isoformat(),
+        "date": date.today().strftime("%Y-%m-%d"),
+        "signals_found": len(signals),
+        "executed": len(executed),
+        "blocked": len(blocked),
+        "orders": [
+            {
+                "ticker": r.get("ticker"),
+                "strategy": r.get("strategy"),
+                "status": r.get("status"),
+                "price": r.get("price"),
+                "size": r.get("size"),
+                "notional": r.get("notional"),
+            }
+            for r in results
+        ],
+        "top_signals": [
+            {"ticker": s.get("ticker"), "strategy": s.get("strategy"),
+             "score": s.get("score"), "price": s.get("price")}
+            for s in signals[:5]
+        ],
+    }
+    try:
+        status_path.write_text(
+            json.dumps(status, ensure_ascii=False, indent=2, default=str),
+            encoding="utf-8",
+        )
+    except Exception:
+        pass
 
 
 # ---------------------------------------------------------------

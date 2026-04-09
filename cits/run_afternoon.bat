@@ -39,6 +39,9 @@ REM Step 2: Buy scan -- CIS+KEI on all tickers
 echo --- STEP 2: Buy Scan (CIS+KEI) --- >> "%LOG_FILE%"
 C:\cits\venv\Scripts\python.exe -m cits.scripts.live_trader --mode afternoon --capital 300000 >> "%LOG_FILE%" 2>&1
 
+REM Report status to GitHub for remote monitoring
+call C:\cits\repo\cits\report_status.bat "AFTERNOON" "See afternoon log for details"
+
 echo ======================================== >> "%LOG_FILE%"
 echo Complete: %date% %time% >> "%LOG_FILE%"
 echo ======================================== >> "%LOG_FILE%"
