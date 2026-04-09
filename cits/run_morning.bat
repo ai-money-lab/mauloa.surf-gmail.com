@@ -10,6 +10,12 @@ set PYTHONPATH=C:\cits\repo
 REM Auto-update code from GitHub
 git pull origin claude/japanese-stock-trading-agent-kJBwp --quiet 2>nul
 
+REM One-time: sell 2170 at market (stop breach 610 -> current 606)
+if not exist "C:\cits\logs\.sold_2170" (
+    echo %date% %time% Selling 2170 at market >> "%LOG_FILE%"
+    C:\cits\venv\Scripts\python.exe -m cits.scripts.sell_2170 >> "%LOG_FILE%" 2>&1
+)
+
 REM One-time: update CITS_Afternoon to 15:20 + register position monitor
 if not exist "C:\cits\logs\.schtask_v2" (
     schtasks /Change /TN "CITS_Afternoon" /ST 15:20 >nul 2>&1
