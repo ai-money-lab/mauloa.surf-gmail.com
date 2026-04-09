@@ -50,23 +50,30 @@ python -m cits.main --mode paper --ticker 7203
 - `TACHIBANA_USER_ID`: 立花証券ユーザーID（Stage 2）
 - `TACHIBANA_PASSWORD`: 立花証券パスワード（Stage 2）
 
-## 現在のステータス（2026-04-09 JST更新）
+## 現在のステータス（2026-04-09 23:30 JST更新）
 
 ### 口座・稼働状況
 - 三菱UFJ eスマート証券: **開設完了・入金完了・取引開始済み**
 - 口座番号: 02210320
 - APIユーザID: 10074931
 - APIパスワード(本番): `hiroki0380` / 注文パスワード: `hiroki0380HM`
-- ¥100,000で稼働中
+- ¥300,000で稼働中
+
+### ポジション状況（2026-04-09時点）
+- **2170 リンクアンドモチベーション**: 100株保有中。ストップ610円割れ(現606円)。**明朝08:30に自動成行売り予定**（sell_2170.py）
+- **白鳩(3192)**: 売却済み（+¥13,535）
 
 ### 本番VPS (CITS専用)
 - IP: 150.66.3.162 (ABLENET 3VOBDHFE, Win1 SSD, 2GB RAM)
 - SSH: `ssh -i ~/.ssh/id_ed25519 Administrator@150.66.3.162`（鍵認証のみ）
 - CITSコード: `C:\cits\repo\cits\`
+- VPSブランチ: `claude/japanese-stock-trading-agent-kJBwp` コミット `8e33b38`
 - kabuStation: インストール済み・自動ログイン構築済み（5/5テスト成功）
 - 自動ログイン方式: Chrome MCP→noVNC→スタートメニュー→ログイン→Gmail 2FA自動取得
 - TightVNC: ポート5900稼働（パスワード: cits2026）
-- check_readiness: ALL PASS (21/21)
+- .env: UTF-8変換済み（Windows cp932問題修正済み）
+- 全bat: git pull付き（コード自動更新）
+- **VPSステータス監視**: 各bat実行後にvps_status.json/txtをGitHub pushする。Claude Codeからget_file_contentsで確認可能
 
 ### VPSタスクスケジューラ
 | タスク | 時間 | 内容 |
@@ -129,10 +136,40 @@ TZ=Asia/Tokyo date '+%Y-%m-%d %H:%M:%S %Z (%A)'
   6. 祝日判定（土日+2026年祝日）
 - **タスクスケジューラ自動設定**: afternoon 15:20変更 + position_monitor 30分毎登録（初回bat実行時自動）
 
+### 明朝08:30自動実行予定（2026-04-10 金 SQ日）
+1. git pull → 最新コード取得
+2. **sell_2170.py** → 2170成行売り（1回限り、マーカーで制御）
+3. schtasks → CITS_Afternoon 15:20 + CITS_PositionMonitor 30分毎（1回限り）
+4. live_trader morning → CIS全銘柄スキャン（SQ日なのでポジション半減）
+5. report_status → vps_status.jsonをGitHub push
+
+### VPSステータス確認方法（Claude Codeから）
+```
+git fetch origin claude/japanese-stock-trading-agent-kJBwp
+git show origin/claude/japanese-stock-trading-agent-kJBwp:cits/data/vps_status.json
+```
+またはGitHub MCP:
+```
+mcp__github__get_file_contents(path="cits/data/vps_status.json", branch="claude/japanese-stock-trading-agent-kJBwp")
+```
+
+### 指値注文ExpireDay修正
+- **修正前**: ExpireDay=0（当日限り）→ 利確/逆指値が大引けで失効
+- **修正後**: 指値注文は7日後（≒5営業日）まで有効。成行は当日のまま
+- 原因: 2170の620円利確注文がその日のうちに約定せず失効した
+
 ### 残作業（次セッション）
 - `.env`に`GMAIL_APP_PASSWORD`設定 → メールレポート送信有効化
 - 2027年の祝日リスト追加（`_JP_HOLIDAYS_2026`を更新）
+- sell_2170.py実行後に結果確認 → CLAUDE.mdのポジション状況を更新
 - 実弾トレード実績の検証・パラメータ調整
+
+### 教訓（このセッションで学んだこと）
+- PRマージでファイルが消失する → **push_filesで直接pushが確実**
+- Windows .envはcp932問題が起きる → **load_dotenvにcp932フォールバック必須**
+- batのLOG_FILE定義順序が重要 → **使う前に定義**
+- ExpireDay=0は当日限り → **指値は必ず期限指定**
+- 「想定」「はず」は禁止 → **事実ベース、実行結果のみが真実**
 
 ### 追加コマンド
 ```bash
