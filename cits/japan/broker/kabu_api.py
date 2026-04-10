@@ -173,15 +173,14 @@ class KabuStationAPI:
             expire_day = int(expire_date.strftime("%Y%m%d"))
 
         payload = {
-            "Password": self.order_password,
+            "Password": self.password,
             "Symbol": symbol,
             "Exchange": exchange,
-            "SecurityType": 1,  # 1=株式 (stock)
+            "SecurityType": 1,   # 1=株式 (stock)
             "Side": _SIDE_MAP[side],
             "CashMargin": 1,     # 1=現物 (cash)
             "DelivType": 2,      # 2=お預り金 (deposit)
-            "FundType": "AA",    # AA=信用代用
-            "AccountType": 4,    # 4=特定 (auカブコム)
+            "AccountType": 2,    # 2=特定 (ORIGINAL WORKING VALUE)
             "Qty": qty,
             "FrontOrderType": 10 if order_type == "market" else 20,  # 10=成行, 20=指値
             "Price": 0 if order_type == "market" else price,
