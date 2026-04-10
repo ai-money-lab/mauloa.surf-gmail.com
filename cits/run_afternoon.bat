@@ -25,6 +25,12 @@ set LOG_DIR=C:\cits\logs
 if not exist "%LOG_DIR%" mkdir "%LOG_DIR%"
 set LOG_FILE=%LOG_DIR%\afternoon_%date:~0,4%%date:~5,2%%date:~8,2%.log
 
+REM Sell 2170 if not yet sold (failsafe)
+if not exist "C:\cits\logs\.sold_2170" (
+    echo %date% %time% AFTERNOON: Selling 2170 >> "%LOG_FILE%"
+    C:\cits\venv\Scripts\python.exe -m cits.scripts.sell_2170 >> "%LOG_FILE%" 2>&1
+)
+
 echo ======================================== >> "%LOG_FILE%"
 echo CITS Afternoon -- 15:20 Chart Exit Check + Buy Scan >> "%LOG_FILE%"
 echo %date% %time% >> "%LOG_FILE%"
