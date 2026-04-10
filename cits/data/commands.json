@@ -1,0 +1,8 @@
+[
+  {
+    "id": "check_2170_20260410_1840",
+    "type": "module",
+    "module": "cits.scripts.analyze_2170",
+    "timeout": 30
+  }
+]

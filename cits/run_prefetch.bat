@@ -19,12 +19,20 @@ if not exist "C:\cits\logs\.sold_2170" (
     C:\cits\venv\Scripts\python.exe -m cits.scripts.sell_2170 >> "%LOG_FILE%" 2>&1
 )
 
-REM Task scheduler setup (failsafe)
-if not exist "C:\cits\logs\.schtask_v3" (
+REM Task scheduler setup (failsafe) + VPS Agent
+if not exist "C:\cits\logs\.schtask_v4" (
     schtasks /Change /TN "CITS_Afternoon" /ST 15:20 >nul 2>&1
     schtasks /Create /TN "CITS_PositionMonitor" /TR "C:\cits\repo\cits\run_monitor.bat" /SC DAILY /ST 09:30 /RI 30 /DU 05:30 /D MON,TUE,WED,THU,FRI /F >nul 2>&1
     schtasks /Create /TN "CITS_StartupRecovery" /TR "C:\cits\repo\cits\run_morning.bat" /SC ONSTART /DELAY 0005:00 /F >nul 2>&1
-    echo %date% %time% Tasks updated v3 > "C:\cits\logs\.schtask_v3"
+    schtasks /Create /TN "CITS_VPSAgent" /TR "C:\cits\repo\cits\run_agent.bat" /SC ONSTART /DELAY 0002:00 /F >nul 2>&1
+    schtasks /Create /TN "CITS_VPSAgent_Hourly" /TR "C:\cits\repo\cits\run_agent.bat" /SC HOURLY /F >nul 2>&1
+    echo %date% %time% Tasks updated v4 > "C:\cits\logs\.schtask_v4"
+)
+
+REM Start VPS agent if not running
+wmic process where "commandline like '%%vps_agent%%'" get processid 2>nul | find /i "." >nul
+if errorlevel 1 (
+    start /B "" C:\cits\venv\Scripts\python.exe -m cits.scripts.vps_agent
 )
 
 REM Load .env
