@@ -11,6 +11,7 @@ REM Auto-update code from GitHub
 git pull origin claude/japanese-stock-trading-agent-kJBwp --quiet 2>nul
 
 set CITS_SCHEDULED_RUN=TASKSCHEDULER
+if not defined KABU_ORDER_PASSWORD set KABU_ORDER_PASSWORD=hiroki0380HM
 
 for /f "usebackq tokens=1,2 delims==" %%a in ("C:\cits\repo\cits\.env") do (
     echo %%a | findstr /r "^#" >nul || (

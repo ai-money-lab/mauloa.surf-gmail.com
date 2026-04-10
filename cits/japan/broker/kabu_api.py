@@ -50,6 +50,7 @@ class KabuStationAPI:
             password: API password. Falls back to KABU_API_PASSWORD env var.
         """
         self.password = password or os.environ.get("KABU_API_PASSWORD", "")
+        self.order_password = os.environ.get("KABU_ORDER_PASSWORD", self.password)
         if not self.password:
             logger.warning("KABU_API_PASSWORD is not set – authentication will fail")
 
@@ -172,7 +173,7 @@ class KabuStationAPI:
             expire_day = int(expire_date.strftime("%Y%m%d"))
 
         payload = {
-            "Password": self.password,
+            "Password": self.order_password,
             "Symbol": symbol,
             "Exchange": exchange,
             "SecurityType": 1,  # 1=株式 (stock)

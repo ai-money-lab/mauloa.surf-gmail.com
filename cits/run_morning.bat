@@ -40,6 +40,9 @@ for /f "usebackq tokens=1,2 delims==" %%a in ("C:\cits\repo\cits\.env") do (
 REM Safety gate for live execution
 set CITS_SCHEDULED_RUN=TASKSCHEDULER
 
+REM Order password (separate from API password)
+if not defined KABU_ORDER_PASSWORD set KABU_ORDER_PASSWORD=hiroki0380HM
+
 echo ======================================== >> "%LOG_FILE%"
 echo CITS Morning -- CIS Full Scan >> "%LOG_FILE%"
 echo %date% %time% >> "%LOG_FILE%"
