@@ -59,9 +59,20 @@ python -m cits.main --mode paper --ticker 7203
 - APIパスワード(本番): `hiroki0380` / 注文パスワード: `hiroki0380HM`
 - ¥300,000で稼働中
 
-### ポジション状況（2026-04-09時点）
-- **2170 リンクアンドモチベーション**: 100株保有中。ストップ610円割れ(現606円)。**明朝08:30に自動成行売り予定**（sell_2170.py）
+### ポジション状況（2026-04-10 09:51 JST）
+- **2170 リンクアンドモチベーション**: 100株保有中。現在603円。エントリー約580円(+4%)。ストップ610円割れ済み
+  - **最優先:** 成行売りが必要。sell_2170.pyで400エラー発生中（APIパラメータ問題）
+  - デバッグ版sell_2170.pyが5パターン自動試行する。全batに仕込み済み
+  - 次の自動実行: 14:00 prefetch bat
+  - **580円を割る前に必ず売ること**
 - **白鳩(3192)**: 売却済み（+¥13,535）
+
+### sendorder 400エラー調査メモ
+- kabuStation API sendorderで400 Bad Request
+- Password: order_password(hiroki0380HM)を使用
+- AccountType=4, FundType="AA", Exchange=9(SOR)で試行 → 400
+- デバッグ版で5パターン（AccountType 2/4, FundType AA/空白/なし, Exchange 1/9）を自動試行
+- APIレスポンス本文にエラー理由が入っている → 14:00のprefetch実行ログで確認可能
 
 ### 本番VPS (CITS専用)
 - IP: 150.66.3.162 (ABLENET 3VOBDHFE, Win1 SSD, 2GB RAM)
