@@ -261,6 +261,21 @@ def main():
 
     notifier = Notifier()
 
+    # Pre-flight: verify Anthropic API key / credit before anything else.
+    # Prevents the 3-second silent-failure pattern (credit exhaustion) seen
+    # on 2026-04-09〜10. Fails fast with a clear LINE notification.
+    preflight_client = ClaudeClient()
+    ok, err = preflight_client.health_check()
+    if not ok:
+        logger.error("Anthropic pre-flight FAILED: %s", err)
+        notifier.send_line(
+            "【X投稿パイプライン停止】Anthropic API pre-flight 失敗\n"
+            f"{err}\n"
+            "→ https://console.anthropic.com/settings/billing を確認してください"
+        )
+        sys.exit(1)
+    logger.info("Anthropic pre-flight OK (model=%s)", preflight_client.model)
+
     # Direct text posting (with safety checks)
     if args.text:
         fact_checker = FactChecker()
@@ -378,4 +393,20 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except SystemExit:
+        raise
+    except Exception as _exc:
+        # Last-resort error notifier: any uncaught exception (Anthropic,
+        # X API, Sheets, etc.) triggers a LINE alert so HIROKI knows
+        # the pipeline is broken instead of silently failing for days.
+        logger.exception("Pipeline crashed: %s", _exc)
+        try:
+            Notifier().send_line(
+                "【X投稿パイプライン異常終了】\n"
+                f"{type(_exc).__name__}: {str(_exc)[:300]}"
+            )
+        except Exception:
+            pass
+        sys.exit(1)

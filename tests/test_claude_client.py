@@ -176,7 +176,7 @@ class TestModelConfig:
 
     def test_default_model(self, mock_anthropic):
         client = ClaudeClient()
-        assert client.model == "claude-sonnet-4-20250514"
+        assert client.model == "claude-sonnet-4-5-20250929"
 
     def test_custom_model(self, mock_anthropic):
         client = ClaudeClient(model="claude-opus-4-20250514")

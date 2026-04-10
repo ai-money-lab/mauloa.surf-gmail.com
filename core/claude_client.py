@@ -3,14 +3,18 @@
 import os
 import json
 import logging
-from typing import Optional
+from typing import Optional, Tuple
 
-from anthropic import Anthropic
+from anthropic import Anthropic, APIStatusError
 from dotenv import load_dotenv
 
 load_dotenv()
 
 logger = logging.getLogger(__name__)
+
+# Default model — updated 2026-04-10 from claude-sonnet-4-20250514 to 4.5
+# to align with current production model and prepare for future deprecation.
+DEFAULT_MODEL = "claude-sonnet-4-5-20250929"
 
 
 class ClaudeClient:
@@ -18,7 +22,32 @@ class ClaudeClient:
 
     def __init__(self, model: Optional[str] = None):
         self.client = Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
-        self.model = model or "claude-sonnet-4-20250514"
+        self.model = model or DEFAULT_MODEL
+
+    def health_check(self) -> Tuple[bool, str]:
+        """Send a minimal 1-token request to verify the API key and credit balance.
+
+        Returns (ok, error_message). error_message is empty when ok=True.
+        Used as a pre-flight check so the pipeline fails fast with a clear
+        actionable reason instead of crashing mid-generation.
+        """
+        try:
+            self.client.messages.create(
+                model=self.model,
+                max_tokens=1,
+                messages=[{"role": "user", "content": "ping"}],
+            )
+            return True, ""
+        except APIStatusError as e:
+            # Extract the API's error message for a clean diagnostic.
+            try:
+                body = e.response.json()
+                msg = body.get("error", {}).get("message", str(e))
+            except Exception:
+                msg = str(e)
+            return False, f"[{e.status_code}] {msg}"
+        except Exception as e:
+            return False, f"{type(e).__name__}: {e}"
 
     def generate(
         self,
