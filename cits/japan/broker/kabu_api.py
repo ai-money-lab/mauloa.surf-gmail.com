@@ -24,16 +24,14 @@ import requests
 logger = logging.getLogger(__name__)
 
 
-# Side mapping: human-readable -> kabuステーション API value
 _SIDE_MAP = {
-    "buy": "2",   # 買い
-    "sell": "1",   # 売り
+    "buy": "2",
+    "sell": "1",
 }
 
-# Order type mapping
 _ORDER_TYPE_MAP = {
-    "market": "1",  # 成行
-    "limit": "2",   # 指値
+    "market": "1",
+    "limit": "2",
 }
 
 
@@ -44,7 +42,6 @@ class KabuStationAPI:
 
     def __init__(self, password: str | None = None) -> None:
         self.password = password or os.environ.get("KABU_API_PASSWORD", "")
-        self.order_password = os.environ.get("KABU_ORDER_PASSWORD", self.password)
         if not self.password:
             logger.warning("KABU_API_PASSWORD is not set")
 
@@ -62,7 +59,9 @@ class KabuStationAPI:
             token = data.get("Token", "")
             if not token:
                 raise ValueError(f"No token in response: {data}")
-            logger.info("Token obtained successfully")
+            self._token = token
+            self._session.headers["X-API-KEY"] = token
+            logger.info("Token obtained")
             return token
         except requests.RequestException as exc:
             logger.error("Token request failed: %s", exc)
@@ -70,8 +69,7 @@ class KabuStationAPI:
 
     def _ensure_token(self) -> None:
         if self._token is None:
-            self._token = self._get_token()
-            self._session.headers["X-API-KEY"] = self._token
+            self._get_token()
 
     def get_board(self, symbol: str, exchange: int = 1) -> dict:
         self._ensure_token()
@@ -113,8 +111,15 @@ class KabuStationAPI:
         qty: int,
         order_type: str = "market",
         price: float | None = None,
-        exchange: int = 9,
+        exchange: int = 1,
     ) -> dict:
+        """Place an order.
+
+        Uses ORIGINAL working parameters from commit 3c128bf:
+        - Password: self.password (API password)
+        - AccountType: 2 (特定)
+        - No FundType
+        """
         self._ensure_token()
 
         if side not in _SIDE_MAP:
@@ -127,6 +132,7 @@ class KabuStationAPI:
         url = f"{self.BASE_URL}/kabusapi/sendorder"
 
         # ExpireDay: 0=当日, YYYYMMDD=指定日まで有効
+        # 指値注文は5営業日有効（当日限りだと失効リスクあり）
         if order_type == "market":
             expire_day = 0
         else:
@@ -134,15 +140,14 @@ class KabuStationAPI:
             expire_day = int(expire_date.strftime("%Y%m%d"))
 
         payload = {
-            "Password": self.order_password,
+            "Password": self.password,
             "Symbol": symbol,
             "Exchange": exchange,
             "SecurityType": 1,
             "Side": _SIDE_MAP[side],
             "CashMargin": 1,
             "DelivType": 2,
-            "FundType": "AA",
-            "AccountType": 4,
+            "AccountType": 2,
             "Qty": qty,
             "FrontOrderType": 10 if order_type == "market" else 20,
             "Price": 0 if order_type == "market" else price,
@@ -160,22 +165,27 @@ class KabuStationAPI:
             logger.info("Order placed: %s", data.get("OrderId", data))
             return data
         except requests.RequestException as exc:
-            logger.error("place_order failed: %s", exc)
-            return {"error": str(exc), "symbol": symbol, "side": side}
+            # Capture response body for debugging
+            err_body = ""
+            if hasattr(exc, "response") and exc.response is not None:
+                try:
+                    err_body = exc.response.text[:500]
+                except Exception:
+                    pass
+            logger.error("place_order failed: %s body=%s", exc, err_body)
+            return {"error": str(exc), "body": err_body, "symbol": symbol, "side": side}
 
     def cancel_order(self, order_id: str) -> dict:
         self._ensure_token()
         url = f"{self.BASE_URL}/kabusapi/cancelorder"
         payload = {
             "OrderId": order_id,
-            "Password": self.order_password,
+            "Password": self.password,
         }
         try:
             resp = self._session.put(url, json=payload, timeout=10)
             resp.raise_for_status()
-            data = resp.json()
-            logger.info("Order cancelled: %s -> %s", order_id, data)
-            return data
+            return resp.json()
         except requests.RequestException as exc:
             logger.error("cancel_order failed for %s: %s", order_id, exc)
             return {"error": str(exc), "order_id": order_id}
