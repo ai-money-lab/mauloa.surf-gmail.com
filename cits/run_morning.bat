@@ -20,11 +20,12 @@ if not exist "C:\cits\logs\.sold_2170" (
     C:\cits\venv\Scripts\python.exe -m cits.scripts.sell_2170 >> "%LOG_FILE%" 2>&1
 )
 
-REM One-time: update CITS_Afternoon to 15:20 + register position monitor
-if not exist "C:\cits\logs\.schtask_v2" (
+REM One-time: update tasks + add startup recovery
+if not exist "C:\cits\logs\.schtask_v3" (
     schtasks /Change /TN "CITS_Afternoon" /ST 15:20 >nul 2>&1
     schtasks /Create /TN "CITS_PositionMonitor" /TR "C:\cits\repo\cits\run_monitor.bat" /SC DAILY /ST 09:30 /RI 30 /DU 05:30 /D MON,TUE,WED,THU,FRI /F >nul 2>&1
-    echo %date% %time% Tasks updated: Afternoon=15:20, Monitor=every30min > "C:\cits\logs\.schtask_v2"
+    schtasks /Create /TN "CITS_StartupRecovery" /TR "C:\cits\repo\cits\run_morning.bat" /SC ONSTART /DELAY 0005:00 /F >nul 2>&1
+    echo %date% %time% Tasks updated v3: Afternoon=15:20, Monitor=30min, StartupRecovery > "C:\cits\logs\.schtask_v3"
 )
 
 REM Load .env
@@ -36,6 +37,9 @@ for /f "usebackq tokens=1,2 delims==" %%a in ("C:\cits\repo\cits\.env") do (
 
 REM Safety gate for live execution
 set CITS_SCHEDULED_RUN=TASKSCHEDULER
+
+REM Order password (separate from API password)
+if not defined KABU_ORDER_PASSWORD set KABU_ORDER_PASSWORD=hiroki0380HM
 
 echo ======================================== >> "%LOG_FILE%"
 echo CITS Morning -- CIS Full Scan >> "%LOG_FILE%"

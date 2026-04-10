@@ -1,8 +1,6 @@
 @echo off
 REM ================================================================
 REM CITS Afternoon -- CIS+KEI Full Market Scan (15:20)
-REM CIS on all cached tickers + KEI on cached data + fresh ETFs
-REM Task Scheduler: 15:20 (after chart patterns finalize)
 REM ================================================================
 
 cd /d C:\cits\repo
@@ -20,6 +18,7 @@ for /f "usebackq tokens=1,2 delims==" %%a in ("C:\cits\repo\cits\.env") do (
 
 REM Safety gate for live execution
 set CITS_SCHEDULED_RUN=TASKSCHEDULER
+if not defined KABU_ORDER_PASSWORD set KABU_ORDER_PASSWORD=hiroki0380HM
 
 REM Logging
 set LOG_DIR=C:\cits\logs
@@ -31,7 +30,7 @@ echo CITS Afternoon -- 15:20 Chart Exit Check + Buy Scan >> "%LOG_FILE%"
 echo %date% %time% >> "%LOG_FILE%"
 echo ======================================== >> "%LOG_FILE%"
 
-REM Step 1: Position monitor -- sell if chart says EXIT (15:20 chart is nearly final)
+REM Step 1: Position monitor -- sell if chart says EXIT
 echo --- STEP 1: Position Monitor (sell check) --- >> "%LOG_FILE%"
 C:\cits\venv\Scripts\python.exe -m cits.scripts.position_monitor >> "%LOG_FILE%" 2>&1
 
