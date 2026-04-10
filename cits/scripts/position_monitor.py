@@ -1015,8 +1015,23 @@ def check_positions(dry_run: bool = True) -> list[ExitAnalysis]:
 
 def _execute_exit(pos: dict, current_price: float, exit_reason: str,
                   today: date) -> None:
-    """Execute a sell order via the broker API."""
+    """Execute a sell order via the broker API.
+
+    ABSOLUTE RULE: NEVER sell at a loss. If current_price < entry_price,
+    HOLD regardless of any other exit signals.
+    """
     ticker = pos["ticker"]
+    entry_price = pos.get("entry_price", 0)
+
+    # ABSOLUTE RULE: NEVER SELL AT A LOSS
+    if entry_price > 0 and current_price <= entry_price:
+        logger.error(
+            "  BLOCKED: NEVER SELL AT LOSS -- %s price=%.1f entry=%.1f pnl=%+.1f%%",
+            ticker, current_price, entry_price,
+            (current_price - entry_price) / entry_price * 100,
+        )
+        logger.error("  RULE: 絶対にマイナスでは決済しない")
+        return
 
     # Safety: only execute from Task Scheduler
     scheduled = os.environ.get("CITS_SCHEDULED_RUN", "")
