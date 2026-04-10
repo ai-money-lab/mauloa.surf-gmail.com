@@ -180,7 +180,8 @@ class KabuStationAPI:
             "Side": _SIDE_MAP[side],
             "CashMargin": 1,     # 1=現物 (cash)
             "DelivType": 2,      # 2=お預り金 (deposit)
-            "AccountType": 2,    # 2=特定 (specific account)
+            "FundType": "AA",    # AA=信用代用
+            "AccountType": 4,    # 4=特定 (auカブコム)
             "Qty": qty,
             "FrontOrderType": 10 if order_type == "market" else 20,  # 10=成行, 20=指値
             "Price": 0 if order_type == "market" else price,

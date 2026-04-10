@@ -37,7 +37,7 @@ try:
 
     result = broker.place_order(
         symbol="2170", side="sell", qty=100,
-        order_type="market", exchange=1,
+        order_type="market", exchange=9,
     )
     print(f"SELL 2170 x100 @ MARKET: {result}")
 
