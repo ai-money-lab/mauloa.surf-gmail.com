@@ -24,16 +24,16 @@ import requests
 
 logger = logging.getLogger(__name__)
 
-# Side mapping: human-readable -> kabuステーション API value
+# Side mapping: human-readable -> kabuステーション API value (INTEGER per API ref)
 _SIDE_MAP = {
-    "buy": "2",   # 買い
-    "sell": "1",   # 売り
+    "buy": 2,   # 買い
+    "sell": 1,  # 売り
 }
 
-# Order type mapping
+# Order type mapping (integer per API ref)
 _ORDER_TYPE_MAP = {
-    "market": "1",  # 成行
-    "limit": "2",   # 指値
+    "market": 1,  # 成行
+    "limit": 2,   # 指値
 }
 
 
@@ -172,17 +172,27 @@ class KabuStationAPI:
             expire_date = date.today() + timedelta(days=7)  # 土日含めて7日=約5営業日
             expire_day = int(expire_date.strftime("%Y%m%d"))
 
+        # Correct parameters per kabuStation API reference + GitHub issue #1014:
+        # - Side: integer (1=sell, 2=buy) NOT string
+        # - AccountType: 4 (特定口座) NOT 2 (一般)
+        # - FundType: "  " (2 spaces = 保護預り) for cash sales
+        # - DelivType: 0 for sell, 2 for buy
+        # - FrontOrderType: 10 (成行朝) for market, 20 (指値) for limit
+        is_buy = side == "buy"
+        deliv_type = 2 if is_buy else 0  # 2=お預り金 (buy), 0=sell
+
         payload = {
             "Password": self.password,
             "Symbol": symbol,
             "Exchange": exchange,
-            "SecurityType": 1,   # 1=株式 (stock)
-            "Side": _SIDE_MAP[side],
-            "CashMargin": 1,     # 1=現物 (cash)
-            "DelivType": 2,      # 2=お預り金 (deposit)
-            "AccountType": 2,    # 2=特定 (ORIGINAL WORKING VALUE)
+            "SecurityType": 1,    # 1=株式 (stock)
+            "Side": _SIDE_MAP[side],  # int: 1=sell, 2=buy
+            "CashMargin": 1,      # 1=現物 (cash)
+            "DelivType": deliv_type,  # 2=buy, 0=sell
+            "FundType": "  ",     # "  "=保護預り (cash sales per issue #1014)
+            "AccountType": 4,     # 4=特定口座 (per issue #1014)
             "Qty": qty,
-            "FrontOrderType": 10 if order_type == "market" else 20,  # 10=成行, 20=指値
+            "FrontOrderType": 10 if order_type == "market" else 20,
             "Price": 0 if order_type == "market" else price,
             "ExpireDay": expire_day,
         }
