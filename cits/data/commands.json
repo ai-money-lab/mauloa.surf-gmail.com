@@ -12,10 +12,16 @@
     "timeout": 30
   },
   {
-    "id": "verify_all_cits_tasks_20260412_0300",
+    "id": "switch_branch_20260412_0310",
     "type": "shell",
-    "command": "schtasks /Query /FO LIST /V | findstr /i CITS 2>&1",
-    "timeout": 20
+    "command": "cd C:\\cits\\repo && git stash 2>nul & git fetch origin claude/continue-kabusute-DmFKB --quiet && git checkout -B claude/continue-kabusute-DmFKB origin/claude/continue-kabusute-DmFKB && git branch --set-upstream-to=origin/claude/continue-kabusute-DmFKB && echo BRANCH_SWITCHED_TO_CONTINUE_KABUSUTE",
+    "timeout": 60
+  },
+  {
+    "id": "restart_vps_agent_20260412_0310",
+    "type": "shell",
+    "command": "echo @echo off > C:\\cits\\restart_agent.bat && echo timeout /t 5 /nobreak >> C:\\cits\\restart_agent.bat && echo schtasks /End /TN CITS_VPSAgent 2^>nul >> C:\\cits\\restart_agent.bat && echo timeout /t 2 /nobreak >> C:\\cits\\restart_agent.bat && echo schtasks /Run /TN CITS_VPSAgent >> C:\\cits\\restart_agent.bat && start /min \"\" C:\\cits\\restart_agent.bat && echo RESTART_SCHEDULED",
+    "timeout": 10
   },
   {
     "id": "check_2170_position_20260412_0300",
