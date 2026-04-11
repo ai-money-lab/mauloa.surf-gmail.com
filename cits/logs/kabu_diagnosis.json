@@ -1,0 +1,47 @@
+{
+  "timestamp": "2026-04-12T02:04:36.460570",
+  "port_check": {
+    "status": "open",
+    "host": "localhost",
+    "port": 18080
+  },
+  "env_file": {
+    "exists": true,
+    "keys": {
+      "KABU_ORDER_PASSWORD": {
+        "length": 12,
+        "masked": "hi********HM",
+        "has_spaces": false,
+        "has_quotes": false
+      }
+    },
+    "size_bytes": 63
+  },
+  "token_tests": [
+    {
+      "status_code": 200,
+      "body": {
+        "ResultCode": 0,
+        "Token": "76826866b5dc4a1c98df7c6e7bd22c59"
+      },
+      "ok": true,
+      "source": "hiroki0380",
+      "masked_pw": "hi******80",
+      "pw_length": 10
+    }
+  ],
+  "found_working_password": "hiroki0380",
+  "processes": [
+    {
+      "line": "\"KabuS.exe\",\"7776\",\"Console\",\"1\",\"341,600 K\",\"Running\",\"WIN-V2J432LE5MJ\\Administrator\",\"0:01:15\",\"kabuステーション\""
+    },
+    {
+      "line": "\"KabuS.exe\",\"7720\",\"Console\",\"1\",\"42,320 K\",\"Running\",\"WIN-V2J432LE5MJ\\Administrator\",\"0:00:01\",\"kabuステーション\""
+    }
+  ],
+  "netstat_18080": [
+    "TCP         0.0.0.0:18080          0.0.0.0:0              LISTENING       4",
+    "TCP         [::]:18080             [::]:0                 LISTENING       4",
+    "TCP         [::1]:49482            [::1]:18080            TIME_WAIT       0"
+  ]
+}

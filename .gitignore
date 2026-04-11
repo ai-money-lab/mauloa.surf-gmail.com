@@ -33,3 +33,6 @@ Thumbs.db
 
 # Logs
 *.log
+
+# CITS runtime databases
+cits/logs/*.db

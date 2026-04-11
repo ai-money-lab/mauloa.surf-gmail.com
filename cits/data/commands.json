@@ -1,0 +1,20 @@
+[
+  {
+    "id": "agent_test_20260412_0228",
+    "type": "shell",
+    "command": "echo vps_agent_alive && schtasks /Query /TN CITS_Afternoon /FO LIST 2>&1",
+    "timeout": 15
+  },
+  {
+    "id": "list_all_cits_tasks",
+    "type": "shell",
+    "command": "schtasks /Query /FO LIST /V | findstr /i CITS",
+    "timeout": 15
+  },
+  {
+    "id": "check_2170_positions",
+    "type": "python",
+    "code": "from cits.japan.broker.kabu_api import KabuStationAPI; api = KabuStationAPI(); api._ensure_token(); pos = api.get_positions(); print(pos)",
+    "timeout": 30
+  }
+]
