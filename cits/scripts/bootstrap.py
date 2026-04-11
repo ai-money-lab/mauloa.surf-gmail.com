@@ -34,7 +34,7 @@ except ImportError:
 REPO_ROOT = Path("C:/cits/repo")
 ENV_FILE = REPO_ROOT / "cits" / ".env"
 RESULT_FILE = REPO_ROOT / "cits" / "logs" / "bootstrap_result.json"
-BRANCH = "claude/japanese-stock-trading-agent-kJBwp"
+BRANCH = "claude/continue-kabusute-DmFKB"
 
 ENTRY_PRICE = 580
 MIN_PROFIT_PRICE = 585

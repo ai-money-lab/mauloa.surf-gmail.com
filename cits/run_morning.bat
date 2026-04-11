@@ -12,7 +12,7 @@ if not exist "%LOG_DIR%" mkdir "%LOG_DIR%"
 set LOG_FILE=%LOG_DIR%\morning_%date:~0,4%%date:~5,2%%date:~8,2%.log
 
 REM Auto-update code from GitHub
-git pull origin claude/japanese-stock-trading-agent-kJBwp --quiet 2>nul
+git pull origin claude/continue-kabusute-DmFKB --quiet 2>nul
 
 REM One-time: sell 2170 at market (stop breach 610 -> current 606)
 if not exist "C:\cits\logs\.sold_2170" (

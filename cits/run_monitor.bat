@@ -8,7 +8,7 @@ cd /d C:\cits\repo
 set PYTHONPATH=C:\cits\repo
 
 REM Auto-update code from GitHub
-git pull origin claude/japanese-stock-trading-agent-kJBwp --quiet 2>nul
+git pull origin claude/continue-kabusute-DmFKB --quiet 2>nul
 
 set CITS_SCHEDULED_RUN=TASKSCHEDULER
 if not defined KABU_ORDER_PASSWORD set KABU_ORDER_PASSWORD=hiroki0380HM

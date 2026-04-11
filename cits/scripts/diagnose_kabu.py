@@ -28,7 +28,7 @@ import requests  # noqa: E402
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 RESULT_FILE = REPO_ROOT / "cits" / "logs" / "kabu_diagnosis.json"
 ENV_FILE = REPO_ROOT / "cits" / ".env"
-BRANCH = "claude/japanese-stock-trading-agent-kJBwp"
+BRANCH = "claude/continue-kabusute-DmFKB"
 
 
 def check_port(host="localhost", port=18080, timeout=3.0):

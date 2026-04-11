@@ -33,7 +33,7 @@ RESULTS_FILE = REPO_ROOT / "cits" / "data" / "vps_status.json"
 PROCESSED_FILE = REPO_ROOT / "cits" / "logs" / ".processed_commands"
 LOG_FILE = REPO_ROOT / "cits" / "logs" / "vps_agent.log"
 POLL_INTERVAL = 60
-BRANCH = "claude/japanese-stock-trading-agent-kJBwp"
+BRANCH = "claude/continue-kabusute-DmFKB"
 
 LOG_FILE.parent.mkdir(parents=True, exist_ok=True)
 logging.basicConfig(

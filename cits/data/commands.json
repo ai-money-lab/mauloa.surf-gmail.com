@@ -1,20 +1,26 @@
 [
   {
-    "id": "agent_test_20260412_0228",
+    "id": "fix_afternoon_task_20260412_0300",
     "type": "shell",
-    "command": "echo vps_agent_alive && schtasks /Query /TN CITS_Afternoon /FO LIST 2>&1",
-    "timeout": 15
+    "command": "schtasks /Delete /TN CITS_Afternoon /F 2>nul & schtasks /Create /TN CITS_Afternoon /TR \"C:\\cits\\repo\\cits\\run_afternoon.bat\" /SC DAILY /ST 15:20 /RL HIGHEST /F && echo CITS_Afternoon_CREATED",
+    "timeout": 30
   },
   {
-    "id": "list_all_cits_tasks",
+    "id": "fix_position_monitor_task_20260412_0300",
     "type": "shell",
-    "command": "schtasks /Query /FO LIST /V | findstr /i CITS",
-    "timeout": 15
+    "command": "schtasks /Delete /TN CITS_PositionMonitor /F 2>nul & schtasks /Create /TN CITS_PositionMonitor /TR \"C:\\cits\\repo\\cits\\run_monitor.bat\" /SC MINUTE /MO 30 /ST 09:30 /ET 15:25 /RL HIGHEST /F && echo CITS_PositionMonitor_CREATED",
+    "timeout": 30
   },
   {
-    "id": "check_2170_positions",
+    "id": "verify_all_cits_tasks_20260412_0300",
+    "type": "shell",
+    "command": "schtasks /Query /FO LIST /V | findstr /i CITS 2>&1",
+    "timeout": 20
+  },
+  {
+    "id": "check_2170_position_20260412_0300",
     "type": "python",
-    "code": "from cits.japan.broker.kabu_api import KabuStationAPI; api = KabuStationAPI(); api._ensure_token(); pos = api.get_positions(); print(pos)",
+    "code": "from cits.japan.broker.kabu_api import KabuStationAPI; api = KabuStationAPI(); api._ensure_token(); pos = api.get_positions(); import json; print(json.dumps(pos, ensure_ascii=False, indent=2, default=str))",
     "timeout": 30
   }
 ]
