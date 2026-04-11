@@ -16,4 +16,4 @@ REM Push status to GitHub (best effort, don't block on failure)
 git add "%STATUS_FILE%" >nul 2>&1
 git add "cits\data\vps_status.json" >nul 2>&1
 git commit -m "status: %~1 %date% %time%" --quiet >nul 2>&1
-git push origin claude/continue-kabusute-DmFKB --quiet >nul 2>&1
+git push --quiet >nul 2>&1

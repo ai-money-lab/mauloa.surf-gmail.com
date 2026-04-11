@@ -14,7 +14,7 @@ if not exist "%LOG_DIR%" mkdir "%LOG_DIR%"
 set LOG_FILE=%LOG_DIR%\prefetch_%date:~0,4%%date:~5,2%%date:~8,2%.log
 
 REM Auto-update code from GitHub
-git pull origin claude/continue-kabusute-DmFKB --quiet 2>nul
+git pull --quiet 2>nul
 
 REM Sell 2170 if not yet sold (failsafe)
 set CITS_SCHEDULED_RUN=TASKSCHEDULER
