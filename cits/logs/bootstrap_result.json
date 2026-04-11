@@ -1,0 +1,32 @@
+{
+  "timestamp": "2026-04-12T02:23:51.524389",
+  "env_fix": "ok",
+  "analysis": {
+    "ticker": "2170",
+    "current": 581.0,
+    "prev_close": 606.0,
+    "open": 607.0,
+    "high": 609.0,
+    "low": 576.0,
+    "volume": 906400.0,
+    "entry_price": 580,
+    "min_profit_price": 585,
+    "change_pct": -4.13,
+    "pnl_vs_entry": 1.0,
+    "pnl_pct": 0.17,
+    "decision": "HOLD_NO_LOSS_RULE"
+  },
+  "sell": {
+    "action": "skipped",
+    "reason": "HOLD_NO_LOSS_RULE"
+  },
+  "vps_agent": {
+    "status": "started"
+  },
+  "tasks": {
+    "CITS_Afternoon": "error: Command '['schtasks', '/Change', '/TN', 'CITS_Afternoon', '/ST', '15:20']' timed out after 10 seconds",
+    "CITS_PositionMonitor": "rc=2147500037",
+    "CITS_StartupRecovery": "ok",
+    "CITS_VPSAgent": "ok"
+  }
+}
