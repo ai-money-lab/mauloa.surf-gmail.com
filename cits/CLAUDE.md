@@ -129,10 +129,35 @@ TZ=Asia/Tokyo date '+%Y-%m-%d %H:%M:%S %Z (%A)'
   6. 祝日判定（土日+2026年祝日）
 - **タスクスケジューラ自動設定**: afternoon 15:20変更 + position_monitor 30分毎登録（初回bat実行時自動）
 
+### 2026-04-12セッション（continue-kabusute）で実施
+- **ブランチ移行**: `claude/japanese-stock-trading-agent-kJBwp` → `claude/continue-kabusute-DmFKB`
+  - vps_agent.py / bootstrap.py / diagnose_kabu.py の BRANCH 定数更新
+  - run_*.bat / report_status.bat の git pull/push 先を新ブランチに変更
+- **kabuStation診断結果 (02:04 JST)**:
+  - ポート18080: OPEN ✅
+  - kabuStation プロセス: Running ✅
+  - Token API: 200 OK (`hiroki0380`) ✅
+- **bootstrap結果 (02:23 JST)**:
+  - 2170現在価格: 581円（前日606→-4.13%）
+  - エントリー580円に対し +1円 (+0.17%) → HOLD_NO_LOSS_RULE
+  - CITS_StartupRecovery: ok ✅、CITS_VPSAgent: ok ✅
+  - CITS_Afternoon: タイムアウト ❌ → **修正コマンド送信済み**
+  - CITS_PositionMonitor: rc=2147500037 (未登録) ❌ → **修正コマンド送信済み**
+- **VPSコマンド送信 (03:00 JST)**: 旧ブランチ経由でタスク再登録コマンドを送信
+
+### ブランチ構成（2026-04-12以降）
+- **コード開発**: `claude/continue-kabusute-DmFKB`（このブランチ）
+- **VPS コマンド受信**: `claude/japanese-stock-trading-agent-kJBwp`（VPSエージェントが監視中）
+  - bat ファイルは continue-kabusute からコードを自動pull
+  - VPSエージェントの次回再起動後に continue-kabusute へ完全移行
+
 ### 残作業（次セッション）
+- VPSタスク修正確認（コマンド実行結果を vps_status.json で確認）
+- CITS_PositionMonitor / CITS_Afternoon タスク動作確認（09:30/15:20 JST）
+- 2170株ポジション解消（585円以上で売り）
 - `.env`に`GMAIL_APP_PASSWORD`設定 → メールレポート送信有効化
 - 2027年の祝日リスト追加（`_JP_HOLIDAYS_2026`を更新）
-- 実弾トレード実績の検証・パラメータ調整
+- VPSエージェント完全移行（再起動後 continue-kabusute を自動参照）
 
 ### 追加コマンド
 ```bash
