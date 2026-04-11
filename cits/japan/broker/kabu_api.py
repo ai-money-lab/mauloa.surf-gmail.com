@@ -53,7 +53,7 @@ class KabuStationAPI:
             data = resp.json()
             token = data.get("Token", "")
             if not token:
-                raise ValueError(f"No token: {data}")
+                raise RuntimeError(f"Token response missing: {data}")
             self._token = token
             self._session.headers["X-API-KEY"] = token
             logger.info("Token obtained")
