@@ -28,8 +28,8 @@ from pathlib import Path
 
 logger = logging.getLogger("cits.vps_failover")
 
-# Configuration
-VPS_HOST = os.environ.get("CITS_VPS_HOST", "150.66.3.162")
+# Configuration (set CITS_VPS_HOST in .env)
+VPS_HOST = os.environ.get("CITS_VPS_HOST", "")
 VPS_SSH_PORT = int(os.environ.get("CITS_VPS_SSH_PORT", "22"))
 VPS_VNC_PORT = int(os.environ.get("CITS_VPS_VNC_PORT", "5900"))
 KABU_API_PORT = 18080
