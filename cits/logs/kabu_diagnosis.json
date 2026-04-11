@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-04-12T01:53:16.802563",
+  "timestamp": "2026-04-12T01:54:49.803828",
   "port_check": {
     "status": "open",
     "host": "localhost",
@@ -18,7 +18,7 @@
       "X-Frame-Options": "DENY",
       "Content-Security-Policy": "default-src 'none'",
       "Access-Control-Allow-Origin": "*",
-      "Date": "Sat, 11 Apr 2026 16:53:16 GMT"
+      "Date": "Sat, 11 Apr 2026 16:54:49 GMT"
     },
     "body_json": {
       "Code": 4001007,
@@ -28,12 +28,13 @@
   },
   "processes": [
     {
-      "line": "\"KabuS.exe\",\"14404\",\"Console\",\"1\",\"235,492 K\",\"Running\",\"WIN-V2J432LE5MJ\\Administrator\",\"14:27:45\",\"kabuステーション\""
+      "line": "\"KabuS.exe\",\"14404\",\"Console\",\"1\",\"240,364 K\",\"Running\",\"WIN-V2J432LE5MJ\\Administrator\",\"14:28:15\",\"kabuステーション\""
     }
   ],
   "netstat_18080": [
     "  TCP         0.0.0.0:18080          0.0.0.0:0              LISTENING       4",
     "  TCP         [::]:18080             [::]:0                 LISTENING       4",
-    "  TCP         [::1]:60368            [::1]:18080            TIME_WAIT       0"
+    "  TCP         [::1]:60368            [::1]:18080            TIME_WAIT       0",
+    "  TCP         [::1]:60377            [::1]:18080            TIME_WAIT       0"
   ]
 }
