@@ -1,14 +1,6 @@
 """Auto-diagnose kabuStation API + push result to GitHub.
 
-All-in-one diagnostic script. Run once on VPS, it:
-1. Checks port 18080
-2. Tests token endpoint with full response capture
-3. Lists kabuStation processes
-4. Saves result to cits/logs/kabu_diagnosis.json
-5. Auto-commits + pushes to GitHub so this env can see it
-
-Usage (VPS):
-    C:\\cits\\venv\\Scripts\\python.exe -m cits.scripts.diagnose_kabu
+v2: Shows what password is being sent + tries multiple candidates.
 """
 from __future__ import annotations
 
@@ -35,10 +27,11 @@ import requests  # noqa: E402
 
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 RESULT_FILE = REPO_ROOT / "cits" / "logs" / "kabu_diagnosis.json"
+ENV_FILE = REPO_ROOT / "cits" / ".env"
 BRANCH = "claude/japanese-stock-trading-agent-kJBwp"
 
 
-def check_port(host: str = "localhost", port: int = 18080, timeout: float = 3.0) -> dict:
+def check_port(host="localhost", port=18080, timeout=3.0):
     try:
         with socket.create_connection((host, port), timeout=timeout):
             return {"status": "open", "host": host, "port": port}
@@ -46,36 +39,55 @@ def check_port(host: str = "localhost", port: int = 18080, timeout: float = 3.0)
         return {"status": "closed", "error": str(e)}
 
 
-def test_token_endpoint(password: str) -> dict:
-    """Test /kabusapi/token with full error capture."""
+def mask_password(pw):
+    """Show first 2 + last 2 chars, rest masked."""
+    if not pw:
+        return "<empty>"
+    if len(pw) <= 4:
+        return "*" * len(pw)
+    return f"{pw[:2]}{'*' * (len(pw) - 4)}{pw[-2:]}"
+
+
+def test_token(password):
     url = "http://localhost:18080/kabusapi/token"
-    payload = {"APIPassword": password}
-    result: dict = {"url": url, "password_set": bool(password)}
-
     try:
-        resp = requests.post(url, json=payload, timeout=10)
-        result["status_code"] = resp.status_code
-        result["headers"] = dict(resp.headers)
-        try:
-            result["body_json"] = resp.json()
-        except Exception:
-            result["body_text"] = resp.text[:500]
-        result["outcome"] = "ok" if resp.status_code == 200 else "http_error"
-    except requests.exceptions.ConnectionError as e:
-        result["outcome"] = "connection_error"
-        result["error"] = str(e)
-    except requests.exceptions.Timeout as e:
-        result["outcome"] = "timeout"
-        result["error"] = str(e)
+        resp = requests.post(url, json={"APIPassword": password}, timeout=10)
+        body = resp.json() if resp.headers.get("content-type", "").startswith("application/json") else {"text": resp.text[:300]}
+        return {
+            "status_code": resp.status_code,
+            "body": body,
+            "ok": resp.status_code == 200,
+        }
     except Exception as e:
-        result["outcome"] = "exception"
-        result["error_type"] = type(e).__name__
-        result["error"] = str(e)
+        return {"error": str(e), "ok": False}
 
+
+def read_env_file():
+    """Read .env and return KABU_* keys (with masked values)."""
+    result = {"exists": ENV_FILE.exists(), "keys": {}}
+    if not ENV_FILE.exists():
+        return result
+    try:
+        content = ENV_FILE.read_text(encoding="utf-8")
+    except UnicodeDecodeError:
+        content = ENV_FILE.read_text(encoding="cp932", errors="replace")
+    result["size_bytes"] = len(content)
+    result["encoding_detected"] = "utf-8"
+    for line in content.splitlines():
+        line = line.strip()
+        if line.startswith("KABU_") and "=" in line:
+            k, v = line.split("=", 1)
+            result["keys"][k] = {
+                "length": len(v),
+                "masked": mask_password(v),
+                "first_char_hex": hex(ord(v[0])) if v else "",
+                "has_spaces": " " in v,
+                "has_quotes": '"' in v or "'" in v,
+            }
     return result
 
 
-def list_kabu_processes() -> list[dict]:
+def list_kabu_processes():
     procs = []
     try:
         out = subprocess.run(
@@ -85,45 +97,35 @@ def list_kabu_processes() -> list[dict]:
         )
         for line in out.stdout.splitlines():
             if "kabu" in line.lower() or "KabuS" in line:
-                parts = [p.strip('"') for p in line.split('","')]
-                if parts:
-                    procs.append({"line": line.strip()[:200]})
+                procs.append({"line": line.strip()[:200]})
     except Exception as e:
         return [{"error": str(e)}]
     return procs
 
 
-def check_netstat() -> list[str]:
+def check_netstat():
     try:
         out = subprocess.run(
             ["netstat", "-ano"],
             capture_output=True, text=True, encoding="cp932",
             errors="replace", timeout=10,
         )
-        return [line for line in out.stdout.splitlines() if ":18080" in line]
+        return [line.strip() for line in out.stdout.splitlines() if ":18080" in line]
     except Exception as e:
         return [f"error: {e}"]
 
 
 def git_push_result():
-    """Push kabu_diagnosis.json to GitHub."""
     try:
-        subprocess.run(
-            ["git", "pull", "origin", BRANCH, "--quiet"],
-            cwd=str(REPO_ROOT), capture_output=True, timeout=30,
-        )
-        subprocess.run(
-            ["git", "add", "-f", "cits/logs/kabu_diagnosis.json"],
-            cwd=str(REPO_ROOT), capture_output=True, timeout=10,
-        )
-        subprocess.run(
-            ["git", "commit", "-m", f"diag: kabuStation {datetime.now().isoformat()}", "--quiet"],
-            cwd=str(REPO_ROOT), capture_output=True, timeout=10,
-        )
-        r = subprocess.run(
-            ["git", "push", "origin", BRANCH, "--quiet"],
-            cwd=str(REPO_ROOT), capture_output=True, timeout=30,
-        )
+        subprocess.run(["git", "pull", "origin", BRANCH, "--quiet"],
+                       cwd=str(REPO_ROOT), capture_output=True, timeout=30)
+        subprocess.run(["git", "add", "-f", "cits/logs/kabu_diagnosis.json"],
+                       cwd=str(REPO_ROOT), capture_output=True, timeout=10)
+        subprocess.run(["git", "commit", "-m",
+                        f"diag: kabuStation v2 {datetime.now().isoformat()}", "--quiet"],
+                       cwd=str(REPO_ROOT), capture_output=True, timeout=10)
+        r = subprocess.run(["git", "push", "origin", BRANCH, "--quiet"],
+                           cwd=str(REPO_ROOT), capture_output=True, timeout=30)
         return r.returncode == 0
     except Exception as e:
         print(f"git push failed: {e}")
@@ -132,28 +134,53 @@ def git_push_result():
 
 def main():
     print("=" * 60)
-    print("kabuStation API Auto-Diagnosis")
+    print("kabuStation API Auto-Diagnosis v2")
     print("=" * 60)
 
-    api_pw = os.environ.get("KABU_API_PASSWORD", "hiroki0380")
+    # Get password from env var (.env or shell)
+    env_pw = os.environ.get("KABU_API_PASSWORD", "")
+
+    # Candidate passwords to try
+    candidates = [
+        ("env_KABU_API_PASSWORD", env_pw),
+        ("hiroki0380", "hiroki0380"),
+        ("hiroki0380HM", "hiroki0380HM"),
+        ("3Hximek2cb", "3Hximek2cb"),
+    ]
+    # Dedupe while preserving order
+    seen = set()
+    unique_candidates = []
+    for name, pw in candidates:
+        if pw and pw not in seen:
+            seen.add(pw)
+            unique_candidates.append((name, pw))
+
+    # Try each
+    token_tests = []
+    found_password = None
+    for name, pw in unique_candidates:
+        print(f"\nTrying: {name} (len={len(pw)}, masked={mask_password(pw)})")
+        r = test_token(pw)
+        r["source"] = name
+        r["masked_pw"] = mask_password(pw)
+        r["pw_length"] = len(pw)
+        token_tests.append(r)
+        print(f"  -> {r.get('status_code', 'ERR')}: {r.get('body', r.get('error'))}")
+        if r.get("ok"):
+            found_password = name
+            break
+
     result = {
         "timestamp": datetime.now().isoformat(),
-        "tz": "JST (UTC+9)" if datetime.now().astimezone().utcoffset().total_seconds() == 32400 else "local",
         "port_check": check_port(),
-        "token_test": test_token_endpoint(api_pw),
+        "env_file": read_env_file(),
+        "token_tests": token_tests,
+        "found_working_password": found_password,
         "processes": list_kabu_processes(),
         "netstat_18080": check_netstat(),
     }
 
-    # Pretty print
-    for k, v in result.items():
-        print(f"\n[{k}]")
-        if isinstance(v, (dict, list)):
-            print(json.dumps(v, ensure_ascii=False, indent=2, default=str))
-        else:
-            print(v)
-
-    # Save to file
+    # Save
     RESULT_FILE.parent.mkdir(parents=True, exist_ok=True)
     RESULT_FILE.write_text(
         json.dumps(result, ensure_ascii=False, indent=2, default=str),
@@ -161,35 +188,26 @@ def main():
     )
     print(f"\nSaved to: {RESULT_FILE}")
 
-    # Push to GitHub
+    # Push
     if git_push_result():
-        print("✓ Pushed to GitHub")
+        print("Pushed to GitHub")
     else:
-        print("✗ Push failed")
+        print("Push failed")
 
     # Diagnosis
     print("\n" + "=" * 60)
     print("DIAGNOSIS")
     print("=" * 60)
-    tt = result["token_test"]
-    if tt.get("outcome") == "ok":
-        print("✅ kabuStation API is working")
-    elif tt.get("outcome") == "connection_error":
-        print("❌ Connection error: kabuStation not listening on 18080")
-        print("   → Check kabuStation is running")
-        print("   → Check API setting: ツール→設定→API設定→「APIを利用する」ON")
-    elif tt.get("outcome") == "http_error":
-        sc = tt.get("status_code")
-        print(f"❌ HTTP {sc}")
-        if sc == 401:
-            print("   → Wrong APIパスワード. Check settings.")
-        elif sc == 400:
-            print("   → Bad request. Response body:")
-            print("  ", tt.get("body_json", tt.get("body_text", "")))
+    if found_password:
+        print(f"OK: Working password = {found_password}")
     else:
-        print(f"❌ {tt.get('outcome')}: {tt.get('error', '')}")
+        print("FAIL: No candidate password worked")
+        print("   -> Check kabuStation > Tools > Settings > API")
+        print("   -> Read the APIパスワード(本番用) field")
+        print("   -> Or re-set it to a known value")
+        print(f"\n   .env file: {result['env_file']}")
 
-    return 0 if result["token_test"].get("outcome") == "ok" else 1
+    return 0 if found_password else 1
 
 
 if __name__ == "__main__":
