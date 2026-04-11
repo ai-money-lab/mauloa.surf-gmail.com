@@ -81,16 +81,19 @@ python -m cits.main --mode paper --ticker 7203
 - APIレスポンス本文にエラー理由が入っている → 14:00のprefetch実行ログで確認可能
 
 ### 本番VPS (CITS専用)
-- **重要**: 旧IP `150.66.3.162` (ABLENET 3VOBDHFE) は**使用しない**。廃止済み
-- 新VPS: ABLENET管理パネル（https://vpsadm.ablenet.jp/home）でログイン情報 `ABLE270968V` / `3Hximek2cb`
-- 実IP/ホスト名: **未取得**（次セッションで確認が必要）
+- **現行VPS**: `203.183.9.252` (ABLE270968V / JZQJ5GDA / WindowsServer2025, Win4 SSD 12ヶ月)
+- ホスト名: `h203-183-9-252.ablenetvps.ne.jp`
+- ユーザー名: `Administrator` / 初期パスワード: `3Hximek2cb`
+- ABLEパネル: https://vpsadm.ablenet.jp/ (ID: `ABLE270968V`)
+- 有効期限: 2026/02/28
+- **旧VPS `150.66.3.162`は廃止済み**
 - CITSコード: `C:\cits\repo\cits\`
 - VPSブランチ: `claude/japanese-stock-trading-agent-kJBwp`
 - kabuStation: インストール済み
 - TightVNC: ポート5900（パスワード: cits2026）
 - .env: UTF-8必須（Windows cp932問題あり）
 - 全bat: git pull付き（コード自動更新）
-- **VPSステータス監視**: 各bat実行後にvps_status.json/txtをGitHub pushする。Claude Codeからget_file_contentsで確認可能
+- **VPSステータス監視**: 各bat実行後にvps_status.json/txtをGitHub pushする
 - **VPS Agent**: `cits/scripts/vps_agent.py`がGitHub pollで遠隔制御（commands.json経由）
 
 ### VPSタスクスケジューラ
