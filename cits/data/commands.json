@@ -1,8 +1,20 @@
 [
   {
-    "id": "check_2170_20260410_1840",
+    "id": "list_vps_backup_20260412",
+    "type": "shell",
+    "command": "dir \"C:\\Users\\mauloa\\Desktop\\vps_backup_20260412\" /S /B",
+    "timeout": 30
+  },
+  {
+    "id": "check_2170_chart_20260412_0022",
     "type": "module",
     "module": "cits.scripts.analyze_2170",
     "timeout": 30
+  },
+  {
+    "id": "list_kabu_logs",
+    "type": "shell",
+    "command": "dir C:\\cits\\logs\\*.log /B",
+    "timeout": 10
   }
 ]
