@@ -2,15 +2,11 @@
 KabuStation API Client
 kabuステーション REST API (au kabucom Securities / auカブコム証券)
 
-kabuステーション runs locally and exposes a REST API on localhost:18080.
-Documentation: https://kabucom.github.io/kabusapi/reference/
-
-Exchange codes:
-  1  = TSE (東証)
-  2  = NSE (名証)
-  9  = SOR (最良執行)
-  23 = J-NFX (日通し先物)
-  24 = OSE  (大証先物・オプション)
+Correct parameters per https://github.com/kabucom/kabusapi/issues/1014:
+- Side: int (1=sell, 2=buy) NOT string
+- AccountType: 4 (特定口座)
+- FundType: "  " (2 spaces = 保護預り) for cash
+- DelivType: 0 for sell, 2 for buy
 """
 
 from __future__ import annotations
@@ -23,15 +19,14 @@ import requests
 
 logger = logging.getLogger(__name__)
 
-
 _SIDE_MAP = {
-    "buy": "2",
-    "sell": "1",
+    "buy": 2,   # 買い (int)
+    "sell": 1,  # 売り (int)
 }
 
 _ORDER_TYPE_MAP = {
-    "market": "1",
-    "limit": "2",
+    "market": 1,
+    "limit": 2,
 }
 
 
@@ -58,7 +53,7 @@ class KabuStationAPI:
             data = resp.json()
             token = data.get("Token", "")
             if not token:
-                raise ValueError(f"No token in response: {data}")
+                raise ValueError(f"No token: {data}")
             self._token = token
             self._session.headers["X-API-KEY"] = token
             logger.info("Token obtained")
@@ -79,7 +74,7 @@ class KabuStationAPI:
             resp.raise_for_status()
             return resp.json()
         except requests.RequestException as exc:
-            logger.error("get_board failed for %s: %s", symbol, exc)
+            logger.error("get_board failed: %s", exc)
             return {"error": str(exc), "symbol": symbol}
 
     def get_positions(self) -> list[dict]:
@@ -88,7 +83,8 @@ class KabuStationAPI:
         try:
             resp = self._session.get(url, timeout=10)
             resp.raise_for_status()
-            return resp.json()
+            data = resp.json()
+            return data if isinstance(data, list) else []
         except requests.RequestException as exc:
             logger.error("get_positions failed: %s", exc)
             return []
@@ -99,7 +95,8 @@ class KabuStationAPI:
         try:
             resp = self._session.get(url, timeout=10)
             resp.raise_for_status()
-            return resp.json()
+            data = resp.json()
+            return data if isinstance(data, list) else []
         except requests.RequestException as exc:
             logger.error("get_orders failed: %s", exc)
             return []
@@ -113,13 +110,7 @@ class KabuStationAPI:
         price: float | None = None,
         exchange: int = 1,
     ) -> dict:
-        """Place an order.
-
-        Uses ORIGINAL working parameters from commit 3c128bf:
-        - Password: self.password (API password)
-        - AccountType: 2 (特定)
-        - No FundType
-        """
+        """Place an order using correct kabuStation API parameters."""
         self._ensure_token()
 
         if side not in _SIDE_MAP:
@@ -131,23 +122,27 @@ class KabuStationAPI:
 
         url = f"{self.BASE_URL}/kabusapi/sendorder"
 
-        # ExpireDay: 0=当日, YYYYMMDD=指定日まで有効
-        # 指値注文は5営業日有効（当日限りだと失効リスクあり）
+        # ExpireDay: limit orders valid for 7 days (5 business days)
         if order_type == "market":
             expire_day = 0
         else:
             expire_date = date.today() + timedelta(days=7)
             expire_day = int(expire_date.strftime("%Y%m%d"))
 
+        # kabuStation API sendorder parameters (per GitHub issue #1014)
+        is_buy = side == "buy"
+        deliv_type = 2 if is_buy else 0  # 2=お預り金 (buy), 0=sell
+
         payload = {
             "Password": self.password,
             "Symbol": symbol,
             "Exchange": exchange,
             "SecurityType": 1,
-            "Side": _SIDE_MAP[side],
-            "CashMargin": 1,
-            "DelivType": 2,
-            "AccountType": 2,
+            "Side": _SIDE_MAP[side],    # int
+            "CashMargin": 1,             # 現物
+            "DelivType": deliv_type,
+            "FundType": "  ",            # 2 spaces = 保護預り
+            "AccountType": 4,            # 特定口座
             "Qty": qty,
             "FrontOrderType": 10 if order_type == "market" else 20,
             "Price": 0 if order_type == "market" else price,
@@ -165,7 +160,6 @@ class KabuStationAPI:
             logger.info("Order placed: %s", data.get("OrderId", data))
             return data
         except requests.RequestException as exc:
-            # Capture response body for debugging
             err_body = ""
             if hasattr(exc, "response") and exc.response is not None:
                 try:
@@ -187,5 +181,5 @@ class KabuStationAPI:
             resp.raise_for_status()
             return resp.json()
         except requests.RequestException as exc:
-            logger.error("cancel_order failed for %s: %s", order_id, exc)
+            logger.error("cancel_order failed: %s", exc)
             return {"error": str(exc), "order_id": order_id}
