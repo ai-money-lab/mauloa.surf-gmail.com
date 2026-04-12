@@ -34,5 +34,11 @@
     "type": "shell",
     "command": "del /f /q \"C:\\cits\\logs\\.migrated_continue_kabusute\" 2>nul & git stash 2>nul & git fetch origin claude/continue-kabusute-DmFKB && git checkout -B claude/continue-kabusute-DmFKB origin/claude/continue-kabusute-DmFKB && git branch --set-upstream-to=origin/claude/continue-kabusute-DmFKB claude/continue-kabusute-DmFKB && echo FORCE_MIGRATED",
     "timeout": 60
+  },
+  {
+    "id": "restart_vpsagent_20260412_1200",
+    "type": "shell",
+    "command": "echo @echo off > C:\\cits\\restart_agent_tmp.bat & echo timeout /t 15 /nobreak ^>nul >> C:\\cits\\restart_agent_tmp.bat & echo taskkill /f /im pythonw.exe 2^>nul >> C:\\cits\\restart_agent_tmp.bat & echo del /f /q \"C:\\cits\\logs\\.vps_agent_started_today\" 2^>nul >> C:\\cits\\restart_agent_tmp.bat & echo set PYTHONPATH=C:\\cits\\repo >> C:\\cits\\restart_agent_tmp.bat & echo start /b \"\" C:\\cits\\venv\\Scripts\\pythonw.exe -m cits.scripts.vps_agent >> C:\\cits\\restart_agent_tmp.bat & start /min \"\" C:\\cits\\restart_agent_tmp.bat & echo AGENT_RESTART_SCHEDULED_IN_15S",
+    "timeout": 10
   }
 ]
