@@ -23,7 +23,7 @@ LOG_FILE = Path("C:/cits/logs/kabu_vnc_login.log")
 KABU_PATH = r"C:\Users\Administrator\AppData\Local\kabuStation\KabuS.exe"
 API_PASSWORD = "hiroki0380"
 VNC_PASSWORD = "cits2026"
-VNCDO = r"C:\cits\repo\venv\Scripts\vncdo.exe"
+VNCDO = r"C:\cits\venv\Scripts\vncdo.exe"
 
 
 def log(msg: str):

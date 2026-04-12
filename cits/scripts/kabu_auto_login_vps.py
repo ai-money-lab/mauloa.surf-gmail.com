@@ -32,7 +32,7 @@ API_PASSWORD = "hiroki0380"
 VNC_HOST = "localhost"
 VNC_PORT = 5900
 VNC_PASSWORD = "cits2026"
-VNCDO = r"C:\cits\repo\venv\Scripts\vncdo.exe"
+VNCDO = r"C:\cits\venv\Scripts\vncdo.exe"
 
 # Gmail IMAP設定
 GMAIL_USER = "mauloa.surf@gmail.com"
