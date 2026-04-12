@@ -28,5 +28,11 @@
     "type": "python",
     "code": "from cits.japan.broker.kabu_api import KabuStationAPI; api = KabuStationAPI(); api._ensure_token(); pos = api.get_positions(); import json; print(json.dumps(pos, ensure_ascii=False, indent=2, default=str))",
     "timeout": 30
+  },
+  {
+    "id": "force_migrate_20260412_1134",
+    "type": "shell",
+    "command": "del /f /q \"C:\\cits\\logs\\.migrated_continue_kabusute\" 2>nul & git stash 2>nul & git fetch origin claude/continue-kabusute-DmFKB && git checkout -B claude/continue-kabusute-DmFKB origin/claude/continue-kabusute-DmFKB && git branch --set-upstream-to=origin/claude/continue-kabusute-DmFKB claude/continue-kabusute-DmFKB && echo FORCE_MIGRATED_1134",
+    "timeout": 60
   }
 ]
