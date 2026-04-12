@@ -13,6 +13,7 @@ Flow:
 5. Handle 2FA if needed (requires Gmail API - done externally)
 6. Verify API token
 """
+import os
 import subprocess
 import sys
 import time
@@ -21,8 +22,8 @@ from pathlib import Path
 
 LOG_FILE = Path("C:/cits/logs/kabu_vnc_login.log")
 KABU_PATH = r"C:\Users\Administrator\AppData\Local\kabuStation\KabuS.exe"
-API_PASSWORD = "hiroki0380"
-VNC_PASSWORD = "cits2026"
+API_PASSWORD = os.environ.get("KABU_API_PASSWORD", "hiroki0380")
+VNC_PASSWORD = os.environ.get("CITS_VNC_PASSWORD", "cits2026")
 VNCDO = r"C:\cits\venv\Scripts\vncdo.exe"
 
 

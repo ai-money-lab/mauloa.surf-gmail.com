@@ -24,12 +24,15 @@ if not exist "C:\cits\logs\.sold_2170" (
     C:\cits\venv\Scripts\python.exe -m cits.scripts.sell_2170 >> "%LOG_FILE%" 2>&1
 )
 
-REM Task scheduler setup (failsafe)
-if not exist "C:\cits\logs\.schtask_v3" (
-    schtasks /Change /TN "CITS_Afternoon" /ST 15:20 >nul 2>&1
-    schtasks /Create /TN "CITS_PositionMonitor" /TR "C:\cits\repo\cits\run_monitor.bat" /SC DAILY /ST 09:30 /RI 30 /DU 05:30 /D MON,TUE,WED,THU,FRI /F >nul 2>&1
-    schtasks /Create /TN "CITS_StartupRecovery" /TR "C:\cits\repo\cits\run_morning.bat" /SC ONSTART /DELAY 0005:00 /F >nul 2>&1
-    echo %date% %time% Tasks updated v3 > "C:\cits\logs\.schtask_v3"
+REM Task scheduler setup (failsafe v5 -- new VPS comprehensive)
+if not exist "C:\cits\logs\.schtask_v5" (
+    schtasks /Create /TN CITS_KabuStation_Start /TR "C:\Users\Administrator\AppData\Local\kabuStation\KabuS.exe" /SC DAILY /ST 08:25 /D MON,TUE,WED,THU,FRI /IT /F >nul 2>&1
+    schtasks /Create /TN CITS_KabuStart_IT /TR "C:\Users\Administrator\AppData\Local\kabuStation\KabuS.exe" /SC ONCE /SD 12/31/2099 /ST 23:59 /IT /F >nul 2>&1
+    schtasks /Create /TN CITS_PositionMonitor /TR "C:\cits\repo\cits\run_monitor.bat" /SC MINUTE /MO 30 /ST 09:30 /ET 15:25 /RL HIGHEST /F >nul 2>&1
+    schtasks /Create /TN CITS_Afternoon /TR "C:\cits\repo\cits\run_afternoon.bat" /SC DAILY /ST 15:20 /D MON,TUE,WED,THU,FRI /RL HIGHEST /F >nul 2>&1
+    schtasks /Create /TN CITS_Watchdog /TR "C:\cits\repo\cits\run_watchdog.bat" /SC MINUTE /MO 5 /RL HIGHEST /F >nul 2>&1
+    schtasks /Create /TN CITS_StartupRecovery /TR "C:\cits\repo\cits\run_morning.bat" /SC ONSTART /DELAY 0005:00 /F >nul 2>&1
+    echo %date% %time% Tasks v5: registered > "C:\cits\logs\.schtask_v5"
 )
 
 REM Load .env

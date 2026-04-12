@@ -24,7 +24,7 @@ LOG_DIR = Path("C:/cits/logs")
 LOG_FILE = LOG_DIR / "kabu_auto_login.log"
 
 API_URL = "http://localhost:18080/kabusapi/token"
-API_PASSWORD = "hiroki0380"
+API_PASSWORD = os.environ.get("KABU_API_PASSWORD", "hiroki0380")
 
 GMAIL_USER = "mauloa.surf@gmail.com"
 IMAP_SERVER = "imap.gmail.com"

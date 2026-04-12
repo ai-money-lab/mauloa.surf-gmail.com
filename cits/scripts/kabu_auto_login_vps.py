@@ -27,11 +27,11 @@ SCREENSHOT_DIR = LOG_DIR / "screenshots"
 
 KABU_EXE = r"C:\Users\Administrator\AppData\Local\kabuStation\KabuS.exe"
 API_URL = "http://localhost:18080/kabusapi/token"
-API_PASSWORD = "hiroki0380"
+API_PASSWORD = os.environ.get("KABU_API_PASSWORD", "hiroki0380")
 
 VNC_HOST = "localhost"
 VNC_PORT = 5900
-VNC_PASSWORD = "cits2026"
+VNC_PASSWORD = os.environ.get("CITS_VNC_PASSWORD", "cits2026")
 VNCDO = r"C:\cits\venv\Scripts\vncdo.exe"
 
 # Gmail IMAP設定

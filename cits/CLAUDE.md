@@ -157,28 +157,141 @@ TZ=Asia/Tokyo date '+%Y-%m-%d %H:%M:%S %Z (%A)'
   - 旧ブランチ `run_monitor.bat` を byte-alignment 設計で更新（git pull 後の cmd.exe ファイル読み取り問題に対処）
 - **GMAIL_APP_PASSWORD 設定**: VPS `.env` に `agdcsxloedxlstor` を追加 → Gmail IMAP: OK ✅
 
-### VPS 移行状況（2026-04-12 11:06 JST時点）
-- VPS: **旧ブランチで稼働中** (MONITOR 11:00 JST確認)
-- 移行マーカーファイル `.migrated_continue_kabusute` が存在し移行をブロック中
-- **次回 MONITOR (11:30 JST) で自動移行予定**:
-  1. `git branch --show-current` → 旧ブランチ検出
-  2. マーカー削除 → `git fetch` → `git checkout continue-kabusute-DmFKB`
-  3. CITS_Watchdog / CITS_KabuStart_IT タスク登録
-  4. vps_agent 起動
-  5. `report_status.bat` が continue-kabusute へ push（移行確認）
+### VPS 移行状況（2026-04-12 16:00 JST確認済み）
+- VPS: **`claude/continue-kabusute-DmFKB`で稼働中** ✅
+- vps_agent: pythonw.exeで稼働中、GitHubへpush確認済み ✅
+- kabu API: 200 OK (token取得成功) ✅
+- IP: 203.183.9.252 (newvps_diag確認済み) ✅
+- 懸念: CITS_*タスクが未登録の可能性 → commands.jsonの`register_all_tasks_20260412_1700`で解消予定
 
 ### ブランチ構成（2026-04-12以降）
-- **コード開発**: `claude/continue-kabusute-DmFKB`（このブランチ）
-- **VPS**: 旧ブランチで稼働中 → 11:30 JST に自動移行予定
-  - 移行後は continue-kabusute が唯一のブランチ
+- **コード開発・VPS**: `claude/continue-kabusute-DmFKB`（唯一のブランチ）
 
 ### 残作業（次セッション）
-- VPS移行確認（11:30 JST の "status: MONITOR" が continue-kabusute に現れるか確認）
-- Watchdog 稼働確認（`cits/data/watchdog_status.json` が continue-kabusute に push されるか）
-- vps_status.json 確認（commands.json のコマンド実行結果）
-- 2170株ポジション確認・解消（585円以上で売り）
-- 2027年の祝日リスト追加（`_JP_HOLIDAYS_2026`を更新）
-- 月曜の本番稼働確認（08:25 kabuStation起動 → 08:27 自動ログイン → 08:30 LiveTrader）
+- vps_status.jsonで`register_all_tasks`/`verify_tasks`の実行結果確認
+- 2170株ポジション確認・解消（sell_2170.pyで処理済みのはずだが要確認）
+
+---
+
+## トラブルシューティング・プレイブック（月曜本番前必読）
+
+### 月曜朝シーケンス（正常フロー）
+```
+07:58 JST  vps_agent稼働中（毎60秒ポーリング）
+08:00 JST  CITS_Watchdog: kabu APIヘルスチェック開始
+08:25 JST  CITS_KabuStation_Start: kabuStation.exe起動（GUI表示）
+08:27 JST  GitHub Actions (cits-kabu-login): ログイン+2FA自動実行
+08:30 JST  CITS_LiveTrader: run_morning.bat → live_trader morning
+             → git pull → sell_2170(未売なら) → CIS全銘柄スキャン → 買い発注
+09:00〜    kabuStation: 前場取引
+09:30 JST  CITS_PositionMonitor: 30分毎 → position_monitor実行 → 売り判断
+11:30 JST  前場クローズ
+12:30 JST  後場開始
+14:00 JST  CITS_Prefetch: 全銘柄データ収集
+15:00 JST  後場クローズ
+15:20 JST  CITS_Afternoon: 売り決済 + CIS+KEI全銘柄スキャン + 買い発注 + メールレポート
+```
+
+### 障害別対応手順
+
+#### ❌ kabuStation起動失敗（08:25に起動しない）
+1. `CITS_Watchdog`が5分後に検出 → `CITS_KabuStart_IT`タスクで再起動を試みる
+2. それも失敗 → `kabu_auto_login_vps.py`でVNC経由ログイン
+3. **手動対応**: VPS RDP接続 → `C:\Users\Administrator\AppData\Local\kabuStation\KabuS.exe`を直接起動
+4. **確認**: `curl http://localhost:18080/kabusapi/token` でAPI応答確認
+
+#### ❌ kabu API接続失敗（token取得エラー）
+1. kabuStationが起動しているか確認
+2. タスクマネージャーで`KabuS.exe`プロセス確認
+3. kabuStation画面でログイン状態確認（2FA要確認）
+4. **VPSコマンドで診断**:
+   ```json
+   {"id": "diag_api_YYYYMMDD", "type": "python",
+    "code": "import requests; r=requests.post('http://localhost:18080/kabusapi/token',json={'APIPassword':'hiroki0380'},timeout=5); print(r.status_code,r.text[:200])"}
+   ```
+
+#### ❌ タスクが登録されていない
+1. `cits/data/commands.json`に`register_all_tasks_*`コマンドを追加
+2. vps_agentが60秒以内に実行
+3. その後`verify_tasks_*`コマンドで確認
+4. **緊急**: CITS_Watchdogが5分毎に欠損タスクを自動再登録（watchdog.py `_verify_tasks()`）
+
+#### ❌ vps_agentが停止
+1. CITS_Watchdogが検出 → 自動再起動
+2. **手動VPSコマンド**（vps_agentが停止中の場合はRDP接続が必要）:
+   ```bat
+   cd C:\cits\repo
+   set PYTHONPATH=C:\cits\repo
+   start /b C:\cits\venv\Scripts\pythonw.exe -m cits.scripts.vps_agent
+   ```
+3. CITS_VPSAgentタスク（起動時自動起動）が機能しているか確認
+
+#### ❌ Git pull失敗（コードが更新されない）
+- bat filesは `git pull --quiet 2>nul` → 失敗しても実行継続
+- **確認**: VPSコマンドで `git log --oneline -3` を実行してHEADコミットを確認
+- **対処**: git remote URLにtokenが含まれているか確認（`git remote -v`）
+
+#### ❌ 発注失敗（orders not placed）
+1. ログ確認: `C:\cits\logs\morning_YYYYMMDD.log`
+2. `CITS_SCHEDULED_RUN`環境変数が`TASKSCHEDULER`か確認（live_traderの安全ゲート）
+3. `KABU_ORDER_PASSWORD`が設定されているか確認
+4. kabu API残高確認: 発注ログで`AvailableEquity`を確認
+
+#### ❌ ポジションが売れない（position_monitorが動かない）
+1. CITS_PositionMonitorタスクが登録済みか確認
+2. `C:\cits\logs\monitor_YYYYMMDD.log` を確認
+3. **手動実行VPSコマンド**:
+   ```json
+   {"id": "manual_monitor_YYYYMMDD", "type": "module",
+    "module": "cits.scripts.position_monitor", "args": []}
+   ```
+
+#### ❌ VPS自体が応答しない（ネットワーク障害）
+1. ローカルPCでVPSフェイルオーバー:
+   ```bash
+   python -m cits.scripts.vps_failover --check
+   python -m cits.scripts.vps_failover --force-local --live
+   ```
+2. chrishellコントロールパネルからVPS再起動
+3. VPS再起動後: CITS_VPSAgentタスクが2分後にvps_agentを自動起動
+
+### VPS状態の遠隔確認方法
+```json
+// commands.jsonに追加 → vps_agentが60秒以内に実行 → vps_status.jsonに結果
+{"id": "check_YYYYMMDD_HHMM", "type": "shell",
+ "command": "git branch --show-current && schtasks /Query /FO CSV /NH 2>&1 | findstr CITS && tasklist | findstr python",
+ "timeout": 30}
+```
+
+### 緊急停止手順
+```json
+// 全Python処理を即座に停止（vps_agentも停止する）
+{"id": "emergency_stop_YYYYMMDD", "type": "shell",
+ "command": "taskkill /f /im pythonw.exe & taskkill /f /im python.exe & echo STOPPED",
+ "timeout": 10}
+```
+
+### セキュリティ注意事項
+- **GitHubリポジトリは必ずPrivateに保つ**（クレデンシャルが含まれるため）
+- `.env`ファイルは絶対にコミットしない（`.gitignore`で除外済み）
+- `commands.json`は`data/`が`.gitignore`対象のため通常コミットされない（`git add -f`必須）
+- VPS gitリモートURLにOAuthトークンが埋め込まれている（VPS側ローカルのみ）
+- APIパスワード変更時は以下を更新:
+  - VPS `C:\cits\repo\cits\.env`: `KABU_API_PASSWORD=新パスワード`
+  - VPS `C:\cits\repo\cits\.env`: `KABU_ORDER_PASSWORD=新パスワード`
+  - `cits/scripts/vps_agent.py` line 98（フォールバック）
+  - `cits/run_*.bat`（フォールバック）
+
+### ログ場所（VPS）
+| ログ | パス |
+|------|------|
+| 朝LiveTrader | `C:\cits\logs\morning_YYYYMMDD.log` |
+| 午後LiveTrader | `C:\cits\logs\afternoon_YYYYMMDD.log` |
+| PositionMonitor | `C:\cits\logs\monitor_YYYYMMDD.log` |
+| vps_agent | `C:\cits\logs\vps_agent.log` |
+| Watchdog | `C:\cits\logs\watchdog.log` |
+| kabu自動ログイン | `C:\cits\logs\kabu_auto_login.log` |
+| フェイルオーバー | `C:\cits\logs\failover\failover.log` |
 
 ### 追加コマンド
 ```bash
