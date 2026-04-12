@@ -35,10 +35,19 @@ class KabuStationAPI:
 
     BASE_URL = "http://localhost:18080"
 
-    def __init__(self, password: str | None = None) -> None:
+    def __init__(self, password: str | None = None, order_password: str | None = None) -> None:
+        # API password: used for token acquisition (APIPassword field)
         self.password = password or os.environ.get("KABU_API_PASSWORD", "")
         if not self.password:
             logger.warning("KABU_API_PASSWORD is not set")
+
+        # Order password: used in sendorder/cancelorder (Password field = 取引パスワード)
+        # Distinct from API token password. Falls back to API password if not set.
+        self.order_password = (
+            order_password
+            or os.environ.get("KABU_ORDER_PASSWORD", "")
+            or self.password
+        )
 
         self._token: str | None = None
         self._session = requests.Session()
@@ -134,7 +143,7 @@ class KabuStationAPI:
         deliv_type = 2 if is_buy else 0  # 2=お預り金 (buy), 0=sell
 
         payload = {
-            "Password": self.password,
+            "Password": self.order_password,   # 取引パスワード (≠ APIパスワード)
             "Symbol": symbol,
             "Exchange": exchange,
             "SecurityType": 1,
@@ -174,7 +183,7 @@ class KabuStationAPI:
         url = f"{self.BASE_URL}/kabusapi/cancelorder"
         payload = {
             "OrderId": order_id,
-            "Password": self.password,
+            "Password": self.order_password,   # 取引パスワード
         }
         try:
             resp = self._session.put(url, json=payload, timeout=10)

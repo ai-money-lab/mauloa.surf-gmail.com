@@ -31,6 +31,48 @@ def test_kabu_init_password_from_env():
     assert api.password == "test-kabu-pw"  # set by conftest
 
 
+def test_kabu_init_order_password_from_env():
+    """KabuStationAPI reads order password from KABU_ORDER_PASSWORD env var."""
+    api = KabuStationAPI()
+    assert api.order_password == "test-kabu-order-pw"  # set by conftest
+
+
+def test_kabu_init_order_password_from_arg():
+    """KabuStationAPI uses order_password arg over env var."""
+    api = KabuStationAPI(order_password="explicit-order-pw")
+    assert api.order_password == "explicit-order-pw"
+
+
+def test_kabu_place_order_uses_order_password():
+    """place_order payload uses order_password (取引パスワード), not API password."""
+    api = KabuStationAPI(password="api-pw", order_password="order-pw")
+    api._token = "tok"
+    api._session = MagicMock()
+    api._session.headers = {"X-API-KEY": "tok"}
+    api._session.post.return_value = _mock_response({"OrderId": "ORD-002"})
+
+    api.place_order(symbol="7203", side="buy", qty=100, order_type="market")
+
+    call_kwargs = api._session.post.call_args
+    sent_payload = call_kwargs[1]["json"]  # kwargs json=
+    assert sent_payload["Password"] == "order-pw"
+
+
+def test_kabu_cancel_order_uses_order_password():
+    """cancel_order payload uses order_password (取引パスワード), not API password."""
+    api = KabuStationAPI(password="api-pw", order_password="order-pw")
+    api._token = "tok"
+    api._session = MagicMock()
+    api._session.headers = {"X-API-KEY": "tok"}
+    api._session.put.return_value = _mock_response({"OrderId": "ORD-001", "Result": 0})
+
+    api.cancel_order("ORD-001")
+
+    call_kwargs = api._session.put.call_args
+    sent_payload = call_kwargs[1]["json"]
+    assert sent_payload["Password"] == "order-pw"
+
+
 def test_kabu_get_token():
     """_get_token sends POST and stores the token."""
     api = KabuStationAPI(password="pw")

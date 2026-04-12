@@ -23,6 +23,7 @@ def _set_api_keys(monkeypatch):
     monkeypatch.setenv("JQUANTS_API_KEY", "test-jquants-key")
     monkeypatch.setenv("EDINET_API_KEY", "test-edinet-key")
     monkeypatch.setenv("KABU_API_PASSWORD", "test-kabu-pw")
+    monkeypatch.setenv("KABU_ORDER_PASSWORD", "test-kabu-order-pw")
 
 
 @pytest.fixture()
