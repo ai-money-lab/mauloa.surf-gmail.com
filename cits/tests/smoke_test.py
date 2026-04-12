@@ -23,6 +23,15 @@ _project_root = str(Path(__file__).resolve().parents[2])
 if _project_root not in sys.path:
     sys.path.insert(0, _project_root)
 
+# ``ta`` ライブラリ（C拡張）がCI環境で未インストールの場合モックを注入
+from unittest.mock import MagicMock  # noqa: E402
+if "ta" not in sys.modules:
+    _ta = MagicMock()
+    sys.modules["ta"] = _ta
+    sys.modules["ta.trend"] = _ta.trend
+    sys.modules["ta.momentum"] = _ta.momentum
+    sys.modules["ta.volatility"] = _ta.volatility
+
 
 @dataclass
 class TestResult:
