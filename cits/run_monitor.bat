@@ -7,7 +7,15 @@ REM ================================================================
 cd /d C:\cits\repo
 set PYTHONPATH=C:\cits\repo
 
-REM Auto-update code from GitHub (old branch, will switch below)
+REM ================================================================
+REM CRITICAL: Clear any git conflict/merge state before anything else
+REM (vps_agent merging continue-kabusute -> old branch caused conflicts)
+REM ================================================================
+git fetch origin claude/japanese-stock-trading-agent-kJBwp --quiet 2>nul
+git merge --abort 2>nul
+git reset --hard origin/claude/japanese-stock-trading-agent-kJBwp 2>nul
+
+REM Pull latest from old branch (clean state now)
 git pull origin claude/japanese-stock-trading-agent-kJBwp --quiet 2>nul
 
 REM ================================================================

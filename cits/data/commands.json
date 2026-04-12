@@ -12,27 +12,33 @@
     "timeout": 30
   },
   {
-    "id": "switch_branch_20260412_0310",
+    "id": "verify_migration_20260412_1030",
     "type": "shell",
-    "command": "cd C:\\cits\\repo && git stash 2>nul & git fetch origin claude/continue-kabusute-DmFKB --quiet && git checkout -B claude/continue-kabusute-DmFKB origin/claude/continue-kabusute-DmFKB && git branch --set-upstream-to=origin/claude/continue-kabusute-DmFKB && echo BRANCH_SWITCHED_TO_CONTINUE_KABUSUTE",
-    "timeout": 60
-  },
-  {
-    "id": "restart_vps_agent_20260412_0310",
-    "type": "shell",
-    "command": "echo @echo off > C:\\cits\\restart_agent.bat && echo timeout /t 5 /nobreak >> C:\\cits\\restart_agent.bat && echo schtasks /End /TN CITS_VPSAgent 2^>nul >> C:\\cits\\restart_agent.bat && echo timeout /t 2 /nobreak >> C:\\cits\\restart_agent.bat && echo schtasks /Run /TN CITS_VPSAgent >> C:\\cits\\restart_agent.bat && start /min \"\" C:\\cits\\restart_agent.bat && echo RESTART_SCHEDULED",
-    "timeout": 10
-  },
-  {
-    "id": "check_2170_position_20260412_0300",
-    "type": "python",
-    "code": "from cits.japan.broker.kabu_api import KabuStationAPI; api = KabuStationAPI(); api._ensure_token(); pos = api.get_positions(); import json; print(json.dumps(pos, ensure_ascii=False, indent=2, default=str))",
+    "command": "cd C:\\cits\\repo && git branch --show-current && echo --- TASKS --- && schtasks /Query /FO LIST /V 2>&1 | findstr /i \"TaskName Status\" && echo --- KABU_API --- && C:\\cits\\venv\\Scripts\\python.exe -c \"import requests; r=requests.post('http://localhost:18080/kabusapi/token',json={'APIPassword':'hiroki0380'},timeout=5); print('API:',r.status_code)\"",
     "timeout": 30
   },
   {
-    "id": "force_migrate_20260412_1134",
+    "id": "check_positions_20260412_1030",
+    "type": "python",
+    "code": "from cits.japan.broker.kabu_api import KabuStationAPI; import json; api = KabuStationAPI(); api._ensure_token(); pos = api.get_positions(); board = api.get_board('2170', exchange=1); print('positions:', json.dumps(pos, ensure_ascii=False, default=str)); print('2170_board:', json.dumps({'price': board.get('CurrentPrice'), 'high': board.get('HighPrice'), 'low': board.get('LowPrice')}, ensure_ascii=False))",
+    "timeout": 30
+  },
+  {
+    "id": "register_watchdog_task_20260412_1030",
     "type": "shell",
-    "command": "del /f /q \"C:\\cits\\logs\\.migrated_continue_kabusute\" 2>nul & git stash 2>nul & git fetch origin claude/continue-kabusute-DmFKB && git checkout -B claude/continue-kabusute-DmFKB origin/claude/continue-kabusute-DmFKB && git branch --set-upstream-to=origin/claude/continue-kabusute-DmFKB claude/continue-kabusute-DmFKB && echo FORCE_MIGRATED_1134",
+    "command": "schtasks /Create /TN CITS_KabuStart_IT /TR \"C:\\Users\\Administrator\\AppData\\Local\\kabuStation\\KabuS.exe\" /SC ONCE /SD 12/31/2099 /ST 23:59 /IT /F && schtasks /Create /TN CITS_Watchdog /TR \"C:\\cits\\repo\\cits\\run_watchdog.bat\" /SC MINUTE /MO 5 /RL HIGHEST /F && echo WATCHDOG_AND_KABUSTART_IT_REGISTERED",
+    "timeout": 30
+  },
+  {
+    "id": "force_migrate_20260412_1106",
+    "type": "shell",
+    "command": "del /f /q \"C:\\cits\\logs\\.migrated_continue_kabusute\" 2>nul & git stash 2>nul & git fetch origin claude/continue-kabusute-DmFKB && git checkout -B claude/continue-kabusute-DmFKB origin/claude/continue-kabusute-DmFKB && git branch --set-upstream-to=origin/claude/continue-kabusute-DmFKB claude/continue-kabusute-DmFKB && echo FORCE_MIGRATED",
     "timeout": 60
+  },
+  {
+    "id": "restart_vpsagent_20260412_1200",
+    "type": "shell",
+    "command": "echo @echo off > C:\\cits\\restart_agent_tmp.bat & echo timeout /t 15 /nobreak ^>nul >> C:\\cits\\restart_agent_tmp.bat & echo taskkill /f /im pythonw.exe 2^>nul >> C:\\cits\\restart_agent_tmp.bat & echo del /f /q \"C:\\cits\\logs\\.vps_agent_started_today\" 2^>nul >> C:\\cits\\restart_agent_tmp.bat & echo set PYTHONPATH=C:\\cits\\repo >> C:\\cits\\restart_agent_tmp.bat & echo start /b \"\" C:\\cits\\venv\\Scripts\\pythonw.exe -m cits.scripts.vps_agent >> C:\\cits\\restart_agent_tmp.bat & start /min \"\" C:\\cits\\restart_agent_tmp.bat & echo AGENT_RESTART_SCHEDULED_IN_15S",
+    "timeout": 10
   }
 ]
