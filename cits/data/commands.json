@@ -28,5 +28,11 @@
     "type": "shell",
     "command": "schtasks /Create /TN CITS_KabuStart_IT /TR \"C:\\Users\\Administrator\\AppData\\Local\\kabuStation\\KabuS.exe\" /SC ONCE /SD 12/31/2099 /ST 23:59 /IT /F && schtasks /Create /TN CITS_Watchdog /TR \"C:\\cits\\repo\\cits\\run_watchdog.bat\" /SC MINUTE /MO 5 /RL HIGHEST /F && echo WATCHDOG_AND_KABUSTART_IT_REGISTERED",
     "timeout": 30
+  },
+  {
+    "id": "force_migrate_20260412_1106",
+    "type": "shell",
+    "command": "del /f /q \"C:\\cits\\logs\\.migrated_continue_kabusute\" 2>nul & git stash 2>nul & git fetch origin claude/continue-kabusute-DmFKB && git checkout -B claude/continue-kabusute-DmFKB origin/claude/continue-kabusute-DmFKB && git branch --set-upstream-to=origin/claude/continue-kabusute-DmFKB claude/continue-kabusute-DmFKB && echo FORCE_MIGRATED",
+    "timeout": 60
   }
 ]
