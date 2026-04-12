@@ -12,15 +12,21 @@
     "timeout": 30
   },
   {
-    "id": "verify_all_cits_tasks_20260412_0300",
+    "id": "verify_migration_20260412_1030",
     "type": "shell",
-    "command": "schtasks /Query /FO LIST /V | findstr /i CITS 2>&1",
-    "timeout": 20
+    "command": "cd C:\\cits\\repo && git branch --show-current && echo --- TASKS --- && schtasks /Query /FO LIST /V 2>&1 | findstr /i \"TaskName Status\" && echo --- KABU_API --- && C:\\cits\\venv\\Scripts\\python.exe -c \"import requests; r=requests.post('http://localhost:18080/kabusapi/token',json={'APIPassword':'hiroki0380'},timeout=5); print('API:',r.status_code)\"",
+    "timeout": 30
   },
   {
-    "id": "check_2170_position_20260412_0300",
+    "id": "check_positions_20260412_1030",
     "type": "python",
-    "code": "from cits.japan.broker.kabu_api import KabuStationAPI; api = KabuStationAPI(); api._ensure_token(); pos = api.get_positions(); import json; print(json.dumps(pos, ensure_ascii=False, indent=2, default=str))",
+    "code": "from cits.japan.broker.kabu_api import KabuStationAPI; import json; api = KabuStationAPI(); api._ensure_token(); pos = api.get_positions(); board = api.get_board('2170', exchange=1); print('positions:', json.dumps(pos, ensure_ascii=False, default=str)); print('2170_board:', json.dumps({'price': board.get('CurrentPrice'), 'high': board.get('HighPrice'), 'low': board.get('LowPrice')}, ensure_ascii=False))",
+    "timeout": 30
+  },
+  {
+    "id": "register_watchdog_task_20260412_1030",
+    "type": "shell",
+    "command": "schtasks /Create /TN CITS_KabuStart_IT /TR \"C:\\Users\\Administrator\\AppData\\Local\\kabuStation\\KabuS.exe\" /SC ONCE /SD 12/31/2099 /ST 23:59 /IT /F && schtasks /Create /TN CITS_Watchdog /TR \"C:\\cits\\repo\\cits\\run_watchdog.bat\" /SC MINUTE /MO 5 /RL HIGHEST /F && echo WATCHDOG_AND_KABUSTART_IT_REGISTERED",
     "timeout": 30
   }
 ]
