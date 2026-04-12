@@ -194,18 +194,35 @@ def start_vps_agent():
 def register_tasks():
     log("Step 5: Registering task scheduler...")
     tasks = [
-        ("CITS_Afternoon", ["schtasks", "/Change", "/TN", "CITS_Afternoon", "/ST", "15:20"]),
+        # CITS_Afternoon: delete first to guarantee correct TR+time (old task may have wrong path)
+        ("CITS_Afternoon_del", ["schtasks", "/Delete", "/TN", "CITS_Afternoon", "/F"]),
+        ("CITS_Afternoon", ["schtasks", "/Create", "/TN", "CITS_Afternoon",
+                            "/TR", r"C:\cits\repo\cits\run_afternoon.bat",
+                            "/SC", "DAILY", "/ST", "15:20",
+                            "/D", "MON,TUE,WED,THU,FRI", "/RL", "HIGHEST", "/F"]),
         ("CITS_PositionMonitor", ["schtasks", "/Create", "/TN", "CITS_PositionMonitor",
                                   "/TR", r"C:\cits\repo\cits\run_monitor.bat",
-                                  "/SC", "DAILY", "/ST", "09:30", "/RI", "30",
-                                  "/DU", "05:30",
-                                  "/D", "MON,TUE,WED,THU,FRI", "/F"]),
+                                  "/SC", "MINUTE", "/MO", "30",
+                                  "/ST", "09:30", "/ET", "15:25",
+                                  "/RL", "HIGHEST", "/F"]),
         ("CITS_StartupRecovery", ["schtasks", "/Create", "/TN", "CITS_StartupRecovery",
                                   "/TR", r"C:\cits\repo\cits\run_morning.bat",
-                                  "/SC", "ONSTART", "/DELAY", "0005:00", "/F"]),
+                                  "/SC", "ONSTART", "/DELAY", "0005:00",
+                                  "/RL", "HIGHEST", "/F"]),
         ("CITS_VPSAgent", ["schtasks", "/Create", "/TN", "CITS_VPSAgent",
                            "/TR", r"C:\cits\repo\cits\run_agent.bat",
-                           "/SC", "ONSTART", "/DELAY", "0002:00", "/F"]),
+                           "/SC", "ONSTART", "/DELAY", "0002:00",
+                           "/RL", "HIGHEST", "/F"]),
+        # kabuStation on-demand launcher (GUI session, /IT = interactive)
+        ("CITS_KabuStart_IT", ["schtasks", "/Create", "/TN", "CITS_KabuStart_IT",
+                               "/TR", r"C:\Users\Administrator\AppData\Local\kabuStation\KabuS.exe",
+                               "/SC", "ONCE", "/SD", "12/31/2099", "/ST", "23:59",
+                               "/IT", "/F"]),
+        # Watchdog: self-healing monitor every 5 minutes
+        ("CITS_Watchdog", ["schtasks", "/Create", "/TN", "CITS_Watchdog",
+                           "/TR", r"C:\cits\repo\cits\run_watchdog.bat",
+                           "/SC", "MINUTE", "/MO", "5",
+                           "/RL", "HIGHEST", "/F"]),
     ]
     results = {}
     for name, cmd in tasks:

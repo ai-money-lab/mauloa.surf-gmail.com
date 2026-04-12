@@ -1,0 +1,61 @@
+# GitHub Actions -- CITS kabuStation Auto-Login
+# 平日08:27 JST (23:27 UTC Sun-Thu) に commands.json へ login コマンドを注入
+# VPS上の vps_agent が次回ポーリング時に実行する
+
+name: CITS kabuStation Auto-Login
+
+on:
+  schedule:
+    # 08:27 JST = 23:27 UTC  (Mon=Sun UTC, Tue=Mon UTC, ..., Fri=Thu UTC)
+    - cron: '27 23 * * 0-4'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  inject-login:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: claude/continue-kabusute-DmFKB
+
+      - name: Inject daily kabu_login command into commands.json
+        run: |
+          python3 - <<'EOF'
+          import json
+          from datetime import date
+          from pathlib import Path
+
+          today = date.today().strftime("%Y%m%d")
+          new_cmd = {
+              "id": f"kabu_login_{today}",
+              "type": "module",
+              "module": "cits.scripts.kabu_auto_login_vps",
+              "timeout": 300
+          }
+
+          f = Path("cits/data/commands.json")
+          f.parent.mkdir(parents=True, exist_ok=True)
+          try:
+              cmds = json.loads(f.read_text(encoding="utf-8"))
+          except Exception:
+              cmds = []
+
+          # Remove stale login commands; preserve diagnostic/fix commands
+          cmds = [c for c in cmds if not c.get("id", "").startswith("kabu_login_")]
+          cmds.append(new_cmd)
+          f.write_text(json.dumps(cmds, ensure_ascii=False, indent=2), encoding="utf-8")
+          print(f"Injected: {new_cmd['id']}")
+          EOF
+
+      - name: Commit and push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -f cits/data/commands.json
+          git diff --cached --quiet || git commit -m "cits-kabu-login: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          git push origin claude/continue-kabusute-DmFKB
