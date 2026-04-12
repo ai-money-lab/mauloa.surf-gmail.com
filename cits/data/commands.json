@@ -46,5 +46,23 @@
     "type": "shell",
     "command": "echo === NEW VPS DIAG === && ipconfig | findstr /i \"IPv4\" && echo --- GIT --- && cd C:\\cits\\repo && git branch --show-current && git log --oneline -2 && echo --- TASKS --- && schtasks /Query /FO LIST 2>&1 | findstr /i \"TaskName:\" && echo --- PYTHON PROCS --- && tasklist 2>&1 | findstr /i python && echo --- CITS FILES --- && dir C:\\cits\\repo\\cits\\scripts\\vps_agent.py 2>&1 && echo DIAG_DONE",
     "timeout": 30
+  },
+  {
+    "id": "monday_readiness_20260412_1600",
+    "type": "python",
+    "code": "import subprocess,json,os; r={}; br=subprocess.run(['git','branch','--show-current'],capture_output=True,text=True,cwd=r'C:\\cits\\repo',encoding='utf-8',errors='replace'); r['branch']=br.stdout.strip(); tr=subprocess.run('schtasks /Query /FO CSV /NH',shell=True,capture_output=True,encoding='cp932',errors='replace'); r['cits_tasks']=[l.strip().split(',')[0].strip('\"') for l in tr.stdout.splitlines() if 'CITS' in l]; r['kabustation_exe']=os.path.exists(r'C:\\Users\\Administrator\\AppData\\Local\\kabuStation\\KabuS.exe'); r['env_file']=os.path.exists(r'C:\\cits\\repo\\cits\\.env');\nimport requests; \ntry:\n  resp=requests.post('http://localhost:18080/kabusapi/token',json={'APIPassword':'hiroki0380'},timeout=5); r['api_status']=resp.status_code; r['api_ok']=resp.ok\nexcept Exception as e:\n  r['api_status']=str(e); r['api_ok']=False\npr=subprocess.run('tasklist /FO CSV /NH',shell=True,capture_output=True,encoding='cp932',errors='replace'); r['python_procs']=[l.split(',')[0].strip('\"') for l in pr.stdout.splitlines() if 'python' in l.lower()]; pos_f=r'C:\\cits\\logs\\positions.json';\nif os.path.exists(pos_f):\n  import json as _j; pos=_j.loads(open(pos_f,'r',encoding='utf-8',errors='replace').read()); r['open_positions']=[p for p in (pos if isinstance(pos,list) else []) if p.get('status')=='open']\nelse:\n  r['open_positions']='NO_FILE'\nprint(json.dumps(r,ensure_ascii=False,default=str,indent=2))",
+    "timeout": 60
+  },
+  {
+    "id": "register_all_tasks_20260412_1700",
+    "type": "shell",
+    "command": "schtasks /Delete /TN CITS_KabuStation_Start /F 2>nul & schtasks /Create /TN CITS_KabuStation_Start /TR \"C:\\Users\\Administrator\\AppData\\Local\\kabuStation\\KabuS.exe\" /SC DAILY /ST 08:25 /RL HIGHEST /F & schtasks /Delete /TN CITS_KabuStart_IT /F 2>nul & schtasks /Create /TN CITS_KabuStart_IT /TR \"C:\\Users\\Administrator\\AppData\\Local\\kabuStation\\KabuS.exe\" /SC ONCE /SD 12/31/2099 /ST 23:59 /IT /F & schtasks /Delete /TN CITS_LiveTrader /F 2>nul & schtasks /Create /TN CITS_LiveTrader /TR \"C:\\cits\\repo\\cits\\run_morning.bat\" /SC DAILY /ST 08:30 /RL HIGHEST /F & schtasks /Delete /TN CITS_PositionMonitor /F 2>nul & schtasks /Create /TN CITS_PositionMonitor /TR \"C:\\cits\\repo\\cits\\run_monitor.bat\" /SC DAILY /ST 09:30 /RI 30 /DU 05:30 /D MON,TUE,WED,THU,FRI /RL HIGHEST /F & schtasks /Delete /TN CITS_Prefetch /F 2>nul & schtasks /Create /TN CITS_Prefetch /TR \"C:\\cits\\repo\\cits\\run_prefetch.bat\" /SC DAILY /ST 14:00 /RL HIGHEST /F & schtasks /Delete /TN CITS_Afternoon /F 2>nul & schtasks /Create /TN CITS_Afternoon /TR \"C:\\cits\\repo\\cits\\run_afternoon.bat\" /SC DAILY /ST 15:20 /RL HIGHEST /F & schtasks /Delete /TN CITS_Watchdog /F 2>nul & schtasks /Create /TN CITS_Watchdog /TR \"C:\\cits\\repo\\cits\\run_watchdog.bat\" /SC MINUTE /MO 5 /RL HIGHEST /F & schtasks /Delete /TN CITS_StartupRecovery /F 2>nul & schtasks /Create /TN CITS_StartupRecovery /TR \"C:\\cits\\repo\\cits\\run_morning.bat\" /SC ONSTART /DELAY 0005:00 /F & echo REGISTERED_ALL_CITS_TASKS_DONE",
+    "timeout": 120
+  },
+  {
+    "id": "verify_tasks_20260412_1800",
+    "type": "python",
+    "code": "import subprocess,json; tr=subprocess.run('schtasks /Query /FO CSV /NH',shell=True,capture_output=True,encoding='cp932',errors='replace'); all_lines=[l.strip() for l in tr.stdout.splitlines() if l.strip()]; cits=[l.split(',')[0].strip('\"') for l in all_lines if 'CITS' in l]; expected=['CITS_KabuStation_Start','CITS_KabuStart_IT','CITS_LiveTrader','CITS_PositionMonitor','CITS_Prefetch','CITS_Afternoon','CITS_Watchdog','CITS_StartupRecovery']; missing=[t for t in expected if t not in cits]; print('REGISTERED:',json.dumps(cits,ensure_ascii=False)); print('MISSING:',json.dumps(missing,ensure_ascii=False)); print('STATUS:','ALL_OK' if not missing else 'MISSING_'+str(len(missing))+'_TASKS')",
+    "timeout": 30
   }
 ]
