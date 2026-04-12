@@ -137,27 +137,48 @@ TZ=Asia/Tokyo date '+%Y-%m-%d %H:%M:%S %Z (%A)'
   - ポート18080: OPEN ✅
   - kabuStation プロセス: Running ✅
   - Token API: 200 OK (`hiroki0380`) ✅
-- **bootstrap結果 (02:23 JST)**:
-  - 2170現在価格: 581円（前日606→-4.13%）
-  - エントリー580円に対し +1円 (+0.17%) → HOLD_NO_LOSS_RULE
-  - CITS_StartupRecovery: ok ✅、CITS_VPSAgent: ok ✅
-  - CITS_Afternoon: タイムアウト ❌ → **修正コマンド送信済み**
-  - CITS_PositionMonitor: rc=2147500037 (未登録) ❌ → **修正コマンド送信済み**
-- **VPSコマンド送信 (03:00 JST)**: 旧ブランチ経由でタスク再登録コマンドを送信
+- **bootstrap結果 (02:23 JST)**: CITS_Afternoon/PositionMonitor タスク修正コマンド送信済み
+- **完全自立型システム構築 (前セッション)**:
+  - `.github/workflows/cits-kabu-login.yml`: 平日08:27 JST GitHub Actions → commands.json injection
+  - `cits/scripts/watchdog.py`: VPS自己修復 (5分毎: kabu API / vps_agent / 全タスク確認 / GitHub push)
+  - `cits/run_watchdog.bat`: CITS_Watchdog タスク用 bat
+  - `cits/scripts/bootstrap.py`: CITS_Watchdog + CITS_KabuStart_IT タスク追加
+  - `cits/tests/smoke_test.py`: watchdog モジュール追加
+
+### 2026-04-12 セッション2（11:06 JST）で修正した重要バグ
+- **vps_agent `git add -f` 修正**: `git add cits/data/vps_status.json` → `git add -f ...`
+  - `data/` が .gitignore にあるため `-f` なしでは silent fail → 結果が一度も GitHubに届いていなかった
+- **VNCDO パス修正 (2ファイル)**: `C:\cits\repo\venv\Scripts\vncdo.exe` → `C:\cits\venv\Scripts\vncdo.exe`
+  - `kabu_auto_login_vps.py` / `kabu_vnc_login.py` の誤パス → VNC GUI操作が全て失敗していた
+- **report_status.bat `git add -f` 修正**: vps_status.json が .gitignore で弾かれていた
+- **VPS移行バグ修正**: マーカーファイル方式 (`if not exist .migrated_...`) の問題
+  - git checkout が失敗してもマーカーが書かれる → 以降の全実行でマーカーが存在 → 移行スキップ
+  - 修正: `git branch --show-current` で実際のブランチを確認 + 古いマーカーを削除
+  - 旧ブランチ `run_monitor.bat` を byte-alignment 設計で更新（git pull 後の cmd.exe ファイル読み取り問題に対処）
+- **GMAIL_APP_PASSWORD 設定**: VPS `.env` に `agdcsxloedxlstor` を追加 → Gmail IMAP: OK ✅
+
+### VPS 移行状況（2026-04-12 11:06 JST時点）
+- VPS: **旧ブランチで稼働中** (MONITOR 11:00 JST確認)
+- 移行マーカーファイル `.migrated_continue_kabusute` が存在し移行をブロック中
+- **次回 MONITOR (11:30 JST) で自動移行予定**:
+  1. `git branch --show-current` → 旧ブランチ検出
+  2. マーカー削除 → `git fetch` → `git checkout continue-kabusute-DmFKB`
+  3. CITS_Watchdog / CITS_KabuStart_IT タスク登録
+  4. vps_agent 起動
+  5. `report_status.bat` が continue-kabusute へ push（移行確認）
 
 ### ブランチ構成（2026-04-12以降）
 - **コード開発**: `claude/continue-kabusute-DmFKB`（このブランチ）
-- **VPS コマンド受信**: `claude/japanese-stock-trading-agent-kJBwp`（VPSエージェントが監視中）
-  - bat ファイルは continue-kabusute からコードを自動pull
-  - VPSエージェントの次回再起動後に continue-kabusute へ完全移行
+- **VPS**: 旧ブランチで稼働中 → 11:30 JST に自動移行予定
+  - 移行後は continue-kabusute が唯一のブランチ
 
 ### 残作業（次セッション）
-- VPSタスク修正確認（コマンド実行結果を vps_status.json で確認）
-- CITS_PositionMonitor / CITS_Afternoon タスク動作確認（09:30/15:20 JST）
-- 2170株ポジション解消（585円以上で売り）
-- `.env`に`GMAIL_APP_PASSWORD`設定 → メールレポート送信有効化
+- VPS移行確認（11:30 JST の "status: MONITOR" が continue-kabusute に現れるか確認）
+- Watchdog 稼働確認（`cits/data/watchdog_status.json` が continue-kabusute に push されるか）
+- vps_status.json 確認（commands.json のコマンド実行結果）
+- 2170株ポジション確認・解消（585円以上で売り）
 - 2027年の祝日リスト追加（`_JP_HOLIDAYS_2026`を更新）
-- VPSエージェント完全移行（再起動後 continue-kabusute を自動参照）
+- 月曜の本番稼働確認（08:25 kabuStation起動 → 08:27 自動ログイン → 08:30 LiveTrader）
 
 ### 追加コマンド
 ```bash
