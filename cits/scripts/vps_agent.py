@@ -61,7 +61,7 @@ def git_pull():
 
 def git_push_results():
     try:
-        subprocess.run(["git", "add", "cits/data/vps_status.json"],
+        subprocess.run(["git", "add", "-f", "cits/data/vps_status.json"],
                        cwd=str(REPO_ROOT), capture_output=True, timeout=10)
         subprocess.run(
             ["git", "commit", "-m", f"vps_agent: status {datetime.now().isoformat()}", "--quiet"],
