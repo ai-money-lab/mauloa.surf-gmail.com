@@ -40,5 +40,11 @@
     "type": "shell",
     "command": "echo @echo off > C:\\cits\\restart_agent_tmp.bat & echo timeout /t 15 /nobreak ^>nul >> C:\\cits\\restart_agent_tmp.bat & echo taskkill /f /im pythonw.exe 2^>nul >> C:\\cits\\restart_agent_tmp.bat & echo del /f /q \"C:\\cits\\logs\\.vps_agent_started_today\" 2^>nul >> C:\\cits\\restart_agent_tmp.bat & echo set PYTHONPATH=C:\\cits\\repo >> C:\\cits\\restart_agent_tmp.bat & echo start /b \"\" C:\\cits\\venv\\Scripts\\pythonw.exe -m cits.scripts.vps_agent >> C:\\cits\\restart_agent_tmp.bat & start /min \"\" C:\\cits\\restart_agent_tmp.bat & echo AGENT_RESTART_SCHEDULED_IN_15S",
     "timeout": 10
+  },
+  {
+    "id": "newvps_diag_20260412_1525",
+    "type": "shell",
+    "command": "echo === NEW VPS DIAG === && ipconfig | findstr /i \"IPv4\" && echo --- GIT --- && cd C:\\cits\\repo && git branch --show-current && git log --oneline -2 && echo --- TASKS --- && schtasks /Query /FO LIST 2>&1 | findstr /i \"TaskName:\" && echo --- PYTHON PROCS --- && tasklist 2>&1 | findstr /i python && echo --- CITS FILES --- && dir C:\\cits\\repo\\cits\\scripts\\vps_agent.py 2>&1 && echo DIAG_DONE",
+    "timeout": 30
   }
 ]
