@@ -14,7 +14,7 @@ from pathlib import Path
 
 logger = logging.getLogger("cits.vps_failover")
 
-VPS_HOST = os.environ.get("CITS_VPS_HOST", "150.66.3.162")
+VPS_HOST = os.environ.get("CITS_VPS_HOST", "")
 VPS_SSH_PORT = int(os.environ.get("CITS_VPS_SSH_PORT", "22"))
 VPS_VNC_PORT = int(os.environ.get("CITS_VPS_VNC_PORT", "5900"))
 CHECK_INTERVAL_SEC = 300

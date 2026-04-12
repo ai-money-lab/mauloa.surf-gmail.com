@@ -60,8 +60,6 @@ python -m cits.main --mode paper --ticker 7203
 - ¥100,000で稼働中
 
 ### 本番VPS (CITS専用)
-- IP: 150.66.3.162 (ABLENET 3VOBDHFE, Win1 SSD, 2GB RAM)
-- SSH: `ssh -i ~/.ssh/id_ed25519 Administrator@150.66.3.162`（鍵認証のみ）
 - CITSコード: `C:\cits\repo\cits\`
 - kabuStation: インストール済み・自動ログイン構築済み（5/5テスト成功）
 - 自動ログイン方式: Chrome MCP→noVNC→スタートメニュー→ログイン→Gmail 2FA自動取得
