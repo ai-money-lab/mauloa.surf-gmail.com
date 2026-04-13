@@ -1,15 +1,6 @@
 {
-  "timestamp": "2026-04-13T16:53:03.542486",
+  "timestamp": "2026-04-13T17:02:47.747950",
   "agent": "vps_agent",
   "git_mode": "git",
-  "results": [
-    {
-      "id": "orders_detail_20260413_1652",
-      "type": "python",
-      "status": "ok",
-      "timestamp": "2026-04-13T16:53:00.968231",
-      "stdout": "ORDER: None sym=2170 side=1 qty=200.0 price=0.0 state=5 stateText=None\nORDERS_DONE\n",
-      "stderr": ""
-    }
-  ]
+  "results": []
 }
