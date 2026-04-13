@@ -715,6 +715,12 @@ def scan_keikun(data: dict[str, pd.DataFrame], capital: float) -> list[dict]:
             "MARKET GATE CAUTION: %s — サイズ%.0f%%に削減", gate_reason, gate_mult * 100
         )
 
+    # N225終値リスト（RS相対力計算用）
+    n225_closes: list[float] = []
+    n225_df = gate_data.get("^N225")
+    if n225_df is not None and len(n225_df) >= 22:
+        n225_closes = [float(x) for x in n225_df["Close"]]
+
     for ticker, df in data.items():
         if len(df) < sd + 5:
             continue
@@ -747,6 +753,12 @@ def scan_keikun(data: dict[str, pd.DataFrame], capital: float) -> list[dict]:
             sma50 = sum(closes[-50:]) / 50
             if price < sma50:
                 continue  # Skip: SMA50割れ → Stage2ではない
+
+        # Filter 3: 相対力チェック（市場より著しく弱い銘柄を除外）
+        if n225_closes:
+            rs = _check_rs(closes, n225_closes, 20)
+            if rs < 0.8:
+                continue  # 市場より著しく弱い → KEIでも除外
 
         # Sideways check: last N days range < threshold
         window = closes[-sd - 1:-1]

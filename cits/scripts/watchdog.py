@@ -4,15 +4,18 @@ Runs every 5 minutes via CITS_Watchdog scheduled task.
 Self-contained: no imports from cits.* modules.
 
 Actions:
-1. kabuStation API health check (market hours 08:00-16:30 JST)
+1. Git health check -> repair via winget if broken
+2. kabuStation API health check (market hours 08:00-16:30 JST)
    -> restart via CITS_KabuStart_IT if down
    -> run full kabu_auto_login_vps if restart fails
-2. vps_agent process check -> restart if dead
-3. Critical schtask verification -> re-register any missing tasks
-4. Push heartbeat to GitHub (on action taken, or every 30 min)
+3. vps_agent process check -> restart if dead
+4. Critical schtask verification -> re-register any missing tasks
+5. Push heartbeat to GitHub (via git OR REST API fallback)
 """
 from __future__ import annotations
 
+import base64
+import configparser
 import json
 import os
 import subprocess
@@ -26,7 +29,12 @@ LOG_DIR = Path("C:/cits/logs")
 LOG_FILE = LOG_DIR / "watchdog.log"
 LAST_PUSH_FILE = LOG_DIR / ".watchdog_last_push"
 STATUS_FILE = REPO_ROOT / "cits" / "data" / "watchdog_status.json"
+TOKEN_CACHE_FILE = Path("C:/cits/.github_token")
 BRANCH = "claude/continue-kabusute-DmFKB"
+OWNER = "ai-money-lab"
+REPO_NAME = "mauloa.surf-gmail.com"
+WATCHDOG_STATUS_API_PATH = "cits/data/watchdog_status.json"
+GITHUB_API_BASE = "https://api.github.com"
 
 JST = timezone(timedelta(hours=9))
 MARKET_OPEN_H = 8     # 08:00 JST
@@ -86,6 +94,13 @@ TASK_DEFS: dict[str, list[str]] = {
         "/TR", r"C:\cits\repo\cits\run_watchdog.bat",
         "/SC", "MINUTE", "/MO", "5", "/RL", "HIGHEST", "/F",
     ],
+    # 毎朝06:00にgitを自動修復（VC++ランタイム破損などを事前に修復）
+    "CITS_GitRepair": [
+        "schtasks", "/Create", "/TN", "CITS_GitRepair",
+        "/TR", r"C:\cits\repo\cits\run_gitrepair.bat",
+        "/SC", "DAILY", "/ST", "06:00",
+        "/D", "MON,TUE,WED,THU,FRI", "/RL", "HIGHEST", "/F",
+    ],
 }
 
 
@@ -115,6 +130,163 @@ def _is_market_hours() -> bool:
     total_min = now.hour * 60 + now.minute
     return MARKET_OPEN_H * 60 <= total_min <= MARKET_CLOSE_H * 60 + MARKET_CLOSE_M
 
+
+# ─────────────────────────────────────────────
+# Git health check and repair
+# ─────────────────────────────────────────────
+
+def _check_git_health() -> dict:
+    """Test git.exe. Returns dict with ok:bool and details."""
+    result: dict = {}
+    try:
+        r = subprocess.run(
+            ["git", "--version"],
+            capture_output=True, text=True, timeout=5,
+            encoding="cp932", errors="replace",
+        )
+        if r.returncode == 0:
+            result["ok"] = True
+            result["version"] = r.stdout.strip()
+        else:
+            result["ok"] = False
+            result["error"] = f"rc={r.returncode} {r.stderr[:100]}"
+    except FileNotFoundError:
+        result["ok"] = False
+        result["error"] = "git.exe not found"
+    except subprocess.TimeoutExpired:
+        result["ok"] = False
+        result["error"] = "git.exe timeout (0xc0000142 or hung)"
+    except Exception as exc:
+        result["ok"] = False
+        result["error"] = str(exc)
+    return result
+
+
+def _repair_git() -> dict:
+    """
+    Attempt to repair git.exe via winget or PowerShell installer download.
+    Returns dict with method and success bool.
+    """
+    result: dict = {"attempted": True}
+    _log("Git repair: trying winget first...")
+
+    # Method 1: winget (preferred, idempotent)
+    try:
+        r = subprocess.run(
+            ["winget", "install", "Git.Git",
+             "--silent", "--accept-package-agreements",
+             "--accept-source-agreements"],
+            capture_output=True, text=True, timeout=300,
+            encoding="cp932", errors="replace",
+        )
+        if r.returncode == 0:
+            result["method"] = "winget"
+            result["success"] = True
+            _log("Git repair via winget: OK")
+            return result
+        _log(f"winget failed rc={r.returncode}: {r.stderr[:100]}")
+    except Exception as exc:
+        _log(f"winget not available: {exc}")
+
+    # Method 2: PowerShell + direct download
+    _log("Git repair: trying PowerShell download...")
+    installer_path = r"C:\cits\git_installer.exe"
+    git_url = (
+        "https://github.com/git-for-windows/git/releases/download/"
+        "v2.45.0.windows.1/Git-2.45.0-64-bit.exe"
+    )
+    ps_download = (
+        f"Invoke-WebRequest -Uri '{git_url}' -OutFile '{installer_path}' "
+        "-UseBasicParsing"
+    )
+    try:
+        r2 = subprocess.run(
+            ["powershell", "-NonInteractive", "-Command", ps_download],
+            capture_output=True, text=True, timeout=180,
+            encoding="cp932", errors="replace",
+        )
+        if r2.returncode != 0:
+            result["method"] = "powershell_download"
+            result["success"] = False
+            result["error"] = r2.stderr[:200]
+            _log(f"PowerShell download failed: {r2.stderr[:100]}")
+            return result
+        # Silent install
+        r3 = subprocess.run(
+            [installer_path, "/VERYSILENT", "/NORESTART", "/SUPPRESSMSGBOXES"],
+            capture_output=True, timeout=300,
+        )
+        result["method"] = "powershell_download"
+        result["success"] = r3.returncode == 0
+        _log(f"Git installer rc={r3.returncode}")
+    except Exception as exc:
+        result["method"] = "powershell_download"
+        result["success"] = False
+        result["error"] = str(exc)
+        _log(f"PowerShell install error: {exc}")
+
+    return result
+
+
+# ─────────────────────────────────────────────
+# GitHub REST API (git-free status push)
+# ─────────────────────────────────────────────
+
+def _get_github_token() -> str:
+    """Get PAT without calling git.exe."""
+    if TOKEN_CACHE_FILE.exists():
+        tok = TOKEN_CACHE_FILE.read_text(encoding="utf-8").strip()
+        if tok:
+            return tok
+    git_cfg = REPO_ROOT / ".git" / "config"
+    if git_cfg.exists():
+        try:
+            cfg = configparser.ConfigParser(strict=False)
+            cfg.read(str(git_cfg), encoding="utf-8")
+            url = cfg.get('remote "origin"', "url", fallback="")
+            if "@github.com" in url and "//" in url:
+                tok = url.split("//", 1)[1].split("@", 1)[0]
+                if tok:
+                    TOKEN_CACHE_FILE.parent.mkdir(parents=True, exist_ok=True)
+                    TOKEN_CACHE_FILE.write_text(tok, encoding="utf-8")
+                    return tok
+        except Exception:
+            pass
+    return os.environ.get("GITHUB_TOKEN", "")
+
+
+def _github_api_write(api_path: str, content: str, message: str) -> bool:
+    """Write file to GitHub via REST API. Returns True on success."""
+    try:
+        import requests  # noqa: PLC0415
+        tok = _get_github_token()
+        headers = {
+            "Authorization": f"token {tok}",
+            "Accept": "application/vnd.github.v3+json",
+        }
+        url = f"{GITHUB_API_BASE}/repos/{OWNER}/{REPO_NAME}/contents/{api_path}"
+        r_get = requests.get(url + f"?ref={BRANCH}", headers=headers, timeout=15)
+        sha = r_get.json().get("sha") if r_get.status_code == 200 else None
+        payload: dict = {
+            "message": message,
+            "content": base64.b64encode(content.encode("utf-8")).decode(),
+            "branch": BRANCH,
+        }
+        if sha:
+            payload["sha"] = sha
+        r_put = requests.put(url, headers=headers, json=payload, timeout=15)
+        success = r_put.status_code in (200, 201)
+        if not success:
+            _log(f"GitHub API write {api_path} failed: {r_put.status_code} {r_put.text[:100]}")
+        return success
+    except Exception as exc:
+        _log(f"GitHub API write error: {exc}")
+        return False
+
+
+# ─────────────────────────────────────────────
+# Core checks
+# ─────────────────────────────────────────────
 
 def _check_kabu_api() -> bool:
     try:
@@ -246,6 +418,10 @@ def _verify_tasks() -> dict:
     return results
 
 
+# ─────────────────────────────────────────────
+# Status push (git first, then API fallback)
+# ─────────────────────────────────────────────
+
 def _should_push(action_taken: bool) -> bool:
     if action_taken:
         return True
@@ -261,38 +437,61 @@ def _should_push(action_taken: bool) -> bool:
 
 def _push_status(status: dict, action_taken: bool) -> None:
     STATUS_FILE.parent.mkdir(parents=True, exist_ok=True)
-    STATUS_FILE.write_text(
-        json.dumps(status, ensure_ascii=False, indent=2, default=str),
-        encoding="utf-8",
-    )
+    content = json.dumps(status, ensure_ascii=False, indent=2, default=str)
+    STATUS_FILE.write_text(content, encoding="utf-8")
+
     if not _should_push(action_taken):
         return
-    _log("Pushing watchdog status to GitHub")
-    try:
-        subprocess.run(["git", "pull", "--quiet"],
-                       cwd=str(REPO_ROOT), capture_output=True, timeout=30)
-        subprocess.run(["git", "add", "-f", "cits/data/watchdog_status.json"],
-                       cwd=str(REPO_ROOT), capture_output=True, timeout=10)
-        subprocess.run(
-            ["git", "commit", "-m",
-             f"watchdog: {datetime.now(JST).strftime('%Y-%m-%dT%H:%M JST')}", "--quiet"],
-            cwd=str(REPO_ROOT), capture_output=True, timeout=10,
-        )
-        r = subprocess.run(
-            ["git", "push", "origin", BRANCH, "--quiet"],
-            cwd=str(REPO_ROOT), capture_output=True, timeout=30,
-        )
-        if r.returncode == 0:
-            LOG_DIR.mkdir(parents=True, exist_ok=True)
-            LAST_PUSH_FILE.write_text(
-                datetime.now(JST).isoformat(), encoding="utf-8",
-            )
-            _log("Push OK")
-        else:
-            _log(f"Push failed rc={r.returncode}")
-    except Exception as exc:
-        _log(f"Push error: {exc}")
 
+    ts = datetime.now(JST).strftime("%Y%m%dT%H%M JST")
+    _log("Pushing watchdog status to GitHub")
+    git_pushed = False
+
+    # Try git push first
+    try:
+        git_ok_result = subprocess.run(
+            ["git", "--version"], capture_output=True, timeout=5,
+        )
+        if git_ok_result.returncode == 0:
+            subprocess.run(["git", "pull", "--quiet"],
+                           cwd=str(REPO_ROOT), capture_output=True, timeout=30)
+            subprocess.run(["git", "add", "-f", "cits/data/watchdog_status.json"],
+                           cwd=str(REPO_ROOT), capture_output=True, timeout=10)
+            subprocess.run(
+                ["git", "commit", "-m", f"watchdog: {ts}", "--quiet"],
+                cwd=str(REPO_ROOT), capture_output=True, timeout=10,
+            )
+            r = subprocess.run(
+                ["git", "push", "origin", BRANCH, "--quiet"],
+                cwd=str(REPO_ROOT), capture_output=True, timeout=30,
+            )
+            git_pushed = r.returncode == 0
+            if git_pushed:
+                LOG_DIR.mkdir(parents=True, exist_ok=True)
+                LAST_PUSH_FILE.write_text(datetime.now(JST).isoformat(), encoding="utf-8")
+                _log("Push OK (git)")
+            else:
+                _log(f"git push failed rc={r.returncode}")
+    except Exception as exc:
+        _log(f"git push error: {exc}")
+
+    # GitHub REST API fallback
+    if not git_pushed:
+        _log("Falling back to GitHub REST API push")
+        ok = _github_api_write(
+            WATCHDOG_STATUS_API_PATH, content,
+            f"watchdog: {ts} [api-mode]",
+        )
+        if ok:
+            LAST_PUSH_FILE.write_text(datetime.now(JST).isoformat(), encoding="utf-8")
+            _log("Push OK (api-mode)")
+        else:
+            _log("Push FAILED (both git and api)")
+
+
+# ─────────────────────────────────────────────
+# Main
+# ─────────────────────────────────────────────
 
 def main() -> None:
     # Load .env
@@ -309,25 +508,49 @@ def main() -> None:
 
     actions: list[str] = []
 
+    # ── 1. Git health check (最優先: git破損は全障害の根本原因)
+    git_health = _check_git_health()
+    git_repair_result: dict = {}
+    if not git_health.get("ok"):
+        _log(f"git.exe BROKEN: {git_health.get('error')} — attempting repair")
+        git_repair_result = _repair_git()
+        if git_repair_result.get("success"):
+            actions.append("git_repaired")
+            _log(f"git repaired via {git_repair_result.get('method')}")
+            # Re-check after repair
+            git_health = _check_git_health()
+        else:
+            actions.append("git_repair_failed")
+            _log("git repair FAILED — continuing with API-mode fallback")
+    else:
+        _log(f"git health: OK ({git_health.get('version', '')})")
+        # Cache token while git works
+        _get_github_token()
+
+    # ── 2. kabuStation API
     kabu = _ensure_kabu_running()
     if kabu.get("action"):
         actions.append(f"kabu:{kabu['action']}")
 
+    # ── 3. vps_agent process
     agent = _check_vps_agent()
     if agent.get("action"):
         actions.append(f"agent:{agent['action']}")
 
+    # ── 4. Task verification
     tasks = _verify_tasks()
     reregistered = [k for k, v in tasks.items() if v == "re-registered"]
     if reregistered:
         actions.append(f"tasks_reregistered:{','.join(reregistered)}")
 
     if actions:
-        _log(f"Actions: {actions}")
+        _log(f"Actions taken: {actions}")
 
     status = {
         "timestamp": now_jst.isoformat(),
         "market_hours": _is_market_hours(),
+        "git_health": git_health,
+        "git_repair": git_repair_result or None,
         "kabu": kabu,
         "vps_agent": agent,
         "tasks": tasks,

@@ -112,6 +112,7 @@ MODULES = [
     "cits.backtest.engine",
     # VPS
     "cits.scripts.watchdog",
+    "cits.scripts.vps_agent",
 ]
 
 # ============================================================
