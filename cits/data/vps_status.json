@@ -1,15 +1,36 @@
 {
-  "timestamp": "2026-04-14T00:16:12.363484",
+  "timestamp": "2026-04-14T01:19:49.930084",
   "agent": "vps_agent",
   "git_mode": "git",
   "results": [
     {
-      "id": "enter_306483_NOW",
-      "type": "python",
-      "status": "ok",
-      "timestamp": "2026-04-14T00:15:41.820972",
-      "stdout": "Entering 306483 immediately\nVNC 1024x768\nclick (762,445)\nVNC 1024x768\nVNC 1024x768\ntyped 306483\nVNC 1024x768\nclick (762,519)\nSubmitted.\nAPI: NOT_READY \n",
-      "stderr": ""
+      "id": "restart_agent_and_login_0020",
+      "type": "shell",
+      "status": "exception",
+      "timestamp": "2026-04-14T01:14:02.695859",
+      "error": "'command'"
+    },
+    {
+      "id": "relogin_enter_key_0020",
+      "type": "shell",
+      "status": "exception",
+      "timestamp": "2026-04-14T01:14:02.696502",
+      "error": "'command'"
+    },
+    {
+      "id": "restart_agent_safe_0030",
+      "type": "shell",
+      "status": "exception",
+      "timestamp": "2026-04-14T01:14:02.697020",
+      "error": "'command'"
+    },
+    {
+      "id": "kabu_login_module_0030",
+      "type": "module",
+      "status": "error",
+      "timestamp": "2026-04-14T01:14:02.697020",
+      "stdout": "for 2FA email... (10s)\n2026-04-14 01:18:30 2FA code too old (age=65.2min), skipping\n2026-04-14 01:18:31 2FA code too old (age=65.3min), skipping\n2026-04-14 01:18:31 2FA code too old (age=81.5min), skipping\n2026-04-14 01:18:32 2FA code too old (age=81.6min), skipping\n2026-04-14 01:18:32 2FA code too old (age=109.6min), skipping\n2026-04-14 01:18:32 Waiting for 2FA email... (10s)\n2026-04-14 01:18:44 2FA code too old (age=65.5min), skipping\n2026-04-14 01:18:45 2FA code too old (age=65.5min), skipping\n2026-04-14 01:18:45 2FA code too old (age=81.8min), skipping\n2026-04-14 01:18:45 2FA code too old (age=81.8min), skipping\n2026-04-14 01:18:46 2FA code too old (age=109.8min), skipping\n2026-04-14 01:18:46 Waiting for 2FA email... (10s)\n2026-04-14 01:18:58 2FA code too old (age=65.7min), skipping\n2026-04-14 01:18:59 2FA code too old (age=65.7min), skipping\n2026-04-14 01:18:59 2FA code too old (age=82.0min), skipping\n2026-04-14 01:19:00 2FA code too old (age=82.0min), skipping\n2026-04-14 01:19:00 2FA code too old (age=110.1min), skipping\n2026-04-14 01:19:01 Waiting for 2FA email... (10s)\n2026-04-14 01:19:12 2FA code too old (age=65.9min), skipping\n2026-04-14 01:19:13 2FA code too old (age=66.0min), skipping\n2026-04-14 01:19:13 2FA code too old (age=82.2min), skipping\n2026-04-14 01:19:13 2FA code too old (age=82.2min), skipping\n2026-04-14 01:19:14 2FA code too old (age=110.3min), skipping\n2026-04-14 01:19:14 Waiting for 2FA email... (10s)\n2026-04-14 01:19:26 2FA code too old (age=66.2min), skipping\n2026-04-14 01:19:26 2FA code too old (age=66.2min), skipping\n2026-04-14 01:19:26 2FA code too old (age=82.5min), skipping\n2026-04-14 01:19:27 2FA code too old (age=82.5min), skipping\n2026-04-14 01:19:27 2FA code too old (age=110.5min), skipping\n2026-04-14 01:19:27 Waiting for 2FA email... (10s)\n2026-04-14 01:19:37 ERROR: 2FA code not received within timeout\n2026-04-14 01:19:37 FAILED: Could not get 2FA code\n2026-04-14 01:19:37 Attempt 2 failed\n2026-04-14 01:19:47 ALL ATTEMPTS FAILED\n",
+      "stderr": "po\\cits\\scripts\\kabu_auto_login_vps.py:200: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).\n  search_after = datetime.utcnow().strftime(\"%d-%b-%Y\")\nC:\\cits\\repo\\cits\\scripts\\kabu_auto_login_vps.py:231: DeprecationWarning: datetime.datetime.utcfromtimestamp() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.fromtimestamp(timestamp, datetime.UTC).\n  mail_local_approx = datetime.utcfromtimestamp(calendar.timegm(mail_utc))\nC:\\cits\\repo\\cits\\scripts\\kabu_auto_login_vps.py:232: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).\n  age_minutes = (datetime.utcnow() - mail_local_approx).total_seconds() / 60\n"
     }
   ]
 }
