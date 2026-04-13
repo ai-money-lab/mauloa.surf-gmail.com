@@ -17,6 +17,13 @@
     "id": "read_login_result_2110",
     "type": "shell",
     "timeout": 15,
-    "command": "type C:\\cits\\session1_login_result.json 2>&1 && echo. && echo ---API--- && curl -s -X POST http://localhost:18080/kabusapi/token -H \"Content-Type: application/json\" -d \"{\\\"APIPassword\\\":\\\"hiroki0380\\\"}\" 2>&1"
+    "status": "ok",
+    "stdout": "skipped"
+  },
+  {
+    "id": "kill_relogin_fixed_2115",
+    "type": "shell",
+    "timeout": 600,
+    "command": "taskkill /f /im KabuS.exe 2>&1 & ping -n 6 127.0.0.1 > nul & schtasks /Delete /TN CITS_Session1Login /F 2>nul & schtasks /Create /F /TN CITS_Session1Login /TR \"C:\\cits\\venv\\Scripts\\pythonw.exe C:\\cits\\repo\\cits\\scripts\\session1_click_login.py\" /SC ONCE /ST 00:00 /RL HIGHEST /RU Administrator /IT && schtasks /Run /TN CITS_Session1Login && ping -n 420 127.0.0.1 > nul && type C:\\cits\\session1_login_result.json 2>&1"
   }
 ]

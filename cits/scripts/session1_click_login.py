@@ -112,52 +112,70 @@ def take_screenshot(path: str = SCREENSHOT_FILE) -> bool:
 
 def find_login_btn_in_screenshot() -> tuple[int, int] | None:
     """Try to find the login button in the screenshot by color.
-    kabuStation login button is blue. Returns (x, y) or None.
-    Falls back to hardcoded LOGIN_BTN if PIL unavailable.
+    kabuStation login button is blue. Returns (x, y) or None (gray = not ready).
     """
     try:
         from PIL import ImageGrab
         img = ImageGrab.grab()
         img.save(SCREENSHOT_FILE)
-        # Check if expected pixel at LOGIN_BTN looks like a blue button
-        # Blue range: R<120, G<150, B>150
         px = img.getpixel(LOGIN_BTN)
         _log(f"find_login_btn: pixel@{LOGIN_BTN}=RGB{px}")
-        if len(px) >= 3 and px[2] > px[0] + 50:  # definitely more blue than red
-            _log(f"Login button appears to be at hardcoded {LOGIN_BTN} (blue pixel confirmed)")
+
+        # Check if hardcoded position has a blue pixel
+        if len(px) >= 3 and px[2] > 150 and px[2] > px[0] + 50:
+            _log(f"Login button confirmed at {LOGIN_BTN} (blue pixel)")
             return LOGIN_BTN
 
-        # Scan kabuStation window area for blue button
+        # Scan kabuStation window for any blue button
         kabu_left, kabu_top = 23, 57
         kabu_right, kabu_bottom = 1001, 662
         best = None
         for y in range(kabu_top + 300, kabu_bottom - 50, 5):
             for x in range(kabu_left + 400, kabu_right - 100, 5):
                 p = img.getpixel((x, y))
-                if len(p) >= 3 and p[2] > 150 and p[2] > p[0] + 80 and p[2] > p[1] + 30:
+                if len(p) >= 3 and p[2] > 150 and p[2] > p[0] + 80:
                     best = (x, y)
         if best:
             _log(f"find_login_btn: found blue pixel at {best}")
-        else:
-            _log(f"find_login_btn: no blue button found, using hardcoded {LOGIN_BTN}")
-            best = LOGIN_BTN
-        return best
+            return best
+
+        # Gray/white — login UI not rendered yet
+        _log(f"find_login_btn: login UI not ready (pixel={px}) — returning None")
+        return None
     except Exception as e:
-        _log(f"find_login_btn error: {e} — using hardcoded {LOGIN_BTN}")
-        return LOGIN_BTN
+        _log(f"find_login_btn error: {e} — returning None")
+        return None
+
+
+def wait_for_login_ui(max_wait_sec: int = 180) -> tuple[int, int]:
+    """Poll screenshot until the blue login button appears. Returns button position."""
+    _log(f"Waiting for login UI (blue button) to appear (max {max_wait_sec}s)...")
+    deadline = datetime.now().timestamp() + max_wait_sec
+    attempt = 0
+    while datetime.now().timestamp() < deadline:
+        attempt += 1
+        btn = find_login_btn_in_screenshot()
+        if btn is not None:
+            _log(f"Login UI ready after attempt {attempt}: button at {btn}")
+            return btn
+        _log(f"Attempt {attempt}: login UI not ready, waiting 10s...")
+        time.sleep(10)
+    _log(f"Login UI did not appear within {max_wait_sec}s — using hardcoded {LOGIN_BTN}")
+    return LOGIN_BTN
 
 
 def vncdo_click(x: int, y: int) -> bool:
     """Hardware-level click via TightVNC server.
     TightVNC injects at kernel level — CEF accepts these events (same as noVNC).
+    vncdo options: -s server, -p port, -P password (short flags only)
     """
     if not os.path.isfile(VNCDO_EXE):
         _log(f"vncdo_click: {VNCDO_EXE} not found — skipping")
         return False
     try:
         r = subprocess.run(
-            [VNCDO_EXE, "-s", "localhost", f"--port=5900",
-             f"--password={VNC_PASS}", "move", str(x), str(y), "click", "1"],
+            [VNCDO_EXE, "-s", "localhost", "-p", "5900",
+             "-P", VNC_PASS, "move", str(x), str(y), "click", "1"],
             capture_output=True, text=True, timeout=10,
             creationflags=CREATE_NO_WINDOW,
         )
@@ -379,8 +397,8 @@ def main() -> dict:
             result["status"] = "FAILED: kabuStation did not start"
             result["diagnostics"] = DIAGNOSTICS
             return result
-        _log("Waiting 60s for kabuStation login UI to fully render...")
-        time.sleep(60)
+        _log("KabuS started, doing initial 15s settle...")
+        time.sleep(15)
     else:
         _log("KabuS already running")
 
@@ -398,9 +416,8 @@ def main() -> dict:
     result["kabu_hwnd"] = kabu_hwnd
     time.sleep(1)
 
-    # Step 4: Screenshot + find login button coords
-    _log("Taking screenshot to locate login button...")
-    btn_pos = find_login_btn_in_screenshot()
+    # Step 4: Wait for login button to appear in screenshot (polls every 10s, max 3min)
+    btn_pos = wait_for_login_ui(max_wait_sec=180)
     result["btn_pos_found"] = btn_pos
     _log(f"Using login button position: {btn_pos}")
 
