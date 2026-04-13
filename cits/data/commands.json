@@ -1,8 +1,8 @@
 [
   {
-    "id": "restart_20260413_1900",
+    "id": "verify_newcode_20260413_1910",
     "type": "shell",
-    "command": "cd C:\\cits\\repo && git fetch origin claude/continue-kabusute-DmFKB --quiet && git reset --hard origin/claude/continue-kabusute-DmFKB --quiet && git log --oneline -2 && taskkill /f /im pythonw.exe 2>nul & echo KILLED_OLD && timeout /t 2 /nobreak >nul && set PYTHONPATH=C:\\cits\\repo && set KABU_API_PASSWORD= && set KABU_ORDER_PASSWORD= && if exist C:\\cits\\repo\\cits\\.env (for /f \"tokens=1,* delims==\" %a in (C:\\cits\\repo\\cits\\.env) do set %a=%b) & start /b C:\\cits\\venv\\Scripts\\pythonw.exe -m cits.scripts.vps_agent && echo VPS_AGENT_RESTARTED",
-    "timeout": 60
+    "command": "cd C:\\cits\\repo && git log --oneline -3 && echo GIT_OK && tasklist | findstr pythonw && echo PYTHONW_COUNT_OK",
+    "timeout": 20
   }
 ]
