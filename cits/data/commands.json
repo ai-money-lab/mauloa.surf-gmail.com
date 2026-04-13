@@ -1,6 +1,6 @@
 [
   {
-    "id": "session1_login_2015",
+    "id": "session1_login_2028",
     "type": "shell",
     "timeout": 340,
     "command": "del /f /q C:\\cits\\session1_login_result.json 2>nul & powershell -NoProfile -Command \"$py='C:\\cits\\venv\\Scripts\\pythonw.exe'; $sc='C:\\cits\\repo\\cits\\scripts\\session1_click_login.py'; $a=New-ScheduledTaskAction -Execute $py -Argument $sc; $p=New-ScheduledTaskPrincipal -UserId 'Administrator' -LogonType Interactive -RunLevel Highest; Register-ScheduledTask -TaskName 'CITSSession1Login' -Action $a -Principal $p -Force | Out-Null; Start-ScheduledTask -TaskName 'CITSSession1Login'; Write-Output 'TASK_STARTED'\" 2>&1 && echo WAITING && ping -n 31 127.0.0.1 >nul && ping -n 61 127.0.0.1 >nul && ping -n 61 127.0.0.1 >nul && ping -n 61 127.0.0.1 >nul && ping -n 61 127.0.0.1 >nul && type C:\\cits\\session1_login_result.json 2>&1 || echo RESULT_FILE_MISSING"

@@ -103,9 +103,14 @@ def paste_text(text: str) -> None:
 
 
 def bring_kabu_to_front() -> tuple[bool, int]:
-    """Use MainWindowHandle + SetForegroundWindow.
+    """Use MainWindowHandle + SetForegroundWindow + clear any blocking windows.
     Returns (success, hwnd).
     """
+    GA_ROOT = 2
+    HWND_TOP = ctypes.c_void_p(0)
+    SWP_NOMOVE = 0x0002
+    SWP_NOSIZE = 0x0001
+
     try:
         r = subprocess.run(
             ["powershell", "-NoProfile", "-Command",
@@ -120,27 +125,37 @@ def bring_kabu_to_front() -> tuple[bool, int]:
             hwnd = int(hwnd_str)
             user32 = ctypes.windll.user32
 
-            # Log window rect before restoring
             rect = ctypes.wintypes.RECT()
             user32.GetWindowRect(hwnd, ctypes.byref(rect))
             _log(f"KabuS window rect: left={rect.left}, top={rect.top}, right={rect.right}, bottom={rect.bottom}")
 
             user32.ShowWindow(hwnd, SW_RESTORE)
             time.sleep(0.5)
+            user32.SetWindowPos(hwnd, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE)
             rc = user32.SetForegroundWindow(hwnd)
-            time.sleep(2)  # extra wait for window to become active
+            time.sleep(1)
             _log(f"SetForegroundWindow({hwnd}) -> rc={rc}")
 
-            # Verify: which window is foreground now?
-            fg_hwnd = user32.GetForegroundWindow()
-            fg_title = get_window_title(fg_hwnd)
-            _log(f"Foreground window after SetForegroundWindow: hwnd={fg_hwnd}, title={fg_title!r}")
-
-            # Which window is at the login button position?
+            # Check and clear any window blocking the login button
             pt = POINT(LOGIN_BTN[0], LOGIN_BTN[1])
-            win_at_btn = user32.WindowFromPoint(pt)
-            win_at_btn_title = get_window_title(win_at_btn)
-            _log(f"Window at LOGIN_BTN {LOGIN_BTN}: hwnd={win_at_btn}, title={win_at_btn_title!r}")
+            win_at = user32.WindowFromPoint(pt)
+            win_title = get_window_title(win_at)
+            _log(f"Window at LOGIN_BTN {LOGIN_BTN}: hwnd={win_at}, title={win_title!r}")
+
+            if win_at and win_at != hwnd:
+                # Get the top-level ancestor to minimize
+                top = user32.GetAncestor(win_at, GA_ROOT) or win_at
+                top_title = get_window_title(top)
+                _log(f"BLOCKING: minimizing hwnd={top}, title={top_title!r}")
+                user32.ShowWindow(top, 6)  # SW_MINIMIZE
+                time.sleep(0.5)
+                # Bring kabu back to top
+                user32.SetWindowPos(hwnd, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE)
+                user32.SetForegroundWindow(hwnd)
+                time.sleep(1)
+                # Verify
+                win_at2 = user32.WindowFromPoint(pt)
+                _log(f"After minimize, window at LOGIN_BTN: hwnd={win_at2}, title={get_window_title(win_at2)!r}")
 
             return True, hwnd
         _log("MainWindowHandle=0 or blank")
