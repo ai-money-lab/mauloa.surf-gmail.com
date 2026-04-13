@@ -253,6 +253,70 @@ def _check_rs(closes: list[float], market_closes: list[float], period: int = 20)
 
 
 # ---------------------------------------------------------------
+# Chart quality helpers (CIS & Kei-kun quality filters)
+# ---------------------------------------------------------------
+
+def _check_volume_drying(volumes: list[float], window: int = 60) -> float:
+    """
+    出来高枯れチェック: 横ばい期間中に出来高が減少しているか。
+    Returns: ratio (recent_half_avg / early_half_avg)
+      < 0.85 → 出来高が枯れている = GOOD（供給が尽きている）
+      > 1.2  → 出来高が増えている = BAD（売り圧力が継続中）
+    """
+    if len(volumes) < window + 1:
+        return 1.0  # データ不足 → 中立
+    w = volumes[-window - 1:-1]  # 今日を除く横ばい期間
+    half = len(w) // 2
+    early_avg = sum(w[:half]) / half if half > 0 else 1.0
+    recent_avg = sum(w[half:]) / len(w[half:]) if w[half:] else 1.0
+    return recent_avg / early_avg if early_avg > 0 else 1.0
+
+
+def _check_rising_lows(lows: list[float], window: int = 20) -> bool:
+    """
+    上昇する安値チェック: 横ばいの中で安値が切り上がっているか（下値固め）。
+    局所的最安値のリストで最初より最後が高ければTrue（ダブルボトム・逆三角形底）。
+    """
+    if len(lows) < window:
+        return False
+    w = lows[-window - 1:-1]
+    local_mins: list[tuple[int, float]] = []
+    for i in range(1, len(w) - 1):
+        if w[i] <= w[i - 1] and w[i] <= w[i + 1]:
+            local_mins.append((i, w[i]))
+    if len(local_mins) < 2:
+        return True  # 判定不能 → 通す
+    return local_mins[-1][1] >= local_mins[0][1]
+
+
+def _check_52w_high(closes: list[float]) -> tuple[float, float]:
+    """
+    新値（新高値）チェック: 現値が52週高値からどれだけ離れているか。
+    Returns: (high_52w, pct_from_high)
+      pct_from_high = 0   → 今日が52週最高値
+      pct_from_high = 5.0 → 52週高値より5%下
+    """
+    lookback = min(len(closes), 252)
+    high_52w = max(closes[-lookback:])
+    price = closes[-1]
+    pct_from_high = (high_52w - price) / high_52w * 100 if high_52w > 0 else 99.0
+    return high_52w, round(pct_from_high, 1)
+
+
+def _check_breakout_volume(volumes: list[float], window: int = 20,
+                            min_ratio: float = 1.5) -> tuple[float, bool]:
+    """
+    ブレイクアウト時の出来高確認: 今日の出来高が20日平均の min_ratio 倍以上か。
+    Returns: (vol_ratio, confirmed)
+    """
+    if len(volumes) < window + 1:
+        return 0.0, False
+    avg = sum(volumes[-window - 1:-1]) / window
+    ratio = volumes[-1] / avg if avg > 0 else 0.0
+    return round(ratio, 2), ratio >= min_ratio
+
+
+# ---------------------------------------------------------------
 # Risk guard: 日次損失上限チェック
 # ---------------------------------------------------------------
 def _check_daily_loss_limit(capital: float) -> bool:
@@ -595,7 +659,16 @@ def _is_shite_stock(volumes: list[float], price: float) -> bool:
 # CIS Scan (momentum breakout)
 # ---------------------------------------------------------------
 def scan_cis(data: dict[str, pd.DataFrame], capital: float) -> list[dict]:
-    """CIS strategy: 20-day breakout + volume spike."""
+    """CIS strategy: 20-day breakout + volume spike + chart quality filters.
+
+    Quality criteria (チャートの形で勝負):
+      1. ブレイクアウト: 20日高値更新 + 出来高1.5x以上
+      2. ベース中の出来高枯れ (volume drying = supply exhaustion)
+      3. 安値の切り上がり (rising lows = accumulation)
+      4. 新値圏突破 (52週高値から15%以内 = 戻り売り圧力が薄い)
+      5. Stage2確認 (SMA50上)
+      6. 相対力 RS ≥ 0.8
+    """
     signals = []
     risk_mult = _is_boj_or_sq_week()  # BOJ/SQ週はサイズ半減
 
@@ -621,6 +694,7 @@ def scan_cis(data: dict[str, pd.DataFrame], capital: float) -> list[dict]:
             continue
         closes = [float(x) for x in df["Close"]]
         volumes = [float(x) for x in df["Volume"]]
+        lows = [float(x) for x in df["Low"]] if "Low" in df.columns else closes
         price = closes[-1]
         if price < 100 or _is_shite_stock(volumes, price):
             continue
@@ -633,30 +707,46 @@ def scan_cis(data: dict[str, pd.DataFrame], capital: float) -> list[dict]:
                 if gap_pct < -GAP_DOWN_BLOCK_PCT:
                     continue
 
-        # ---- WINNING PATTERN FILTER (CIS版) ----
-        # 直近5日の出来高異常チェック（思惑買い排除）
+        # ---- QUALITY FILTER 1: 出来高異常チェック（思惑買い排除） ----
         if len(volumes) >= 25:
             avg_vol_20 = sum(volumes[-25:-5]) / 20
             if avg_vol_20 > 0:
                 recent_5 = volumes[-5:]
-                max_recent_ratio = max(v / avg_vol_20 for v in recent_5)
-                if max_recent_ratio > 5.0:
+                if max(v / avg_vol_20 for v in recent_5) > 5.0:
                     continue  # 出来高異常 → 除外
 
+        # ---- QUALITY FILTER 2: CISエントリー条件（20日高値 + 出来高1.5x）----
         if not _check_cis_entry(closes, volumes, CIS_PARAMS["use_volume_confirm"]):
             continue
 
-        # Stage 2確認（Minervini基準: SMA50上 = 上昇トレンド）
+        # ---- QUALITY FILTER 3: Stage2確認（SMA50上 = 上昇トレンド中）----
         if len(closes) >= 50:
             sma50 = sum(closes[-50:]) / 50
             if price < sma50:
-                continue  # SMA50割れ → Stage2ではない → 除外
+                continue  # SMA50割れ → Stage2ではない
 
-        # 相対力チェック（CIS原則: 市場より弱い銘柄は買わない）
+        # ---- QUALITY FILTER 4: 相対力チェック（市場より弱い銘柄は買わない）----
+        rs = 1.0
         if n225_closes:
             rs = _check_rs(closes, n225_closes, 20)
             if rs < 0.8:
-                continue  # 市場より著しく弱い → 除外
+                continue  # 市場より著しく弱い
+
+        # ---- CHART QUALITY METRICS (スコアリング用) ----
+        # ブレイクアウト出来高確認
+        vol_ratio, vol_confirmed = _check_breakout_volume(volumes, window=20, min_ratio=1.5)
+        # ベース中の出来高枯れ（直近20日）
+        vol_dry_ratio = _check_volume_drying(volumes, window=20)
+        vol_drying = vol_dry_ratio < 0.85  # 15%以上の出来高減少 = 枯れている
+        # 安値の切り上がり
+        rising_lows = _check_rising_lows(lows, window=20)
+        # 新値チェック: 52週高値から何%下か
+        high_52w, pct_from_52w = _check_52w_high(closes)
+        near_new_high = pct_from_52w <= 15.0  # 15%以内 = 新値圏
+
+        # ---- QUALITY FILTER 5: ブレイクアウト出来高必須 ----
+        if not vol_confirmed:
+            continue  # 出来高なきブレイクアウトは偽ブレイク → 除外
 
         entry = price
         stop_dist = entry * CIS_PARAMS["stop_pct"] / 100
@@ -664,7 +754,7 @@ def scan_cis(data: dict[str, pd.DataFrame], capital: float) -> list[dict]:
             continue
 
         lot_size = _get_lot_size(ticker)
-        risk_amt = capital * CIS_PARAMS["risk_pct"] * risk_mult * gate_mult  # BOJ/SQ + マーケットゲート
+        risk_amt = capital * CIS_PARAMS["risk_pct"] * risk_mult * gate_mult
         size = max(int(risk_amt / stop_dist) // lot_size * lot_size, lot_size)
         notional = size * entry
         max_notional = capital * MAX_SINGLE_POSITION_PCT / 100
@@ -676,8 +766,19 @@ def scan_cis(data: dict[str, pd.DataFrame], capital: float) -> list[dict]:
 
         high_20 = max(closes[-21:-1])
         breakout_pct = (price - high_20) / high_20 * 100
-        avg_vol = sum(volumes[-21:-1]) / 20
-        vol_ratio = volumes[-1] / avg_vol if avg_vol > 0 else 0
+
+        # ---- SCORE: チャート品質を反映したスコア ----
+        # 基礎: breakout幅 + 出来高強度
+        score = breakout_pct * 2.0 + min(vol_ratio * 4.0, 16.0)
+        # ボーナス: 出来高枯れ（+3）、安値切り上がり（+3）、新値圏（+5）、RS強度（+2）
+        if vol_drying:
+            score += 3.0
+        if rising_lows:
+            score += 3.0
+        if near_new_high:
+            score += 5.0
+        if rs >= 1.2:
+            score += 2.0
 
         signals.append({
             "ticker": ticker, "strategy": "CIS", "lot_size": lot_size,
@@ -686,8 +787,13 @@ def scan_cis(data: dict[str, pd.DataFrame], capital: float) -> list[dict]:
             "stop_loss": round(entry * (1 - CIS_PARAMS["stop_pct"] / 100), 1),
             "take_profit": round(entry * (1 + CIS_PARAMS["target_pct"] / 100), 1),
             "breakout_pct": round(breakout_pct, 2),
-            "vol_ratio": round(vol_ratio, 2),
-            "score": round(breakout_pct * 2 + min(vol_ratio * 5, 20), 1),
+            "vol_ratio": vol_ratio,
+            "vol_drying": vol_drying,
+            "rising_lows": rising_lows,
+            "pct_from_52w_high": pct_from_52w,
+            "near_new_high": near_new_high,
+            "rs_20d": round(rs, 2),
+            "score": round(score, 1),
             "last_date": df.index[-1].strftime("%Y-%m-%d"),
         })
 
@@ -699,12 +805,21 @@ def scan_cis(data: dict[str, pd.DataFrame], capital: float) -> list[dict]:
 # Kei-kun Scan (sideways breakout)
 # ---------------------------------------------------------------
 def scan_keikun(data: dict[str, pd.DataFrame], capital: float) -> list[dict]:
-    """Kei-kun strategy: 60-day sideways + breakout + 7-day new high exit."""
+    """Kei-kun strategy: 60-day sideways + chart quality + breakout + 新値 + 7-day new high exit.
+
+    KEIスタイルの本質: チャートの形で勝負
+      1. 横ばいの質: 60日間のレンジが15%以内（供給の吸収）
+      2. 出来高枯れ: 横ばい中に出来高が減少（売り圧力消滅）
+      3. 安値の切り上がり: 買い手が徐々に高値で拾っている
+      4. ブレイクアウト出来高: 抜けた日に出来高が1.5倍以上（買い手参入）
+      5. 新値突破: 直近3ヶ月以上の高値を更新（戻り売り圧力なし）
+      出口: 7日間新高値が出ない → 売り（position_monitorが管理）
+    """
     signals = []
     sd = KEI_PARAMS["sideways_days"]
     risk_mult = _is_boj_or_sq_week()
 
-    # ── マーケットゲート: 下げ相場では買い禁止（CIS/KEI共通原則）
+    # ── マーケットゲート: 下げ相場では買い禁止
     gate_data = _fetch_market_gate_data()
     gate_open, gate_reason, gate_mult = check_market_gate(gate_data)
     if not gate_open:
@@ -726,6 +841,7 @@ def scan_keikun(data: dict[str, pd.DataFrame], capital: float) -> list[dict]:
             continue
         closes = [float(x) for x in df["Close"]]
         volumes = [float(x) for x in df["Volume"]]
+        lows = [float(x) for x in df["Low"]] if "Low" in df.columns else closes
         price = closes[-1]
 
         # ギャップダウンフィルター
@@ -736,51 +852,72 @@ def scan_keikun(data: dict[str, pd.DataFrame], capital: float) -> list[dict]:
         if price < 100 or _is_shite_stock(volumes, price):
             continue
 
-        # ---- WINNING PATTERN FILTER (強化版) ----
-
-        # Filter 1: 直近5日の出来高異常チェック（思惑買い排除）
+        # ---- QUALITY FILTER 1: 出来高異常チェック（思惑買い排除）----
         if len(volumes) >= 25:
-            avg_vol_20 = sum(volumes[-25:-5]) / 20  # 5日前までの20日平均
+            avg_vol_20 = sum(volumes[-25:-5]) / 20
             if avg_vol_20 > 0:
-                # 直近5日のどれかが20日平均の5倍以上 → 思惑買い → 除外
                 recent_5 = volumes[-5:]
-                max_recent_ratio = max(v / avg_vol_20 for v in recent_5)
-                if max_recent_ratio > 5.0:
-                    continue  # Skip: 出来高異常（思惑買い・仕手の疑い）
+                if max(v / avg_vol_20 for v in recent_5) > 5.0:
+                    continue
 
-        # Filter 2: Stage2確認（Minervini基準）
+        # ---- QUALITY FILTER 2: Stage2確認（SMA50上）----
         if len(closes) >= 50:
             sma50 = sum(closes[-50:]) / 50
             if price < sma50:
-                continue  # Skip: SMA50割れ → Stage2ではない
+                continue
 
-        # Filter 3: 相対力チェック（市場より著しく弱い銘柄を除外）
+        # ---- QUALITY FILTER 3: 相対力チェック ----
+        rs = 1.0
         if n225_closes:
             rs = _check_rs(closes, n225_closes, 20)
             if rs < 0.8:
-                continue  # 市場より著しく弱い → KEIでも除外
+                continue
 
-        # Sideways check: last N days range < threshold
+        # ---- 横ばいチェック: 直近sd日のレンジ ----
         window = closes[-sd - 1:-1]
         w_min, w_max = min(window), max(window)
         if w_min <= 0:
             continue
         range_pct = (w_max - w_min) / w_min * 100
         if range_pct > KEI_PARAMS["sideways_range_pct"]:
-            continue
+            continue  # レンジ超過 → 横ばいではない
 
-        # Breakout: today close > range high
+        # ---- ブレイクアウト確認: 今日の終値 > 横ばい高値 ----
         if price <= w_max * 1.005:
             continue
 
-        # Position sizing
+        # ---- CHART QUALITY METRICS ----
+        # 横ばい中の出来高枯れ
+        vol_dry_ratio = _check_volume_drying(volumes, window=sd)
+        vol_drying = vol_dry_ratio < 0.85
+        # 安値の切り上がり（下値固め）
+        rising_lows = _check_rising_lows(lows, window=min(sd, len(lows) - 2))
+        # ブレイクアウト出来高確認
+        vol_ratio, vol_confirmed = _check_breakout_volume(volumes, window=20, min_ratio=1.5)
+        # 新値チェック: 直近3ヶ月（63日）以上の高値を更新しているか
+        lookback_3m = min(63, len(closes))
+        high_3m = max(closes[-lookback_3m:-1])
+        new_high_3m = price > high_3m  # 3ヶ月新高値 = 真の新値突破
+        high_52w, pct_from_52w = _check_52w_high(closes)
+        near_new_high_52w = pct_from_52w <= 15.0
+
+        # ---- QUALITY FILTER 4: ブレイクアウト出来高必須 ----
+        if not vol_confirmed:
+            continue  # 出来高なきブレイクアウトは偽ブレイク
+
+        # ---- QUALITY FILTER 5: 横ばいの質チェック ----
+        # 出来高枯れ OR 安値切り上がり のどちらかは必要（両方なければ質が低い）
+        if not vol_drying and not rising_lows:
+            continue  # 横ばいの質が低い → 除外
+
+        # ---- Position sizing ----
         entry = price
         stop_dist = entry * KEI_PARAMS["stop_pct"] / 100
         if stop_dist <= 0:
             continue
 
         lot_size = _get_lot_size(ticker)
-        risk_amt = capital * KEI_PARAMS["risk_pct"] * risk_mult * gate_mult  # BOJ/SQ + マーケットゲート
+        risk_amt = capital * KEI_PARAMS["risk_pct"] * risk_mult * gate_mult
         size = max(int(risk_amt / stop_dist) // lot_size * lot_size, lot_size)
         notional = size * entry
         max_notional = capital * MAX_SINGLE_POSITION_PCT / 100
@@ -791,21 +928,40 @@ def scan_keikun(data: dict[str, pd.DataFrame], capital: float) -> list[dict]:
             continue
 
         breakout_pct = (price - w_max) / w_max * 100
-        avg_vol = sum(volumes[-21:-1]) / 20 if len(volumes) >= 21 else 1
-        vol_ratio = volumes[-1] / avg_vol if avg_vol > 0 else 0
+
+        # ---- SCORE: 横ばいの質 + 新値 + 出来高 ----
+        # 基礎: breakout幅 + 出来高強度
+        score = breakout_pct * 3.0 + min(vol_ratio * 3.0, 15.0)
+        # ボーナス: 出来高枯れ（+5）、安値切り上がり（+5）
+        if vol_drying:
+            score += 5.0
+        if rising_lows:
+            score += 5.0
+        # 新値ボーナス: 3ヶ月新高値（+6）、52週高値圏（+4）
+        if new_high_3m:
+            score += 6.0
+        if near_new_high_52w:
+            score += 4.0
+        if rs >= 1.2:
+            score += 2.0
 
         signals.append({
             "ticker": ticker, "strategy": "KEI", "lot_size": lot_size,
             "price": round(price, 1), "size": size,
             "notional": round(notional, 0),
             "stop_loss": round(entry * (1 - KEI_PARAMS["stop_pct"] / 100), 1),
-            "take_profit": 0,  # exit on 7 new highs, not fixed TP
+            "take_profit": 0,  # exit on 7-day new high stall, not fixed TP
             "sideways_days": sd,
             "sideways_range_pct": round(range_pct, 1),
             "breakout_pct": round(breakout_pct, 2),
-            "vol_ratio": round(vol_ratio, 2),
+            "vol_ratio": vol_ratio,
+            "vol_drying": vol_drying,
+            "rising_lows": rising_lows,
+            "new_high_3m": new_high_3m,
+            "pct_from_52w_high": pct_from_52w,
+            "rs_20d": round(rs, 2),
             "exit_rule": "new_high_7 or max_hold_30 or stop_-5%",
-            "score": round(breakout_pct * 3 + min(vol_ratio * 3, 15), 1),
+            "score": round(score, 1),
             "last_date": df.index[-1].strftime("%Y-%m-%d"),
         })
 
