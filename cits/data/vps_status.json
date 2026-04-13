@@ -1,6 +1,16 @@
 {
-  "timestamp": "2026-04-13T21:18:27.797736",
+  "timestamp": "2026-04-13T21:20:59.842596",
   "agent": "vps_agent",
   "git_mode": "git",
-  "results": []
+  "results": [
+    {
+      "id": "check_result_cdp_2120",
+      "type": "shell",
+      "status": "error",
+      "timestamp": "2026-04-13T21:20:56.227916",
+      "returncode": 7,
+      "stdout": "ISTENING\n  TCP         0.0.0.0:5985           0.0.0.0:0              LISTENING\n  TCP         0.0.0.0:47001          0.0.0.0:0              LISTENING\n  TCP         0.0.0.0:49664          0.0.0.0:0              LISTENING\n  TCP         0.0.0.0:49665          0.0.0.0:0              LISTENING\n  TCP         0.0.0.0:49666          0.0.0.0:0              LISTENING\n  TCP         0.0.0.0:49667          0.0.0.0:0              LISTENING\n  TCP         0.0.0.0:49668          0.0.0.0:0              LISTENING\n  TCP         0.0.0.0:49669          0.0.0.0:0              LISTENING\n  TCP         0.0.0.0:57190          0.0.0.0:0              LISTENING\n  TCP         127.0.0.1:9222         0.0.0.0:0              LISTENING\n  TCP         127.0.0.1:9223         0.0.0.0:0              LISTENING\n  TCP         203.183.9.252:139      0.0.0.0:0              LISTENING\n  TCP         [::]:22                [::]:0                 LISTENING\n  TCP         [::]:135               [::]:0                 LISTENING\n  TCP         [::]:445               [::]:0                 LISTENING\n  TCP         [::]:3000              [::]:0                 LISTENING\n  TCP         [::]:3389              [::]:0                 LISTENING\n  TCP         [::]:5985              [::]:0                 LISTENING\n  TCP         [::]:47001             [::]:0                 LISTENING\n  TCP         [::]:49664             [::]:0                 LISTENING\n  TCP         [::]:49665             [::]:0                 LISTENING\n  TCP         [::]:49666             [::]:0                 LISTENING\n  TCP         [::]:49667             [::]:0                 LISTENING\n  TCP         [::]:49668             [::]:0                 LISTENING\n  TCP         [::]:49669             [::]:0                 LISTENING\n  TCP         [::]:57190             [::]:0                 LISTENING\n  TCP         [::1]:9222             [::]:0                 LISTENING\n---KABUS--- \nKabuS.exe                    10408 Console                    1     14,780 K\n---API--- \n",
+      "stderr": ""
+    }
+  ]
 }
