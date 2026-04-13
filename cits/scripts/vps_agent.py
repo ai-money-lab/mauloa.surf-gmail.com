@@ -317,17 +317,36 @@ def execute_command(cmd: dict) -> dict:
 # Main loop
 # ─────────────────────────────────────────────
 
+def _pid_is_alive(pid: str) -> bool:
+    """Return True if the given PID is an active process (Windows tasklist)."""
+    try:
+        r = subprocess.run(
+            ["tasklist", "/fi", f"PID eq {pid}", "/fo", "csv", "/nh"],
+            capture_output=True, text=True, timeout=5,
+        )
+        return pid in r.stdout
+    except Exception:
+        return False
+
+
 def _claim_singleton() -> bool:
-    """Ensure only one vps_agent instance runs. Returns False if another is alive."""
+    """Ensure only one vps_agent instance runs. Returns False if another is alive.
+
+    Uses actual PID liveness check (tasklist) instead of file age, so force-kill
+    via taskkill /f does not leave a phantom lock preventing restart.
+    """
     import atexit
     try:
         if PID_FILE.exists():
-            age = time.time() - PID_FILE.stat().st_mtime
-            if age < 180:  # Fresh PID file = another instance running
+            old_pid = ""
+            try:
                 old_pid = PID_FILE.read_text(encoding="utf-8").strip()
-                log.warning("vps_agent PID %s running (age=%.0fs). Exiting.", old_pid, age)
+            except Exception:
+                pass
+            if old_pid and _pid_is_alive(old_pid):
+                log.warning("vps_agent PID %s is running. Exiting.", old_pid)
                 return False
-            log.info("Stale PID file (age=%.0fs). Claiming.", age)
+            log.info("Stale PID file (PID %s not running). Claiming.", old_pid)
         PID_FILE.parent.mkdir(parents=True, exist_ok=True)
         PID_FILE.write_text(str(os.getpid()), encoding="utf-8")
         atexit.register(lambda: PID_FILE.unlink(missing_ok=True))
