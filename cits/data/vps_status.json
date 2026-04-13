@@ -1,22 +1,24 @@
 {
-  "timestamp": "2026-04-13T18:11:59.325459",
+  "timestamp": "2026-04-13T18:15:20.788084",
   "agent": "vps_agent",
   "git_mode": "git",
   "results": [
     {
-      "id": "check_state_20260413_1910",
-      "type": "shell",
-      "status": "error",
-      "timestamp": "2026-04-13T18:09:16.256395",
-      "returncode": 7,
-      "stdout": "情報: 指定された条件に一致するタスクは実行されていません。\n",
+      "id": "vnc_screenshot_check_20260413_1920",
+      "type": "python",
+      "status": "ok",
+      "timestamp": "2026-04-13T18:15:16.805111",
+      "stdout": "capture rc=0\nscreenshot_size: 2367 bytes\nscreen_resolution: 1024x768\nWARNING_SMALL_SCREENSHOT\n",
       "stderr": ""
     },
     {
-      "id": "vnc_start_kabu2_20260413_1911",
-      "type": "python",
-      "status": "timeout",
-      "timestamp": "2026-04-13T18:09:19.259578"
+      "id": "check_kabu_api_20260413_1921",
+      "type": "shell",
+      "status": "ok",
+      "timestamp": "2026-04-13T18:15:19.918770",
+      "returncode": 0,
+      "stdout": "情報: 指定された条件に一致するタスクは実行されていません。\nTASKLIST_DONE\n",
+      "stderr": ""
     }
   ]
 }
