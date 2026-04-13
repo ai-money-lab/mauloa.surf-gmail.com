@@ -169,6 +169,26 @@ def test_kabu_get_positions_empty():
     assert result == []
 
 
+def test_kabu_place_stop_loss_order():
+    """place_stop_loss_order sends a sell 逆指値 (FrontOrderType=30) order."""
+    api = KabuStationAPI(password="pw", order_password="order-pw")
+    api._token = "tok"
+    api._session = MagicMock()
+    api._session.headers = {"X-API-KEY": "tok"}
+    api._session.post.return_value = _mock_response({"OrderId": "SL-001"})
+
+    result = api.place_stop_loss_order(symbol="2170", qty=100, stop_price=611.0, exchange=9)
+
+    assert result["OrderId"] == "SL-001"
+    call_payload = api._session.post.call_args[1]["json"]
+    assert call_payload["Side"] == 1           # 売り
+    assert call_payload["FrontOrderType"] == 30  # 逆指値
+    assert call_payload["Price"] == 611.0
+    assert call_payload["Password"] == "order-pw"
+    assert call_payload["Symbol"] == "2170"
+    assert call_payload["Qty"] == 100
+
+
 # ===== SoftwareOCO =====
 
 def test_oco_create():

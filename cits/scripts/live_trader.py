@@ -136,9 +136,120 @@ CIS_PARAMS, KEI_PARAMS = _load_strategy_params()
 # Safety limits
 # ---------------------------------------------------------------
 MAX_DAILY_LOSS_PCT = 3.0
-MAX_POSITIONS = 3
-MAX_SINGLE_POSITION_PCT = 50  # 300K * 50% = 150K max per position
+MAX_POSITIONS = 2             # 最大2ポジション（集中リスク低減）
+MAX_SINGLE_POSITION_PCT = 40  # 1ポジション最大40%（リスク分散）
 GAP_DOWN_BLOCK_PCT = 2.0      # 前日比-2%以上のギャップダウンで買い停止
+
+# ---------------------------------------------------------------
+# Market Gate: マーケット環境チェック（CIS最重要原則）
+# CIS本人「上げ相場でしか買わない」= 下げ相場での全買い禁止
+# ---------------------------------------------------------------
+MARKET_GATE_VIX_LIMIT = 25.0      # VIX > 25 → 恐怖相場 → 買い禁止
+MARKET_GATE_VIX_CAUTION = 20.0    # VIX 20-25 → 慎重モード（サイズ半減）
+MARKET_GATE_NIKKEI_SMA = 20       # 日経225 < SMA20 → 下降トレンド → 買い禁止
+
+
+def _fetch_market_gate_data() -> dict:
+    """日経225・VIXのマーケットゲート用データを取得する."""
+    end = date.today()
+    start = end - timedelta(days=120)
+    result = {}
+    symbols = ["^N225", "^VIX"]
+    try:
+        import yfinance as yf
+        raw = yf.download(
+            symbols, start=str(start), end=str(end),
+            auto_adjust=True, progress=False, threads=True,
+        )
+        if raw is None or raw.empty:
+            return result
+        if isinstance(raw.columns, pd.MultiIndex):
+            for sym in symbols:
+                try:
+                    df = raw.xs(sym, level=1, axis=1).dropna()
+                    if len(df) >= 22:
+                        result[sym] = df
+                except (KeyError, ValueError):
+                    pass
+        else:
+            result[symbols[0]] = raw.dropna()
+    except Exception as e:
+        logger.warning("Market gate data fetch failed: %s", e)
+    return result
+
+
+def check_market_gate(gate_data: dict | None = None) -> tuple[bool, str, float]:
+    """
+    マーケット環境ゲートチェック。
+
+    Returns:
+        (gate_open, reason, size_multiplier)
+        gate_open=False → 新規買い完全禁止
+        size_multiplier < 1.0 → 慎重モード（サイズ削減）
+    """
+    if gate_data is None:
+        gate_data = _fetch_market_gate_data()
+
+    if not gate_data:
+        # データ取得失敗 → 安全側に倒す（買い禁止）
+        logger.warning("マーケットゲート: データ取得失敗 → 安全のため買い禁止")
+        return False, "マーケットデータ取得失敗 → 安全のため買い禁止", 0.0
+
+    size_mult = 1.0
+    reasons = []
+
+    # ── VIXチェック ──
+    vix_df = gate_data.get("^VIX")
+    vix_val = None
+    if vix_df is not None and len(vix_df) >= 2:
+        vix_val = float(vix_df["Close"].iloc[-1])
+        if vix_val > MARKET_GATE_VIX_LIMIT:
+            msg = f"VIX={vix_val:.1f} > {MARKET_GATE_VIX_LIMIT} (恐怖相場) → 買い全禁止"
+            logger.error("MARKET GATE CLOSED: %s", msg)
+            return False, msg, 0.0
+        elif vix_val > MARKET_GATE_VIX_CAUTION:
+            size_mult = min(size_mult, 0.5)
+            reasons.append(f"VIX={vix_val:.1f} (注意圏) → サイズ半減")
+
+    # ── 日経225チェック ──
+    nk_df = gate_data.get("^N225")
+    if nk_df is not None and len(nk_df) >= 22:
+        closes = [float(x) for x in nk_df["Close"]]
+        price = closes[-1]
+        sma20 = sum(closes[-20:]) / 20
+        if price < sma20:
+            msg = (
+                f"日経225({price:,.0f}) < SMA20({sma20:,.0f}) "
+                f"= 下降トレンド → 買い全禁止"
+            )
+            logger.error("MARKET GATE CLOSED: %s", msg)
+            return False, msg, 0.0
+        if len(closes) >= 50:
+            sma50 = sum(closes[-50:]) / 50
+            if price < sma50:
+                size_mult = min(size_mult, 0.5)
+                reasons.append(f"日経225 < SMA50({sma50:,.0f}) → サイズ半減")
+
+    reason_str = " / ".join(reasons) if reasons else "OK"
+    if vix_val is not None:
+        reason_str = f"VIX={vix_val:.1f} / {reason_str}"
+    logger.info("MARKET GATE: OPEN (size_mult=%.1f) %s", size_mult, reason_str)
+    return True, reason_str, size_mult
+
+
+def _check_rs(closes: list[float], market_closes: list[float], period: int = 20) -> float:
+    """
+    相対力（Relative Strength）= 個別株リターン / 日経225リターン (直近N日)
+    RS > 1.0 → 市場より強い（CISエントリー条件）
+    RS < 0.5 → 市場より著しく弱い → 除外
+    """
+    if len(closes) < period + 1 or len(market_closes) < period + 1:
+        return 1.0  # データ不足 → 中立
+    stock_ret = (closes[-1] - closes[-period]) / closes[-period] if closes[-period] > 0 else 0
+    mkt_ret = (market_closes[-1] - market_closes[-period]) / market_closes[-period] if market_closes[-period] > 0 else 0
+    if mkt_ret == 0:
+        return 1.0
+    return stock_ret / abs(mkt_ret) if mkt_ret != 0 else 1.0
 
 
 # ---------------------------------------------------------------
@@ -487,6 +598,24 @@ def scan_cis(data: dict[str, pd.DataFrame], capital: float) -> list[dict]:
     """CIS strategy: 20-day breakout + volume spike."""
     signals = []
     risk_mult = _is_boj_or_sq_week()  # BOJ/SQ週はサイズ半減
+
+    # ── マーケットゲート: 下げ相場では買い禁止（CIS最重要原則）
+    gate_data = _fetch_market_gate_data()
+    gate_open, gate_reason, gate_mult = check_market_gate(gate_data)
+    if not gate_open:
+        logger.error("MARKET GATE CLOSED: %s — CIS全買い禁止", gate_reason)
+        return []
+    if gate_mult < 1.0:
+        logger.warning(
+            "MARKET GATE CAUTION: %s — サイズ%.0f%%に削減", gate_reason, gate_mult * 100
+        )
+
+    # N225終値リスト（RS相対力計算用）
+    n225_closes: list[float] = []
+    n225_df = gate_data.get("^N225")
+    if n225_df is not None and len(n225_df) >= 22:
+        n225_closes = [float(x) for x in n225_df["Close"]]
+
     for ticker, df in data.items():
         if len(df) < 22:
             continue
@@ -517,13 +646,25 @@ def scan_cis(data: dict[str, pd.DataFrame], capital: float) -> list[dict]:
         if not _check_cis_entry(closes, volumes, CIS_PARAMS["use_volume_confirm"]):
             continue
 
+        # Stage 2確認（Minervini基準: SMA50上 = 上昇トレンド）
+        if len(closes) >= 50:
+            sma50 = sum(closes[-50:]) / 50
+            if price < sma50:
+                continue  # SMA50割れ → Stage2ではない → 除外
+
+        # 相対力チェック（CIS原則: 市場より弱い銘柄は買わない）
+        if n225_closes:
+            rs = _check_rs(closes, n225_closes, 20)
+            if rs < 0.8:
+                continue  # 市場より著しく弱い → 除外
+
         entry = price
         stop_dist = entry * CIS_PARAMS["stop_pct"] / 100
         if stop_dist <= 0:
             continue
 
         lot_size = _get_lot_size(ticker)
-        risk_amt = capital * CIS_PARAMS["risk_pct"] * risk_mult  # BOJ/SQ半減
+        risk_amt = capital * CIS_PARAMS["risk_pct"] * risk_mult * gate_mult  # BOJ/SQ + マーケットゲート
         size = max(int(risk_amt / stop_dist) // lot_size * lot_size, lot_size)
         notional = size * entry
         max_notional = capital * MAX_SINGLE_POSITION_PCT / 100
@@ -562,6 +703,17 @@ def scan_keikun(data: dict[str, pd.DataFrame], capital: float) -> list[dict]:
     signals = []
     sd = KEI_PARAMS["sideways_days"]
     risk_mult = _is_boj_or_sq_week()
+
+    # ── マーケットゲート: 下げ相場では買い禁止（CIS/KEI共通原則）
+    gate_data = _fetch_market_gate_data()
+    gate_open, gate_reason, gate_mult = check_market_gate(gate_data)
+    if not gate_open:
+        logger.error("MARKET GATE CLOSED: %s — KEI全買い禁止", gate_reason)
+        return []
+    if gate_mult < 1.0:
+        logger.warning(
+            "MARKET GATE CAUTION: %s — サイズ%.0f%%に削減", gate_reason, gate_mult * 100
+        )
 
     for ticker, df in data.items():
         if len(df) < sd + 5:
@@ -616,7 +768,7 @@ def scan_keikun(data: dict[str, pd.DataFrame], capital: float) -> list[dict]:
             continue
 
         lot_size = _get_lot_size(ticker)
-        risk_amt = capital * KEI_PARAMS["risk_pct"] * risk_mult  # BOJ/SQ半減
+        risk_amt = capital * KEI_PARAMS["risk_pct"] * risk_mult * gate_mult  # BOJ/SQ + マーケットゲート
         size = max(int(risk_amt / stop_dist) // lot_size * lot_size, lot_size)
         notional = size * entry
         max_notional = capital * MAX_SINGLE_POSITION_PCT / 100
@@ -771,9 +923,32 @@ def execute_signals(signals: list[dict], capital: float, dry_run: bool) -> list[
                     stop_loss=sig["stop_loss"],
                 )
 
+            # ── ネイティブ逆指値（ハードウェアストップ: VPS停止でも機能）
+            # ソフトウェアOCOが動かなくなった場合のバックアップ。
+            # 同価格で両方が発動しても、現物口座は保有数以上の売りを拒否するため二重売りなし。
+            native_sl_order_id = ""
+            try:
+                sl_resp = broker.place_stop_loss_order(
+                    symbol=ticker, qty=sig["size"],
+                    stop_price=sig["stop_loss"], exchange=9,
+                )
+                if "error" not in sl_resp:
+                    native_sl_order_id = sl_resp.get("OrderId", "")
+                    logger.info(
+                        "Native stop-loss placed: %s @ %.1f (OrderId=%s)",
+                        ticker, sig["stop_loss"], native_sl_order_id,
+                    )
+                else:
+                    logger.warning(
+                        "Native stop-loss failed (non-fatal): %s %s", ticker, sl_resp
+                    )
+            except Exception as sl_err:
+                logger.warning("Native stop-loss error (non-fatal): %s %s", ticker, sl_err)
+
             results.append({
                 **sig, "status": "filled", "order_id": order_id,
                 "fill_price": fill_price, "oco_id": oco_id,
+                "native_sl_order_id": native_sl_order_id,
             })
 
             # Register in position DB for monitoring

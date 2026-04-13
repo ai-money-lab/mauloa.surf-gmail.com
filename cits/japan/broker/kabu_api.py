@@ -178,6 +178,60 @@ class KabuStationAPI:
             logger.error("place_order failed: %s body=%s", exc, err_body)
             return {"error": str(exc), "body": err_body, "symbol": symbol, "side": side}
 
+    def place_stop_loss_order(
+        self,
+        symbol: str,
+        qty: int,
+        stop_price: float,
+        exchange: int = 1,
+        expire_days: int = 5,
+    ) -> dict:
+        """
+        ネイティブ逆指値（ハードウェアストップ）売り注文。
+        FrontOrderType=30 = 逆指値成行。
+        price が stop_price を下回ると成行売りが発動される。
+        kabuStation（証券会社サーバー）が直接管理するため
+        VPSやvps_agentが落ちても機能する。
+        """
+        self._ensure_token()
+        expire_date = date.today() + timedelta(days=expire_days)
+        expire_day = int(expire_date.strftime("%Y%m%d"))
+        url = f"{self.BASE_URL}/kabusapi/sendorder"
+        payload = {
+            "Password": self.order_password,
+            "Symbol": symbol,
+            "Exchange": exchange,
+            "SecurityType": 1,
+            "Side": 1,          # 売り
+            "CashMargin": 1,    # 現物
+            "DelivType": 0,     # 売り = 0
+            "FundType": "  ",   # 保護預り
+            "AccountType": 4,   # 特定口座
+            "Qty": qty,
+            "FrontOrderType": 30,   # 逆指値
+            "Price": stop_price,    # 逆指値トリガー価格
+            "ExpireDay": expire_day,
+        }
+        logger.info(
+            "Placing native stop-loss: %s x%d stop=%.1f (exchange=%d, expire=%d)",
+            symbol, qty, stop_price, exchange, expire_day,
+        )
+        try:
+            resp = self._session.post(url, json=payload, timeout=10)
+            resp.raise_for_status()
+            data = resp.json()
+            logger.info("Stop-loss order placed: %s", data.get("OrderId", data))
+            return data
+        except requests.RequestException as exc:
+            err_body = ""
+            if hasattr(exc, "response") and exc.response is not None:
+                try:
+                    err_body = exc.response.text[:500]
+                except Exception:
+                    pass
+            logger.error("place_stop_loss_order failed: %s body=%s", exc, err_body)
+            return {"error": str(exc), "body": err_body, "symbol": symbol}
+
     def cancel_order(self, order_id: str) -> dict:
         self._ensure_token()
         url = f"{self.BASE_URL}/kabusapi/cancelorder"
