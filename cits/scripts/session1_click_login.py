@@ -166,61 +166,148 @@ def wait_for_login_ui(max_wait_sec: int = 180) -> tuple[int, int]:
     return LOGIN_BTN
 
 
+def _ws_raw(host: str, port: int, path: str, message: str, timeout: int = 8) -> str:
+    """Minimal stdlib WebSocket client — no external deps.
+    Sends one message, reads one response, returns raw text.
+    """
+    import socket
+    import struct
+    import hashlib
+    import base64
+    import os as _os
+
+    sock = socket.create_connection((host, port), timeout=timeout)
+    try:
+        key = base64.b64encode(_os.urandom(16)).decode()
+        handshake = (
+            f"GET {path} HTTP/1.1\r\n"
+            f"Host: {host}:{port}\r\n"
+            f"Upgrade: websocket\r\nConnection: Upgrade\r\n"
+            f"Sec-WebSocket-Key: {key}\r\nSec-WebSocket-Version: 13\r\n\r\n"
+        )
+        sock.sendall(handshake.encode())
+        resp_buf = b""
+        while b"\r\n\r\n" not in resp_buf:
+            resp_buf += sock.recv(4096)
+        if b"101" not in resp_buf:
+            raise Exception(f"WS upgrade failed: {resp_buf[:60]}")
+
+        # Send masked frame
+        data = message.encode("utf-8")
+        mask = _os.urandom(4)
+        masked = bytes(b ^ mask[i % 4] for i, b in enumerate(data))
+        frame = bytearray([0x81])
+        ln = len(data)
+        if ln <= 125:
+            frame.append(0x80 | ln)
+        else:
+            frame.append(0x80 | 126)
+            frame.extend(struct.pack(">H", ln))
+        frame.extend(mask)
+        frame.extend(masked)
+        sock.sendall(bytes(frame))
+
+        # Read response frame
+        hdr = b""
+        while len(hdr) < 2:
+            hdr += sock.recv(2)
+        length = hdr[1] & 0x7F
+        if length == 126:
+            lb = b""
+            while len(lb) < 2:
+                lb += sock.recv(2)
+            length = struct.unpack(">H", lb)[0]
+        elif length == 127:
+            lb = b""
+            while len(lb) < 8:
+                lb += sock.recv(8)
+            length = struct.unpack(">Q", lb)[0]
+        payload = b""
+        while len(payload) < length:
+            payload += sock.recv(length - len(payload))
+        return payload.decode("utf-8", errors="replace")
+    finally:
+        sock.close()
+
+
 def cdp_click_login() -> bool:
     """Layer 0: Click via Chrome DevTools Protocol (CDP) if KabuS exposes it.
-    Requires KabuS started with --remote-debugging-port=KABU_CDP_PORT.
-    Uses DOM-level click — bypasses all synthetic input issues.
+    KabuStation exposes CDP on port 9222 by default (no extra flags needed).
+    Uses pure stdlib WebSocket — no external deps required.
     """
+    import urllib.request
+    import json as _json
+
     try:
-        import urllib.request
-        import json as _json
+        # 1. Enumerate CDP targets
         url = f"http://localhost:{KABU_CDP_PORT}/json"
-        with urllib.request.urlopen(url, timeout=3) as resp:
+        with urllib.request.urlopen(url, timeout=4) as resp:
             targets = _json.loads(resp.read())
         _log(f"CDP: {len(targets)} targets: {[t.get('title','?')[:30] for t in targets[:4]]}")
-        # Find any page/iframe target
-        page_target = None
-        for t in targets:
-            if t.get('type') in ('page', 'iframe', 'webview'):
-                page_target = t
-                break
-        if not page_target:
-            _log("CDP: no page/iframe target found")
-            return False
-        ws_url = page_target.get('webSocketDebuggerUrl', '')
-        if not ws_url:
-            _log("CDP: no webSocketDebuggerUrl in target")
-            return False
-        _log(f"CDP: connecting to {ws_url[:60]}...")
 
-        # Pure stdlib WebSocket (no external deps) — only works for simple WS
+        # Try websocket-client first (faster, handles edge cases)
+        ws_lib = None
         try:
-            import websocket  # websocket-client
-            ws = websocket.create_connection(ws_url, timeout=8)
+            import websocket as _wslib
+            ws_lib = _wslib
         except ImportError:
-            _log("CDP: websocket-client not available, trying urllib.request WS...")
-            return False
+            pass
 
-        # JS: click visible login button
-        js = (
-            "var btns = document.querySelectorAll('button, input[type=submit], a.btn');"
-            "var loginBtn = null;"
-            "for(var i=0;i<btns.length;i++){"
-            "  var t=btns[i].innerText||btns[i].value||'';"
-            "  if(t.includes('ログイン')||t.toLowerCase().includes('login')){loginBtn=btns[i];break;}"
-            "}"
-            "if(loginBtn){loginBtn.click();'clicked:'+loginBtn.innerText;}"
-            "else{'no_login_button_found:'+document.title;}"
-        )
-        msg = _json.dumps({"id": 1, "method": "Runtime.evaluate",
-                           "params": {"expression": js, "returnByValue": True}})
-        ws.send(msg)
-        resp_raw = ws.recv()
-        ws.close()
-        resp_data = _json.loads(resp_raw)
-        val = resp_data.get('result', {}).get('result', {}).get('value', 'no_value')
-        _log(f"CDP click result: {val!r}")
-        return 'clicked' in str(val)
+        def _ws_send_recv(ws_url: str, msg: str) -> str:
+            if ws_lib:
+                ws = ws_lib.create_connection(ws_url, timeout=8)
+                ws.send(msg)
+                r = ws.recv()
+                ws.close()
+                return r
+            # Fallback: pure stdlib
+            from urllib.parse import urlparse
+            p = urlparse(ws_url)
+            return _ws_raw(p.hostname, p.port or 80, p.path, msg)
+
+        # 2. Try each target, look for login button
+        for t in targets:
+            ws_url = t.get("webSocketDebuggerUrl", "")
+            if not ws_url:
+                continue
+            target_type = t.get("type", "?")
+            target_url = t.get("url", "?")
+            _log(f"CDP: trying target type={target_type} url={target_url[:50]!r}")
+            try:
+                # Get page title/content first
+                probe_js = "document.title + ' || ' + document.readyState + ' || btns:' + document.querySelectorAll('button').length"
+                probe_msg = _json.dumps({"id": 1, "method": "Runtime.evaluate",
+                                         "params": {"expression": probe_js, "returnByValue": True}})
+                probe_resp = _json.loads(_ws_send_recv(ws_url, probe_msg))
+                probe_val = probe_resp.get("result", {}).get("result", {}).get("value", "")
+                _log(f"CDP probe: {probe_val!r}")
+
+                # Try to click login button
+                click_js = (
+                    "(function(){"
+                    "var els = document.querySelectorAll('button,input[type=submit],a');"
+                    "for(var i=0;i<els.length;i++){"
+                    "  var tx=(els[i].innerText||els[i].value||'').trim();"
+                    "  if(tx.includes('ログイン')||tx.toLowerCase().includes('login')){"
+                    "    els[i].click(); return 'clicked:'+tx;"
+                    "  }"
+                    "}"
+                    "return 'no_btn:'+document.title;"
+                    "})()"
+                )
+                click_msg = _json.dumps({"id": 2, "method": "Runtime.evaluate",
+                                          "params": {"expression": click_js, "returnByValue": True}})
+                click_resp = _json.loads(_ws_send_recv(ws_url, click_msg))
+                val = click_resp.get("result", {}).get("result", {}).get("value", "no_value")
+                _log(f"CDP click result: {val!r}")
+                if "clicked" in str(val):
+                    return True
+            except Exception as e:
+                _log(f"CDP target error: {e}")
+                continue
+
+        _log("CDP: no successful click on any target")
+        return False
     except Exception as e:
         _log(f"CDP click error: {e}")
         return False
