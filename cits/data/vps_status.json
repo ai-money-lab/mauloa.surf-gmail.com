@@ -1,14 +1,15 @@
 {
-  "timestamp": "2026-04-13T17:39:26.883838",
+  "timestamp": "2026-04-13T17:40:35.761073",
   "agent": "vps_agent",
   "git_mode": "git",
   "results": [
     {
-      "id": "safe_restart_20260413_1950",
-      "type": "python",
+      "id": "verify_final_20260413_2000",
+      "type": "shell",
       "status": "ok",
-      "timestamp": "2026-04-13T17:39:19.957452",
-      "stdout": "PROCESSED_SAVED: 38 ids\nGIT_PULL rc=0\nOLD_PID: 7212\nNEW_AGENT_STARTED\nKILLED: 7212\nDONE\n",
+      "timestamp": "2026-04-13T17:40:34.791338",
+      "returncode": 0,
+      "stdout": "afca4f1 inject: safe_restart + verify (both commands)\n6e46035 vps_agent: status 2026-04-13T17:39:32.018637\n734d5cb vps_agent: status 2026-04-13T17:38:10.115804\n--- \n\"pythonw.exe\",\"5956\",\"Console\",\"1\",\"5,168 K\"\n\"pythonw.exe\",\"10868\",\"Console\",\"1\",\"16,108 K\"\n\"pythonw.exe\",\"10568\",\"Console\",\"1\",\"5,204 K\"\n\"pythonw.exe\",\"9584\",\"Console\",\"1\",\"15,944 K\"\n--- \n9584",
       "stderr": ""
     }
   ]
