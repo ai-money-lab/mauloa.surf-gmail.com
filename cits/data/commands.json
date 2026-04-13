@@ -1,14 +1,8 @@
 [
   {
-    "id": "kill_rogue_20260413_2010",
+    "id": "checklist_20260413_2020",
     "type": "python",
-    "code": "import subprocess, pathlib\n\n# Kill the rogue old vps_agent (PID 10868) that survived the restart\n# Current valid agent PID is in the PID file\npid_f = pathlib.Path('C:/cits/vps_agent.pid')\ncurrent_pid = pid_f.read_text(encoding='utf-8').strip() if pid_f.exists() else ''\nprint('CURRENT_PID:', current_pid)\n\nrogue_pid = '10868'\nif rogue_pid != current_pid and rogue_pid:\n    # Verify it's a pythonw.exe before killing\n    chk = subprocess.run(\n        ['tasklist', '/fi', f'PID eq {rogue_pid}', '/fi', 'IMAGENAME eq pythonw.exe', '/fo', 'csv', '/nh'],\n        capture_output=True, text=True, timeout=5)\n    if rogue_pid in chk.stdout:\n        r = subprocess.run(['taskkill', '/f', '/pid', rogue_pid], capture_output=True, text=True)\n        print('KILLED_ROGUE:', rogue_pid, r.returncode)\n    else:\n        print('ROGUE_NOT_FOUND (already gone):', rogue_pid)\n\n# Show final state\nout = subprocess.run(['tasklist', '/fi', 'IMAGENAME eq pythonw.exe', '/fo', 'csv', '/nh'],\n    capture_output=True, text=True, timeout=5)\nprint('PYTHONW_NOW:', out.stdout.strip())\nprint('PID_FILE:', current_pid)\n",
-    "timeout": 30
-  },
-  {
-    "id": "final_verify_20260413_2015",
-    "type": "shell",
-    "command": "cd C:\\cits\\repo && git log --oneline -5 && echo GIT_OK",
-    "timeout": 15
+    "code": "import subprocess, sys\nsys.path.insert(0, 'C:\\\\cits\\\\repo')\n\n# 1. タスク登録確認\nprint('=== TASKS ===')\nr = subprocess.run(['schtasks', '/Query', '/FO', 'CSV', '/NH'],\n    capture_output=True, text=True, encoding='cp932', errors='replace', timeout=15)\nfor line in r.stdout.splitlines():\n    if 'CITS' in line:\n        print(line)\n\n# 2. kabuStation API\nprint('=== KABU API ===')\ntry:\n    import requests\n    r2 = requests.post('http://localhost:18080/kabusapi/token',\n        json={'APIPassword': __import__('os').environ.get('KABU_API_PASSWORD','hiroki0380')},\n        timeout=5)\n    print('STATUS:', r2.status_code)\n    if r2.status_code == 200:\n        tok = r2.json().get('Token','')[:12]\n        print('TOKEN:', tok + '...')\n    else:\n        print('BODY:', r2.text[:200])\nexcept Exception as e:\n    print('KABU_ERROR:', e)\n\n# 3. ポジション確認\nprint('=== POSITIONS ===')\ntry:\n    from cits.japan.broker.kabu_api import KabuStationAPI\n    api = KabuStationAPI()\n    pos = api.get_positions()\n    print('COUNT:', len(pos))\n    for p in pos[:3]:\n        print('  SYM:', p.get('Symbol'), 'QTY:', p.get('LeavesQty'), 'SIDE:', p.get('Side'))\nexcept Exception as e:\n    print('POS_ERROR:', e)\n\n# 4. dry-run発注テスト\nprint('=== DRY RUN ===')\ntry:\n    from cits.japan.broker.kabu_api import KabuStationAPI\n    api2 = KabuStationAPI()\n    # バリデーションのみ（実際に送信しない）\n    try:\n        api2.place_order(symbol='7203', side='buy', qty=0)\n    except ValueError as ve:\n        print('VALIDATION_OK (qty=0 rejected):', ve)\n    try:\n        api2.place_order(symbol='7203', side='short', qty=100)\n    except ValueError as ve2:\n        print('VALIDATION_OK (invalid side rejected):', ve2)\n    print('DRY_RUN_VALIDATION_COMPLETE')\nexcept Exception as e:\n    print('DRYRUN_ERROR:', e)\n\nprint('=== DONE ===')\n",
+    "timeout": 40
   }
 ]
