@@ -34,6 +34,7 @@ except Exception:
 
 RESULT_FILE      = r"C:\cits\session1_login_result.json"
 SCREENSHOT_FILE  = r"C:\cits\login_screenshot.png"
+KABU_CDP_PORT    = 9222  # CEF remote debugging port (CDP)
 
 # ─── Screen coords (1024×768 VPS) ───────────────────────────────────────────
 LOGIN_BTN      = (779, 475)
@@ -45,6 +46,7 @@ SCREEN_W, SCREEN_H = 1024, 768
 # ─── VNC settings ────────────────────────────────────────────────────────────
 VNCDO_EXE = r"C:\cits\venv\Scripts\vncdo.exe"
 VNC_PASS  = "cits2026"
+VNC_PORT  = "5900"
 
 # ─── WinAPI constants ────────────────────────────────────────────────────────
 MOUSEEVENTF_MOVE      = 0x0001
@@ -164,24 +166,112 @@ def wait_for_login_ui(max_wait_sec: int = 180) -> tuple[int, int]:
     return LOGIN_BTN
 
 
+def cdp_click_login() -> bool:
+    """Layer 0: Click via Chrome DevTools Protocol (CDP) if KabuS exposes it.
+    Requires KabuS started with --remote-debugging-port=KABU_CDP_PORT.
+    Uses DOM-level click — bypasses all synthetic input issues.
+    """
+    try:
+        import urllib.request
+        import json as _json
+        url = f"http://localhost:{KABU_CDP_PORT}/json"
+        with urllib.request.urlopen(url, timeout=3) as resp:
+            targets = _json.loads(resp.read())
+        _log(f"CDP: {len(targets)} targets: {[t.get('title','?')[:30] for t in targets[:4]]}")
+        # Find any page/iframe target
+        page_target = None
+        for t in targets:
+            if t.get('type') in ('page', 'iframe', 'webview'):
+                page_target = t
+                break
+        if not page_target:
+            _log("CDP: no page/iframe target found")
+            return False
+        ws_url = page_target.get('webSocketDebuggerUrl', '')
+        if not ws_url:
+            _log("CDP: no webSocketDebuggerUrl in target")
+            return False
+        _log(f"CDP: connecting to {ws_url[:60]}...")
+
+        # Pure stdlib WebSocket (no external deps) — only works for simple WS
+        try:
+            import websocket  # websocket-client
+            ws = websocket.create_connection(ws_url, timeout=8)
+        except ImportError:
+            _log("CDP: websocket-client not available, trying urllib.request WS...")
+            return False
+
+        # JS: click visible login button
+        js = (
+            "var btns = document.querySelectorAll('button, input[type=submit], a.btn');"
+            "var loginBtn = null;"
+            "for(var i=0;i<btns.length;i++){"
+            "  var t=btns[i].innerText||btns[i].value||'';"
+            "  if(t.includes('ログイン')||t.toLowerCase().includes('login')){loginBtn=btns[i];break;}"
+            "}"
+            "if(loginBtn){loginBtn.click();'clicked:'+loginBtn.innerText;}"
+            "else{'no_login_button_found:'+document.title;}"
+        )
+        msg = _json.dumps({"id": 1, "method": "Runtime.evaluate",
+                           "params": {"expression": js, "returnByValue": True}})
+        ws.send(msg)
+        resp_raw = ws.recv()
+        ws.close()
+        resp_data = _json.loads(resp_raw)
+        val = resp_data.get('result', {}).get('result', {}).get('value', 'no_value')
+        _log(f"CDP click result: {val!r}")
+        return 'clicked' in str(val)
+    except Exception as e:
+        _log(f"CDP click error: {e}")
+        return False
+
+
+def vncdo_help() -> str:
+    """Run vncdo --help to discover actual flags. Returns help text."""
+    if not os.path.isfile(VNCDO_EXE):
+        return "vncdo not found"
+    try:
+        r = subprocess.run(
+            [VNCDO_EXE, "--help"],
+            capture_output=True, text=True, timeout=5,
+            creationflags=CREATE_NO_WINDOW,
+        )
+        return (r.stdout + r.stderr)[:300]
+    except Exception as e:
+        return f"vncdo_help error: {e}"
+
+
 def vncdo_click(x: int, y: int) -> bool:
     """Hardware-level click via TightVNC server.
     TightVNC injects at kernel level — CEF accepts these events (same as noVNC).
-    vncdo options: -s server, -p port, -P password (short flags only)
+    Correct syntax: -s host:port -p password  (port embedded in server string)
     """
     if not os.path.isfile(VNCDO_EXE):
         _log(f"vncdo_click: {VNCDO_EXE} not found — skipping")
         return False
     try:
+        # Try primary syntax: -s host:port -p password
         r = subprocess.run(
-            [VNCDO_EXE, "-s", "localhost", "-p", "5900",
-             "-P", VNC_PASS, "move", str(x), str(y), "click", "1"],
+            [VNCDO_EXE, "-s", f"localhost:{VNC_PORT}", "-p", VNC_PASS,
+             "move", str(x), str(y), "click", "1"],
             capture_output=True, text=True, timeout=10,
             creationflags=CREATE_NO_WINDOW,
         )
         _log(f"vncdo_click({x},{y}) rc={r.returncode} "
-             f"out={r.stdout.strip()!r} err={r.stderr.strip()[:80]!r}")
-        return r.returncode == 0
+             f"out={r.stdout.strip()!r} err={r.stderr.strip()[:120]!r}")
+        if r.returncode == 0:
+            return True
+        # If primary fails, try alternative: --server --password
+        _log("Trying alternative vncdo syntax: --server --password...")
+        r2 = subprocess.run(
+            [VNCDO_EXE, f"--server=localhost:{VNC_PORT}", f"--password={VNC_PASS}",
+             "move", str(x), str(y), "click", "1"],
+            capture_output=True, text=True, timeout=10,
+            creationflags=CREATE_NO_WINDOW,
+        )
+        _log(f"vncdo_click alt({x},{y}) rc={r2.returncode} "
+             f"out={r2.stdout.strip()!r} err={r2.stderr.strip()[:120]!r}")
+        return r2.returncode == 0
     except Exception as e:
         _log(f"vncdo_click error: {e}")
         return False
@@ -385,8 +475,13 @@ def main() -> dict:
 
     # Step 1: Ensure kabuStation is running
     if not kabu_running():
-        _log("KabuS not running — starting directly...")
-        subprocess.Popen([KABU_EXE], creationflags=CREATE_NO_WINDOW)
+        _log("KabuS not running — starting with CDP debug port...")
+        # --remote-debugging-port enables Chrome DevTools Protocol (CDP)
+        # This allows Playwright/CDP-based click as a fallback
+        subprocess.Popen(
+            [KABU_EXE, f"--remote-debugging-port={KABU_CDP_PORT}"],
+            creationflags=CREATE_NO_WINDOW,
+        )
         # Wait up to 90s for kabuStation to fully load its login UI
         for i in range(9):
             time.sleep(10)
@@ -416,14 +511,24 @@ def main() -> dict:
     result["kabu_hwnd"] = kabu_hwnd
     time.sleep(1)
 
-    # Step 4: Wait for login button to appear in screenshot (polls every 10s, max 3min)
-    btn_pos = wait_for_login_ui(max_wait_sec=180)
+    # Log vncdo help to diagnose correct flags
+    _log(f"vncdo_help: {vncdo_help()}")
+
+    # Step 4: Wait for login button to appear in screenshot (polls every 10s, max 10min)
+    btn_pos = wait_for_login_ui(max_wait_sec=600)
     result["btn_pos_found"] = btn_pos
     _log(f"Using login button position: {btn_pos}")
 
-    # Step 5: Click login button — 3-layer approach
+    # Step 5: Click login button — 4-layer approach
     login_clicked_at = datetime.now()
     result["login_click_at"] = login_clicked_at.isoformat()
+
+    # Layer 0: CDP click via Chrome DevTools Protocol (Playwright-equivalent)
+    # Works if KabuS was started with --remote-debugging-port=KABU_CDP_PORT
+    _log("[Layer 0] CDP click (Chrome DevTools Protocol)...")
+    cdp_ok = cdp_click_login()
+    result["cdp_ok"] = cdp_ok
+    time.sleep(2)
 
     # Layer 1: vncdo (TightVNC hardware injection — same path as noVNC)
     _log(f"[Layer 1] vncdo_click{btn_pos}...")
