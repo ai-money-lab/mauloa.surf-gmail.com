@@ -1,12 +1,18 @@
 [
   {
-    "id": "status_20260413_c",
+    "id": "restart_agent_20260413_b",
     "type": "shell",
-    "command": "git --version && git log --oneline -3 && schtasks /Query /FO CSV /NH 2>&1 | findstr CITS && netstat -an 2>&1 | findstr 18080 && echo DONE",
+    "command": "start /min cmd /c \"timeout /t 600 /nobreak >nul & taskkill /f /im python.exe >nul 2>&1 & taskkill /f /im pythonw.exe >nul 2>&1 & C:\\cits\\repo\\cits\\run_agent.bat\" && echo RESTART_SCHEDULED",
+    "timeout": 10
+  },
+  {
+    "id": "status_20260413_e",
+    "type": "shell",
+    "command": "git --version && git log --oneline -3 && echo --- && schtasks /Query /FO CSV /NH 2>&1 | findstr CITS && echo --- && tasklist 2>&1 | findstr /i python && netstat -an 2>&1 | findstr 18080 && echo STATUS_DONE",
     "timeout": 30
   },
   {
-    "id": "test_kabu_login_20260413",
+    "id": "test_kabu_login_20260413_b",
     "type": "shell",
     "command": "cd C:\\cits\\repo && set PYTHONPATH=C:\\cits\\repo && C:\\cits\\venv\\Scripts\\python.exe -m cits.scripts.kabu_auto_login_vps 2>&1",
     "timeout": 360

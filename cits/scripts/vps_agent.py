@@ -320,6 +320,7 @@ def main() -> None:
     # Cache GitHub token while git may still be working (first run)
     _get_github_token()
     processed = load_processed_ids()
+    cycle = 0
 
     while True:
         try:
@@ -329,7 +330,20 @@ def main() -> None:
                     commands = json.loads(raw)
                 except Exception as exc:
                     log.error("commands.json parse error: %s", exc)
-                    commands = []
+                    # FIX 1: Immediate API fallback on local parse error
+                    log.info("Trying GitHub API fallback due to parse error")
+                    raw2 = _github_api_read(COMMANDS_API_PATH)
+                    if raw2:
+                        COMMANDS_FILE.parent.mkdir(parents=True, exist_ok=True)
+                        COMMANDS_FILE.write_text(raw2, encoding="utf-8")
+                        try:
+                            commands = json.loads(raw2)
+                            log.info("API fallback commands.json OK (%d cmds)", len(commands))
+                        except Exception as exc2:
+                            log.error("API fallback also invalid JSON: %s", exc2)
+                            commands = []
+                    else:
+                        commands = []
             else:
                 commands = []
 
@@ -344,9 +358,14 @@ def main() -> None:
                 processed.add(cmd_id)
                 log.info("Command %s result: %s", cmd_id, result.get("status"))
 
+            cycle += 1
             if new_results:
                 push_results(new_results)
                 save_processed_ids(processed)
+            elif cycle % 10 == 0:
+                # FIX 2: Heartbeat push every ~10 minutes so vps_status.json stays current
+                log.info("Heartbeat push (cycle=%d)", cycle)
+                push_results([])
 
         except Exception as exc:
             log.error("Main loop error: %s", exc)
