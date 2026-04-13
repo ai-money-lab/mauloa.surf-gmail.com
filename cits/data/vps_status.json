@@ -1,34 +1,13 @@
 {
-  "timestamp": "2026-04-13T17:59:18.123861",
+  "timestamp": "2026-04-13T18:05:55.116208",
   "agent": "vps_agent",
   "git_mode": "git",
   "results": [
     {
-      "id": "diag_alive_20260413_1810",
-      "type": "shell",
-      "status": "ok",
-      "timestamp": "2026-04-13T17:59:12.944317",
-      "returncode": 0,
-      "stdout": "AGENT_ALIVE \n\"pythonw.exe\",\"10568\",\"Console\",\"1\",\"5,280 K\"\n\"pythonw.exe\",\"9584\",\"Console\",\"1\",\"16,224 K\"\n情報: 指定された条件に一致するタスクは実行されていません。\nDIAG_DONE\n",
-      "stderr": ""
-    },
-    {
-      "id": "diag_logs_20260413_1811",
-      "type": "shell",
-      "status": "ok",
-      "timestamp": "2026-04-13T17:59:13.533513",
-      "returncode": 0,
-      "stdout": " code too old: 694557 (age: 435.9min)\n2026-04-13 17:54:10 Waiting for 2FA email... (10s)\n2026-04-13 17:54:22 2FA code too old: 694557 (age: 436.1min)\n2026-04-13 17:54:23 Waiting for 2FA email... (10s)\n2026-04-13 17:54:35 2FA code too old: 694557 (age: 436.4min)\n2026-04-13 17:54:35 Waiting for 2FA email... (10s)\n2026-04-13 17:54:47 2FA code too old: 694557 (age: 436.6min)\n2026-04-13 17:54:48 Waiting for 2FA email... (10s)\n2026-04-13 17:55:00 2FA code too old: 694557 (age: 436.8min)\n2026-04-13 17:55:00 Waiting for 2FA email... (10s)\n2026-04-13 17:55:10 ERROR: 2FA code not received within timeout\n2026-04-13 17:55:10 FAILED: Could not get 2FA code\n2026-04-13 17:55:10 Attempt 1 failed\n2026-04-13 17:55:20 Attempt 2/2\n2026-04-13 17:55:24 API unreachable: HTTPConnectionPool(host='localhost', port=18080): Max retries exceeded with url: /kabusapi/token (Caused by NewConnectionError(\"HTTPConnection(host='localhost', port=18080): Failed to establish a new connection: [WinError 10061] 蟇ｾ雎｡縺ｮ繧ｳ繝ｳ繝斐Η繝ｼ繧ｿ繝ｼ縺ｫ繧医▲縺ｦ諡貞凄縺輔ｌ縺溘◆繧√∵磁邯壹〒縺阪∪縺帙ｓ縺ｧ縺励◆縲・))\n2026-04-13 17:55:24 API not ready. Restarting kabuStation...\n2026-04-13 17:55:30 kabuStation killed\n2026-04-13 17:55:30 kabuStation start via IT task\n2026-04-13 17:56:01 WARNING: kabuStation process not found after start\n2026-04-13 17:56:01 Bringing kabuStation to front via taskbar click...\n2026-04-13 17:56:09 Clicking login button...\n2026-04-13 17:56:30 API unreachable: HTTPConnectionPool(host='localhost', port=18080): Max retries exceeded with url: /kabusapi/token (Caused by NewConnectionError(\"HTTPConnection(host='localhost', port=18080): Failed to establish a new connection: [WinError 10061] 蟇ｾ雎｡縺ｮ繧ｳ繝ｳ繝斐Η繝ｼ繧ｿ繝ｼ縺ｫ繧医▲縺ｦ諡貞凄縺輔ｌ縺溘◆繧√∵磁邯壹〒縺阪∪縺帙ｓ縺ｧ縺励◆縲・))\n2026-04-13 17:56:32 2FA required. Fetching code from Gmail IMAP...\n2026-04-13 17:56:34 2FA code too old: 694557 (age: 438.3min)\n2026-04-13 17:56:35 Waiting for 2FA email... (10s)\n2026-04-13 17:56:47 2FA code too old: 694557 (age: 438.6min)\n2026-04-13 17:56:47 Waiting for 2FA email... (10s)\n\n",
-      "stderr": ""
-    },
-    {
-      "id": "diag_api_20260413_1812",
-      "type": "shell",
-      "status": "ok",
-      "timestamp": "2026-04-13T17:59:15.715547",
-      "returncode": 0,
-      "stdout": "API_FAILED\n",
-      "stderr": ""
+      "id": "vnc_start_kabu_20260413_1900",
+      "type": "python",
+      "status": "timeout",
+      "timestamp": "2026-04-13T18:03:55.052755"
     }
   ]
 }
