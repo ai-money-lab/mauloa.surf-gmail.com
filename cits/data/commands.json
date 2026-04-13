@@ -1,8 +1,8 @@
 [
   {
-    "id": "dryrun_20260413_1645",
+    "id": "dryrun2_20260413_1648",
     "type": "python",
-    "code": "import sys; sys.path.insert(0,'C:\\\\cits\\\\repo')\nfrom cits.japan.broker.kabu_api import KabuStationAPI\napi = KabuStationAPI()\ntok = api.get_token()\nprint('TOKEN:', tok[:16]+'...' if tok else 'NONE')\nbal = api.get_balance()\nprint('BALANCE:', bal)\nprint('DRYRUN_OK')",
+    "code": "import sys; sys.path.insert(0,'C:\\\\cits\\\\repo')\nfrom cits.japan.broker.kabu_api import KabuStationAPI\napi = KabuStationAPI()\npos = api.get_positions()\nprint('POSITIONS:', len(pos) if isinstance(pos,list) else pos)\norders = api.get_orders()\nprint('ORDERS:', len(orders) if isinstance(orders,list) else orders)\nprint('API_DRYRUN_OK')",
     "timeout": 20
   }
 ]
