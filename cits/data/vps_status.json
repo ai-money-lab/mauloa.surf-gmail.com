@@ -1,22 +1,6 @@
 {
-  "timestamp": "2026-04-13T23:26:42.103316",
+  "timestamp": "2026-04-13T23:28:12.112965",
   "agent": "vps_agent",
   "git_mode": "git",
-  "results": [
-    {
-      "id": "enter_222228_now",
-      "type": "shell",
-      "status": "exception",
-      "timestamp": "2026-04-13T23:25:57.920852",
-      "error": "'command'"
-    },
-    {
-      "id": "enter_2fa_robust_final",
-      "type": "python",
-      "status": "ok",
-      "timestamp": "2026-04-13T23:25:57.926731",
-      "stdout": "Entering 222228 at (762,445) submit=(762,519)\nsec types=[1, 16]\nVNC ok 1024x768\nclicked (762,445)\nsec types=[1, 16]\nVNC ok 1024x768\nsec types=[1, 16]\nVNC ok 1024x768\ntyped: 222228\nsec types=[1, 16]\nVNC ok 1024x768\nclicked (762,519)\nAPI: NOT_READY \n",
-      "stderr": ""
-    }
-  ]
+  "results": []
 }
