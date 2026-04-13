@@ -966,14 +966,50 @@ def check_positions(dry_run: bool = True) -> list[ExitAnalysis]:
         current_price = float(df["Close"].iloc[-1])
         pnl_pct = (current_price - entry_price) / entry_price * 100
 
+        logger.info(
+            "  price=%.1f entry=%.1f pnl=%+.1f%%",
+            current_price, entry_price, pnl_pct,
+        )
+
+        # ════════════════════════════════════════════════════════════════
+        # HARD STOP LOSS — チャート分析・スコアより最優先で即執行。
+        # 損益に関係なく、価格がストップラインを割ったら必ず売る。
+        # 「損しているから売れない」は絶対禁止。ストップは必ず守る。
+        # ════════════════════════════════════════════════════════════════
+        original_sl = pos.get("stop_loss", 0)
+        if original_sl > 0 and current_price <= original_sl:
+            logger.error(
+                "⚠ HARD STOP LOSS BREACHED: %s price=%.1f SL=%.1f pnl=%+.1f%%"
+                " → FORCE SELL NOW (損益に関わらず即執行)",
+                ticker, current_price, original_sl, pnl_pct,
+            )
+            exit_reason = (
+                f"HARD STOP LOSS: price={current_price:.1f} <= SL={original_sl:.1f}"
+                f" pnl={pnl_pct:+.1f}%"
+            )
+            results.append(ExitAnalysis(
+                ticker=ticker, strategy=strategy,
+                total_score=100.0, recommendation="EXIT_NOW",
+                detail=exit_reason,
+            ))
+            if dry_run:
+                logger.info(
+                    "  [DRY RUN] Would FORCE SELL %s x%d (hard stop breach)",
+                    ticker, pos["size"],
+                )
+            else:
+                _execute_exit(pos, current_price, exit_reason, today)
+            continue
+        # ════════════════════════════════════════════════════════════════
+
         # Track new highs (kei-kun)
         if current_price > pos.get("high_since_entry", entry_price):
             pos["high_since_entry"] = current_price
             pos["new_high_days"] = pos.get("new_high_days", 0) + 1
 
         logger.info(
-            "  price=%.1f entry=%.1f pnl=%+.1f%% high_days=%d",
-            current_price, entry_price, pnl_pct, pos.get("new_high_days", 0),
+            "  high_days=%d high=%.1f",
+            pos.get("new_high_days", 0), pos.get("high_since_entry", entry_price),
         )
 
         # Run full analysis

@@ -1,4 +1,4 @@
-"""Sell 2170 ONLY if still in profit. Absolute rule: never sell at loss."""
+"""Sell 2170 at market (stop loss discipline: sell regardless of profit/loss)."""
 from pathlib import Path
 
 try:
@@ -27,9 +27,7 @@ if not api_pw:
 
 from cits.japan.broker.kabu_api import KabuStationAPI  # noqa: E402
 
-# ABSOLUTE RULE: NEVER SELL AT A LOSS
 ENTRY_PRICE = 580
-MIN_PROFIT_PRICE = ENTRY_PRICE + 5
 
 try:
     broker = KabuStationAPI()
@@ -38,21 +36,15 @@ try:
 
     board = broker.get_board("2170", exchange=1)
     price = board.get("CurrentPrice", 0)
-    print(f"Current price: {price}")
-    print(f"Entry price: {ENTRY_PRICE}")
-    print(f"Min profit price: {MIN_PROFIT_PRICE}")
+    pnl = (price - ENTRY_PRICE) if price > 0 else 0
+    print(f"Current price: {price}  Entry: {ENTRY_PRICE}  PnL: {pnl:+} yen")
 
     if price <= 0:
         print("ERROR: Cannot get current price. ABORT.")
         sys.exit(1)
 
-    if price < MIN_PROFIT_PRICE:
-        pnl = price - ENTRY_PRICE
-        print(f"PRICE TOO LOW: {price} < {MIN_PROFIT_PRICE} (would be {pnl:+} yen)")
-        print("RULE VIOLATION AVOIDED: Never sell at loss. HOLD.")
-        sys.exit(0)
-
-    print(f"Price OK: selling at market (profit: {price - ENTRY_PRICE:+} yen)")
+    # ストップロス規律: 損益に関わらず成行売り
+    print("Selling at market (stop loss discipline: execute regardless of PnL)")
 
     result = broker.place_order(
         symbol="2170", side="sell", qty=100,
@@ -63,7 +55,7 @@ try:
     if "error" not in result:
         MARKER.parent.mkdir(parents=True, exist_ok=True)
         MARKER.write_text(
-            f"Sold 2170 at price={price}. OrderId={result.get('OrderId', '?')}"
+            f"Sold 2170 at price={price} pnl={pnl:+}. OrderId={result.get('OrderId', '?')}"
         )
         print("SUCCESS: 2170 sold.")
     else:
