@@ -1,14 +1,14 @@
 [
   {
-    "id": "check_state_20260413_1910",
-    "type": "shell",
-    "command": "tasklist /fi \"IMAGENAME eq KabuS.exe\" /fo csv /nh && curl -s -X POST http://localhost:18080/kabusapi/token -H \"Content-Type: application/json\" -d \"{\\\"APIPassword\\\":\\\"hiroki0380\\\"}\" 2>&1 && echo STATE_DONE",
-    "timeout": 20
+    "id": "vnc_screenshot_check_20260413_1920",
+    "type": "python",
+    "timeout": 30,
+    "code": "import subprocess, os, struct\n\nVNCDO = r'\"C:\\cits\\venv\\Scripts\\vncdo.exe\" -s localhost::5900 -p cits2026'\nSCREENSHOT = r'C:\\cits\\logs\\screenshots\\state_check_1920.png'\nos.makedirs(r'C:\\cits\\logs\\screenshots', exist_ok=True)\n\nr = subprocess.run(f'{VNCDO} capture {SCREENSHOT}', shell=True, capture_output=True, text=True, timeout=20, encoding='cp932', errors='replace')\nprint(f'capture rc={r.returncode}')\nif r.stderr:\n    print(f'capture err: {r.stderr[:200]}')\n\ntry:\n    sz = os.path.getsize(SCREENSHOT)\n    print(f'screenshot_size: {sz} bytes')\n    with open(SCREENSHOT, 'rb') as f:\n        header = f.read(32)\n    if len(header) >= 24 and header[:8] == b'\\x89PNG\\r\\n\\x1a\\n':\n        w = struct.unpack('>I', header[16:20])[0]\n        h = struct.unpack('>I', header[20:24])[0]\n        print(f'screen_resolution: {w}x{h}')\n        print('VNC_DESKTOP_CONFIRMED' if sz > 50000 else 'WARNING_SMALL_SCREENSHOT')\n    else:\n        print(f'NOT_VALID_PNG header_hex={header[:16].hex()}')\nexcept Exception as e:\n    print(f'screenshot_error: {e}')\n"
   },
   {
-    "id": "vnc_start_kabu2_20260413_1911",
-    "type": "python",
-    "timeout": 160,
-    "code": "import subprocess, time\n\ndef vncdo(cmd, timeout=15):\n    full = r'\"C:\\cits\\venv\\Scripts\\vncdo.exe\" -s localhost::5900 -p cits2026 ' + cmd\n    r = subprocess.run(full, shell=True, capture_output=True, text=True, timeout=timeout, encoding='cp932', errors='replace')\n    print(f'vncdo({cmd[:30]}): rc={r.returncode} err={r.stderr[:80]}')\n    return r.returncode == 0\n\ndef kabu_running():\n    r = subprocess.run('tasklist /fi \"IMAGENAME eq KabuS.exe\" /fo csv /nh', shell=True, capture_output=True, text=True, timeout=5, encoding='cp932', errors='replace')\n    return 'KabuS' in r.stdout\n\nif kabu_running():\n    print('KabuS already running!')\nelse:\n    print('KabuS not running. Trying VNC Win+R...')\n    # Win+R ダイアログ\n    vncdo('key super-r', timeout=10)\n    time.sleep(2)\n    # KabuS.exe パスを入力\n    path = r'C:\\Users\\Administrator\\AppData\\Local\\kabuStation\\KabuS.exe'\n    vncdo(f'type \"{path}\"', timeout=20)\n    time.sleep(1)\n    vncdo('key Return', timeout=10)\n    print('Launched via VNC Win+R. Waiting 35s...')\n    time.sleep(35)\n    if kabu_running():\n        print('SUCCESS: KabuS.exe is running!')\n        time.sleep(10)\n        r = subprocess.run('curl -s -X POST http://localhost:18080/kabusapi/token -H \"Content-Type: application/json\" -d \"{\\\\\"APIPassword\\\\\":\\\\\"hiroki0380\\\\\"}\"', shell=True, capture_output=True, text=True, timeout=10, encoding='cp932', errors='replace')\n        print('API:', r.stdout[:200])\n    else:\n        # Fallback: schtasks\n        print('VNC Win+R failed. Trying schtasks CITS_KabuStation_Start...')\n        r = subprocess.run('schtasks /Run /TN \"CITS_KabuStation_Start\"', shell=True, capture_output=True, text=True, timeout=10, encoding='cp932', errors='replace')\n        print('schtasks result:', r.returncode, r.stdout[:100], r.stderr[:100])\n        time.sleep(40)\n        print('KabuS after schtasks:', 'RUNNING' if kabu_running() else 'NOT_FOUND')\n"
+    "id": "check_kabu_api_20260413_1921",
+    "type": "shell",
+    "command": "tasklist /fi \"IMAGENAME eq KabuS.exe\" /fo csv /nh && echo TASKLIST_DONE",
+    "timeout": 10
   }
 ]
