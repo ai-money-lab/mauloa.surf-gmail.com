@@ -1,20 +1,8 @@
 [
   {
-    "id": "diag_alive_20260413_1810",
-    "type": "shell",
-    "command": "echo AGENT_ALIVE && tasklist /fi \"IMAGENAME eq pythonw.exe\" /fo csv /nh && tasklist /fi \"IMAGENAME eq KabuS.exe\" /fo csv /nh && echo DIAG_DONE",
-    "timeout": 15
-  },
-  {
-    "id": "diag_logs_20260413_1811",
-    "type": "shell",
-    "command": "powershell -Command \"Get-Content C:\\cits\\logs\\vps_agent.log -Tail 40 | Out-String\" && powershell -Command \"if (Test-Path C:\\cits\\logs\\kabu_auto_login.log) { Get-Content C:\\cits\\logs\\kabu_auto_login.log -Tail 40 | Out-String } else { Write-Output 'NO_AUTO_LOGIN_LOG' }\"",
-    "timeout": 20
-  },
-  {
-    "id": "diag_api_20260413_1812",
-    "type": "shell",
-    "command": "curl -s -X POST http://localhost:18080/kabusapi/token -H \"Content-Type: application/json\" -d \"{\\\"APIPassword\\\":\\\"hiroki0380\\\"}\" && echo API_DONE || echo API_FAILED",
-    "timeout": 15
+    "id": "vnc_start_kabu_20260413_1900",
+    "type": "python",
+    "timeout": 120,
+    "code": "import subprocess, time, os\n\ndef vncdo(cmd, timeout=20):\n    full = r'\"C:\\cits\\venv\\Scripts\\vncdo.exe\" -s localhost::5900 -p cits2026 ' + cmd\n    r = subprocess.run(full, shell=True, capture_output=True, text=True, timeout=timeout, encoding='cp932', errors='replace')\n    print(f'vncdo({cmd[:40]}): rc={r.returncode} err={r.stderr[:80]}')\n    return r.returncode == 0\n\n# 1. 現在の状態確認\nr = subprocess.run('tasklist /fi \"IMAGENAME eq KabuS.exe\" /fo csv /nh', shell=True, capture_output=True, text=True, timeout=5, encoding='cp932', errors='replace')\nprint('KabuS before:', r.stdout.strip())\n\n# 2. VNCスクリーンショット（デスクトップ状態確認）\nos.makedirs(r'C:\\cits\\logs\\screenshots', exist_ok=True)\nvncdo(r'capture C:\\cits\\logs\\screenshots\\diag_before.png')\ntry:\n    sz = os.path.getsize(r'C:\\cits\\logs\\screenshots\\diag_before.png')\n    print(f'screenshot_before: {sz} bytes')\nexcept:\n    print('screenshot_before: NOT_FOUND')\n\n# 3. Win+R でKabuS.exe起動\nprint('Pressing Win+R...')\nvncdo('key super-r')\ntime.sleep(2)\nvncdo(r'capture C:\\cits\\logs\\screenshots\\diag_winr.png')\ntry:\n    print(f'screenshot_winr: {os.path.getsize(r\"C:\\cits\\logs\\screenshots\\diag_winr.png\")} bytes')\nexcept:\n    print('screenshot_winr: NOT_FOUND')\n\nvncdo('type \"C:\\\\Users\\\\Administrator\\\\AppData\\\\Local\\\\kabuStation\\\\KabuS.exe\"')\ntime.sleep(1)\nvncdo('key Return')\nprint('Enter pressed. Waiting 50s for kabuStation GUI...')\ntime.sleep(50)\n\n# 4. プロセス確認\nr = subprocess.run('tasklist /fi \"IMAGENAME eq KabuS.exe\" /fo csv /nh', shell=True, capture_output=True, text=True, timeout=5, encoding='cp932', errors='replace')\nprint('KabuS after VNC:', r.stdout.strip())\nvncdo(r'capture C:\\cits\\logs\\screenshots\\diag_after.png')\ntry:\n    print(f'screenshot_after: {os.path.getsize(r\"C:\\cits\\logs\\screenshots\\diag_after.png\")} bytes')\nexcept:\n    print('screenshot_after: NOT_FOUND')\n"
   }
 ]
