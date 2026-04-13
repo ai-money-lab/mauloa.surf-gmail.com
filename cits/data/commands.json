@@ -1,8 +1,20 @@
 [
   {
-    "id": "verify_20260413_1621",
+    "id": "kabu_api_20260413_1640",
+    "type": "python",
+    "code": "import requests; r=requests.post('http://localhost:18080/kabusapi/token',json={'APIPassword':'hiroki0380'},timeout=5); print('STATUS:', r.status_code); print('BODY:', r.text[:300])",
+    "timeout": 15
+  },
+  {
+    "id": "pos_monitor_fix_20260413_1640",
     "type": "shell",
-    "command": "schtasks /Query /FO CSV /NH 2>&1 | findstr CITS && echo --- && tasklist | findstr python && echo VERIFY_DONE",
+    "command": "schtasks /Create /TN CITS_PositionMonitor /RU SYSTEM /TR \"C:\\cits\\repo\\cits\\run_monitor.bat\" /SC MINUTE /MO 30 /ST 09:30 /ET 15:25 /RL HIGHEST /F && echo PM_OK",
+    "timeout": 15
+  },
+  {
+    "id": "full_status_20260413_1640",
+    "type": "shell",
+    "command": "tasklist | findstr pythonw && schtasks /Query /FO CSV /NH 2>&1 | findstr CITS | findstr -v HealthCheck | findstr -v Monitor | findstr -v StartKabu && echo STATUS_DONE",
     "timeout": 20
   }
 ]
