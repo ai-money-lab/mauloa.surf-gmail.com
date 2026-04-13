@@ -1,5 +1,11 @@
 [
   {
+    "id": "alive_test_20260413_c",
+    "type": "python",
+    "code": "import requests, base64, configparser, os, json\nfrom pathlib import Path\nREPO_ROOT = Path('C:/cits/repo')\ngit_cfg = REPO_ROOT / '.git' / 'config'\ncfg = configparser.ConfigParser(strict=False)\ncfg.read(str(git_cfg), encoding='utf-8')\nurl = cfg.get('remote \"origin\"', 'url', fallback='')\ntok = ''\nif '@github.com' in url and '//' in url:\n    tok = url.split('//', 1)[1].split('@', 1)[0]\ncache = Path('C:/cits/.github_token')\nif cache.exists():\n    ct = cache.read_text(encoding='utf-8').strip()\n    if ct: tok = ct\nif not tok: tok = os.environ.get('GITHUB_TOKEN', '')\ninfo = {'token_len': len(tok), 'url_format': 'token@' if '@github.com' in url else 'plain', 'cache_exists': cache.exists(), 'git_url_prefix': url[:30]}\ncontent_str = json.dumps(info, ensure_ascii=False)\nencoded = base64.b64encode(content_str.encode()).decode()\nheaders = {'Authorization': f'token {tok}', 'Accept': 'application/vnd.github.v3+json'}\nAPI = 'https://api.github.com/repos/ai-money-lab/mauloa.surf-gmail.com/contents/cits/data/alive_test.json'\nr_get = requests.get(API + '?ref=claude/continue-kabusute-DmFKB', headers=headers, timeout=10)\nsha = r_get.json().get('sha') if r_get.status_code == 200 else None\npayload = {'message': 'alive_test from vps_agent', 'content': encoded, 'branch': 'claude/continue-kabusute-DmFKB'}\nif sha: payload['sha'] = sha\nr = requests.put(API, headers=headers, json=payload, timeout=15)\nprint(f'alive_test API write: status={r.status_code} info={info} body={r.text[:100]}')",
+    "timeout": 30
+  },
+  {
     "id": "restart_agent_20260413_b",
     "type": "shell",
     "command": "start /min cmd /c \"timeout /t 600 /nobreak >nul & taskkill /f /im python.exe >nul 2>&1 & taskkill /f /im pythonw.exe >nul 2>&1 & C:\\cits\\repo\\cits\\run_agent.bat\" && echo RESTART_SCHEDULED",
