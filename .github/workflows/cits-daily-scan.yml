@@ -40,7 +40,7 @@ jobs:
         run: |
           pip install --quiet \
             "yfinance>=0.2.50" pandas numpy openpyxl xlrd requests \
-            python-dotenv pyyaml
+            python-dotenv pyyaml ta
 
       - name: Run scan
         env:

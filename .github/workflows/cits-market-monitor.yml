@@ -39,7 +39,8 @@ jobs:
       - name: Install dependencies
         run: |
           pip install --quiet \
-            "yfinance>=0.2.50" pandas requests python-dotenv pyyaml
+            "yfinance>=0.2.50" pandas numpy requests \
+            python-dotenv pyyaml ta
 
       - name: Fetch market status
         env:
