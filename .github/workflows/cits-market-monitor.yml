@@ -1,0 +1,58 @@
+name: CITS Market Monitor
+
+# Every 5 minutes during TSE trading hours (09:00-15:05 JST)
+# Fast: fetches only N225 + VIX (~10s), writes market_status.json
+# Claude reads this to give real-time market gate / N225 / VIX answers.
+
+on:
+  schedule:
+    # 09:00-15:05 JST = 00:00-06:05 UTC  (Mon-Fri)
+    - cron: '*/5 0 * * 1-5'   # 09:xx JST
+    - cron: '*/5 1 * * 1-5'   # 10:xx JST
+    - cron: '*/5 2 * * 1-5'   # 11:xx JST
+    - cron: '*/5 3 * * 1-5'   # 12:xx JST
+    - cron: '*/5 4 * * 1-5'   # 13:xx JST
+    - cron: '*/5 5 * * 1-5'   # 14:xx JST
+    - cron: '0,5 6 * * 1-5'   # 15:00, 15:05 JST (final update at close)
+  workflow_dispatch: {}
+
+concurrency:
+  group: cits-market-monitor
+  cancel-in-progress: true    # cancel stale runs immediately
+
+jobs:
+  monitor:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: claude/continue-kabusute-DmFKB
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          pip install --quiet \
+            "yfinance>=0.2.50" pandas requests python-dotenv pyyaml
+
+      - name: Fetch market status
+        env:
+          PYTHONPATH: ${{ github.workspace }}
+          TZ: Asia/Tokyo
+        run: python -m cits.scripts.run_scan_gha --market-only
+
+      - name: Commit market_status.json
+        run: |
+          git config user.name  "CITS GitHub Actions"
+          git config user.email "actions@github.com"
+          git pull --rebase origin claude/continue-kabusute-DmFKB
+          git add -f cits/data/market_status.json
+          git diff --cached --quiet && echo "No change" || \
+            git commit -m "market: $(TZ=Asia/Tokyo date '+%H:%M JST')"
+          git push origin claude/continue-kabusute-DmFKB

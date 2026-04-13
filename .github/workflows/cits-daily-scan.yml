@@ -1,36 +1,37 @@
 name: CITS Daily Scan
 
-# Runs independently of VPS — always produces scan_results.json
-# 09:30 JST  = 00:30 UTC  morning open scan
-# 14:50 JST  = 05:50 UTC  afternoon pre-close scan (main)
-# Manual dispatch for ad-hoc analysis
+# Full CIS + Kei-kun scan on all TSE tickers.
+# Runs twice daily at actionable times. Output: cits/data/scan_results.json
+# For real-time market gate status, see cits-market-monitor.yml
 
 on:
   schedule:
-    - cron: '30 0 * * 1-5'   # 09:30 JST (morning)
-    - cron: '50 5 * * 1-5'   # 14:50 JST (afternoon)
+    - cron: '30 0 * * 1-5'   # 09:30 JST (morning open)
+    - cron: '50 5 * * 1-5'   # 14:50 JST (pre-close)
   workflow_dispatch:
     inputs:
       etf_only:
-        description: 'ETF-only scan (fast, ~30s)'
+        description: 'ETF-only scan (fast)'
         required: false
         default: 'false'
         type: boolean
 
+concurrency:
+  group: cits-daily-scan
+  cancel-in-progress: false   # don't cancel a running full scan
+
 jobs:
   scan:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 20
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           ref: claude/continue-kabusute-DmFKB
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
           cache: pip
@@ -38,14 +39,8 @@ jobs:
       - name: Install dependencies
         run: |
           pip install --quiet \
-            yfinance>=0.2.50 \
-            pandas>=2.0 \
-            numpy>=1.26 \
-            openpyxl \
-            xlrd \
-            requests \
-            python-dotenv \
-            pyyaml
+            "yfinance>=0.2.50" pandas numpy openpyxl xlrd requests \
+            python-dotenv pyyaml
 
       - name: Run scan
         env:
@@ -58,10 +53,11 @@ jobs:
             python -m cits.scripts.run_scan_gha
           fi
 
-      - name: Commit scan results
+      - name: Commit results
         run: |
           git config user.name  "CITS GitHub Actions"
           git config user.email "actions@github.com"
+          git pull --rebase origin claude/continue-kabusute-DmFKB
           git add -f cits/data/scan_results.json
           git diff --cached --quiet && echo "No changes" || \
             git commit -m "scan: $(TZ=Asia/Tokyo date '+%Y-%m-%d %H:%M JST')"
