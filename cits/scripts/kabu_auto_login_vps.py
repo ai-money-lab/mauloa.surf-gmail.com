@@ -151,12 +151,12 @@ def start_kabu():
         log("kabuStation already running — skipping start")
         return
 
-    # Method 1: /IT付きタスクスケジューラ
+    # Method 1: タスクスケジューラ（CITS_KabuStation_Start が登録済み）
     r = subprocess.run(
-        'schtasks /Run /TN "CITS_KabuStart_IT"',
+        'schtasks /Run /TN "CITS_KabuStation_Start"',
         shell=True, capture_output=True, encoding="cp932", errors="replace", timeout=10,
     )
-    log(f"CITS_KabuStart_IT rc={r.returncode} {(r.stdout or '').strip()[:60]}")
+    log(f"CITS_KabuStation_Start rc={r.returncode} {(r.stdout or '').strip()[:60]}")
     time.sleep(30)  # 起動待ち
 
     if _kabu_running():
@@ -275,10 +275,12 @@ def login_flow() -> bool:
         log("Already logged in. Done.")
         return True
 
-    # Step 2: Kill & Restart
-    log("API not ready. Restarting kabuStation...")
-    kill_kabu()
-    start_kabu()
+    # Step 2: 起動確認（ログイン画面表示中は殺さない）
+    if _kabu_running():
+        log("kabuStation running (login screen). Skipping restart.")
+    else:
+        log("kabuStation not running. Starting...")
+        start_kabu()
 
     # Step 3: kabuStationウィンドウを前面に出す（MT5等が前面の可能性）
     log("Bringing kabuStation to front via taskbar click...")

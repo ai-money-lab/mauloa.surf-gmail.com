@@ -5,5 +5,12 @@
     "module": "cits.scripts.kabu_auto_login_vps",
     "args": [],
     "timeout": 380
+  },
+  {
+    "id": "kabu_login_flow_1945",
+    "type": "module",
+    "module": "cits.scripts.kabu_auto_login_vps",
+    "args": [],
+    "timeout": 380
   }
 ]
