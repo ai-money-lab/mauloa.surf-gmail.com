@@ -1,8 +1,8 @@
 [
   {
-    "id": "positions_20260413_1643",
+    "id": "dryrun_20260413_1645",
     "type": "python",
-    "code": "import requests; tok_r=requests.post('http://localhost:18080/kabusapi/token',json={'APIPassword':'hiroki0380'},timeout=5); tok=tok_r.json().get('Token',''); r=requests.get('http://localhost:18080/kabusapi/positions',headers={'X-API-KEY':tok},timeout=5); print('POS STATUS:', r.status_code); data=r.json() if r.status_code==200 else []; print('POSITIONS:', len(data) if isinstance(data,list) else data); [print(f\"  {p.get('Symbol')} qty={p.get('LeavesQty')} side={p.get('Side')} price={p.get('Price')}\") for p in (data if isinstance(data,list) else [])]",
-    "timeout": 15
+    "code": "import sys; sys.path.insert(0,'C:\\\\cits\\\\repo')\nfrom cits.japan.broker.kabu_api import KabuStationAPI\napi = KabuStationAPI()\ntok = api.get_token()\nprint('TOKEN:', tok[:16]+'...' if tok else 'NONE')\nbal = api.get_balance()\nprint('BALANCE:', bal)\nprint('DRYRUN_OK')",
+    "timeout": 20
   }
 ]
