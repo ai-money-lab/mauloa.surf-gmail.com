@@ -1,8 +1,20 @@
 [
   {
-    "id": "pull_restart_20260413_1930",
+    "id": "diag_alive_20260413_1810",
     "type": "shell",
-    "command": "cd C:\\cits\\repo && git fetch origin claude/continue-kabusute-DmFKB --quiet && git merge --ff-only origin/claude/continue-kabusute-DmFKB --quiet && git log --oneline -2 && echo PULL_OK && del /f C:\\cits\\vps_agent.pid 2>nul & echo PID_CLEARED && start /b C:\\cits\\venv\\Scripts\\pythonw.exe -m cits.scripts.vps_agent && echo VPS_RESTARTED",
-    "timeout": 30
+    "command": "echo AGENT_ALIVE && tasklist /fi \"IMAGENAME eq pythonw.exe\" /fo csv /nh && tasklist /fi \"IMAGENAME eq KabuS.exe\" /fo csv /nh && echo DIAG_DONE",
+    "timeout": 15
+  },
+  {
+    "id": "diag_logs_20260413_1811",
+    "type": "shell",
+    "command": "powershell -Command \"Get-Content C:\\cits\\logs\\vps_agent.log -Tail 40 | Out-String\" && powershell -Command \"if (Test-Path C:\\cits\\logs\\kabu_auto_login.log) { Get-Content C:\\cits\\logs\\kabu_auto_login.log -Tail 40 | Out-String } else { Write-Output 'NO_AUTO_LOGIN_LOG' }\"",
+    "timeout": 20
+  },
+  {
+    "id": "diag_api_20260413_1812",
+    "type": "shell",
+    "command": "curl -s -X POST http://localhost:18080/kabusapi/token -H \"Content-Type: application/json\" -d \"{\\\"APIPassword\\\":\\\"hiroki0380\\\"}\" && echo API_DONE || echo API_FAILED",
+    "timeout": 15
   }
 ]
