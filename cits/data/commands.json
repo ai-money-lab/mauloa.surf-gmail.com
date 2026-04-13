@@ -1,14 +1,8 @@
 [
   {
-    "id": "vnc_screenshot_check_20260413_1920",
+    "id": "vnc_unlock_20260413_1925",
     "type": "python",
-    "timeout": 30,
-    "code": "import subprocess, os, struct\n\nVNCDO = r'\"C:\\cits\\venv\\Scripts\\vncdo.exe\" -s localhost::5900 -p cits2026'\nSCREENSHOT = r'C:\\cits\\logs\\screenshots\\state_check_1920.png'\nos.makedirs(r'C:\\cits\\logs\\screenshots', exist_ok=True)\n\nr = subprocess.run(f'{VNCDO} capture {SCREENSHOT}', shell=True, capture_output=True, text=True, timeout=20, encoding='cp932', errors='replace')\nprint(f'capture rc={r.returncode}')\nif r.stderr:\n    print(f'capture err: {r.stderr[:200]}')\n\ntry:\n    sz = os.path.getsize(SCREENSHOT)\n    print(f'screenshot_size: {sz} bytes')\n    with open(SCREENSHOT, 'rb') as f:\n        header = f.read(32)\n    if len(header) >= 24 and header[:8] == b'\\x89PNG\\r\\n\\x1a\\n':\n        w = struct.unpack('>I', header[16:20])[0]\n        h = struct.unpack('>I', header[20:24])[0]\n        print(f'screen_resolution: {w}x{h}')\n        print('VNC_DESKTOP_CONFIRMED' if sz > 50000 else 'WARNING_SMALL_SCREENSHOT')\n    else:\n        print(f'NOT_VALID_PNG header_hex={header[:16].hex()}')\nexcept Exception as e:\n    print(f'screenshot_error: {e}')\n"
-  },
-  {
-    "id": "check_kabu_api_20260413_1921",
-    "type": "shell",
-    "command": "tasklist /fi \"IMAGENAME eq KabuS.exe\" /fo csv /nh && echo TASKLIST_DONE",
-    "timeout": 10
+    "timeout": 60,
+    "code": "import subprocess, os, struct, time\n\nVNCDO = r'\"C:\\cits\\venv\\Scripts\\vncdo.exe\" -s localhost::5900 -p cits2026'\nSS_DIR = r'C:\\cits\\logs\\screenshots'\nos.makedirs(SS_DIR, exist_ok=True)\n\ndef vncdo(cmd, timeout=15):\n    r = subprocess.run(f'{VNCDO} {cmd}', shell=True, capture_output=True, text=True, timeout=timeout, encoding='cp932', errors='replace')\n    print(f'vncdo({cmd[:40]}): rc={r.returncode} err={r.stderr[:100]}')\n    return r.returncode == 0\n\ndef screenshot_size(name):\n    path = fr'{SS_DIR}\\\\{name}.png'\n    r = subprocess.run(f'{VNCDO} capture {path}', shell=True, capture_output=True, text=True, timeout=15, encoding='cp932', errors='replace')\n    try:\n        sz = os.path.getsize(path)\n        with open(path, 'rb') as f:\n            hdr = f.read(24)\n        if len(hdr) >= 24 and hdr[:8] == b'\\x89PNG\\r\\n\\x1a\\n':\n            w = struct.unpack('>I', hdr[16:20])[0]\n            h = struct.unpack('>I', hdr[20:24])[0]\n            print(f'{name}: {sz}b {w}x{h}')\n        else:\n            print(f'{name}: {sz}b NOT_PNG')\n    except Exception as e:\n        print(f'{name}: ERROR {e}')\n\nscreenshot_size('before_unlock')\n\n# Ctrl+Alt+Del でロック解除を試みる\nprint('Sending Ctrl+Alt+Del...')\nvncdo('key ctrl-alt-Delete')\ntime.sleep(3)\nscreenshot_size('after_ctrl_alt_del')\n\n# もしパスワード入力画面が出ていればパスワードを試みる\n# Administrator よく使われるパターン:\n# VNCパスワードと同じ? cits2026\n# または空 (Windows auto-login)\nprint('Trying Enter (empty pass or auto-login)...')\nvncdo('key Return')\ntime.sleep(2)\nscreenshot_size('after_enter')\n\nprint('Done.')\n"
   }
 ]
