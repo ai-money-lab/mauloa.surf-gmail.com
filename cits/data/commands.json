@@ -1,8 +1,14 @@
 [
   {
-    "id": "vnc_unlock_20260413_1925",
-    "type": "python",
-    "timeout": 60,
-    "code": "import subprocess, os, struct, time\n\nVNCDO = r'\"C:\\cits\\venv\\Scripts\\vncdo.exe\" -s localhost::5900 -p cits2026'\nSS_DIR = r'C:\\cits\\logs\\screenshots'\nos.makedirs(SS_DIR, exist_ok=True)\n\ndef vncdo(cmd, timeout=15):\n    r = subprocess.run(f'{VNCDO} {cmd}', shell=True, capture_output=True, text=True, timeout=timeout, encoding='cp932', errors='replace')\n    print(f'vncdo({cmd[:40]}): rc={r.returncode} err={r.stderr[:100]}')\n    return r.returncode == 0\n\ndef screenshot_size(name):\n    path = fr'{SS_DIR}\\\\{name}.png'\n    r = subprocess.run(f'{VNCDO} capture {path}', shell=True, capture_output=True, text=True, timeout=15, encoding='cp932', errors='replace')\n    try:\n        sz = os.path.getsize(path)\n        with open(path, 'rb') as f:\n            hdr = f.read(24)\n        if len(hdr) >= 24 and hdr[:8] == b'\\x89PNG\\r\\n\\x1a\\n':\n            w = struct.unpack('>I', hdr[16:20])[0]\n            h = struct.unpack('>I', hdr[20:24])[0]\n            print(f'{name}: {sz}b {w}x{h}')\n        else:\n            print(f'{name}: {sz}b NOT_PNG')\n    except Exception as e:\n        print(f'{name}: ERROR {e}')\n\nscreenshot_size('before_unlock')\n\n# Ctrl+Alt+Del でロック解除を試みる\nprint('Sending Ctrl+Alt+Del...')\nvncdo('key ctrl-alt-Delete')\ntime.sleep(3)\nscreenshot_size('after_ctrl_alt_del')\n\n# もしパスワード入力画面が出ていればパスワードを試みる\n# Administrator よく使われるパターン:\n# VNCパスワードと同じ? cits2026\n# または空 (Windows auto-login)\nprint('Trying Enter (empty pass or auto-login)...')\nvncdo('key Return')\ntime.sleep(2)\nscreenshot_size('after_enter')\n\nprint('Done.')\n"
+    "id": "session_diag_20260413_1930",
+    "type": "shell",
+    "command": "qwinsta 2>&1 && echo SESSION_DONE && reg query \"HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon\" /v AutoAdminLogon 2>&1 && reg query \"HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon\" /v SoftwareSASGeneration 2>&1 && sc query tvnserver 2>&1 | findstr /i \"STATE\\|RUNNING\"",
+    "timeout": 20
+  },
+  {
+    "id": "enable_sas_and_vnc_20260413_1931",
+    "type": "shell",
+    "command": "reg add \"HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon\" /v SoftwareSASGeneration /t REG_DWORD /d 3 /f && echo SAS_ENABLED && sc stop tvnserver && sc start tvnserver && timeout /t 3 /nobreak 2>nul & echo TVNSERVER_RESTARTED",
+    "timeout": 30
   }
 ]
