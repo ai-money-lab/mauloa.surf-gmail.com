@@ -2,10 +2,13 @@
 session1_click_login.py -- runs IN Administrator's interactive session (Session 1).
 Uses ctypes mouse_event to click kabuStation login button and handle 2FA.
 Writes result to C:\\cits\\session1_login_result.json.
+
+Run with pythonw.exe (no console window) so nothing steals focus from kabuStation.
 """
 import sys
 import os
 import ctypes
+import ctypes.wintypes
 import time
 import subprocess
 import json
@@ -17,7 +20,6 @@ if REPO_ROOT not in sys.path:
     sys.path.insert(0, REPO_ROOT)
 os.chdir(REPO_ROOT)
 
-# Load .env for GMAIL_APP_PASSWORD etc.
 try:
     from dotenv import load_dotenv
     load_dotenv(os.path.join(REPO_ROOT, "cits", ".env"), override=True)
@@ -44,10 +46,33 @@ VK_CONTROL = 0x11
 VK_V       = 0x56
 SW_RESTORE = 9
 
+DIAGNOSTICS: list = []
+
 
 def _log(msg: str) -> None:
     ts = datetime.now().strftime("%H:%M:%S")
-    print(f"[{ts}] {msg}", flush=True)
+    line = f"[{ts}] {msg}"
+    try:
+        print(line, flush=True)
+    except Exception:
+        pass
+    DIAGNOSTICS.append(line)
+
+
+class POINT(ctypes.Structure):
+    _fields_ = [("x", ctypes.c_long), ("y", ctypes.c_long)]
+
+
+def get_window_title(hwnd: int) -> str:
+    if not hwnd:
+        return ""
+    try:
+        length = ctypes.windll.user32.GetWindowTextLengthW(hwnd)
+        buf = ctypes.create_unicode_buffer(length + 1)
+        ctypes.windll.user32.GetWindowTextW(hwnd, buf, length + 1)
+        return buf.value
+    except Exception:
+        return ""
 
 
 def click_at(x: int, y: int) -> None:
@@ -62,7 +87,6 @@ def click_at(x: int, y: int) -> None:
 
 
 def paste_text(text: str) -> None:
-    """Set clipboard via PowerShell then paste with Ctrl+V."""
     subprocess.run(
         ["powershell", "-NoProfile", "-Command", f'Set-Clipboard -Value "{text}"'],
         capture_output=True, timeout=5,
@@ -78,9 +102,9 @@ def paste_text(text: str) -> None:
     _log(f"pasted text (len={len(text)})")
 
 
-def bring_kabu_to_front() -> bool:
-    """Use MainWindowHandle + SetForegroundWindow instead of taskbar click.
-    Taskbar click toggles window (minimizes if already foreground).
+def bring_kabu_to_front() -> tuple[bool, int]:
+    """Use MainWindowHandle + SetForegroundWindow.
+    Returns (success, hwnd).
     """
     try:
         r = subprocess.run(
@@ -91,24 +115,39 @@ def bring_kabu_to_front() -> bool:
             encoding="utf-8", errors="replace",
         )
         hwnd_str = (r.stdout or "").strip()
-        _log(f"KabuS MainWindowHandle raw: {hwnd_str!r}")
+        _log(f"KabuS MainWindowHandle: {hwnd_str!r}")
         if hwnd_str and hwnd_str.isdigit() and int(hwnd_str) != 0:
             hwnd = int(hwnd_str)
             user32 = ctypes.windll.user32
+
+            # Log window rect before restoring
+            rect = ctypes.wintypes.RECT()
+            user32.GetWindowRect(hwnd, ctypes.byref(rect))
+            _log(f"KabuS window rect: left={rect.left}, top={rect.top}, right={rect.right}, bottom={rect.bottom}")
+
             user32.ShowWindow(hwnd, SW_RESTORE)
             time.sleep(0.5)
-            user32.SetForegroundWindow(hwnd)
-            time.sleep(1.5)
-            _log(f"SetForegroundWindow({hwnd}) done")
-            return True
-        _log(f"MainWindowHandle=0 or blank, falling back to taskbar click")
+            rc = user32.SetForegroundWindow(hwnd)
+            time.sleep(2)  # extra wait for window to become active
+            _log(f"SetForegroundWindow({hwnd}) -> rc={rc}")
+
+            # Verify: which window is foreground now?
+            fg_hwnd = user32.GetForegroundWindow()
+            fg_title = get_window_title(fg_hwnd)
+            _log(f"Foreground window after SetForegroundWindow: hwnd={fg_hwnd}, title={fg_title!r}")
+
+            # Which window is at the login button position?
+            pt = POINT(LOGIN_BTN[0], LOGIN_BTN[1])
+            win_at_btn = user32.WindowFromPoint(pt)
+            win_at_btn_title = get_window_title(win_at_btn)
+            _log(f"Window at LOGIN_BTN {LOGIN_BTN}: hwnd={win_at_btn}, title={win_at_btn_title!r}")
+
+            return True, hwnd
+        _log("MainWindowHandle=0 or blank")
     except Exception as e:
         _log(f"bring_kabu_to_front error: {e}")
 
-    # Fallback: taskbar click
-    click_at(*TASKBAR_KABU)
-    time.sleep(3)
-    return False
+    return False, 0
 
 
 def kabu_running() -> bool:
@@ -129,13 +168,17 @@ def check_api() -> bool:
             shell=True, capture_output=True, text=True,
             timeout=8, encoding="cp932", errors="replace",
         )
-        return '"Token"' in (r.stdout or "")
-    except Exception:
+        ok = '"Token"' in (r.stdout or "")
+        _log(f"check_api -> {'OK' if ok else 'NOT_READY'} ({r.stdout[:60]!r})")
+        return ok
+    except Exception as e:
+        _log(f"check_api error: {e}")
         return False
 
 
 def main() -> dict:
     result = {"status": "unknown", "ts": datetime.now().isoformat()}
+    _log(f"session1_click_login started at {result['ts']}")
 
     # Step 1: Ensure kabuStation is running
     if not kabu_running():
@@ -144,6 +187,7 @@ def main() -> dict:
         time.sleep(30)
         if not kabu_running():
             result["status"] = "FAILED: kabuStation did not start"
+            result["diagnostics"] = DIAGNOSTICS
             return result
         _log("KabuS started")
     else:
@@ -153,25 +197,27 @@ def main() -> dict:
     if check_api():
         result["status"] = "ALREADY_LOGGED_IN"
         _log("Already logged in!")
+        result["diagnostics"] = DIAGNOSTICS
         return result
 
-    # Step 3: Bring kabuStation window to front using MainWindowHandle API
-    _log("Bringing kabuStation to foreground via SetForegroundWindow...")
-    brought = bring_kabu_to_front()
-    result["window_focused"] = brought
-    time.sleep(1)
+    # Step 3: Bring kabuStation window to front
+    _log("Bringing kabuStation to foreground...")
+    focused, kabu_hwnd = bring_kabu_to_front()
+    result["window_focused"] = focused
+    result["kabu_hwnd"] = kabu_hwnd
 
     # Step 4: Click login button
-    _log("Clicking LOGIN_BTN (779, 475)...")
+    _log(f"Clicking LOGIN_BTN {LOGIN_BTN}...")
     login_clicked_at = datetime.now()
     click_at(*LOGIN_BTN)
-    time.sleep(20)  # slightly longer wait for login
+    time.sleep(20)
     result["login_click_at"] = login_clicked_at.isoformat()
 
     # Step 5: Check if login succeeded without 2FA
     if check_api():
         result["status"] = "LOGIN_SUCCESS_NO_2FA"
         _log("LOGIN SUCCESS (no 2FA)!")
+        result["diagnostics"] = DIAGNOSTICS
         return result
 
     # Step 6: Get 2FA code from Gmail
@@ -188,6 +234,7 @@ def main() -> dict:
     if not code:
         result["status"] = "FAILED: no 2FA code"
         _log("No 2FA code received")
+        result["diagnostics"] = DIAGNOSTICS
         return result
 
     _log(f"2FA code: {code}")
@@ -209,6 +256,7 @@ def main() -> dict:
         result["status"] = "FAILED: API not ready after 2FA"
         _log("Login failed after 2FA")
 
+    result["diagnostics"] = DIAGNOSTICS
     return result
 
 
@@ -217,10 +265,17 @@ if __name__ == "__main__":
         r = main()
     except Exception as exc:
         import traceback
-        r = {"status": f"EXCEPTION: {exc}", "tb": traceback.format_exc()}
+        r = {
+            "status": f"EXCEPTION: {exc}",
+            "tb": traceback.format_exc(),
+            "diagnostics": DIAGNOSTICS,
+        }
         _log(f"Exception: {exc}")
 
     with open(RESULT_FILE, "w", encoding="utf-8") as f:
         json.dump(r, f, indent=2, ensure_ascii=False)
     _log(f"Result written: {r.get('status')}")
-    print(json.dumps(r, ensure_ascii=False))
+    try:
+        print(json.dumps(r, ensure_ascii=False))
+    except Exception:
+        pass
