@@ -1,16 +1,6 @@
 {
-  "timestamp": "2026-04-13T16:16:17.032440",
+  "timestamp": "2026-04-13T16:20:39.890108",
   "agent": "vps_agent",
   "git_mode": "git",
-  "results": [
-    {
-      "id": "diag_20260413_1615",
-      "type": "shell",
-      "status": "ok",
-      "timestamp": "2026-04-13T16:16:09.160961",
-      "returncode": 0,
-      "stdout": "DIAG_START \nb6f48c6 commands: diag_20260413_1615 窶� force vps_agent push + status check\npythonw.exe                  11568 Console                    1      5,244 K\npythonw.exe                   7004 Console                    1     16,024 K\n\"\\CITS_Afternoon\",\"2026/04/14 15:20:00\",\"準備完了\"\n\"\\CITS_HealthCheck_07\",\"2026/04/14 7:00:00\",\"準備完了\"\n\"\\CITS_HealthCheck_08\",\"2026/04/14 8:00:00\",\"準備完了\"\n\"\\CITS_HealthCheck_14\",\"2026/04/14 14:30:00\",\"準備完了\"\n\"\\CITS_KabuLogin_0700\",\"2026/04/14 7:00:00\",\"準備完了\"\n\"\\CITS_KabuStation_Start\",\"2026/04/14 8:25:00\",\"準備完了\"\n\"\\CITS_LiveTrader\",\"2026/04/14 8:30:00\",\"準備完了\"\n\"\\CITS_Monitor_0930\",\"2026/04/14 9:30:00\",\"準備完了\"\n\"\\CITS_Monitor_1000\",\"2026/04/14 10:00:00\",\"準備完了\"\n\"\\CITS_Monitor_1030\",\"2026/04/14 10:30:00\",\"準備完了\"\n\"\\CITS_Monitor_1100\",\"2026/04/14 11:00:00\",\"準備完了\"\n\"\\CITS_Monitor_1300\",\"2026/04/14 13:00:00\",\"準備完了\"\n\"\\CITS_Monitor_1330\",\"2026/04/14 13:30:00\",\"準備完了\"\n\"\\CITS_Monitor_1400\",\"2026/04/14 14:00:00\",\"準備完了\"\n\"\\CITS_Monitor_1430\",\"2026/04/14 14:30:00\",\"準備完了\"\n\"\\CITS_Monitor_1500\",\"2026/04/14 15:00:00\",\"準備完了\"\n\"\\CITS_Monitor_1520\",\"2026/04/14 15:20:00\",\"準備完了\"\n\"\\CITS_PositionMonitor\",\"N/A\",\"準備完了\"\n\"\\CITS_Prefetch\",\"2026/04/14 14:00:00\",\"準備完了\"\n\"\\CITS_StartKabu\",\"N/A\",\"準備完了\"\n\"\\CITS_StartupRecovery\",\"N/A\",\"準備完了\"\n\"\\CITS_VPSAgent\",\"N/A\",\"準備完了\"\n\"\\CITS_Watchdog\",\"2026/04/13 16:20:00\",\"準備完了\"\nDIAG_DONE\n",
-      "stderr": ""
-    }
-  ]
+  "results": []
 }
