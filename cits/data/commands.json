@@ -1,8 +1,8 @@
 [
   {
-    "id": "dryrun2_20260413_1648",
+    "id": "orders_detail_20260413_1652",
     "type": "python",
-    "code": "import sys; sys.path.insert(0,'C:\\\\cits\\\\repo')\nfrom cits.japan.broker.kabu_api import KabuStationAPI\napi = KabuStationAPI()\npos = api.get_positions()\nprint('POSITIONS:', len(pos) if isinstance(pos,list) else pos)\norders = api.get_orders()\nprint('ORDERS:', len(orders) if isinstance(orders,list) else orders)\nprint('API_DRYRUN_OK')",
-    "timeout": 20
+    "code": "import sys; sys.path.insert(0,'C:\\\\cits\\\\repo')\nfrom cits.japan.broker.kabu_api import KabuStationAPI\napi = KabuStationAPI()\norders = api.get_orders()\nif isinstance(orders, list):\n    for o in orders:\n        print(f\"ORDER: {o.get('OrderID')} sym={o.get('Symbol')} side={o.get('Side')} qty={o.get('OrderQty')} price={o.get('Price')} state={o.get('State')} stateText={o.get('OrderStateText')}\")\nelse:\n    print('ORDERS_RAW:', orders)\nprint('ORDERS_DONE')",
+    "timeout": 15
   }
 ]
