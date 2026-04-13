@@ -1,8 +1,8 @@
 [
   {
-    "id": "diag_20260413_1615",
+    "id": "verify_20260413_1621",
     "type": "shell",
-    "command": "echo DIAG_START && git -C C:\\cits\\repo log --oneline -1 && tasklist | findstr python && schtasks /Query /FO CSV /NH 2>&1 | findstr CITS && echo DIAG_DONE",
-    "timeout": 30
+    "command": "schtasks /Query /FO CSV /NH 2>&1 | findstr CITS && echo --- && tasklist | findstr python && echo VERIFY_DONE",
+    "timeout": 20
   }
 ]
