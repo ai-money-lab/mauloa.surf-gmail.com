@@ -1,8 +1,8 @@
 [
   {
-    "id": "verify_newcode_20260413_1910",
+    "id": "pull_restart_20260413_1930",
     "type": "shell",
-    "command": "cd C:\\cits\\repo && git log --oneline -3 && echo GIT_OK && tasklist | findstr pythonw && echo PYTHONW_COUNT_OK",
-    "timeout": 20
+    "command": "cd C:\\cits\\repo && git fetch origin claude/continue-kabusute-DmFKB --quiet && git merge --ff-only origin/claude/continue-kabusute-DmFKB --quiet && git log --oneline -2 && echo PULL_OK && del /f C:\\cits\\vps_agent.pid 2>nul & echo PID_CLEARED && start /b C:\\cits\\venv\\Scripts\\pythonw.exe -m cits.scripts.vps_agent && echo VPS_RESTARTED",
+    "timeout": 30
   }
 ]
