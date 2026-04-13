@@ -324,10 +324,19 @@ def execute_command(cmd: dict) -> dict:
 # ─────────────────────────────────────────────
 
 def _pid_is_alive(pid: str) -> bool:
-    """Return True if the given PID is an active process (Windows tasklist)."""
+    """Return True if a pythonw.exe process with the given PID is running.
+
+    Filters by both PID and IMAGENAME to avoid false positives from PID reuse
+    (Windows recycles PIDs; an unrelated process could occupy the same PID).
+    """
     try:
         r = subprocess.run(
-            ["tasklist", "/fi", f"PID eq {pid}", "/fo", "csv", "/nh"],
+            [
+                "tasklist",
+                "/fi", f"PID eq {pid}",
+                "/fi", "IMAGENAME eq pythonw.exe",
+                "/fo", "csv", "/nh",
+            ],
             capture_output=True, text=True, timeout=5,
         )
         return pid in r.stdout
