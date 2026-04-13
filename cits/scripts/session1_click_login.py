@@ -666,10 +666,20 @@ def main() -> dict:
     _log(f"[2FA] Clicking submit at {TWO_FA_SUBMIT}...")
     if not vnc_rfb_click(*TWO_FA_SUBMIT):
         post_click_cef(*TWO_FA_SUBMIT)
-    time.sleep(25)
 
-    # Step 8: Final check
-    if check_api():
+    # Step 8: API確認（最大90秒ポーリング）
+    # kabuStationの内部認証処理（サーバー通信）に時間がかかるため固定待機ではなくポーリング
+    _log("2FA submitted. Polling API for up to 90s...")
+    login_ok = False
+    for attempt in range(18):  # 18 × 5s = 90s
+        time.sleep(5)
+        if check_api():
+            _log(f"LOGIN SUCCESS (with 2FA) after {(attempt+1)*5}s")
+            login_ok = True
+            break
+        _log(f"  API not ready ({(attempt+1)*5}s)...")
+
+    if login_ok:
         result["status"] = "LOGIN_SUCCESS_WITH_2FA"
         _log("LOGIN SUCCESS (with 2FA)!")
     else:

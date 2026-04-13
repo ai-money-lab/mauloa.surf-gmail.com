@@ -51,9 +51,9 @@ if not GMAIL_APP_PASSWORD:
 # kabuStationログイン画面の座標（VPS実座標 1024x768）
 # noVNC描画領域(590,105)-(1589,752) = 999x647 → VPS 1024x768 にマップ
 # 変換式: VPS_X = (noVNC_X - 590) / 999 * 1024, VPS_Y = (noVNC_Y - 105) / 647 * 768
-LOGIN_BTN = (779, 475)      # ログインボタン
-TWO_FA_INPUT = (769, 455)   # 2FAコード入力フィールド
-TWO_FA_SUBMIT = (769, 530)  # 続けるボタン
+LOGIN_BTN = (779, 505)      # ログインボタン（VNC実座標 confirmed 2026-04-13）
+TWO_FA_INPUT = (762, 445)   # 2FAコード入力フィールド（confirmed 2026-04-13）
+TWO_FA_SUBMIT = (762, 519)  # 続けるボタン（confirmed 2026-04-13）
 # スタートメニュー経由の起動座標（タスクバー: VPS Y=748付近）
 TASKBAR_START = (20, 750)   # スタートメニュー
 TASKBAR_KABU = (449, 750)   # kabuStationタスクバーアイコン（前面化用）
@@ -237,6 +237,16 @@ def get_2fa_from_gmail(max_wait_sec: int = 180, not_before: datetime | None = No
                         log(f"2FA code too old (age={age_minutes:.1f}min), skipping")
                         continue
 
+                    # not_before フィルター: ログイン操作より前のメールは無視
+                    if not_before is not None:
+                        try:
+                            mail_ts = email.utils.parsedate_to_datetime(msg["Date"]).timestamp()
+                            if mail_ts <= not_before.timestamp():
+                                log("2FA code predates login click, skipping")
+                                continue
+                        except Exception:
+                            pass  # 変換失敗は無視（age_minutesで十分）
+
                     # 本文からコード抽出
                     body = ""
                     if msg.is_multipart():
@@ -316,16 +326,20 @@ def login_flow() -> bool:
     vnc_type(code)
     time.sleep(1)
     vnc_click(*TWO_FA_SUBMIT)
-    time.sleep(15)
+    log("2FA submitted. Polling API for up to 90s...")
 
     vnc_screenshot("after_2fa")
 
-    # Step 8: API確認
-    if check_api():
-        log("LOGIN SUCCESS (with 2FA)")
-        return True
+    # Step 8: API確認（最大90秒ポーリング）
+    # kabuStationの内部認証処理（サーバーとの通信）に時間がかかるため
+    for attempt in range(18):  # 18 × 5s = 90s
+        time.sleep(5)
+        if check_api():
+            log(f"LOGIN SUCCESS (with 2FA) after {(attempt+1)*5}s")
+            return True
+        log(f"  API not ready yet ({(attempt+1)*5}s)...")
 
-    log("FAILED: API still not ready after 2FA")
+    log("FAILED: API still not ready after 90s")
     return False
 
 
