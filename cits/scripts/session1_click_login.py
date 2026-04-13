@@ -32,7 +32,6 @@ RESULT_FILE = r"C:\cits\session1_login_result.json"
 LOGIN_BTN      = (779, 475)
 TWO_FA_INPUT   = (769, 455)
 TWO_FA_SUBMIT  = (769, 530)
-TASKBAR_KABU   = (449, 750)
 KABU_EXE       = r"C:\Users\Administrator\AppData\Local\kabuStation\KabuS.exe"
 SCREEN_W, SCREEN_H = 1024, 768
 
@@ -42,6 +41,7 @@ MOUSEEVENTF_LEFTDOWN  = 0x0002
 MOUSEEVENTF_LEFTUP    = 0x0004
 MOUSEEVENTF_ABSOLUTE  = 0x8000
 KEYEVENTF_KEYUP       = 0x0002
+VK_RETURN  = 0x0D
 VK_CONTROL = 0x11
 VK_V       = 0x56
 SW_RESTORE = 9
@@ -76,14 +76,24 @@ def get_window_title(hwnd: int) -> str:
 
 
 def click_at(x: int, y: int) -> None:
+    """Move mouse to position (hover), then click."""
     ax = int(x * 65535 / SCREEN_W)
     ay = int(y * 65535 / SCREEN_H)
+    # Move first and wait for hover effects
     ctypes.windll.user32.mouse_event(MOUSEEVENTF_MOVE | MOUSEEVENTF_ABSOLUTE, ax, ay, 0, 0)
+    time.sleep(0.5)
+    ctypes.windll.user32.mouse_event(MOUSEEVENTF_LEFTDOWN | MOUSEEVENTF_ABSOLUTE, ax, ay, 0, 0)
     time.sleep(0.1)
-    ctypes.windll.user32.mouse_event(MOUSEEVENTF_LEFTDOWN, ax, ay, 0, 0)
-    time.sleep(0.05)
-    ctypes.windll.user32.mouse_event(MOUSEEVENTF_LEFTUP, ax, ay, 0, 0)
+    ctypes.windll.user32.mouse_event(MOUSEEVENTF_LEFTUP | MOUSEEVENTF_ABSOLUTE, ax, ay, 0, 0)
     _log(f"click_at({x}, {y})")
+
+
+def press_enter() -> None:
+    """Press Enter key (triggers default button on forms)."""
+    ctypes.windll.user32.keybd_event(VK_RETURN, 0, 0, 0)
+    time.sleep(0.05)
+    ctypes.windll.user32.keybd_event(VK_RETURN, 0, KEYEVENTF_KEYUP, 0)
+    _log("press_enter()")
 
 
 def paste_text(text: str) -> None:
@@ -103,7 +113,7 @@ def paste_text(text: str) -> None:
 
 
 def bring_kabu_to_front() -> tuple[bool, int]:
-    """Use MainWindowHandle + SetForegroundWindow + clear any blocking windows.
+    """Use MainWindowHandle + SetForegroundWindow.
     Returns (success, hwnd).
     """
     GA_ROOT = 2
@@ -136,28 +146,24 @@ def bring_kabu_to_front() -> tuple[bool, int]:
             time.sleep(1)
             _log(f"SetForegroundWindow({hwnd}) -> rc={rc}")
 
-            # Check and clear any window blocking the login button
+            # Check what's at login button position
             pt = POINT(LOGIN_BTN[0], LOGIN_BTN[1])
             win_at = user32.WindowFromPoint(pt)
             win_title = get_window_title(win_at)
             _log(f"Window at LOGIN_BTN {LOGIN_BTN}: hwnd={win_at}, title={win_title!r}")
 
             if win_at and win_at != hwnd:
-                # Check if it's a child/descendant of kabuStation (e.g. CEF component)
                 top = user32.GetAncestor(win_at, GA_ROOT) or win_at
                 if top == hwnd:
-                    _log(f"Window at LOGIN_BTN is kabuStation CEF child (hwnd={win_at}) - OK, no blocker")
+                    _log(f"Window at LOGIN_BTN is kabuStation CEF child (hwnd={win_at}) - OK")
                 else:
-                    # Foreign window is truly blocking
                     top_title = get_window_title(top)
                     _log(f"BLOCKING foreign window: minimizing hwnd={top}, title={top_title!r}")
                     user32.ShowWindow(top, 6)  # SW_MINIMIZE
                     time.sleep(0.5)
-                    # Bring kabu back to top
                     user32.SetWindowPos(hwnd, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE)
                     user32.SetForegroundWindow(hwnd)
                     time.sleep(1)
-                    # Verify
                     win_at2 = user32.WindowFromPoint(pt)
                     _log(f"After minimize, window at LOGIN_BTN: hwnd={win_at2}, title={get_window_title(win_at2)!r}")
 
@@ -188,11 +194,42 @@ def check_api() -> bool:
             timeout=8, encoding="cp932", errors="replace",
         )
         ok = '"Token"' in (r.stdout or "")
-        _log(f"check_api -> {'OK' if ok else 'NOT_READY'} ({r.stdout[:60]!r})")
+        _log(f"check_api -> {'OK' if ok else 'NOT_READY'} ({(r.stdout or '')[:80]!r})")
         return ok
     except Exception as e:
         _log(f"check_api error: {e}")
         return False
+
+
+def check_gmail_diagnostic() -> str:
+    """Check if ANY kabu 2FA email exists in Gmail INBOX (diagnostic only)."""
+    try:
+        import imaplib
+        from pathlib import Path
+        env_path = Path(r"C:\cits\repo\cits\.env")
+        pwd = ""
+        for line in env_path.read_text(encoding="utf-8").splitlines():
+            if line.startswith("GMAIL_APP_PASSWORD="):
+                pwd = line.split("=", 1)[1].strip()
+        if not pwd:
+            return "no_gmail_password"
+        mail = imaplib.IMAP4_SSL("imap.gmail.com")
+        mail.login("mauloa.surf@gmail.com", pwd)
+        mail.select("INBOX")
+        _, msgs = mail.search(None, 'FROM "no-reply@mail.kabu.com"')
+        count = len(msgs[0].split()) if msgs[0] else 0
+        result = f"gmail_kabu_emails_in_inbox={count}"
+        if count > 0:
+            # Fetch subject+date of latest
+            uid = msgs[0].split()[-1]
+            _, data = mail.fetch(uid, "(BODY[HEADER.FIELDS (DATE SUBJECT)])")
+            if data and data[0]:
+                header = data[0][1].decode("utf-8", errors="replace").strip()
+                result += f" | latest_header: {header[:200]}"
+        mail.logout()
+        return result
+    except Exception as e:
+        return f"gmail_check_error: {e}"
 
 
 def main() -> dict:
@@ -203,12 +240,13 @@ def main() -> dict:
     if not kabu_running():
         _log("KabuS not running — starting directly...")
         subprocess.Popen([KABU_EXE])
-        time.sleep(30)
+        time.sleep(35)
         if not kabu_running():
             result["status"] = "FAILED: kabuStation did not start"
             result["diagnostics"] = DIAGNOSTICS
             return result
-        _log("KabuS started")
+        _log("KabuS started, waiting 15s more for UI to fully load...")
+        time.sleep(15)
     else:
         _log("KabuS already running")
 
@@ -219,16 +257,19 @@ def main() -> dict:
         result["diagnostics"] = DIAGNOSTICS
         return result
 
-    # Step 3: Bring kabuStation window to front
+    # Step 3: Bring kabuStation to front
     _log("Bringing kabuStation to foreground...")
     focused, kabu_hwnd = bring_kabu_to_front()
     result["window_focused"] = focused
     result["kabu_hwnd"] = kabu_hwnd
+    time.sleep(1)
 
-    # Step 4: Click login button
-    _log(f"Clicking LOGIN_BTN {LOGIN_BTN}...")
+    # Step 4: Click login button AND press Enter (double approach)
+    _log(f"Clicking LOGIN_BTN {LOGIN_BTN} then pressing Enter...")
     login_clicked_at = datetime.now()
     click_at(*LOGIN_BTN)
+    time.sleep(0.5)
+    press_enter()          # Enter key as backup (triggers default button)
     time.sleep(20)
     result["login_click_at"] = login_clicked_at.isoformat()
 
@@ -238,6 +279,12 @@ def main() -> dict:
         _log("LOGIN SUCCESS (no 2FA)!")
         result["diagnostics"] = DIAGNOSTICS
         return result
+
+    # Step 5b: Gmail diagnostic — how many kabu emails exist at all?
+    _log("Running Gmail diagnostic...")
+    gmail_diag = check_gmail_diagnostic()
+    _log(f"Gmail diagnostic: {gmail_diag}")
+    result["gmail_diagnostic"] = gmail_diag
 
     # Step 6: Get 2FA code from Gmail
     _log("2FA required. Fetching from Gmail...")
