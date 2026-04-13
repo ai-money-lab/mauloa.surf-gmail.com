@@ -1,32 +1,14 @@
 {
-  "timestamp": "2026-04-13T16:42:42.473395",
+  "timestamp": "2026-04-13T16:43:55.869075",
   "agent": "vps_agent",
   "git_mode": "git",
   "results": [
     {
-      "id": "kabu_api_20260413_1640",
+      "id": "positions_20260413_1643",
       "type": "python",
       "status": "ok",
-      "timestamp": "2026-04-13T16:42:33.732972",
-      "stdout": "STATUS: 200\nBODY: {\"ResultCode\":0,\"Token\":\"84cc3b7038a441f4b042d882bb091604\"}\n",
-      "stderr": ""
-    },
-    {
-      "id": "pos_monitor_fix_20260413_1640",
-      "type": "shell",
-      "status": "ok",
-      "timestamp": "2026-04-13T16:42:35.818848",
-      "returncode": 0,
-      "stdout": "成功: スケジュール タスク \"CITS_PositionMonitor\" は正しく作成されました。\nPM_OK\n",
-      "stderr": ""
-    },
-    {
-      "id": "full_status_20260413_1640",
-      "type": "shell",
-      "status": "ok",
-      "timestamp": "2026-04-13T16:42:36.338101",
-      "returncode": 0,
-      "stdout": "pythonw.exe                   5956 Console                    1      5,232 K\npythonw.exe                  10868 Console                    1     16,076 K\n\"\\CITS_Afternoon\",\"2026/04/14 15:20:00\",\"準備完了\"\n\"\\CITS_KabuLogin_0700\",\"2026/04/14 7:00:00\",\"準備完了\"\n\"\\CITS_KabuStation_Start\",\"2026/04/14 8:25:00\",\"準備完了\"\n\"\\CITS_LiveTrader\",\"2026/04/14 8:30:00\",\"準備完了\"\n\"\\CITS_Prefetch\",\"2026/04/14 14:00:00\",\"準備完了\"\n\"\\CITS_StartupRecovery\",\"N/A\",\"準備完了\"\n\"\\CITS_VPSAgent\",\"N/A\",\"準備完了\"\n\"\\CITS_Watchdog\",\"2026/04/13 16:45:00\",\"準備完了\"\nSTATUS_DONE\n",
+      "timestamp": "2026-04-13T16:43:53.332942",
+      "stdout": "POS STATUS: 200\nPOSITIONS: 1\n  2170 qty=0.0 side=2 price=591.0\n",
       "stderr": ""
     }
   ]
