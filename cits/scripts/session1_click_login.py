@@ -42,6 +42,7 @@ MOUSEEVENTF_ABSOLUTE  = 0x8000
 KEYEVENTF_KEYUP       = 0x0002
 VK_CONTROL = 0x11
 VK_V       = 0x56
+SW_RESTORE = 9
 
 
 def _log(msg: str) -> None:
@@ -77,6 +78,39 @@ def paste_text(text: str) -> None:
     _log(f"pasted text (len={len(text)})")
 
 
+def bring_kabu_to_front() -> bool:
+    """Use MainWindowHandle + SetForegroundWindow instead of taskbar click.
+    Taskbar click toggles window (minimizes if already foreground).
+    """
+    try:
+        r = subprocess.run(
+            ["powershell", "-NoProfile", "-Command",
+             "$p = Get-Process KabuS -ErrorAction SilentlyContinue; "
+             "if ($p -and $p.MainWindowHandle -ne 0) { $p.MainWindowHandle } else { '0' }"],
+            capture_output=True, text=True, timeout=8,
+            encoding="utf-8", errors="replace",
+        )
+        hwnd_str = (r.stdout or "").strip()
+        _log(f"KabuS MainWindowHandle raw: {hwnd_str!r}")
+        if hwnd_str and hwnd_str.isdigit() and int(hwnd_str) != 0:
+            hwnd = int(hwnd_str)
+            user32 = ctypes.windll.user32
+            user32.ShowWindow(hwnd, SW_RESTORE)
+            time.sleep(0.5)
+            user32.SetForegroundWindow(hwnd)
+            time.sleep(1.5)
+            _log(f"SetForegroundWindow({hwnd}) done")
+            return True
+        _log(f"MainWindowHandle=0 or blank, falling back to taskbar click")
+    except Exception as e:
+        _log(f"bring_kabu_to_front error: {e}")
+
+    # Fallback: taskbar click
+    click_at(*TASKBAR_KABU)
+    time.sleep(3)
+    return False
+
+
 def kabu_running() -> bool:
     r = subprocess.run(
         'tasklist /fi "IMAGENAME eq KabuS.exe" /fo csv /nh',
@@ -100,18 +134,6 @@ def check_api() -> bool:
         return False
 
 
-def get_2fa() -> str:
-    """Import and call get_2fa_from_gmail with a recent not_before."""
-    try:
-        from cits.scripts.kabu_auto_login_vps import get_2fa_from_gmail
-        not_before = datetime.now() - timedelta(minutes=1)
-        code = get_2fa_from_gmail(max_wait_sec=120, not_before=not_before)
-        return code or ""
-    except Exception as e:
-        _log(f"get_2fa error: {e}")
-        return ""
-
-
 def main() -> dict:
     result = {"status": "unknown", "ts": datetime.now().isoformat()}
 
@@ -133,16 +155,17 @@ def main() -> dict:
         _log("Already logged in!")
         return result
 
-    # Step 3: Bring kabuStation window to front
-    _log("Clicking taskbar to bring kabuStation to front...")
-    click_at(*TASKBAR_KABU)
-    time.sleep(3)
+    # Step 3: Bring kabuStation window to front using MainWindowHandle API
+    _log("Bringing kabuStation to foreground via SetForegroundWindow...")
+    brought = bring_kabu_to_front()
+    result["window_focused"] = brought
+    time.sleep(1)
 
     # Step 4: Click login button
     _log("Clicking LOGIN_BTN (779, 475)...")
     login_clicked_at = datetime.now()
     click_at(*LOGIN_BTN)
-    time.sleep(15)
+    time.sleep(20)  # slightly longer wait for login
     result["login_click_at"] = login_clicked_at.isoformat()
 
     # Step 5: Check if login succeeded without 2FA
@@ -155,9 +178,11 @@ def main() -> dict:
     _log("2FA required. Fetching from Gmail...")
     try:
         from cits.scripts.kabu_auto_login_vps import get_2fa_from_gmail
-        code = get_2fa_from_gmail(max_wait_sec=120, not_before=login_clicked_at)
+        code = get_2fa_from_gmail(max_wait_sec=150, not_before=login_clicked_at)
     except Exception as e:
         _log(f"Gmail error: {e}")
+        import traceback
+        result["gmail_error"] = traceback.format_exc()
         code = ""
 
     if not code:
