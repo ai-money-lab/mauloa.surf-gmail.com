@@ -1,6 +1,8 @@
 """
 session1_click_login.py -- runs IN Administrator's interactive session (Session 1).
-Uses ctypes mouse_event to click kabuStation login button and handle 2FA.
+Primary: PostMessage(WM_LBUTTONDOWN) directly to CEF child window — bypasses
+LLMHF_INJECTED synthetic-input filtering that CEF applies to mouse_event/SendInput.
+Fallback: ctypes mouse_event (kept for non-CEF windows like 2FA input fields).
 Writes result to C:\\cits\\session1_login_result.json.
 
 Run with pythonw.exe (no console window) so nothing steals focus from kabuStation.
@@ -46,6 +48,12 @@ VK_CONTROL = 0x11
 VK_V       = 0x56
 SW_RESTORE = 9
 
+# WM_ message constants (for PostMessage direct injection)
+WM_MOUSEMOVE   = 0x0200
+WM_LBUTTONDOWN = 0x0201
+WM_LBUTTONUP   = 0x0202
+MK_LBUTTON     = 0x0001
+
 DIAGNOSTICS: list = []
 
 
@@ -76,7 +84,7 @@ def get_window_title(hwnd: int) -> str:
 
 
 def click_at(x: int, y: int) -> None:
-    """Move mouse to position (hover), then click."""
+    """Move mouse to position (hover), then click (mouse_event — synthetic, LLMHF_INJECTED)."""
     ax = int(x * 65535 / SCREEN_W)
     ay = int(y * 65535 / SCREEN_H)
     # Move first and wait for hover effects
@@ -86,6 +94,53 @@ def click_at(x: int, y: int) -> None:
     time.sleep(0.1)
     ctypes.windll.user32.mouse_event(MOUSEEVENTF_LEFTUP | MOUSEEVENTF_ABSOLUTE, ax, ay, 0, 0)
     _log(f"click_at({x}, {y})")
+
+
+def post_click_cef(x_screen: int, y_screen: int) -> bool:
+    """PostMessage WM_LBUTTONDOWN/UP directly to the window under the cursor.
+    Bypasses LLMHF_INJECTED filtering that CEF applies to mouse_event/SendInput.
+    Returns True if PostMessage was used, False if fell back to mouse_event.
+    """
+    user32 = ctypes.windll.user32
+
+    # Move the real mouse cursor to the target first (helps CEF hover state)
+    ax = int(x_screen * 65535 / SCREEN_W)
+    ay = int(y_screen * 65535 / SCREEN_H)
+    user32.mouse_event(MOUSEEVENTF_MOVE | MOUSEEVENTF_ABSOLUTE, ax, ay, 0, 0)
+    time.sleep(0.5)
+
+    # Find the window under the cursor
+    pt = POINT(x_screen, y_screen)
+    target_hwnd = user32.WindowFromPoint(pt)
+    title = get_window_title(target_hwnd)
+    _log(f"post_click_cef: WindowFromPoint({x_screen},{y_screen}) -> hwnd={target_hwnd}, title={title!r}")
+
+    if target_hwnd:
+        # Convert screen coords to client coords relative to target window
+        client_pt = POINT(x_screen, y_screen)
+        user32.ScreenToClient(target_hwnd, ctypes.byref(client_pt))
+        cx, cy = client_pt.x, client_pt.y
+        # lParam = MAKELONG(x, y)
+        lParam = ctypes.c_long((cy << 16) | (cx & 0xFFFF)).value
+        _log(f"PostMessage -> hwnd={target_hwnd}, client=({cx},{cy}), lParam={lParam}")
+
+        # Post WM_MOUSEMOVE first (triggers hover/focus state in CEF)
+        user32.PostMessageW(target_hwnd, WM_MOUSEMOVE, 0, lParam)
+        time.sleep(0.15)
+        # Post WM_LBUTTONDOWN
+        user32.PostMessageW(target_hwnd, WM_LBUTTONDOWN, MK_LBUTTON, lParam)
+        time.sleep(0.15)
+        # Post WM_LBUTTONUP
+        user32.PostMessageW(target_hwnd, WM_LBUTTONUP, 0, lParam)
+        _log(f"PostMessage WM_LBUTTONDOWN/UP sent to hwnd={target_hwnd}")
+        return True
+
+    # Fallback: mouse_event
+    _log("post_click_cef: no hwnd — falling back to mouse_event")
+    user32.mouse_event(MOUSEEVENTF_LEFTDOWN | MOUSEEVENTF_ABSOLUTE, ax, ay, 0, 0)
+    time.sleep(0.1)
+    user32.mouse_event(MOUSEEVENTF_LEFTUP | MOUSEEVENTF_ABSOLUTE, ax, ay, 0, 0)
+    return False
 
 
 def press_enter() -> None:
@@ -264,12 +319,13 @@ def main() -> dict:
     result["kabu_hwnd"] = kabu_hwnd
     time.sleep(1)
 
-    # Step 4: Click login button AND press Enter (double approach)
-    _log(f"Clicking LOGIN_BTN {LOGIN_BTN} then pressing Enter...")
+    # Step 4: PostMessage WM_LBUTTONDOWN directly to CEF child window + Enter fallback
+    _log(f"PostMessage-clicking LOGIN_BTN {LOGIN_BTN} (bypasses CEF injection filter)...")
     login_clicked_at = datetime.now()
-    click_at(*LOGIN_BTN)
+    used_post = post_click_cef(*LOGIN_BTN)
+    result["used_post_message"] = used_post
     time.sleep(0.5)
-    press_enter()          # Enter key as backup (triggers default button)
+    press_enter()          # Enter key as additional backup (triggers default button)
     time.sleep(20)
     result["login_click_at"] = login_clicked_at.isoformat()
 
@@ -307,11 +363,11 @@ def main() -> dict:
     result["code_received"] = True
 
     # Step 7: Enter 2FA code
-    click_at(*TWO_FA_INPUT)
+    post_click_cef(*TWO_FA_INPUT)
     time.sleep(1)
     paste_text(code)
     time.sleep(1)
-    click_at(*TWO_FA_SUBMIT)
+    post_click_cef(*TWO_FA_SUBMIT)
     time.sleep(15)
 
     # Step 8: Final API check
