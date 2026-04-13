@@ -1,15 +1,23 @@
 {
-  "timestamp": "2026-04-13T17:40:45.129823",
+  "timestamp": "2026-04-13T17:43:11.827523",
   "agent": "vps_agent",
   "git_mode": "git",
   "results": [
     {
-      "id": "verify_final_20260413_2000",
+      "id": "kill_rogue_20260413_2010",
+      "type": "python",
+      "status": "ok",
+      "timestamp": "2026-04-13T17:43:05.348724",
+      "stdout": "CURRENT_PID: 9584\nKILLED_ROGUE: 10868 0\nPYTHONW_NOW: \"pythonw.exe\",\"10568\",\"Console\",\"1\",\"5,204 K\"\n\"pythonw.exe\",\"9584\",\"Console\",\"1\",\"15,980 K\"\nPID_FILE: 9584\n",
+      "stderr": ""
+    },
+    {
+      "id": "final_verify_20260413_2015",
       "type": "shell",
       "status": "ok",
-      "timestamp": "2026-04-13T17:40:43.690222",
+      "timestamp": "2026-04-13T17:43:11.303097",
       "returncode": 0,
-      "stdout": "afca4f1 inject: safe_restart + verify (both commands)\n6e46035 vps_agent: status 2026-04-13T17:39:32.018637\n734d5cb vps_agent: status 2026-04-13T17:38:10.115804\n--- \n\"pythonw.exe\",\"5956\",\"Console\",\"1\",\"5,168 K\"\n\"pythonw.exe\",\"10868\",\"Console\",\"1\",\"16,152 K\"\n\"pythonw.exe\",\"10568\",\"Console\",\"1\",\"5,204 K\"\n\"pythonw.exe\",\"9584\",\"Console\",\"1\",\"15,956 K\"\n--- \n9584",
+      "stdout": "bb3afd8 inject: kill rogue agent 10868 + verify clean state\nb393773 vps_agent: status 2026-04-13T17:40:51.550417\nbac5612 vps_agent: status 2026-04-13T17:40:47.148826\nafca4f1 inject: safe_restart + verify (both commands)\n6e46035 vps_agent: status 2026-04-13T17:39:32.018637\nGIT_OK\n",
       "stderr": ""
     }
   ]
