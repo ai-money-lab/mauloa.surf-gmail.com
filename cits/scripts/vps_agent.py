@@ -216,6 +216,12 @@ def push_results(results: list[dict]) -> None:
     git_succeeded = False
     if _git_ok():
         try:
+            # Pull first so our push is a fast-forward (prevents non-fast-forward rejection
+            # when the remote has new commits from code pushes or other agents)
+            subprocess.run(
+                ["git", "pull", "origin", BRANCH, "--quiet"],
+                cwd=str(REPO_ROOT), capture_output=True, timeout=30,
+            )
             subprocess.run(["git", "add", "-f", "cits/data/vps_status.json"],
                            cwd=str(REPO_ROOT), capture_output=True, timeout=10)
             subprocess.run(
@@ -409,8 +415,10 @@ def main() -> None:
             except Exception:
                 pass
             if new_results:
-                push_results(new_results)
+                # Save processed IDs to disk BEFORE pushing, so a self-kill command
+                # (e.g. taskkill via shell command) doesn't cause re-execution on restart.
                 save_processed_ids(processed)
+                push_results(new_results)
             elif cycle % 10 == 0:
                 # FIX 2: Heartbeat push every ~10 minutes so vps_status.json stays current
                 log.info("Heartbeat push (cycle=%d)", cycle)
