@@ -38,8 +38,8 @@ KABU_EXE        = r"C:\Users\Administrator\AppData\Local\kabuStation\KabuS.exe"
 # ─── Screen coords (1024×768 VPS) ───────────────────────────────────────────
 # Button color: ORANGE (255,86,0) confirmed by pixel scan 2026-04-13
 LOGIN_BTN     = (779, 505)   # orange button center (was 475 = gray background)
-TWO_FA_INPUT  = (769, 455)
-TWO_FA_SUBMIT = (769, 530)
+TWO_FA_INPUT  = (762, 445)   # confirmed from VNC screenshot 2026-04-13
+TWO_FA_SUBMIT = (762, 519)   # confirmed from VNC screenshot 2026-04-13
 SCREEN_W, SCREEN_H = 1024, 768
 
 # ─── VNC settings ────────────────────────────────────────────────────────────
@@ -189,6 +189,17 @@ def playwright_click_login() -> bool:
 
 # ─── Layer 1: Direct VNC RFB PointerEvent ───────────────────────────────────
 
+def _vnc_ra(sock, n: int) -> bytes:
+    """Reliably receive exactly n bytes from socket (handles TCP partial reads)."""
+    data = b""
+    while len(data) < n:
+        chunk = sock.recv(n - len(data))
+        if not chunk:
+            raise ConnectionError(f"VNC socket closed mid-read (wanted {n}, got {len(data)})")
+        data += chunk
+    return data
+
+
 def _vnc_reverse_bits(b: int) -> int:
     result = 0
     for _ in range(8):
@@ -230,42 +241,41 @@ def _vnc_connect_and_auth() -> "socket.socket | None":
         _log(f"VNC connect failed: {e}")
         return None
     try:
-        server_ver = sock.recv(12)
+        server_ver = _vnc_ra(sock, 12)
         if not server_ver.startswith(b"RFB "):
             _log(f"VNC bad handshake: {server_ver!r}")
             sock.close()
             return None
         sock.sendall(b"RFB 003.008\n")
 
-        ntypes = sock.recv(1)[0]
+        ntypes = _vnc_ra(sock, 1)[0]
         if ntypes == 0:
             _log("VNC: 0 security types")
             sock.close()
             return None
-        sec_types = list(sock.recv(ntypes))
+        sec_types = list(_vnc_ra(sock, ntypes))
         _log(f"VNC sec types={sec_types}")
 
         if 1 in sec_types:
             # None authentication — no challenge/response
             sock.sendall(bytes([1]))
             try:
-                result_bytes = sock.recv(4)
-                if len(result_bytes) == 4:
-                    result = _struct.unpack(">I", result_bytes)[0]
-                    if result != 0:
-                        _log(f"VNC None auth failed (result={result})")
-                        sock.close()
-                        return None
+                result_bytes = _vnc_ra(sock, 4)
+                result = _struct.unpack(">I", result_bytes)[0]
+                if result != 0:
+                    _log(f"VNC None auth failed (result={result})")
+                    sock.close()
+                    return None
             except Exception:
                 pass  # Some servers skip SecurityResult for None auth
             _log("VNC: None auth OK")
         elif 2 in sec_types:
             sock.sendall(bytes([2]))
-            challenge = sock.recv(16)
+            challenge = _vnc_ra(sock, 16)
             pwd_bytes = bytes(_vnc_reverse_bits(ord(c)) for c in (VNC_PASS + "\x00" * 8)[:8])
             response = _vnc_des_encrypt(pwd_bytes, challenge)
             sock.sendall(response)
-            result = _struct.unpack(">I", sock.recv(4))[0]
+            result = _struct.unpack(">I", _vnc_ra(sock, 4))[0]
             if result != 0:
                 _log(f"VNC auth failed (result={result})")
                 sock.close()
@@ -278,12 +288,12 @@ def _vnc_connect_and_auth() -> "socket.socket | None":
 
         # ClientInit + read ServerInit
         sock.sendall(bytes([1]))  # shared=1
-        _w = _struct.unpack(">H", sock.recv(2))[0]
-        _h = _struct.unpack(">H", sock.recv(2))[0]
-        sock.recv(16)  # pixel format
-        name_len = _struct.unpack(">I", sock.recv(4))[0]
+        _w = _struct.unpack(">H", _vnc_ra(sock, 2))[0]
+        _h = _struct.unpack(">H", _vnc_ra(sock, 2))[0]
+        _vnc_ra(sock, 16)  # pixel format
+        name_len = _struct.unpack(">I", _vnc_ra(sock, 4))[0]
         if name_len > 0:
-            sock.recv(name_len)
+            _vnc_ra(sock, name_len)
         _log(f"VNC: desktop {_w}x{_h}")
         return sock
     except Exception as e:
@@ -631,29 +641,17 @@ def main() -> dict:
 
     # Step 7: Enter 2FA
     # X11 keysyms
-    XK_Shift_L  = 0xFFE1
-    XK_Tab      = 0xFF09
     XK_Control_L = 0xFFE3
-    XK_a        = 0x0061
-    XK_Return   = 0xFF0D
+    XK_a         = 0x0061
 
-    _log("Taking screenshot of 2FA screen (looking for submit button)...")
-    detected_2fa = take_screenshot()
-    tfa_submit_pos = detected_2fa if detected_2fa else TWO_FA_SUBMIT
-    _log(f"2FA submit pos: {tfa_submit_pos}")
+    # Click OTP input directly at confirmed coordinates (762, 445)
+    _log(f"[2FA] Clicking OTP input at {TWO_FA_INPUT}...")
+    if not vnc_rfb_click(*TWO_FA_INPUT):
+        post_click_cef(*TWO_FA_INPUT)
+    time.sleep(0.8)
 
-    # Click form area to give focus to the kabuStation window
-    _log(f"[2FA] VNC click form to get focus at {tfa_submit_pos}...")
-    if not vnc_rfb_click(*tfa_submit_pos):
-        post_click_cef(*tfa_submit_pos)
-    time.sleep(0.5)
-
-    # Shift+Tab to move focus to the OTP input field (previous element)
-    _log("[2FA] Shift+Tab → focus OTP input...")
-    vnc_send_keys([XK_Shift_L, XK_Tab], [XK_Tab, XK_Shift_L])
-    time.sleep(0.4)
-
-    # Ctrl+A to select all existing text in input
+    # Ctrl+A to clear any existing text
+    _log("[2FA] Ctrl+A to clear input...")
     vnc_send_keys([XK_Control_L, XK_a], [XK_a, XK_Control_L])
     time.sleep(0.2)
 
@@ -664,9 +662,10 @@ def main() -> dict:
         paste_text(code)
     time.sleep(0.5)
 
-    # Press Enter to submit
-    _log("[2FA] Enter to submit...")
-    vnc_send_keys([XK_Return], [XK_Return])
+    # Click submit button directly at confirmed coordinates (762, 519)
+    _log(f"[2FA] Clicking submit at {TWO_FA_SUBMIT}...")
+    if not vnc_rfb_click(*TWO_FA_SUBMIT):
+        post_click_cef(*TWO_FA_SUBMIT)
     time.sleep(25)
 
     # Step 8: Final check
