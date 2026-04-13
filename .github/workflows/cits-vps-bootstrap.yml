@@ -1,0 +1,156 @@
+# GitHub Actions -- CITS VPS Emergency Bootstrap
+# vps_agentが応答しない場合の緊急復旧 / 手動セットアップ用
+#
+# 使い方:
+#   GitHub → Actions → "CITS VPS Emergency Bootstrap" → Run workflow
+#   vps_agentが稼働中なら60秒以内に全タスク登録 + watchdog起動される
+#
+# ※ vps_agentが完全停止している場合は VPS web console で手動実行が必要:
+#   powershell -ExecutionPolicy Bypass -File C:\cits\repo\cits\setup_system_tasks.ps1
+
+name: CITS VPS Emergency Bootstrap
+
+on:
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: '実行理由 (例: VPS tasks missing, vps_agent restart)'
+        required: false
+        default: 'manual bootstrap'
+
+permissions:
+  contents: write
+
+jobs:
+  bootstrap:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: claude/continue-kabusute-DmFKB
+
+      - name: Inject emergency bootstrap commands
+        run: |
+          python3 - <<'EOF'
+          import json
+          from datetime import datetime, timezone, timedelta
+          from pathlib import Path
+
+          JST = timezone(timedelta(hours=9))
+          now_jst = datetime.now(JST)
+          ts = now_jst.strftime("%Y%m%d_%H%M")
+
+          f = Path("cits/data/commands.json")
+          f.parent.mkdir(parents=True, exist_ok=True)
+          try:
+              cmds = json.loads(f.read_text(encoding="utf-8"))
+          except Exception:
+              cmds = []
+
+          # 古い緊急コマンドをクリア（今日以前のもの）
+          today = now_jst.strftime("%Y%m%d")
+          cmds = [c for c in cmds if not any(
+              c.get("id", "").startswith(p)
+              for p in ["emg_wake_", "emg_git_", "emg_tasks_", "emg_watchdog_", "emg_verify_"]
+          )]
+
+          new_cmds = [
+              {
+                  "id": f"emg_wake_{ts}",
+                  "type": "shell",
+                  "command": "echo EMERGENCY_BOOTSTRAP_START && git -C C:\\cits\\repo rev-parse --short HEAD && tasklist | findstr python && echo WAKE_OK",
+                  "timeout": 15
+              },
+              {
+                  "id": f"emg_git_{ts}",
+                  "type": "shell",
+                  "command": "git -C C:\\cits\\repo fetch origin claude/continue-kabusute-DmFKB && git -C C:\\cits\\repo reset --hard FETCH_HEAD && git -C C:\\cits\\repo log --oneline -1 && echo GIT_OK",
+                  "timeout": 30
+              },
+              {
+                  "id": f"emg_tasks_{ts}",
+                  "type": "shell",
+                  "command": (
+                      "schtasks /Create /TN CITS_Watchdog /RU SYSTEM"
+                      " /TR \"C:\\cits\\repo\\cits\\run_watchdog.bat\""
+                      " /SC MINUTE /MO 5 /RL HIGHEST /F"
+                      " & schtasks /Create /TN CITS_VPSAgent /RU SYSTEM"
+                      " /TR \"C:\\cits\\repo\\cits\\run_agent.bat\""
+                      " /SC ONSTART /DELAY 0002:00 /RL HIGHEST /F"
+                      " & schtasks /Create /TN CITS_LiveTrader /RU SYSTEM"
+                      " /TR \"C:\\cits\\repo\\cits\\run_morning.bat\""
+                      " /SC DAILY /ST 08:30 /D MON,TUE,WED,THU,FRI /RL HIGHEST /F"
+                      " & schtasks /Create /TN CITS_PositionMonitor /RU SYSTEM"
+                      " /TR \"C:\\cits\\repo\\cits\\run_monitor.bat\""
+                      " /SC MINUTE /MO 30 /ST 09:30 /ET 15:25 /RL HIGHEST /F"
+                      " & schtasks /Create /TN CITS_Afternoon /RU SYSTEM"
+                      " /TR \"C:\\cits\\repo\\cits\\run_afternoon.bat\""
+                      " /SC DAILY /ST 15:20 /D MON,TUE,WED,THU,FRI /RL HIGHEST /F"
+                      " & schtasks /Create /TN CITS_Prefetch /RU SYSTEM"
+                      " /TR \"C:\\cits\\repo\\cits\\run_prefetch.bat\""
+                      " /SC DAILY /ST 14:00 /D MON,TUE,WED,THU,FRI /RL HIGHEST /F"
+                      " & schtasks /Create /TN CITS_GitRepair /RU SYSTEM"
+                      " /TR \"C:\\cits\\repo\\cits\\run_gitrepair.bat\""
+                      " /SC DAILY /ST 06:00 /D MON,TUE,WED,THU,FRI /RL HIGHEST /F"
+                      " & schtasks /Create /TN CITS_StartupRecovery /RU SYSTEM"
+                      " /TR \"C:\\cits\\repo\\cits\\run_morning.bat\""
+                      " /SC ONSTART /DELAY 0005:00 /RL HIGHEST /F"
+                      " & schtasks /Create /TN CITS_KabuStation_Start /RU Administrator"
+                      " /TR \"C:\\Users\\Administrator\\AppData\\Local\\kabuStation\\KabuS.exe\""
+                      " /SC DAILY /ST 08:25 /D MON,TUE,WED,THU,FRI /IT /F"
+                      " & echo TASKS_DONE"
+                  ),
+                  "timeout": 60
+              },
+              {
+                  "id": f"emg_watchdog_{ts}",
+                  "type": "shell",
+                  "command": "set PYTHONPATH=C:\\cits\\repo && C:\\cits\\venv\\Scripts\\python.exe -m cits.scripts.watchdog",
+                  "timeout": 120
+              },
+              {
+                  "id": f"emg_verify_{ts}",
+                  "type": "shell",
+                  "command": "schtasks /Query /FO CSV /NH 2>&1 | findstr CITS && echo --- && tasklist | findstr python && echo VERIFY_DONE",
+                  "timeout": 20
+              }
+          ]
+
+          cmds.extend(new_cmds)
+          f.write_text(json.dumps(cmds, ensure_ascii=False, indent=2), encoding="utf-8")
+          print(f"Injected {len(new_cmds)} emergency bootstrap commands at {now_jst.strftime('%H:%M JST')}")
+          for c in new_cmds:
+              print(f"  - {c['id']}")
+          EOF
+
+      - name: Commit and push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git pull --rebase origin claude/continue-kabusute-DmFKB
+          git add -f cits/data/commands.json
+          git diff --cached --quiet && echo "No change" || \
+            git commit -m "emergency-bootstrap: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          git push origin claude/continue-kabusute-DmFKB
+
+      - name: Summary
+        run: |
+          echo "========================================"
+          echo "CITS VPS Emergency Bootstrap injected"
+          echo "========================================"
+          echo ""
+          echo "Commands injected into cits/data/commands.json:"
+          echo "  1. emg_wake    - VPS alive check"
+          echo "  2. emg_git     - git pull latest code"
+          echo "  3. emg_tasks   - register all 9 SYSTEM tasks"
+          echo "  4. emg_watchdog- run watchdog (self-healer)"
+          echo "  5. emg_verify  - confirm tasks + python processes"
+          echo ""
+          echo "If vps_agent is running: executes within 60 seconds"
+          echo "Check results: cits/data/vps_status.json"
+          echo ""
+          echo "If vps_agent is DEAD: manual action required:"
+          echo "  VPS web console (203.183.9.252) →"
+          echo "  powershell -ExecutionPolicy Bypass -File C:\cits\repo\cits\setup_system_tasks.ps1"
