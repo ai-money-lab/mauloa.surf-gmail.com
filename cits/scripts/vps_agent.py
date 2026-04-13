@@ -181,7 +181,7 @@ def pull_commands() -> str | None:
                 cwd=str(REPO_ROOT), capture_output=True, text=True, timeout=30,
             )
             if r.returncode == 0 and COMMANDS_FILE.exists():
-                return COMMANDS_FILE.read_text(encoding="utf-8")
+                return COMMANDS_FILE.read_text(encoding="utf-8-sig")
         except Exception as exc:
             log.warning("git pull failed: %s — falling back to API", exc)
     else:
@@ -335,7 +335,8 @@ def main() -> None:
                     raw2 = _github_api_read(COMMANDS_API_PATH)
                     if raw2:
                         COMMANDS_FILE.parent.mkdir(parents=True, exist_ok=True)
-                        COMMANDS_FILE.write_text(raw2, encoding="utf-8")
+                        # Write BOM-free UTF-8
+                        COMMANDS_FILE.write_bytes(raw2.encode("utf-8"))
                         try:
                             commands = json.loads(raw2)
                             log.info("API fallback commands.json OK (%d cmds)", len(commands))
