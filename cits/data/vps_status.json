@@ -1,6 +1,16 @@
 {
-  "timestamp": "2026-04-13T17:14:11.781590",
+  "timestamp": "2026-04-13T17:25:16.682815",
   "agent": "vps_agent",
   "git_mode": "git",
-  "results": []
+  "results": [
+    {
+      "id": "verify_newcode_20260413_1910",
+      "type": "shell",
+      "status": "ok",
+      "timestamp": "2026-04-13T17:25:14.862051",
+      "returncode": 0,
+      "stdout": "25424b8 inject: verify new code applied (replace restart cmd to stop loop)\n485c9de vps_agent: status 2026-04-13T17:14:19.790598\ne18252d vps_agent: status 2026-04-13T17:09:44.321308\nGIT_OK \npythonw.exe                   5956 Console                    1      5,168 K\npythonw.exe                  10868 Console                    1     16,116 K\nPYTHONW_COUNT_OK\n",
+      "stderr": ""
+    }
+  ]
 }
