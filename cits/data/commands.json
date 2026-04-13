@@ -1,14 +1,14 @@
 [
   {
-    "id": "safe_restart_20260413_1950",
+    "id": "kill_rogue_20260413_2010",
     "type": "python",
-    "code": "import subprocess, pathlib, time\n\n# 1. Save this command ID to processed file BEFORE killing ourselves\n#    (prevents re-execution by new agent)\nproc_f = pathlib.Path('C:/cits/repo/cits/logs/.processed_commands')\nproc_f.parent.mkdir(parents=True, exist_ok=True)\nexisting = set()\nif proc_f.exists():\n    existing = set(x for x in proc_f.read_text(encoding='utf-8').strip().split('\\n') if x)\nexisting.add('safe_restart_20260413_1950')\nproc_f.write_text('\\n'.join(sorted(existing)), encoding='utf-8')\nprint('PROCESSED_SAVED:', len(existing), 'ids')\n\n# 2. git pull to get latest code onto disk\nr = subprocess.run(\n    ['git', 'pull', 'origin', 'claude/continue-kabusute-DmFKB', '--quiet'],\n    cwd='C:/cits/repo', capture_output=True, text=True, timeout=30)\nprint('GIT_PULL rc=' + str(r.returncode))\nif r.returncode != 0:\n    print('GIT_ERR:', r.stderr[:200])\n\n# 3. Read current agent PID\npid_f = pathlib.Path('C:/cits/vps_agent.pid')\nold_pid = pid_f.read_text(encoding='utf-8').strip() if pid_f.exists() else ''\nprint('OLD_PID:', old_pid)\n\n# 4. Delete PID file so new agent can claim singleton\npid_f.unlink(missing_ok=True)\n\n# 5. Start new agent BEFORE killing old (subprocess continues after parent dies)\nsubprocess.Popen(['C:/cits/venv/Scripts/pythonw.exe', '-m', 'cits.scripts.vps_agent'])\nprint('NEW_AGENT_STARTED')\ntime.sleep(2)\n\n# 6. Kill old agent (ourselves) — this python.exe subprocess survives\nif old_pid:\n    subprocess.run(['taskkill', '/f', '/pid', old_pid], capture_output=True)\n    print('KILLED:', old_pid)\nprint('DONE')\n",
-    "timeout": 60
+    "code": "import subprocess, pathlib\n\n# Kill the rogue old vps_agent (PID 10868) that survived the restart\n# Current valid agent PID is in the PID file\npid_f = pathlib.Path('C:/cits/vps_agent.pid')\ncurrent_pid = pid_f.read_text(encoding='utf-8').strip() if pid_f.exists() else ''\nprint('CURRENT_PID:', current_pid)\n\nrogue_pid = '10868'\nif rogue_pid != current_pid and rogue_pid:\n    # Verify it's a pythonw.exe before killing\n    chk = subprocess.run(\n        ['tasklist', '/fi', f'PID eq {rogue_pid}', '/fi', 'IMAGENAME eq pythonw.exe', '/fo', 'csv', '/nh'],\n        capture_output=True, text=True, timeout=5)\n    if rogue_pid in chk.stdout:\n        r = subprocess.run(['taskkill', '/f', '/pid', rogue_pid], capture_output=True, text=True)\n        print('KILLED_ROGUE:', rogue_pid, r.returncode)\n    else:\n        print('ROGUE_NOT_FOUND (already gone):', rogue_pid)\n\n# Show final state\nout = subprocess.run(['tasklist', '/fi', 'IMAGENAME eq pythonw.exe', '/fo', 'csv', '/nh'],\n    capture_output=True, text=True, timeout=5)\nprint('PYTHONW_NOW:', out.stdout.strip())\nprint('PID_FILE:', current_pid)\n",
+    "timeout": 30
   },
   {
-    "id": "verify_final_20260413_2000",
+    "id": "final_verify_20260413_2015",
     "type": "shell",
-    "command": "cd C:\\cits\\repo && git log --oneline -3 && echo --- && tasklist /fi \"IMAGENAME eq pythonw.exe\" /fo csv /nh && echo --- && type C:\\cits\\vps_agent.pid 2>nul || echo NO_PID_FILE",
-    "timeout": 20
+    "command": "cd C:\\cits\\repo && git log --oneline -5 && echo GIT_OK",
+    "timeout": 15
   }
 ]
