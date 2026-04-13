@@ -19,7 +19,6 @@ import configparser
 import json
 import os
 import subprocess
-import time
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
 
@@ -302,6 +301,12 @@ def _check_kabu_api() -> bool:
 
 
 def _ensure_kabu_running() -> dict:
+    """
+    kabuStation ログイン保証。
+    毎回 kabu_auto_login_vps を呼ぶ。
+    login_flow() が先にAPIチェックを行い、ログイン済みなら即時リターンするため
+    既にログイン済みの場合のオーバーヘッドは数秒のみ。
+    """
     result: dict = {"checked": True, "market_hours": _is_market_hours()}
     if not _is_market_hours():
         result["skipped"] = "outside_market_hours"
@@ -309,46 +314,29 @@ def _ensure_kabu_running() -> dict:
 
     if _check_kabu_api():
         result["api"] = "ok"
+        _log("kabuStation API: already logged in")
         return result
 
-    _log("kabuStation API down during market hours — attempting restart")
+    _log("kabuStation API down — running kabu_auto_login_vps (毎回ログイン)")
     result["api"] = "down"
 
-    # Step 1: restart via scheduled task
-    r = subprocess.run(
-        'schtasks /Run /TN "CITS_KabuStart_IT"',
-        shell=True, capture_output=True,
-        encoding="cp932", errors="replace", timeout=15,
-    )
-    if r.returncode != 0:
-        _log(f"  CITS_KabuStart_IT run failed rc={r.returncode}")
-    else:
-        _log("  kabuStation start triggered (waiting 30s)")
-        time.sleep(30)
-
-    if _check_kabu_api():
-        result["restart"] = "ok"
-        result["action"] = "restarted_via_task"
-        _log("  kabuStation API: OK after restart")
-        return result
-
-    # Step 2: full auto-login flow
-    _log("  Restart via task failed — running kabu_auto_login_vps")
+    # 直接 kabu_auto_login_vps を実行（kill→start→VNC→2FA を全て処理）
     proc = subprocess.run(
         [r"C:\cits\venv\Scripts\python.exe", "-m",
          "cits.scripts.kabu_auto_login_vps"],
         cwd=str(REPO_ROOT), capture_output=True, text=True,
-        encoding="cp932", errors="replace", timeout=400,
+        encoding="cp932", errors="replace", timeout=420,
     )
     result["auto_login_rc"] = proc.returncode
-    result["auto_login_tail"] = (proc.stdout or "")[-400:]
-    result["action"] = "auto_login_attempted"
+    result["auto_login_tail"] = (proc.stdout or "")[-600:]
+    result["action"] = "auto_login"
     if proc.returncode == 0:
-        result["restart"] = "ok_via_auto_login"
-        _log("  Auto-login succeeded")
+        result["restart"] = "ok"
+        _log("  kabuStation login: SUCCESS")
     else:
         result["restart"] = "failed"
-        _log(f"  Auto-login failed rc={proc.returncode}")
+        _log(f"  kabuStation login: FAILED rc={proc.returncode}")
+        _log(f"  tail: {result['auto_login_tail'][-200:]}")
     return result
 
 

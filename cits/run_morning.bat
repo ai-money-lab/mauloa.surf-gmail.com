@@ -52,6 +52,20 @@ echo CITS Morning -- CIS Full Scan >> "%LOG_FILE%"
 echo %date% %time% >> "%LOG_FILE%"
 echo ======================================== >> "%LOG_FILE%"
 
+REM ================================================================
+REM ① kabuStation ログイン確認（毎回必須 -- 発注前に必ずログイン）
+REM    already logged in → 即時リターン
+REM    not logged in    → kill/restart + VNC + 2FA (最大5分)
+REM ================================================================
+echo %date% %time% [LOGIN] kabuStation login check... >> "%LOG_FILE%"
+C:\cits\venv\Scripts\python.exe -m cits.scripts.kabu_auto_login_vps >> "%LOG_FILE%" 2>&1
+if %ERRORLEVEL% neq 0 (
+    echo %date% %time% [ERROR] kabuStation login FAILED -- trading ABORTED >> "%LOG_FILE%"
+    call C:\cits\repo\cits\report_status.bat "LOGIN_FAIL" "kabu login failed - morning trading aborted"
+    exit /b 1
+)
+echo %date% %time% [LOGIN] kabuStation: LOGGED IN >> "%LOG_FILE%"
+
 C:\cits\venv\Scripts\python.exe -m cits.scripts.live_trader --mode morning --capital 300000 >> "%LOG_FILE%" 2>&1
 
 REM Report status to GitHub for remote monitoring

@@ -36,6 +36,18 @@ echo CITS Afternoon -- 15:20 Chart Exit Check + Buy Scan >> "%LOG_FILE%"
 echo %date% %time% >> "%LOG_FILE%"
 echo ======================================== >> "%LOG_FILE%"
 
+REM ================================================================
+REM ① kabuStation ログイン確認（毎回必須）
+REM ================================================================
+echo %date% %time% [LOGIN] kabuStation login check... >> "%LOG_FILE%"
+C:\cits\venv\Scripts\python.exe -m cits.scripts.kabu_auto_login_vps >> "%LOG_FILE%" 2>&1
+if %ERRORLEVEL% neq 0 (
+    echo %date% %time% [ERROR] kabuStation login FAILED -- afternoon ABORTED >> "%LOG_FILE%"
+    call C:\cits\repo\cits\report_status.bat "LOGIN_FAIL" "kabu login failed - afternoon aborted"
+    exit /b 1
+)
+echo %date% %time% [LOGIN] kabuStation: LOGGED IN >> "%LOG_FILE%"
+
 REM Step 1: Position monitor -- sell if chart says EXIT
 echo --- STEP 1: Position Monitor (sell check) --- >> "%LOG_FILE%"
 C:\cits\venv\Scripts\python.exe -m cits.scripts.position_monitor >> "%LOG_FILE%" 2>&1

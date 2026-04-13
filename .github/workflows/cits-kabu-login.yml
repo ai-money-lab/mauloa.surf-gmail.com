@@ -1,13 +1,24 @@
 # GitHub Actions -- CITS kabuStation Auto-Login
-# 平日08:27 JST (23:27 UTC Sun-Thu) に commands.json へ login コマンドを注入
-# VPS上の vps_agent が次回ポーリング時に実行する
+# 毎回ログイン保証: commands.json へ login コマンドを注入
+# VPS上の vps_agent が次回ポーリング時(~60秒以内)に実行する
+#
+# スケジュール (全てJST):
+#   08:27  market open前 (メイン)
+#   09:05  market open後バックアップ (08:27が失敗した場合 or kabuStation再起動後)
+#   12:30  後場開始直前バックアップ
+#
+# watchdog.py も5分毎にAPI確認→自動ログインを実行するため多重保護。
 
 name: CITS kabuStation Auto-Login
 
 on:
   schedule:
-    # 08:27 JST = 23:27 UTC  (Mon=Sun UTC, Tue=Mon UTC, ..., Fri=Thu UTC)
+    # 08:27 JST = 23:27 UTC (Mon=Sun UTC, Tue=Mon UTC, ..., Fri=Thu UTC)
     - cron: '27 23 * * 0-4'
+    # 09:05 JST = 00:05 UTC (Mon-Fri)
+    - cron: '5 0 * * 1-5'
+    # 12:30 JST = 03:30 UTC (Mon-Fri) -- 後場開始前
+    - cron: '30 3 * * 1-5'
   workflow_dispatch:
 
 permissions:
@@ -23,19 +34,22 @@ jobs:
         with:
           ref: claude/continue-kabusute-DmFKB
 
-      - name: Inject daily kabu_login command into commands.json
+      - name: Inject kabu_login command into commands.json
         run: |
           python3 - <<'EOF'
           import json
-          from datetime import date
+          from datetime import datetime, timezone, timedelta
           from pathlib import Path
 
-          today = date.today().strftime("%Y%m%d")
+          JST = timezone(timedelta(hours=9))
+          now_jst = datetime.now(JST)
+          # タイムスタンプ付きIDで毎回新しいコマンドとして投入
+          ts = now_jst.strftime("%Y%m%d_%H%M")
           new_cmd = {
-              "id": f"kabu_login_{today}",
+              "id": f"kabu_login_{ts}",
               "type": "module",
               "module": "cits.scripts.kabu_auto_login_vps",
-              "timeout": 300
+              "timeout": 360
           }
 
           f = Path("cits/data/commands.json")
@@ -45,11 +59,11 @@ jobs:
           except Exception:
               cmds = []
 
-          # Remove stale login commands; preserve diagnostic/fix commands
+          # 過去のloginコマンドは除去（今日のものも含め）
           cmds = [c for c in cmds if not c.get("id", "").startswith("kabu_login_")]
           cmds.append(new_cmd)
           f.write_text(json.dumps(cmds, ensure_ascii=False, indent=2), encoding="utf-8")
-          print(f"Injected: {new_cmd['id']}")
+          print(f"Injected: {new_cmd['id']} at {now_jst.strftime('%H:%M JST')}")
           EOF
 
       - name: Commit and push
