@@ -313,6 +313,124 @@ def cdp_click_login() -> bool:
         return False
 
 
+def _vnc_reverse_bits(b: int) -> int:
+    result = 0
+    for _ in range(8):
+        result = (result << 1) | (b & 1)
+        b >>= 1
+    return result
+
+
+def _vnc_des_encrypt(key8: bytes, data16: bytes) -> bytes:
+    """DES-ECB encrypt (VNC auth). Tries pycryptodome → cryptography → openssl."""
+    try:
+        from Crypto.Cipher import DES
+        return DES.new(key8, DES.MODE_ECB).encrypt(data16)
+    except ImportError:
+        pass
+    try:
+        from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
+        from cryptography.hazmat.backends import default_backend
+        enc = Cipher(algorithms.TripleDES(key8 * 3), modes.ECB(),
+                     backend=default_backend()).encryptor()
+        return enc.update(data16) + enc.finalize()
+    except Exception:
+        pass
+    # openssl subprocess fallback
+    r = subprocess.run(
+        ["openssl", "enc", "-des-ecb", "-nosalt", "-nopad", "-K", key8.hex()],
+        input=data16, capture_output=True, timeout=5, creationflags=CREATE_NO_WINDOW,
+    )
+    if r.returncode == 0:
+        return r.stdout[:16]
+    raise RuntimeError("No DES backend available (need pycryptodome, cryptography, or openssl)")
+
+
+def vnc_rfb_click(x: int, y: int) -> bool:
+    """Direct VNC RFB protocol click — no vncdo, no CLI flag issues.
+    Connects to TightVNC on localhost:5900, authenticates, sends PointerEvent.
+    Exact same mechanism as noVNC → CEF accepts (no LLMHF_INJECTED).
+    """
+    import socket as _sock
+    import struct as _struct
+
+    host, port = "localhost", int(VNC_PORT)
+    _log(f"vnc_rfb_click({x},{y}): connecting to {host}:{port}...")
+    try:
+        sock = _sock.create_connection((host, port), timeout=10)
+    except Exception as e:
+        _log(f"vnc_rfb_click: connect failed: {e}")
+        return False
+
+    try:
+        # 1. Protocol version handshake
+        server_ver = sock.recv(12)
+        if not server_ver.startswith(b"RFB "):
+            _log(f"vnc_rfb_click: bad handshake: {server_ver!r}")
+            return False
+        sock.sendall(b"RFB 003.008\n")
+        _log(f"vnc_rfb_click: server version: {server_ver.strip().decode()}")
+
+        # 2. Security types
+        ntypes = sock.recv(1)[0]
+        if ntypes == 0:
+            _log("vnc_rfb_click: server sent 0 security types")
+            return False
+        sec_types = list(sock.recv(ntypes))
+        _log(f"vnc_rfb_click: security types: {sec_types}")
+        if 2 not in sec_types:
+            _log("vnc_rfb_click: VNC Auth (type 2) not offered")
+            return False
+        sock.sendall(bytes([2]))  # Choose VNC Auth
+
+        # 3. VNC Auth challenge-response (DES)
+        challenge = sock.recv(16)
+        pwd_padded = (VNC_PASS + "\x00" * 8)[:8]
+        key_bytes = bytes(_vnc_reverse_bits(ord(c)) for c in pwd_padded)
+        response = _vnc_des_encrypt(key_bytes, challenge)
+        sock.sendall(response)
+
+        # 4. Security result
+        sec_result = _struct.unpack(">I", sock.recv(4))[0]
+        if sec_result != 0:
+            _log(f"vnc_rfb_click: auth failed (result={sec_result})")
+            return False
+        _log("vnc_rfb_click: authenticated OK")
+
+        # 5. ClientInit (shared session)
+        sock.sendall(bytes([1]))
+
+        # 6. ServerInit — read and discard
+        _w = _struct.unpack(">H", sock.recv(2))[0]
+        _h = _struct.unpack(">H", sock.recv(2))[0]
+        # pixel format: 16 bytes
+        sock.recv(16)
+        # desktop name length + name
+        name_len = _struct.unpack(">I", sock.recv(4))[0]
+        if name_len > 0:
+            sock.recv(name_len)
+        _log(f"vnc_rfb_click: ServerInit {_w}x{_h}")
+
+        # 7. PointerEvent: button 1 DOWN at (x, y)
+        # Format: msg_type=5 (1B), button_mask (1B), x (2B), y (2B)
+        sock.sendall(_struct.pack(">BBHH", 5, 1, x, y))
+        time.sleep(0.1)
+        # 8. PointerEvent: button 1 UP
+        sock.sendall(_struct.pack(">BBHH", 5, 0, x, y))
+        time.sleep(0.1)
+
+        _log(f"vnc_rfb_click({x},{y}): PointerEvent sent OK")
+        return True
+
+    except Exception as e:
+        _log(f"vnc_rfb_click error: {e}")
+        import traceback
+        _log(traceback.format_exc()[:200])
+        return False
+    finally:
+        sock.close()
+
+
 def vncdo_help() -> str:
     """Run vncdo --help to discover actual flags. Returns help text."""
     if not os.path.isfile(VNCDO_EXE):
@@ -617,8 +735,14 @@ def main() -> dict:
     result["cdp_ok"] = cdp_ok
     time.sleep(2)
 
-    # Layer 1: vncdo (TightVNC hardware injection — same path as noVNC)
-    _log(f"[Layer 1] vncdo_click{btn_pos}...")
+    # Layer 1: Direct VNC RFB click (pure Python, no CLI flag issues)
+    _log(f"[Layer 1] vnc_rfb_click{btn_pos}...")
+    vnc_rfb_ok = vnc_rfb_click(*btn_pos)
+    result["vnc_rfb_ok"] = vnc_rfb_ok
+    time.sleep(1)
+
+    # Layer 1b: vncdo CLI fallback (in case rfb fails)
+    _log(f"[Layer 1b] vncdo_click{btn_pos}...")
     vnc_ok = vncdo_click(*btn_pos)
     result["vncdo_ok"] = vnc_ok
     time.sleep(1)
@@ -667,11 +791,13 @@ def main() -> dict:
     result["code_received"] = True
 
     # Step 8: Enter 2FA code
+    vnc_rfb_click(*TWO_FA_INPUT)
     vncdo_click(*TWO_FA_INPUT)
     post_click_cef(*TWO_FA_INPUT)
     time.sleep(1)
     paste_text(code)
     time.sleep(1)
+    vnc_rfb_click(*TWO_FA_SUBMIT)
     vncdo_click(*TWO_FA_SUBMIT)
     post_click_cef(*TWO_FA_SUBMIT)
     time.sleep(15)
