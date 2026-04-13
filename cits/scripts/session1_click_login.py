@@ -220,54 +220,86 @@ def _vnc_des_encrypt(key8: bytes, data16: bytes) -> bytes:
     raise RuntimeError("No DES backend (need pycryptodome, cryptography, or openssl)")
 
 
-def vnc_rfb_click(x: int, y: int) -> bool:
-    """Direct VNC RFB PointerEvent — same mechanism as noVNC manual click."""
+def _vnc_connect_and_auth() -> "socket.socket | None":
+    """Connect to VNC server and authenticate. Returns socket or None."""
     import socket as _sock
     import struct as _struct
-    _log(f"vnc_rfb_click({x},{y}): connecting to {VNC_HOST}:{VNC_PORT}...")
     try:
         sock = _sock.create_connection((VNC_HOST, VNC_PORT), timeout=10)
     except Exception as e:
-        _log(f"vnc_rfb_click: connect failed: {e}")
-        return False
+        _log(f"VNC connect failed: {e}")
+        return None
     try:
         server_ver = sock.recv(12)
         if not server_ver.startswith(b"RFB "):
-            _log(f"vnc_rfb_click: bad handshake: {server_ver!r}")
-            return False
+            _log(f"VNC bad handshake: {server_ver!r}")
+            sock.close()
+            return None
         sock.sendall(b"RFB 003.008\n")
 
         ntypes = sock.recv(1)[0]
         if ntypes == 0:
-            _log("vnc_rfb_click: 0 security types")
-            return False
+            _log("VNC: 0 security types")
+            sock.close()
+            return None
         sec_types = list(sock.recv(ntypes))
-        _log(f"vnc_rfb_click: sec types={sec_types}")
-        if 2 not in sec_types:
-            _log("vnc_rfb_click: VNC Auth not available")
-            return False
-        sock.sendall(bytes([2]))
+        _log(f"VNC sec types={sec_types}")
 
-        challenge = sock.recv(16)
-        pwd_bytes = bytes(_vnc_reverse_bits(ord(c)) for c in (VNC_PASS + "\x00" * 8)[:8])
-        response = _vnc_des_encrypt(pwd_bytes, challenge)
-        sock.sendall(response)
+        if 1 in sec_types:
+            # None authentication — no challenge/response
+            sock.sendall(bytes([1]))
+            try:
+                result_bytes = sock.recv(4)
+                if len(result_bytes) == 4:
+                    result = _struct.unpack(">I", result_bytes)[0]
+                    if result != 0:
+                        _log(f"VNC None auth failed (result={result})")
+                        sock.close()
+                        return None
+            except Exception:
+                pass  # Some servers skip SecurityResult for None auth
+            _log("VNC: None auth OK")
+        elif 2 in sec_types:
+            sock.sendall(bytes([2]))
+            challenge = sock.recv(16)
+            pwd_bytes = bytes(_vnc_reverse_bits(ord(c)) for c in (VNC_PASS + "\x00" * 8)[:8])
+            response = _vnc_des_encrypt(pwd_bytes, challenge)
+            sock.sendall(response)
+            result = _struct.unpack(">I", sock.recv(4))[0]
+            if result != 0:
+                _log(f"VNC auth failed (result={result})")
+                sock.close()
+                return None
+            _log("VNC: VNC auth OK")
+        else:
+            _log(f"VNC: no supported auth types in {sec_types}")
+            sock.close()
+            return None
 
-        result = _struct.unpack(">I", sock.recv(4))[0]
-        if result != 0:
-            _log(f"vnc_rfb_click: auth failed (result={result})")
-            return False
-        _log("vnc_rfb_click: authenticated OK")
-
-        sock.sendall(bytes([1]))  # ClientInit shared=1
+        # ClientInit + read ServerInit
+        sock.sendall(bytes([1]))  # shared=1
         _w = _struct.unpack(">H", sock.recv(2))[0]
         _h = _struct.unpack(">H", sock.recv(2))[0]
         sock.recv(16)  # pixel format
         name_len = _struct.unpack(">I", sock.recv(4))[0]
         if name_len > 0:
             sock.recv(name_len)
-        _log(f"vnc_rfb_click: desktop {_w}x{_h}, sending click at ({x},{y})")
+        _log(f"VNC: desktop {_w}x{_h}")
+        return sock
+    except Exception as e:
+        _log(f"VNC connect/auth error: {e}")
+        sock.close()
+        return None
 
+
+def vnc_rfb_click(x: int, y: int) -> bool:
+    """Direct VNC RFB PointerEvent — same mechanism as noVNC manual click."""
+    import struct as _struct
+    _log(f"vnc_rfb_click({x},{y}): connecting to {VNC_HOST}:{VNC_PORT}...")
+    sock = _vnc_connect_and_auth()
+    if sock is None:
+        return False
+    try:
         sock.sendall(_struct.pack(">BBHH", 5, 1, x, y))  # button down
         time.sleep(0.15)
         sock.sendall(_struct.pack(">BBHH", 5, 0, x, y))  # button up
@@ -276,6 +308,29 @@ def vnc_rfb_click(x: int, y: int) -> bool:
         return True
     except Exception as e:
         _log(f"vnc_rfb_click error: {e}")
+        return False
+    finally:
+        sock.close()
+
+
+def vnc_type_text(text: str) -> bool:
+    """Type text via VNC RFB KeyEvent (hardware-level keyboard input)."""
+    import struct as _struct
+    _log(f"vnc_type_text({text!r}): connecting to {VNC_HOST}:{VNC_PORT}...")
+    sock = _vnc_connect_and_auth()
+    if sock is None:
+        return False
+    try:
+        for char in text:
+            keysym = ord(char)  # ASCII = X11 keysym for printable ASCII
+            sock.sendall(_struct.pack(">BBHI", 4, 1, 0, keysym))  # key down
+            time.sleep(0.05)
+            sock.sendall(_struct.pack(">BBHI", 4, 0, 0, keysym))  # key up
+            time.sleep(0.05)
+        _log(f"vnc_type_text: typed {len(text)} chars OK")
+        return True
+    except Exception as e:
+        _log(f"vnc_type_text error: {e}")
         return False
     finally:
         sock.close()
@@ -554,14 +609,25 @@ def main() -> dict:
     result["code_received"] = True
 
     # Step 7: Enter 2FA
-    vnc_rfb_click(*TWO_FA_INPUT)
-    post_click_cef(*TWO_FA_INPUT)
+    _log("Taking screenshot of 2FA screen...")
+    take_screenshot()
+    time.sleep(0.5)
+
+    _log(f"[2FA] Clicking 2FA input {TWO_FA_INPUT}...")
+    if not vnc_rfb_click(*TWO_FA_INPUT):
+        post_click_cef(*TWO_FA_INPUT)
+    time.sleep(1.5)
+
+    _log(f"[2FA] Typing code via VNC keyboard...")
+    if not vnc_type_text(code):
+        _log("[2FA] VNC type failed, using clipboard paste fallback...")
+        paste_text(code)
     time.sleep(1)
-    paste_text(code)
-    time.sleep(1)
-    vnc_rfb_click(*TWO_FA_SUBMIT)
-    post_click_cef(*TWO_FA_SUBMIT)
-    time.sleep(15)
+
+    _log(f"[2FA] Clicking submit {TWO_FA_SUBMIT}...")
+    if not vnc_rfb_click(*TWO_FA_SUBMIT):
+        post_click_cef(*TWO_FA_SUBMIT)
+    time.sleep(25)
 
     # Step 8: Final check
     if check_api():
