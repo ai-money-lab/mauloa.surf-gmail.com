@@ -1,15 +1,13 @@
 {
-  "timestamp": "2026-04-13T23:40:26.978748",
+  "timestamp": "2026-04-13T23:49:00.450236",
   "agent": "vps_agent",
-  "git_mode": "git",
+  "git_mode": "api",
   "results": [
     {
-      "id": "screenshot_and_api_check_2338",
+      "id": "full_login_timestamp_2341",
       "type": "python",
-      "status": "ok",
-      "timestamp": "2026-04-13T23:40:19.105824",
-      "stdout": "screenshot err: closed\nAPI: NOT_READY \nkabuS process: KabuS.exe                     9452 Console                    1    113,192 K\n",
-      "stderr": ""
+      "status": "timeout",
+      "timestamp": "2026-04-13T23:44:00.302553"
     }
   ]
 }
