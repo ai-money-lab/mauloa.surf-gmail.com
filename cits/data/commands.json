@@ -1,26 +1,14 @@
 [
   {
-    "id": "emergency_diag_20260413_0953",
-    "type": "shell",
-    "command": "echo === EMERGENCY DIAG 0953 === && ipconfig | findstr IPv4 && echo --- BRANCH --- && cd C:\\cits\\repo && git branch --show-current && git log --oneline -3 && echo --- TASKS CSV --- && schtasks /Query /FO CSV /NH 2>&1 | findstr CITS && echo --- PROCS --- && tasklist /FO CSV /NH 2>&1 | findstr /i python && echo --- KABU PORT --- && netstat -an 2>&1 | findstr 18080 && echo DIAG_DONE",
-    "timeout": 30
-  },
-  {
-    "id": "emergency_register_tasks_20260413_0953",
-    "type": "shell",
-    "command": "schtasks /Delete /TN CITS_KabuStation_Start /F 2>nul & schtasks /Create /TN CITS_KabuStation_Start /TR \"C:\\Users\\Administrator\\AppData\\Local\\kabuStation\\KabuS.exe\" /SC DAILY /ST 08:25 /D MON,TUE,WED,THU,FRI /IT /F & schtasks /Delete /TN CITS_KabuStart_IT /F 2>nul & schtasks /Create /TN CITS_KabuStart_IT /TR \"C:\\Users\\Administrator\\AppData\\Local\\kabuStation\\KabuS.exe\" /SC ONCE /SD 12/31/2099 /ST 23:59 /IT /F & schtasks /Delete /TN CITS_LiveTrader /F 2>nul & schtasks /Create /TN CITS_LiveTrader /TR \"C:\\cits\\repo\\cits\\run_morning.bat\" /SC DAILY /ST 08:30 /D MON,TUE,WED,THU,FRI /RL HIGHEST /F & schtasks /Delete /TN CITS_PositionMonitor /F 2>nul & schtasks /Create /TN CITS_PositionMonitor /TR \"C:\\cits\\repo\\cits\\run_monitor.bat\" /SC MINUTE /MO 30 /ST 09:30 /ET 15:25 /RL HIGHEST /F & schtasks /Delete /TN CITS_Prefetch /F 2>nul & schtasks /Create /TN CITS_Prefetch /TR \"C:\\cits\\repo\\cits\\run_prefetch.bat\" /SC DAILY /ST 14:00 /D MON,TUE,WED,THU,FRI /RL HIGHEST /F & schtasks /Delete /TN CITS_Afternoon /F 2>nul & schtasks /Create /TN CITS_Afternoon /TR \"C:\\cits\\repo\\cits\\run_afternoon.bat\" /SC DAILY /ST 15:20 /D MON,TUE,WED,THU,FRI /RL HIGHEST /F & schtasks /Delete /TN CITS_Watchdog /F 2>nul & schtasks /Create /TN CITS_Watchdog /TR \"C:\\cits\\repo\\cits\\run_watchdog.bat\" /SC MINUTE /MO 5 /RL HIGHEST /F & schtasks /Delete /TN CITS_VPSAgent /F 2>nul & schtasks /Create /TN CITS_VPSAgent /TR \"C:\\cits\\repo\\cits\\run_agent.bat\" /SC ONSTART /DELAY 0002:00 /RL HIGHEST /F & schtasks /Delete /TN CITS_StartupRecovery /F 2>nul & schtasks /Create /TN CITS_StartupRecovery /TR \"C:\\cits\\repo\\cits\\run_morning.bat\" /SC ONSTART /DELAY 0005:00 /F & echo ALL_TASKS_REGISTERED_0953",
+    "id": "force_sell_2170_20260413_URGENT",
+    "type": "python",
+    "code": "import sys,json,os\nfrom pathlib import Path\nsys.path.insert(0,'C:/cits/repo')\ntry:\n    from dotenv import load_dotenv\n    env=Path('C:/cits/repo/cits/.env')\n    if env.exists():\n        try: load_dotenv(env,override=True)\n        except: load_dotenv(env,override=True,encoding='cp932')\nexcept Exception: pass\nos.environ.setdefault('KABU_API_PASSWORD','hiroki0380')\nos.environ.setdefault('KABU_ORDER_PASSWORD','hiroki0380HM')\nfrom cits.japan.broker.kabu_api import KabuStationAPI\nbroker=KabuStationAPI()\nbroker._ensure_token()\nboard=broker.get_board('2170',exchange=1)\nprice=board.get('CurrentPrice',0)\nprint('PRICE:',price)\npositions=broker.get_positions()\np2170=[p for p in positions if str(p.get('Symbol',''))=='2170']\nprint('API_POS:',p2170)\nif p2170:\n    qty=sum(int(p.get('LeavesQty') or p.get('Qty') or 0) for p in p2170)\n    if qty>0:\n        r=broker.place_order(symbol='2170',side='sell',qty=qty,order_type='market',exchange=9)\n        print('SOLD 2170 x'+str(qty)+':',r)\n        Path('C:/cits/logs/.sold_2170').parent.mkdir(parents=True,exist_ok=True)\n        Path('C:/cits/logs/.sold_2170').write_text('FORCE_SOLD price='+str(price)+' qty='+str(qty))\n    else:\n        print('qty=0 skip')\nelse:\n    local=Path('C:/cits/repo/cits/data/positions.json')\n    if local.exists():\n        lp=json.loads(local.read_text('utf-8'))\n        lp2=[p for p in lp if str(p.get('ticker',''))=='2170' and p.get('status')=='open']\n        if lp2:\n            qty=lp2[0].get('size',100)\n            r=broker.place_order(symbol='2170',side='sell',qty=qty,order_type='market',exchange=9)\n            print('SOLD_LOCAL 2170 x'+str(qty)+':',r)\n        else:\n            print('NO_OPEN_POS')\n    else:\n        print('NO_LOCAL_JSON')",
     "timeout": 60
   },
   {
-    "id": "emergency_check_position_20260413_0953",
-    "type": "python",
-    "code": "import sys,json,os; sys.path.insert(0,'C:\\\\cits\\\\repo'); os.environ.setdefault('KABU_API_PASSWORD','hiroki0380'); os.environ.setdefault('KABU_ORDER_PASSWORD','hiroki0380HM')\nresult={}\ntry:\n    from cits.japan.broker.kabu_api import KabuStationAPI\n    api=KabuStationAPI()\n    api._ensure_token()\n    positions=api.get_positions()\n    board=api.get_board('2170',exchange=1)\n    orders=api.get_orders()\n    result['api_ok']=True\n    result['live_positions']=positions\n    result['open_orders']=[o for o in orders if o.get('State') in [1,2,3]]\n    result['board_2170']={'price':board.get('CurrentPrice'),'high':board.get('HighPrice'),'low':board.get('LowPrice'),'open':board.get('OpeningPrice'),'vol':board.get('TradingVolume')}\nexcept Exception as e:\n    result['api_error']=str(e)\nresult['sold_marker']=os.path.exists('C:\\\\cits\\\\logs\\\\.sold_2170')\nlocal_pos='C:\\\\cits\\\\data\\\\positions.json'\nif os.path.exists(local_pos):\n    result['local_pos']=json.loads(open(local_pos,'r',encoding='utf-8').read())\nelse:\n    result['local_pos']='NOT_FOUND'\nprint(json.dumps(result,ensure_ascii=False,default=str,indent=2))",
-    "timeout": 30
-  },
-  {
-    "id": "emergency_manual_monitor_20260413_0953",
+    "id": "system_status_20260413_URGENT",
     "type": "shell",
-    "command": "cd C:\\cits\\repo && git pull --quiet 2>nul && set PYTHONPATH=C:\\cits\\repo && set CITS_SCHEDULED_RUN=TASKSCHEDULER && set KABU_API_PASSWORD=hiroki0380 && set KABU_ORDER_PASSWORD=hiroki0380HM && C:\\cits\\venv\\Scripts\\python.exe -m cits.scripts.position_monitor 2>&1 | tail -30",
-    "timeout": 120
+    "command": "cd C:\\cits\\repo && echo --- GIT --- && git log --oneline -3 2>&1 && echo --- TASKS --- && schtasks /Query /FO CSV /NH 2>&1 | findstr CITS && echo --- PYTHON PROCS --- && tasklist 2>&1 | findstr /i python && echo --- KABU PORT --- && netstat -an 2>&1 | findstr 18080 && echo STATUS_DONE",
+    "timeout": 30
   }
 ]
