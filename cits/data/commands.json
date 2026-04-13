@@ -1,8 +1,8 @@
 [
   {
-    "id": "login_enter_2100",
+    "id": "check_api_2040",
     "type": "shell",
-    "timeout": 370,
-    "command": "del /f /q C:\\cits\\session1_login_result.json 2>nul & powershell -NoProfile -Command \"$py='C:\\cits\\venv\\Scripts\\pythonw.exe'; $sc='C:\\cits\\repo\\cits\\scripts\\session1_click_login.py'; $a=New-ScheduledTaskAction -Execute $py -Argument $sc; $p=New-ScheduledTaskPrincipal -UserId 'Administrator' -LogonType Interactive -RunLevel Highest; Register-ScheduledTask -TaskName 'CITSSession1Login' -Action $a -Principal $p -Force | Out-Null; Start-ScheduledTask -TaskName 'CITSSession1Login'; Write-Output 'TASK_STARTED'\" 2>&1 && echo WAITING && ping -n 31 127.0.0.1 >nul && ping -n 61 127.0.0.1 >nul && ping -n 61 127.0.0.1 >nul && ping -n 61 127.0.0.1 >nul && ping -n 61 127.0.0.1 >nul && type C:\\cits\\session1_login_result.json 2>&1 || echo RESULT_FILE_MISSING"
+    "timeout": 15,
+    "command": "curl -s -X POST http://localhost:18080/kabusapi/token -H \"Content-Type: application/json\" -d \"{\\\"APIPassword\\\":\\\"hiroki0380\\\"}\" 2>&1"
   }
 ]
