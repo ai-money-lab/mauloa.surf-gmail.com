@@ -31,3 +31,18 @@ if [ -n "$ERRORS" ]; then
     echo ""
     echo "→ 修正してから次に進んでください"
 fi
+
+# VPS関連ファイルの変更を検出 → 絶対ルールを表示
+case "$FILE_PATH" in
+    */vps_agent*|*/watchdog*|*/live_trader*|*/run_*.bat|*/position_monitor*)
+        echo ""
+        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        echo "⚠ VPS実行ファイルを変更しました"
+        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        echo "絶対ルール確認:"
+        echo "  ① pushしたらvps_status.jsonで実行ログを必ず確認"
+        echo "  ② ログなしに「動いています」と言わない"
+        echo "  ⑤ 本番前にpaper mode / dry-runで動作確認"
+        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        ;;
+esac

@@ -41,3 +41,33 @@ cd "$CLAUDE_PROJECT_DIR"
 python cits/tests/smoke_test.py 2>/dev/null && echo "[CITS] ✅ スモークテスト完了" || echo "[CITS] ⚠ スモークテスト失敗"
 
 echo "=== SessionStart: 完了 ==="
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# 【絶対ルール — セッション開始時に必ず読め】
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+echo ""
+echo "╔══════════════════════════════════════════════════════╗"
+echo "║      CITS 絶対ルール（2026-04-13制定）               ║"
+echo "╠══════════════════════════════════════════════════════╣"
+echo "║ ① VPS確認 = vps_status.jsonに実行ログが届いた時のみ ║"
+echo "║ ② commands.json投入だけでは「完了」と言わない        ║"
+echo "║ ③ 第三者が再現できる手順書＋実行ログを必ず提示       ║"
+echo "║ ④ 未確認項目を先に列挙してから作業開始               ║"
+echo "║ ⑤ 本番前にpaper mode / dry-runで発注テスト必須       ║"
+echo "╠══════════════════════════════════════════════════════╣"
+echo "║ ❌ 「動くはず」「登録されているはず」は禁止           ║"
+echo "║ ❌ ログなしの「確認完了」報告は禁止                   ║"
+echo "║ ✅ 証拠（実行ログ）を出して初めて「完了」と言える      ║"
+echo "╚══════════════════════════════════════════════════════╝"
+echo ""
+
+# VPS最終応答確認
+VPS_STATUS="$CLAUDE_PROJECT_DIR/cits/data/vps_status.json"
+if [ -f "$VPS_STATUS" ]; then
+  LAST_TS=$(python3 -c "import json; d=json.load(open('$VPS_STATUS')); print(d.get('timestamp','不明'))" 2>/dev/null || echo "読み取り失敗")
+  echo "[VPS] 最終応答: $LAST_TS"
+  echo "[VPS] ⚠ これが古い場合、vps_agentが停止している可能性あり"
+else
+  echo "[VPS] ⚠ vps_status.json が見つかりません — VPS状態不明"
+fi
+echo ""
