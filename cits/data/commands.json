@@ -1,14 +1,8 @@
 [
   {
-    "id": "session_diag_20260413_1930",
-    "type": "shell",
-    "command": "qwinsta 2>&1 && echo SESSION_DONE && reg query \"HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon\" /v AutoAdminLogon 2>&1 && reg query \"HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon\" /v SoftwareSASGeneration 2>&1 && sc query tvnserver 2>&1 | findstr /i \"STATE\\|RUNNING\"",
-    "timeout": 20
-  },
-  {
-    "id": "enable_sas_and_vnc_20260413_1931",
-    "type": "shell",
-    "command": "reg add \"HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon\" /v SoftwareSASGeneration /t REG_DWORD /d 3 /f && echo SAS_ENABLED && sc stop tvnserver && sc start tvnserver && timeout /t 3 /nobreak 2>nul & echo TVNSERVER_RESTARTED",
-    "timeout": 30
+    "id": "start_kabu_it_20260413_1935",
+    "type": "python",
+    "timeout": 100,
+    "code": "import subprocess, time\n\n# schtasks /Run /TN CITS_KabuStart_IT を実行してプロセスを監視\ndef kabu_running():\n    r = subprocess.run('tasklist /fi \"IMAGENAME eq KabuS.exe\" /fo csv /nh', shell=True, capture_output=True, text=True, timeout=5, encoding='cp932', errors='replace')\n    return 'KabuS' in r.stdout\n\nprint('Before:', 'RUNNING' if kabu_running() else 'NOT_RUNNING')\n\n# Method 1: CITS_KabuStart_IT\nr = subprocess.run('schtasks /Run /TN \"CITS_KabuStart_IT\"', shell=True, capture_output=True, text=True, timeout=15, encoding='cp932', errors='replace')\nprint(f'CITS_KabuStart_IT result: rc={r.returncode} out={r.stdout[:100]} err={r.stderr[:100]}')\n\nfor i in range(6):\n    time.sleep(10)\n    running = kabu_running()\n    print(f'  +{(i+1)*10}s: {\"RUNNING\" if running else \"not_found\"}')\n    if running:\n        break\n\nif not kabu_running():\n    # Method 2: Try CITS_KabuStation_Start task\n    r = subprocess.run('schtasks /Run /TN \"CITS_KabuStation_Start\"', shell=True, capture_output=True, text=True, timeout=15, encoding='cp932', errors='replace')\n    print(f'CITS_KabuStation_Start result: rc={r.returncode} out={r.stdout[:100]} err={r.stderr[:100]}')\n    time.sleep(30)\n    print('After CITS_KabuStation_Start:', 'RUNNING' if kabu_running() else 'NOT_FOUND')\n\nif kabu_running():\n    print('KabuS.exe CONFIRMED RUNNING!')\n    time.sleep(10)\n    r = subprocess.run('curl -s -X POST http://localhost:18080/kabusapi/token -H \"Content-Type: application/json\" -d \"{\\\\\"APIPassword\\\\\":\\\\\"hiroki0380\\\\\"}\"', shell=True, capture_output=True, text=True, timeout=10, encoding='cp932', errors='replace')\n    print('API result:', r.stdout[:300])\nelse:\n    print('FAILED: KabuS.exe not found via any method')\n    # Check Event Log for KabuS crash\n    r = subprocess.run('wevtutil qe Application /q:\"*[System[Provider[@Name=\\'KabuS\\']]]\" /c:3 /rd:true /f:text 2>&1', shell=True, capture_output=True, text=True, timeout=10, encoding='cp932', errors='replace')\n    print('EventLog:', r.stdout[:200])\n"
   }
 ]
