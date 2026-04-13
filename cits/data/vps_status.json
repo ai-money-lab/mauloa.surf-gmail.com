@@ -1,15 +1,6 @@
 {
-  "timestamp": "2026-04-13T17:46:51.031656",
+  "timestamp": "2026-04-13T17:50:21.121040",
   "agent": "vps_agent",
   "git_mode": "git",
-  "results": [
-    {
-      "id": "checklist_20260413_2020",
-      "type": "python",
-      "status": "ok",
-      "timestamp": "2026-04-13T17:46:41.026489",
-      "stdout": "=== TASKS ===\n\"\\CITS_Afternoon\",\"2026/04/14 15:20:00\",\"貅門ｙ螳御ｺ�\"\n\"\\CITS_HealthCheck_07\",\"2026/04/14 7:00:00\",\"貅門ｙ螳御ｺ�\"\n\"\\CITS_HealthCheck_08\",\"2026/04/14 8:00:00\",\"貅門ｙ螳御ｺ�\"\n\"\\CITS_HealthCheck_14\",\"2026/04/14 14:30:00\",\"貅門ｙ螳御ｺ�\"\n\"\\CITS_KabuLogin_0700\",\"2026/04/14 7:00:00\",\"貅門ｙ螳御ｺ�\"\n\"\\CITS_KabuStation_Start\",\"2026/04/14 8:25:00\",\"貅門ｙ螳御ｺ�\"\n\"\\CITS_LiveTrader\",\"2026/04/14 8:30:00\",\"貅門ｙ螳御ｺ�\"\n\"\\CITS_Monitor_0930\",\"2026/04/14 9:30:00\",\"貅門ｙ螳御ｺ�\"\n\"\\CITS_Monitor_1000\",\"2026/04/14 10:00:00\",\"貅門ｙ螳御ｺ�\"\n\"\\CITS_Monitor_1030\",\"2026/04/14 10:30:00\",\"貅門ｙ螳御ｺ�\"\n\"\\CITS_Monitor_1100\",\"2026/04/14 11:00:00\",\"貅門ｙ螳御ｺ�\"\n\"\\CITS_Monitor_1300\",\"2026/04/14 13:00:00\",\"貅門ｙ螳御ｺ�\"\n\"\\CITS_Monitor_1330\",\"2026/04/14 13:30:00\",\"貅門ｙ螳御ｺ�\"\n\"\\CITS_Monitor_1400\",\"2026/04/14 14:00:00\",\"貅門ｙ螳御ｺ�\"\n\"\\CITS_Monitor_1430\",\"2026/04/14 14:30:00\",\"貅門ｙ螳御ｺ�\"\n\"\\CITS_Monitor_1500\",\"2026/04/14 15:00:00\",\"貅門ｙ螳御ｺ�\"\n\"\\CITS_Monitor_1520\",\"2026/04/14 15:20:00\",\"貅門ｙ螳御ｺ�\"\n\"\\CITS_PositionMonitor\",\"N/A\",\"貅門ｙ螳御ｺ�\"\n\"\\CITS_Prefetch\",\"2026/04/14 14:00:00\",\"貅門ｙ螳御ｺ�\"\n\"\\CITS_StartKabu\",\"N/A\",\"貅門ｙ螳御ｺ�\"\n\"\\CITS_StartupRecovery\",\"N/A\",\"貅門ｙ螳御ｺ�\"\n\"\\CITS_VPSAgent\",\"N/A\",\"貅門ｙ螳御ｺ�\"\n\"\\CITS_Watchdog\",\"2026/04/13 17:50:00\",\"貅門ｙ螳御ｺ�\"\n=== KABU API ===\nSTATUS: 200\nTOKEN: e05fbfaea4a5...\n=== POSITIONS ===\nCOUNT: 1\n  SYM: 2170 QTY: 0.0 SIDE: 2\n=== DRY RUN ===\nVALIDATION_OK (qty=0 rejected): qty must be > 0, got 0\nVALIDATION_OK (invalid side rejected): Invalid side 'short'. Must be 'buy' or 'sell'.\nDRY_RUN_VALIDATION_COMPLETE\n=== DONE ===\n",
-      "stderr": ""
-    }
-  ]
+  "results": []
 }
