@@ -143,19 +143,23 @@ def bring_kabu_to_front() -> tuple[bool, int]:
             _log(f"Window at LOGIN_BTN {LOGIN_BTN}: hwnd={win_at}, title={win_title!r}")
 
             if win_at and win_at != hwnd:
-                # Get the top-level ancestor to minimize
+                # Check if it's a child/descendant of kabuStation (e.g. CEF component)
                 top = user32.GetAncestor(win_at, GA_ROOT) or win_at
-                top_title = get_window_title(top)
-                _log(f"BLOCKING: minimizing hwnd={top}, title={top_title!r}")
-                user32.ShowWindow(top, 6)  # SW_MINIMIZE
-                time.sleep(0.5)
-                # Bring kabu back to top
-                user32.SetWindowPos(hwnd, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE)
-                user32.SetForegroundWindow(hwnd)
-                time.sleep(1)
-                # Verify
-                win_at2 = user32.WindowFromPoint(pt)
-                _log(f"After minimize, window at LOGIN_BTN: hwnd={win_at2}, title={get_window_title(win_at2)!r}")
+                if top == hwnd:
+                    _log(f"Window at LOGIN_BTN is kabuStation CEF child (hwnd={win_at}) - OK, no blocker")
+                else:
+                    # Foreign window is truly blocking
+                    top_title = get_window_title(top)
+                    _log(f"BLOCKING foreign window: minimizing hwnd={top}, title={top_title!r}")
+                    user32.ShowWindow(top, 6)  # SW_MINIMIZE
+                    time.sleep(0.5)
+                    # Bring kabu back to top
+                    user32.SetWindowPos(hwnd, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE)
+                    user32.SetForegroundWindow(hwnd)
+                    time.sleep(1)
+                    # Verify
+                    win_at2 = user32.WindowFromPoint(pt)
+                    _log(f"After minimize, window at LOGIN_BTN: hwnd={win_at2}, title={get_window_title(win_at2)!r}")
 
             return True, hwnd
         _log("MainWindowHandle=0 or blank")
