@@ -164,6 +164,12 @@ def register_position(ticker: str, strategy: str, entry_price: float,
                        Use for earnings dates, etc. Position will be closed
                        on or before this date regardless of other signals.
     """
+    # Guard: SL must be strictly below entry for long positions
+    if stop_loss >= entry_price:
+        raise ValueError(
+            f"register_position: stop_loss ({stop_loss}) >= entry_price ({entry_price}) "
+            f"for {ticker} — SL must be BELOW entry. Check signal generation."
+        )
     positions = load_positions()
     positions.append({
         "ticker": ticker,
