@@ -1,6 +1,16 @@
 {
-  "timestamp": "2026-04-13T19:21:29.395441",
+  "timestamp": "2026-04-13T19:27:24.352622",
   "agent": "vps_agent",
-  "git_mode": "git",
-  "results": []
+  "git_mode": "api",
+  "results": [
+    {
+      "id": "session1_login_2015",
+      "type": "shell",
+      "status": "ok",
+      "timestamp": "2026-04-13T19:22:50.872413",
+      "returncode": 0,
+      "stdout": "TASK_STARTED\nWAITING \n{\n  \"status\": \"FAILED: no 2FA code\",\n  \"ts\": \"2026-04-13T19:22:53.389419\",\n  \"window_focused\": true,\n  \"kabu_hwnd\": 395604,\n  \"login_click_at\": \"2026-04-13T19:23:01.679608\",\n  \"diagnostics\": [\n    \"[19:22:53] session1_click_login started at 2026-04-13T19:22:53.389419\",\n    \"[19:22:53] KabuS already running\",\n    \"[19:22:56] check_api -> NOT_READY ('')\",\n    \"[19:22:56] Bringing kabuStation to foreground...\",\n    \"[19:22:59] KabuS MainWindowHandle: '395604'\",\n    \"[19:22:59] KabuS window rect: left=23, top=57, right=1001, bottom=662\",\n    \"[19:23:01] SetForegroundWindow(395604) -> rc=1\",\n    \"[19:23:01] Foreground window after SetForegroundWindow: hwnd=395604, title='繝ｭ繧ｰ繧､繝ｳ'\",\n    \"[19:23:01] Window at LOGIN_BTN (779, 475): hwnd=592146, title='Chrome Legacy Window'\",\n    \"[19:23:01] Clicking LOGIN_BTN (779, 475)...\",\n    \"[19:23:01] click_at(779, 475)\",\n    \"[19:23:24] check_api -> NOT_READY ('')\",\n    \"[19:23:24] 2FA required. Fetching from Gmail...\",\n    \"[19:26:01] No 2FA code received\"\n  ]\n}",
+      "stderr": ""
+    }
+  ]
 }
