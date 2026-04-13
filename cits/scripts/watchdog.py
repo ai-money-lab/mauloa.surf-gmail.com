@@ -42,60 +42,72 @@ MARKET_CLOSE_M = 30
 PUSH_INTERVAL_MIN = 30
 
 # ===== Schtask definitions (name -> /Create command args) =====
+# NOTE: Background tasks use /RU SYSTEM so they persist after user logoff.
+# GUI apps (kabuStation) use /RU Administrator + /IT (interactive desktop required).
 TASK_DEFS: dict[str, list[str]] = {
     "CITS_KabuStart_IT": [
         "schtasks", "/Create", "/TN", "CITS_KabuStart_IT",
+        "/RU", "Administrator",
         "/TR", r"C:\Users\Administrator\AppData\Local\kabuStation\KabuS.exe",
         "/SC", "ONCE", "/SD", "12/31/2099", "/ST", "23:59", "/IT", "/F",
     ],
     "CITS_KabuStation_Start": [
         "schtasks", "/Create", "/TN", "CITS_KabuStation_Start",
+        "/RU", "Administrator",
         "/TR", r"C:\Users\Administrator\AppData\Local\kabuStation\KabuS.exe",
         "/SC", "DAILY", "/ST", "08:25",
         "/D", "MON,TUE,WED,THU,FRI", "/IT", "/F",
     ],
     "CITS_LiveTrader": [
         "schtasks", "/Create", "/TN", "CITS_LiveTrader",
+        "/RU", "SYSTEM",
         "/TR", r"C:\cits\repo\cits\run_morning.bat",
         "/SC", "DAILY", "/ST", "08:30",
         "/D", "MON,TUE,WED,THU,FRI", "/RL", "HIGHEST", "/F",
     ],
     "CITS_PositionMonitor": [
         "schtasks", "/Create", "/TN", "CITS_PositionMonitor",
+        "/RU", "SYSTEM",
         "/TR", r"C:\cits\repo\cits\run_monitor.bat",
         "/SC", "MINUTE", "/MO", "30", "/ST", "09:30", "/ET", "15:25",
         "/RL", "HIGHEST", "/F",
     ],
     "CITS_Afternoon": [
         "schtasks", "/Create", "/TN", "CITS_Afternoon",
+        "/RU", "SYSTEM",
         "/TR", r"C:\cits\repo\cits\run_afternoon.bat",
         "/SC", "DAILY", "/ST", "15:20",
         "/D", "MON,TUE,WED,THU,FRI", "/RL", "HIGHEST", "/F",
     ],
     "CITS_Prefetch": [
         "schtasks", "/Create", "/TN", "CITS_Prefetch",
+        "/RU", "SYSTEM",
         "/TR", r"C:\cits\repo\cits\run_prefetch.bat",
         "/SC", "DAILY", "/ST", "14:00",
         "/D", "MON,TUE,WED,THU,FRI", "/RL", "HIGHEST", "/F",
     ],
     "CITS_VPSAgent": [
         "schtasks", "/Create", "/TN", "CITS_VPSAgent",
+        "/RU", "SYSTEM",
         "/TR", r"C:\cits\repo\cits\run_agent.bat",
         "/SC", "ONSTART", "/DELAY", "0002:00", "/RL", "HIGHEST", "/F",
     ],
     "CITS_StartupRecovery": [
         "schtasks", "/Create", "/TN", "CITS_StartupRecovery",
+        "/RU", "SYSTEM",
         "/TR", r"C:\cits\repo\cits\run_morning.bat",
         "/SC", "ONSTART", "/DELAY", "0005:00", "/RL", "HIGHEST", "/F",
     ],
     "CITS_Watchdog": [
         "schtasks", "/Create", "/TN", "CITS_Watchdog",
+        "/RU", "SYSTEM",
         "/TR", r"C:\cits\repo\cits\run_watchdog.bat",
         "/SC", "MINUTE", "/MO", "5", "/RL", "HIGHEST", "/F",
     ],
     # 毎朝06:00にgitを自動修復（VC++ランタイム破損などを事前に修復）
     "CITS_GitRepair": [
         "schtasks", "/Create", "/TN", "CITS_GitRepair",
+        "/RU", "SYSTEM",
         "/TR", r"C:\cits\repo\cits\run_gitrepair.bat",
         "/SC", "DAILY", "/ST", "06:00",
         "/D", "MON,TUE,WED,THU,FRI", "/RL", "HIGHEST", "/F",
@@ -378,28 +390,47 @@ def _check_vps_agent() -> dict:
 
 
 def _verify_tasks() -> dict:
-    """Check each critical schtask exists; re-register if missing."""
+    """Check each critical schtask exists and runs as the correct user.
+    Re-registers if missing. Upgrades to SYSTEM if task exists but runs as wrong user."""
     results: dict = {}
     for name, create_cmd in TASK_DEFS.items():
         try:
             r = subprocess.run(
-                ["schtasks", "/Query", "/TN", name],
-                capture_output=True, encoding="cp932", errors="replace", timeout=10,
+                ["schtasks", "/Query", "/TN", name, "/FO", "LIST"],
+                capture_output=True, text=True, encoding="cp932",
+                errors="replace", timeout=10,
             )
             if r.returncode == 0:
-                results[name] = "ok"
+                # Task exists — check if it runs as the correct user
+                output_upper = r.stdout.upper()
+                wants_system = "SYSTEM" in [a.upper() for a in create_cmd]
+                is_system = "SYSTEM" in output_upper
+                if wants_system and not is_system:
+                    _log(f"Task {name} exists but NOT SYSTEM — upgrading")
+                    r2 = subprocess.run(
+                        create_cmd, capture_output=True, text=True,
+                        encoding="cp932", errors="replace", timeout=15,
+                    )
+                    if r2.returncode == 0:
+                        results[name] = "upgraded-to-system"
+                        _log(f"  {name}: upgraded to SYSTEM OK")
+                    else:
+                        results[name] = f"upgrade-failed(rc={r2.returncode})"
+                        _log(f"  {name}: upgrade FAILED: {(r2.stderr or '')[:100]}")
+                else:
+                    results[name] = "ok"
             else:
-                _log(f"Task missing: {name} — re-registering")
+                _log(f"Task missing: {name} — registering")
                 r2 = subprocess.run(
-                    create_cmd, capture_output=True,
+                    create_cmd, capture_output=True, text=True,
                     encoding="cp932", errors="replace", timeout=15,
                 )
                 if r2.returncode == 0:
-                    results[name] = "re-registered"
-                    _log(f"  {name}: re-registered OK")
+                    results[name] = "registered"
+                    _log(f"  {name}: registered OK")
                 else:
                     results[name] = f"failed(rc={r2.returncode})"
-                    _log(f"  {name}: re-register FAILED: {(r2.stderr or '')[:100]}")
+                    _log(f"  {name}: register FAILED: {(r2.stderr or '')[:100]}")
         except Exception as exc:
             results[name] = f"error:{exc}"
             _log(f"  {name}: error {exc}")
