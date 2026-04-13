@@ -1,24 +1,14 @@
 {
-  "timestamp": "2026-04-13T18:24:06.624563",
+  "timestamp": "2026-04-13T18:28:03.772959",
   "agent": "vps_agent",
   "git_mode": "git",
   "results": [
     {
-      "id": "session_diag_20260413_1930",
-      "type": "shell",
+      "id": "start_kabu_it_20260413_1935",
+      "type": "python",
       "status": "error",
-      "timestamp": "2026-04-13T18:24:05.707221",
-      "returncode": 1,
-      "stdout": " セッション名               ユーザー名               ID  状態    種類        デバイス \n services                                            0  Disc                        \n>console                   Administrator             1  Active                      \n rdp-tcp                                         65536  Listen                      \nSESSION_DONE \n\nHKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon\n    AutoAdminLogon    REG_SZ    1\n\n\n\nエラー: 指定されたレジストリ キーまたは値が見つかりませんでした\n",
-      "stderr": ""
-    },
-    {
-      "id": "enable_sas_and_vnc_20260413_1931",
-      "type": "shell",
-      "status": "ok",
-      "timestamp": "2026-04-13T18:24:06.264728",
-      "returncode": 0,
-      "stdout": "この操作を正しく終了しました。\n\nSAS_ENABLED \n\nSERVICE_NAME: tvnserver \n        TYPE               : 10  WIN32_OWN_PROCESS  \n        STATE              : 3  STOP_PENDING \n                                (STOPPABLE, NOT_PAUSABLE, IGNORES_SHUTDOWN)\n        WIN32_EXIT_CODE    : 0  (0x0)\n        SERVICE_EXIT_CODE  : 0  (0x0)\n        CHECKPOINT         : 0x1\n        WAIT_HINT          : 0x0\n[SC] StartService FAILED 1056:\n\nサービス インスタンスは既に実行されています。\n\nTVNSERVER_RESTARTED\n",
+      "timestamp": "2026-04-13T18:26:29.528256",
+      "stdout": "",
       "stderr": ""
     }
   ]
