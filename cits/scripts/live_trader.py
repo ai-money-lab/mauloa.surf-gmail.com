@@ -428,40 +428,61 @@ def _get_actual_capital(default_capital: float) -> float:
 _LOCK_PATH = DATA_DIR / ".positions.lock"
 
 
+def _acquire_positions_lock(timeout_s: float = 5.0) -> bool:
+    """Acquire positions lock atomically using O_EXCL. Returns True on success."""
+    import errno
+    import time as _time
+    deadline = _time.monotonic() + timeout_s
+    while _time.monotonic() < deadline:
+        try:
+            fd = os.open(str(_LOCK_PATH), os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+            os.write(fd, str(os.getpid()).encode())
+            os.close(fd)
+            return True
+        except OSError as e:
+            if e.errno not in (errno.EEXIST, errno.EACCES):
+                raise
+            # Stale lock: remove if older than 30 seconds (process died without cleanup)
+            try:
+                if _time.time() - _LOCK_PATH.stat().st_mtime > 30:
+                    _LOCK_PATH.unlink(missing_ok=True)
+                    continue
+            except OSError:
+                pass
+            _time.sleep(0.05)
+    return False
+
+
 def _locked_read_positions(path: Path) -> list[dict]:
-    """ロックファイル付きでpositions.jsonを読む."""
+    """ロックファイル付きでpositions.jsonを読む (atomic O_EXCL lock)."""
     if not path.exists():
         return []
     _LOCK_PATH.parent.mkdir(parents=True, exist_ok=True)
+    acquired = _acquire_positions_lock()
+    if not acquired:
+        logger.warning("positions lock timeout on read — proceeding unlocked")
     try:
-        # Simple lock: create lock file, read, delete lock
-        for _ in range(10):
-            if not _LOCK_PATH.exists():
-                break
-            import time
-            time.sleep(0.1)
-        _LOCK_PATH.write_text(str(os.getpid()))
-        data = json.loads(path.read_text(encoding="utf-8"))
-        _LOCK_PATH.unlink(missing_ok=True)
-        return data
+        return json.loads(path.read_text(encoding="utf-8")) if path.exists() else []
     except Exception:
-        _LOCK_PATH.unlink(missing_ok=True)
         return []
+    finally:
+        if acquired:
+            _LOCK_PATH.unlink(missing_ok=True)
 
 
 def _locked_write_positions(path: Path, positions: list[dict]) -> None:
-    """ロックファイル付きでpositions.jsonを書く."""
+    """ロックファイル付きでpositions.jsonを書く (atomic O_EXCL lock)."""
     path.parent.mkdir(parents=True, exist_ok=True)
     _LOCK_PATH.parent.mkdir(parents=True, exist_ok=True)
-    for _ in range(10):
-        if not _LOCK_PATH.exists():
-            break
-        import time
-        time.sleep(0.1)
-    _LOCK_PATH.write_text(str(os.getpid()))
-    with open(path, "w", encoding="utf-8") as f:
-        json.dump(positions, f, ensure_ascii=False, indent=2, default=str)
-    _LOCK_PATH.unlink(missing_ok=True)
+    acquired = _acquire_positions_lock()
+    if not acquired:
+        logger.warning("positions lock timeout on write — proceeding unlocked")
+    try:
+        with open(path, "w", encoding="utf-8") as f:
+            json.dump(positions, f, ensure_ascii=False, indent=2, default=str)
+    finally:
+        if acquired:
+            _LOCK_PATH.unlink(missing_ok=True)
 
 
 # ---------------------------------------------------------------

@@ -128,6 +128,10 @@ class KabuStationAPI:
             raise ValueError(f"Invalid order_type '{order_type}'. Must be 'market' or 'limit'.")
         if order_type == "limit" and price is None:
             raise ValueError("price is required for limit orders")
+        if qty <= 0:
+            raise ValueError(f"qty must be > 0, got {qty}")
+        if order_type == "limit" and price is not None and price <= 0:
+            raise ValueError(f"price must be > 0 for limit orders, got {price}")
 
         url = f"{self.BASE_URL}/kabusapi/sendorder"
 

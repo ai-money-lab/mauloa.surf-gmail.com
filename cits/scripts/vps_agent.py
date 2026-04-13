@@ -40,6 +40,7 @@ RESULTS_FILE = REPO_ROOT / "cits" / "data" / "vps_status.json"
 PROCESSED_FILE = REPO_ROOT / "cits" / "logs" / ".processed_commands"
 LOG_FILE = REPO_ROOT / "cits" / "logs" / "vps_agent.log"
 TOKEN_CACHE_FILE = Path("C:/cits/.github_token")
+PID_FILE = Path("C:/cits/vps_agent.pid")
 POLL_INTERVAL = 60
 BRANCH = "claude/continue-kabusute-DmFKB"
 OWNER = "ai-money-lab"
@@ -265,7 +266,8 @@ def execute_command(cmd: dict) -> dict:
     env["PYTHONPATH"] = str(REPO_ROOT)
     env["CITS_SCHEDULED_RUN"] = "TASKSCHEDULER"
     if "KABU_ORDER_PASSWORD" not in env:
-        env["KABU_ORDER_PASSWORD"] = "hiroki0380HM"
+        log.error("KABU_ORDER_PASSWORD not set — order commands will fail. Set in .env or bat file.")
+        # Do NOT hardcode password here. Set via .env or run_*.bat.
 
     try:
         if cmd_type == "shell":
@@ -315,7 +317,29 @@ def execute_command(cmd: dict) -> dict:
 # Main loop
 # ─────────────────────────────────────────────
 
+def _claim_singleton() -> bool:
+    """Ensure only one vps_agent instance runs. Returns False if another is alive."""
+    import atexit
+    try:
+        if PID_FILE.exists():
+            age = time.time() - PID_FILE.stat().st_mtime
+            if age < 180:  # Fresh PID file = another instance running
+                old_pid = PID_FILE.read_text(encoding="utf-8").strip()
+                log.warning("vps_agent PID %s running (age=%.0fs). Exiting.", old_pid, age)
+                return False
+            log.info("Stale PID file (age=%.0fs). Claiming.", age)
+        PID_FILE.parent.mkdir(parents=True, exist_ok=True)
+        PID_FILE.write_text(str(os.getpid()), encoding="utf-8")
+        atexit.register(lambda: PID_FILE.unlink(missing_ok=True))
+        return True
+    except Exception as exc:
+        log.warning("Singleton check failed: %s — proceeding anyway", exc)
+        return True
+
+
 def main() -> None:
+    if not _claim_singleton():
+        sys.exit(0)
     log.info("VPS Agent started (git_ok=%s)", _git_ok())
     # Cache GitHub token while git may still be working (first run)
     _get_github_token()
@@ -360,6 +384,11 @@ def main() -> None:
                 log.info("Command %s result: %s", cmd_id, result.get("status"))
 
             cycle += 1
+            # Refresh PID file mtime so singleton check sees us as alive
+            try:
+                PID_FILE.touch()
+            except Exception:
+                pass
             if new_results:
                 push_results(new_results)
                 save_processed_ids(processed)

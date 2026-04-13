@@ -1,5 +1,6 @@
 """Tests for broker modules: kabu_api and software_oco."""
 
+import requests
 from unittest.mock import MagicMock
 
 import pytest
@@ -260,3 +261,174 @@ def test_oco_tp_triggers_for_long():
         if c.kwargs.get("side") == "sell" and c.kwargs.get("order_type") == "market"
     ]
     assert len(sell_calls) >= 1
+
+
+def test_oco_sl_detected_as_filled():
+    """OCO marks status filled_sl when broker reports SL order State=5."""
+    broker = MagicMock(spec=KabuStationAPI)
+    broker.place_order.return_value = {"OrderId": "SL-FILL"}
+    # Price stays between TP and SL — no TP hit
+    broker.get_board.return_value = {"CurrentPrice": 2500}
+    # get_orders reports the SL order as filled (State=5 = 完了)
+    broker.get_orders.return_value = [{"OrderId": "SL-FILL", "State": 5}]
+
+    oco = SoftwareOCO(broker=broker, check_interval=0.01)
+    oco_id = oco.create_oco(
+        symbol="7203", side="buy", qty=100,
+        take_profit=2600, stop_loss=2400,
+    )
+
+    import time
+    time.sleep(0.2)
+
+    # OCO should no longer be active
+    active = oco.get_active_ocos()
+    assert not any(o["oco_id"] == oco_id for o in active)
+
+
+# ===== Login / Token edge cases =====
+
+def test_kabu_login_wrong_password():
+    """_get_token raises HTTPError on 401 (wrong API password)."""
+    api = KabuStationAPI(password="wrong-pw")
+    api._session = MagicMock()
+    api._session.headers = {}
+    mock_resp = MagicMock()
+    mock_resp.raise_for_status.side_effect = requests.HTTPError("401 Unauthorized")
+    api._session.post.return_value = mock_resp
+
+    with pytest.raises(requests.HTTPError):
+        api._get_token()
+
+
+def test_kabu_login_connection_refused():
+    """_get_token raises ConnectionError when kabuStation is not running."""
+    api = KabuStationAPI(password="pw")
+    api._session = MagicMock()
+    api._session.headers = {}
+    api._session.post.side_effect = requests.ConnectionError("Connection refused")
+
+    with pytest.raises(requests.ConnectionError):
+        api._get_token()
+
+
+def test_kabu_get_token_sets_header():
+    """_get_token stores token and updates X-API-KEY header."""
+    api = KabuStationAPI(password="pw")
+    api._session = MagicMock()
+    api._session.post.return_value = _mock_response({"Token": "hdr-token"})
+    api._session.headers = {}
+
+    api._get_token()
+
+    assert api._token == "hdr-token"
+    assert api._session.headers["X-API-KEY"] == "hdr-token"
+
+
+def test_kabu_ensure_token_calls_get_token_once():
+    """_ensure_token is idempotent — only fetches token on first call."""
+    api = KabuStationAPI(password="pw")
+    api._session = MagicMock()
+    api._session.post.return_value = _mock_response({"Token": "once"})
+    api._session.headers = {}
+
+    api._ensure_token()
+    api._ensure_token()  # second call should be no-op
+
+    assert api._session.post.call_count == 1
+
+
+# ===== Input validation (qty / price) =====
+
+def test_kabu_place_order_qty_zero():
+    """place_order raises ValueError when qty is 0."""
+    api = KabuStationAPI(password="pw")
+    api._token = "tok"
+
+    with pytest.raises(ValueError, match="qty must be > 0"):
+        api.place_order(symbol="7203", side="buy", qty=0)
+
+
+def test_kabu_place_order_negative_qty():
+    """place_order raises ValueError when qty is negative."""
+    api = KabuStationAPI(password="pw")
+    api._token = "tok"
+
+    with pytest.raises(ValueError, match="qty must be > 0"):
+        api.place_order(symbol="7203", side="buy", qty=-1)
+
+
+def test_kabu_place_limit_order_zero_price():
+    """place_order raises ValueError when limit price is 0."""
+    api = KabuStationAPI(password="pw")
+    api._token = "tok"
+
+    with pytest.raises(ValueError, match="price must be > 0"):
+        api.place_order(symbol="7203", side="buy", qty=100, order_type="limit", price=0)
+
+
+def test_kabu_place_limit_order_negative_price():
+    """place_order raises ValueError when limit price is negative."""
+    api = KabuStationAPI(password="pw")
+    api._token = "tok"
+
+    with pytest.raises(ValueError, match="price must be > 0"):
+        api.place_order(symbol="7203", side="buy", qty=100, order_type="limit", price=-100)
+
+
+# ===== Network failure resilience =====
+
+def test_kabu_get_board_network_error():
+    """get_board returns error dict (not exception) on network failure."""
+    api = KabuStationAPI(password="pw")
+    api._token = "tok"
+    api._session = MagicMock()
+    api._session.headers = {"X-API-KEY": "tok"}
+    api._session.get.side_effect = requests.ConnectionError("unreachable")
+
+    result = api.get_board("7203", exchange=1)
+
+    assert "error" in result
+    assert result["symbol"] == "7203"
+
+
+def test_kabu_get_positions_network_error():
+    """get_positions returns [] (not exception) on network failure."""
+    api = KabuStationAPI(password="pw")
+    api._token = "tok"
+    api._session = MagicMock()
+    api._session.headers = {"X-API-KEY": "tok"}
+    api._session.get.side_effect = requests.ConnectionError("unreachable")
+
+    result = api.get_positions()
+
+    assert result == []
+
+
+def test_kabu_place_order_network_error():
+    """place_order returns error dict (not exception) on network failure."""
+    api = KabuStationAPI(password="pw")
+    api._token = "tok"
+    api._session = MagicMock()
+    api._session.headers = {"X-API-KEY": "tok"}
+    api._session.post.side_effect = requests.ConnectionError("unreachable")
+
+    result = api.place_order(symbol="7203", side="buy", qty=100)
+
+    assert "error" in result
+    assert result["symbol"] == "7203"
+    assert result["side"] == "buy"
+
+
+def test_kabu_cancel_order_network_error():
+    """cancel_order returns error dict (not exception) on network failure."""
+    api = KabuStationAPI(password="pw")
+    api._token = "tok"
+    api._session = MagicMock()
+    api._session.headers = {"X-API-KEY": "tok"}
+    api._session.put.side_effect = requests.ConnectionError("unreachable")
+
+    result = api.cancel_order("ORD-999")
+
+    assert "error" in result
+    assert result["order_id"] == "ORD-999"
