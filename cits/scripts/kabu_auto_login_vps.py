@@ -146,6 +146,11 @@ def start_kabu():
     まず schtasks /IT タスクを試み、起動確認できなければ
     VNC Win+R ダイアログ経由で直接起動する。
     """
+    # すでに起動済みならスキップ
+    if _kabu_running():
+        log("kabuStation already running — skipping start")
+        return
+
     # Method 1: /IT付きタスクスケジューラ
     r = subprocess.run(
         'schtasks /Run /TN "CITS_KabuStart_IT"',
