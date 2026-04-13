@@ -1,13 +1,15 @@
 {
-  "timestamp": "2026-04-13T23:32:45.415395",
+  "timestamp": "2026-04-13T23:34:47.851821",
   "agent": "vps_agent",
-  "git_mode": "git",
+  "git_mode": "api",
   "results": [
     {
-      "id": "resend_and_enter_fast",
+      "id": "enter_latest_code_now_2332",
       "type": "python",
-      "status": "timeout",
-      "timestamp": "2026-04-13T23:29:45.272434"
+      "status": "ok",
+      "timestamp": "2026-04-13T23:34:08.397622",
+      "stdout": "pwd len=16\nFound 16 kabu emails\nLatest code: 530964 date: Mon, 13 Apr 2026 14:28:56 +0000\nEntering code 530964 NOW...\nVNC 1024x768\nclick (762,445)\nVNC 1024x768\nVNC 1024x768\ntyped 530964\nVNC 1024x768\nclick (762,519)\nSubmitted. Waiting 20s...\nAPI: NOT_READY \n",
+      "stderr": ""
     }
   ]
 }
