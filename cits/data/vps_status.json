@@ -1,6 +1,13 @@
 {
-  "timestamp": "2026-04-13T18:37:27.057906",
+  "timestamp": "2026-04-13T18:45:05.323012",
   "agent": "vps_agent",
   "git_mode": "git",
-  "results": []
+  "results": [
+    {
+      "id": "kabu_login_flow_1940",
+      "type": "module",
+      "status": "timeout",
+      "timestamp": "2026-04-13T18:38:45.250650"
+    }
+  ]
 }
