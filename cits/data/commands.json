@@ -1,12 +1,30 @@
 [
   {
-    "id": "status_system_20260413_g",
+    "id": "git_fix_20260413_h",
     "type": "shell",
-    "command": "echo === GIT === & git --version & git log --oneline -3 & echo === TASKS === & schtasks /Query /FO CSV /NH 2>&1 | findstr CITS & echo === SYSTEM_CHECK === & schtasks /Query /TN CITS_Watchdog /FO LIST 2>&1 | findstr \"Run As\" & schtasks /Query /TN CITS_VPSAgent /FO LIST 2>&1 | findstr \"Run As\" & echo === PYTHON === & tasklist 2>&1 | findstr /i python & echo === KABU === & netstat -an 2>&1 | findstr 18080 & echo STATUS_DONE",
+    "command": "git fetch origin claude/continue-kabusute-DmFKB && git reset --hard FETCH_HEAD && git log --oneline -1 && echo GIT_FIX_DONE",
     "timeout": 30
   },
   {
-    "id": "test_kabu_login_20260413_g",
+    "id": "register_system_tasks_20260413_h",
+    "type": "shell",
+    "command": "schtasks /Create /TN CITS_Watchdog /RU SYSTEM /TR \"C:\\cits\\repo\\cits\\run_watchdog.bat\" /SC MINUTE /MO 5 /RL HIGHEST /F & schtasks /Create /TN CITS_VPSAgent /RU SYSTEM /TR \"C:\\cits\\repo\\cits\\run_agent.bat\" /SC ONSTART /DELAY 0002:00 /RL HIGHEST /F & schtasks /Create /TN CITS_LiveTrader /RU SYSTEM /TR \"C:\\cits\\repo\\cits\\run_morning.bat\" /SC DAILY /ST 08:30 /D MON,TUE,WED,THU,FRI /RL HIGHEST /F & schtasks /Create /TN CITS_PositionMonitor /RU SYSTEM /TR \"C:\\cits\\repo\\cits\\run_monitor.bat\" /SC MINUTE /MO 30 /ST 09:30 /ET 15:25 /RL HIGHEST /F & schtasks /Create /TN CITS_Afternoon /RU SYSTEM /TR \"C:\\cits\\repo\\cits\\run_afternoon.bat\" /SC DAILY /ST 15:20 /D MON,TUE,WED,THU,FRI /RL HIGHEST /F & schtasks /Create /TN CITS_Prefetch /RU SYSTEM /TR \"C:\\cits\\repo\\cits\\run_prefetch.bat\" /SC DAILY /ST 14:00 /D MON,TUE,WED,THU,FRI /RL HIGHEST /F & schtasks /Create /TN CITS_GitRepair /RU SYSTEM /TR \"C:\\cits\\repo\\cits\\run_gitrepair.bat\" /SC DAILY /ST 06:00 /D MON,TUE,WED,THU,FRI /RL HIGHEST /F & schtasks /Create /TN CITS_StartupRecovery /RU SYSTEM /TR \"C:\\cits\\repo\\cits\\run_morning.bat\" /SC ONSTART /DELAY 0005:00 /RL HIGHEST /F & echo SYSTEM_TASKS_REGISTERED",
+    "timeout": 60
+  },
+  {
+    "id": "run_watchdog_20260413_h",
+    "type": "shell",
+    "command": "set PYTHONPATH=C:\\cits\\repo && C:\\cits\\venv\\Scripts\\python.exe -m cits.scripts.watchdog",
+    "timeout": 120
+  },
+  {
+    "id": "verify_system_20260413_h",
+    "type": "shell",
+    "command": "schtasks /Query /TN CITS_Watchdog /FO LIST 2>&1 | findstr \"Run As\" & schtasks /Query /TN CITS_VPSAgent /FO LIST 2>&1 | findstr \"Run As\" & schtasks /Query /FO CSV /NH 2>&1 | findstr CITS & echo VERIFY_DONE",
+    "timeout": 30
+  },
+  {
+    "id": "test_kabu_login_20260413_h",
     "type": "shell",
     "command": "cd C:\\cits\\repo && set PYTHONPATH=C:\\cits\\repo && C:\\cits\\venv\\Scripts\\python.exe -m cits.scripts.kabu_auto_login_vps 2>&1",
     "timeout": 360
