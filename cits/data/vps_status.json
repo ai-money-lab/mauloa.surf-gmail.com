@@ -1,15 +1,15 @@
 {
-  "timestamp": "2026-04-13T16:43:55.869075",
+  "timestamp": "2026-04-13T16:46:12.317720",
   "agent": "vps_agent",
   "git_mode": "git",
   "results": [
     {
-      "id": "positions_20260413_1643",
+      "id": "dryrun_20260413_1645",
       "type": "python",
-      "status": "ok",
-      "timestamp": "2026-04-13T16:43:53.332942",
-      "stdout": "POS STATUS: 200\nPOSITIONS: 1\n  2170 qty=0.0 side=2 price=591.0\n",
-      "stderr": ""
+      "status": "error",
+      "timestamp": "2026-04-13T16:46:10.336900",
+      "stdout": "",
+      "stderr": "Traceback (most recent call last):\n  File \"<string>\", line 4, in <module>\nAttributeError: 'KabuStationAPI' object has no attribute 'get_token'. Did you mean: '_get_token'?\n"
     }
   ]
 }
