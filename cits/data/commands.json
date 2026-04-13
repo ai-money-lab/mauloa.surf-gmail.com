@@ -4,12 +4,19 @@
     "type": "shell",
     "timeout": 360,
     "status": "ok",
-    "stdout": "skipped-timeout"
+    "stdout": "skipped"
   },
   {
     "id": "api_check_2105",
     "type": "shell",
     "timeout": 15,
-    "command": "tasklist /fi \"IMAGENAME eq KabuS.exe\" /fo csv /nh && curl -s -X POST http://localhost:18080/kabusapi/token -H \"Content-Type: application/json\" -d \"{\\\"APIPassword\\\":\\\"hiroki0380\\\"}\" 2>&1"
+    "status": "ok",
+    "stdout": "skipped"
+  },
+  {
+    "id": "read_login_result_2110",
+    "type": "shell",
+    "timeout": 15,
+    "command": "type C:\\cits\\session1_login_result.json 2>&1 && echo. && echo ---API--- && curl -s -X POST http://localhost:18080/kabusapi/token -H \"Content-Type: application/json\" -d \"{\\\"APIPassword\\\":\\\"hiroki0380\\\"}\" 2>&1"
   }
 ]
