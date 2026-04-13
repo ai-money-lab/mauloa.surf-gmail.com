@@ -1,15 +1,15 @@
 {
-  "timestamp": "2026-04-13T20:38:11.218428",
+  "timestamp": "2026-04-13T20:39:41.907845",
   "agent": "vps_agent",
   "git_mode": "git",
   "results": [
     {
-      "id": "login_enter_2100",
+      "id": "check_api_2040",
       "type": "shell",
       "status": "ok",
-      "timestamp": "2026-04-13T20:33:35.646259",
+      "timestamp": "2026-04-13T20:39:40.793201",
       "returncode": 0,
-      "stdout": "TASK_STARTED\nWAITING \n{\n  \"status\": \"FAILED: API not ready after 2FA\",\n  \"ts\": \"2026-04-13T20:33:39.127920\",\n  \"window_focused\": true,\n  \"kabu_hwnd\": 2950452,\n  \"login_click_at\": \"2026-04-13T20:33:47.311653\",\n  \"gmail_diagnostic\": \"gmail_kabu_emails_in_inbox=103 | latest_header: Subject: =?UTF-8?B?44CQ5LiJ6I+xVUZKIGXjgrnjg57jg7zjg4joqLw=?=\\r\\n =?UTF-8?B?5Yi444CR44Ov44Oz44K/44Kk44Og6KqN6Ki844Kz?=\\r\\n =?UTF-8?B?44O844OJ44Gu44GK55+l44KJ44Gb?=\\r\\nDate: Mon, 13 Apr 2026 01:38:14 +0000\",\n  \"code_received\": true,\n  \"diagnostics\": [\n    \"[20:33:39] session1_click_login started at 2026-04-13T20:33:39.127920\",\n    \"[20:33:39] KabuS already running\",\n    \"[20:33:41] check_api -> NOT_READY ('')\",\n    \"[20:33:41] Bringing kabuStation to foreground...\",\n    \"[20:33:44] KabuS MainWindowHandle: '2950452'\",\n    \"[20:33:44] KabuS window rect: left=23, top=57, right=1001, bottom=662\",\n    \"[20:33:46] SetForegroundWindow(2950452) -> rc=1\",\n    \"[20:33:46] Window at LOGIN_BTN (779, 475): hwnd=2754442, title='Chrome Legacy Window'\",\n    \"[20:33:46] Window at LOGIN_BTN is kabuStation CEF child (hwnd=2754442) - OK\",\n    \"[20:33:47] Clicking LOGIN_BTN (779, 475) then pressing Enter...\",\n    \"[20:33:47] click_at(779, 475)\",\n    \"[20:33:48] press_enter()\",\n    \"[20:34:10] check_api -> NOT_READY ('')\",\n    \"[20:34:10] Running Gmail diagnostic...\",\n    \"[20:34:16] Gmail diagnostic: gmail_kabu_emails_in_inbox=103 | latest_header: Subject: =?UTF-8?B?44CQ5LiJ6I+xVUZKIGXjgrnjg57jg7zjg4joqLw=?=\\r\\n =?UTF-8?B?5Yi444CR44Ov44Oz44K/44Kk44Og6KqN6Ki844Kz?=\\r\\n =?UTF-8?B?44O844OJ44Gu44GK55+l44KJ44Gb?=\\r\\nDate: Mon, 13 Apr 2026 01:38:14 +0000\",\n    \"[20:34:16] 2FA required. Fetching from Gmail...\",\n    \"[20:36:14] 2FA code: 960344\",\n    \"[20:36:14] click_at(769, 455)\",\n    \"[20:36:19] pasted text (len=6)\",\n    \"[20:36:21] click_at(769, 530)\",\n    \"[20:36:38] check_api -> NOT_READY ('')\",\n    \"[20:36:38] Login failed after 2FA\"\n  ]\n}",
+      "stdout": "{\"ResultCode\":0,\"Token\":\"cfc5c82fd9784a3b8e41da9173af4702\"}",
       "stderr": ""
     }
   ]
