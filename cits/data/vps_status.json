@@ -1,14 +1,14 @@
 {
-  "timestamp": "2026-04-14T00:14:17.061330",
+  "timestamp": "2026-04-14T00:16:12.363484",
   "agent": "vps_agent",
   "git_mode": "git",
   "results": [
     {
-      "id": "full_relogin_wait30_0009",
+      "id": "enter_306483_NOW",
       "type": "python",
       "status": "ok",
-      "timestamp": "2026-04-14T00:11:36.211467",
-      "stdout": "Killing KabuS.exe...\nStarting kabuStation...\nWaiting 90s for login screen...\nkabuS: 繧､繝｡繝ｼ繧ｸ蜷�:          KabuS.exe\nPID:                 5368\n繧ｻ繝�繧ｷ繝ｧ繝ｳ蜷�:        Console\n繧ｻ繝�繧ｷ繝ｧ繝ｳ#:         1\n繝｡繝｢繝ｪ菴ｿ逕ｨ驥�:\npwd ok len=16\nIMAP ready.\nClicking login at (779, 505) at 2026-04-13T15:13:13.140466+00:00\nVNC 1024x768\nclick (779,505)\nLogin clicked. Waiting for 2FA email (max 60s)...\nPoll 1 (7s): waiting\nPoll 2 (11s): code=306483\nNEW CODE: 306483 date=Mon, 13 Apr 2026 15:13:16 +0000 (11s after login click)\nCode found at T+11s. Waiting 19s more (2FA dialog needs ~30s)...\nEntering 306483 at T+30s after login (valid for 300s)\nVNC 1024x768\nclick (762,445)\nVNC 1024x768\nVNC 1024x768\ntyped 306483\nVNC 1024x768\nclick (762,519)\nSubmitted. Waiting 20s...\nAPI: NOT_READY \n",
+      "timestamp": "2026-04-14T00:15:41.820972",
+      "stdout": "Entering 306483 immediately\nVNC 1024x768\nclick (762,445)\nVNC 1024x768\nVNC 1024x768\ntyped 306483\nVNC 1024x768\nclick (762,519)\nSubmitted.\nAPI: NOT_READY \n",
       "stderr": ""
     }
   ]
