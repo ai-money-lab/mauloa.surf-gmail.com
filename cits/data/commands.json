@@ -1,42 +1,27 @@
 [
   {
-    "id": "kill_relogin_vncdo_2110",
-    "type": "shell",
-    "timeout": 360,
-    "status": "ok",
-    "stdout": "skipped"
-  },
-  {
-    "id": "api_check_2105",
-    "type": "shell",
-    "timeout": 15,
-    "status": "ok",
-    "stdout": "skipped"
-  },
-  {
-    "id": "read_login_result_2110",
-    "type": "shell",
-    "timeout": 15,
-    "status": "ok",
-    "stdout": "skipped"
-  },
-  {
-    "id": "kill_relogin_fixed_2115",
-    "type": "shell",
-    "timeout": 600,
-    "status": "ok",
-    "stdout": "skipped"
-  },
-  {
-    "id": "check_result_cdp_2120",
-    "type": "shell",
-    "timeout": 30,
-    "command": "type C:\\cits\\session1_login_result.json 2>&1 & echo ---NETSTAT--- & netstat -an 2>&1 | findstr LISTEN & echo ---KABUS--- & tasklist 2>&1 | findstr KabuS & echo ---API--- & curl -s -X POST http://localhost:18080/kabusapi/token -H \"Content-Type: application/json\" -d \"{\\\"APIPassword\\\":\\\"hiroki0380\\\"}\" 2>&1"
-  },
-  {
     "id": "kill_relogin_cdp_2135",
     "type": "shell",
     "timeout": 1200,
-    "command": "echo --- vncdo help --- & C:\\cits\\venv\\Scripts\\vncdo.exe --help 2>&1 & echo --- END vncdo help --- & taskkill /f /im KabuS.exe 2>&1 & ping -n 6 127.0.0.1 > nul & schtasks /Delete /TN CITS_Session1Login /F 2>nul & schtasks /Create /F /TN CITS_Session1Login /TR \"C:\\cits\\venv\\Scripts\\pythonw.exe C:\\cits\\repo\\cits\\scripts\\session1_click_login.py\" /SC ONCE /ST 00:00 /RL HIGHEST /RU Administrator /IT && schtasks /Run /TN CITS_Session1Login && ping -n 900 127.0.0.1 > nul && type C:\\cits\\session1_login_result.json 2>&1"
+    "status": "ok",
+    "stdout": "skipped"
+  },
+  {
+    "id": "pip_playwright_2200",
+    "type": "shell",
+    "timeout": 120,
+    "command": "C:\\cits\\venv\\Scripts\\pip.exe install playwright 2>&1 && echo PLAYWRIGHT_INSTALLED && C:\\cits\\venv\\Scripts\\python.exe -c \"from playwright.sync_api import sync_playwright; print('playwright import OK')\" 2>&1"
+  },
+  {
+    "id": "diag_screen_cdp_2205",
+    "type": "shell",
+    "timeout": 60,
+    "command": "echo ---CDP9222--- & curl -s http://localhost:9222/json 2>&1 & echo ---CDP9223--- & curl -s http://localhost:9223/json 2>&1 & echo ---KABUS--- & tasklist | findstr KabuS & echo ---SCREENSHOT_PIXELS--- & C:\\cits\\venv\\Scripts\\python.exe -c \"from PIL import ImageGrab; img=ImageGrab.grab(); btn=(779,475); [print(f'  ({btn[0]+dx},{btn[1]+dy})={img.getpixel((btn[0]+dx,btn[1]+dy))[:3]}') for dx in range(-80,100,20) for dy in range(-80,100,20)]\" 2>&1"
+  },
+  {
+    "id": "kill_relogin_playwright_2210",
+    "type": "shell",
+    "timeout": 600,
+    "command": "taskkill /f /im KabuS.exe 2>&1 & ping -n 6 127.0.0.1 > nul & schtasks /Delete /TN CITS_Session1Login /F 2>nul & schtasks /Create /F /TN CITS_Session1Login /TR \"C:\\cits\\venv\\Scripts\\pythonw.exe C:\\cits\\repo\\cits\\scripts\\session1_click_login.py\" /SC ONCE /ST 00:00 /RL HIGHEST /RU Administrator /IT && schtasks /Run /TN CITS_Session1Login && ping -n 360 127.0.0.1 > nul && type C:\\cits\\session1_login_result.json 2>&1"
   }
 ]
