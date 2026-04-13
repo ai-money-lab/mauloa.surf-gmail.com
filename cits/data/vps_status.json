@@ -1,24 +1,6 @@
 {
-  "timestamp": "2026-04-14T01:26:55.141819",
+  "timestamp": "2026-04-14T01:30:07.657789",
   "agent": "vps_agent",
   "git_mode": "git",
-  "results": [
-    {
-      "id": "kill_kabu_fresh_0040",
-      "type": "shell",
-      "status": "ok",
-      "timestamp": "2026-04-14T01:20:33.769916",
-      "returncode": 0,
-      "stdout": "成功: プロセス \"KabuS.exe\" (PID 5368) は強制終了されました。\nkabu_killed\n",
-      "stderr": ""
-    },
-    {
-      "id": "kabu_login_fresh_0040",
-      "type": "module",
-      "status": "error",
-      "timestamp": "2026-04-14T01:20:35.162505",
-      "stdout": "for 2FA email... (10s)\n2026-04-14 01:25:36 2FA code too old (age=72.3min), skipping\n2026-04-14 01:25:37 2FA code too old (age=72.4min), skipping\n2026-04-14 01:25:37 2FA code too old (age=88.6min), skipping\n2026-04-14 01:25:37 2FA code too old (age=88.6min), skipping\n2026-04-14 01:25:37 2FA code too old (age=116.7min), skipping\n2026-04-14 01:25:38 Waiting for 2FA email... (10s)\n2026-04-14 01:25:50 2FA code too old (age=72.6min), skipping\n2026-04-14 01:25:50 2FA code too old (age=72.6min), skipping\n2026-04-14 01:25:51 2FA code too old (age=88.9min), skipping\n2026-04-14 01:25:51 2FA code too old (age=88.9min), skipping\n2026-04-14 01:25:51 2FA code too old (age=116.9min), skipping\n2026-04-14 01:25:52 Waiting for 2FA email... (10s)\n2026-04-14 01:26:04 2FA code too old (age=72.8min), skipping\n2026-04-14 01:26:04 2FA code too old (age=72.8min), skipping\n2026-04-14 01:26:04 2FA code too old (age=89.1min), skipping\n2026-04-14 01:26:05 2FA code too old (age=89.1min), skipping\n2026-04-14 01:26:05 2FA code too old (age=117.2min), skipping\n2026-04-14 01:26:05 Waiting for 2FA email... (10s)\n2026-04-14 01:26:17 2FA code too old (age=73.0min), skipping\n2026-04-14 01:26:17 2FA code too old (age=73.0min), skipping\n2026-04-14 01:26:18 2FA code too old (age=89.3min), skipping\n2026-04-14 01:26:18 2FA code too old (age=89.3min), skipping\n2026-04-14 01:26:18 2FA code too old (age=117.4min), skipping\n2026-04-14 01:26:18 Waiting for 2FA email... (10s)\n2026-04-14 01:26:30 2FA code too old (age=73.2min), skipping\n2026-04-14 01:26:31 2FA code too old (age=73.3min), skipping\n2026-04-14 01:26:31 2FA code too old (age=89.5min), skipping\n2026-04-14 01:26:31 2FA code too old (age=89.5min), skipping\n2026-04-14 01:26:32 2FA code too old (age=117.6min), skipping\n2026-04-14 01:26:32 Waiting for 2FA email... (10s)\n2026-04-14 01:26:42 ERROR: 2FA code not received within timeout\n2026-04-14 01:26:42 FAILED: Could not get 2FA code\n2026-04-14 01:26:42 Attempt 2 failed\n2026-04-14 01:26:52 ALL ATTEMPTS FAILED\n",
-      "stderr": "po\\cits\\scripts\\kabu_auto_login_vps.py:200: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).\n  search_after = datetime.utcnow().strftime(\"%d-%b-%Y\")\nC:\\cits\\repo\\cits\\scripts\\kabu_auto_login_vps.py:231: DeprecationWarning: datetime.datetime.utcfromtimestamp() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.fromtimestamp(timestamp, datetime.UTC).\n  mail_local_approx = datetime.utcfromtimestamp(calendar.timegm(mail_utc))\nC:\\cits\\repo\\cits\\scripts\\kabu_auto_login_vps.py:232: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).\n  age_minutes = (datetime.utcnow() - mail_local_approx).total_seconds() / 60\n"
-    }
-  ]
+  "results": []
 }
