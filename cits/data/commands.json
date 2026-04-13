@@ -1,8 +1,8 @@
 [
   {
-    "id": "pull_restart_20260413_1930",
-    "type": "shell",
-    "command": "cd C:\\cits\\repo && git fetch origin claude/continue-kabusute-DmFKB --quiet && git merge --ff-only origin/claude/continue-kabusute-DmFKB --quiet && git log --oneline -2 && echo PULL_OK && del /f C:\\cits\\vps_agent.pid 2>nul & echo PID_CLEARED && start /b C:\\cits\\venv\\Scripts\\pythonw.exe -m cits.scripts.vps_agent && echo VPS_RESTARTED",
-    "timeout": 30
+    "id": "safe_restart_20260413_1950",
+    "type": "python",
+    "code": "import subprocess, pathlib, time\n\n# 1. Save this command ID to processed file BEFORE killing ourselves\n#    (prevents re-execution by new agent)\nproc_f = pathlib.Path('C:/cits/repo/cits/logs/.processed_commands')\nproc_f.parent.mkdir(parents=True, exist_ok=True)\nexisting = set()\nif proc_f.exists():\n    existing = set(x for x in proc_f.read_text(encoding='utf-8').strip().split('\\n') if x)\nexisting.add('safe_restart_20260413_1950')\nproc_f.write_text('\\n'.join(sorted(existing)), encoding='utf-8')\nprint('PROCESSED_SAVED:', len(existing), 'ids')\n\n# 2. git pull to get latest code onto disk\nr = subprocess.run(\n    ['git', 'pull', 'origin', 'claude/continue-kabusute-DmFKB', '--quiet'],\n    cwd='C:/cits/repo', capture_output=True, text=True, timeout=30)\nprint('GIT_PULL rc=' + str(r.returncode))\nif r.returncode != 0:\n    print('GIT_ERR:', r.stderr[:200])\n\n# 3. Read current agent PID\npid_f = pathlib.Path('C:/cits/vps_agent.pid')\nold_pid = pid_f.read_text(encoding='utf-8').strip() if pid_f.exists() else ''\nprint('OLD_PID:', old_pid)\n\n# 4. Delete PID file so new agent can claim singleton\npid_f.unlink(missing_ok=True)\n\n# 5. Start new agent BEFORE killing old (subprocess continues after parent dies)\nsubprocess.Popen(['C:/cits/venv/Scripts/pythonw.exe', '-m', 'cits.scripts.vps_agent'])\nprint('NEW_AGENT_STARTED')\ntime.sleep(2)\n\n# 6. Kill old agent (ourselves) — this python.exe subprocess survives\nif old_pid:\n    subprocess.run(['taskkill', '/f', '/pid', old_pid], capture_output=True)\n    print('KILLED:', old_pid)\nprint('DONE')\n",
+    "timeout": 60
   }
 ]
