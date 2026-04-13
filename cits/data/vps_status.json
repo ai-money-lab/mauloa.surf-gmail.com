@@ -1,15 +1,15 @@
 {
-  "timestamp": "2026-04-13T21:04:53.958199",
+  "timestamp": "2026-04-13T21:07:27.141996",
   "agent": "vps_agent",
   "git_mode": "git",
   "results": [
     {
-      "id": "api_check_2105",
+      "id": "read_login_result_2110",
       "type": "shell",
       "status": "error",
-      "timestamp": "2026-04-13T21:04:50.816105",
+      "timestamp": "2026-04-13T21:07:24.421164",
       "returncode": 7,
-      "stdout": "\"KabuS.exe\",\"7124\",\"Console\",\"1\",\"24,332 K\"\n\"KabuS.exe\",\"10080\",\"Console\",\"1\",\"43,396 K\"\n",
+      "stdout": "J44Gb?=\\r\\nDate: Mon, 13 Apr 2026 11:37:31 +0000\",\n  \"diagnostics\": [\n    \"[20:59:30] session1_click_login started at 2026-04-13T20:59:30.737010\",\n    \"[20:59:31] KabuS not running 窶� starting directly...\",\n    \"[20:59:41] KabuS started after 10s\",\n    \"[20:59:41] Waiting 60s for kabuStation login UI to fully render...\",\n    \"[21:00:44] check_api -> NOT_READY ('')\",\n    \"[21:00:44] Bringing kabuStation to foreground...\",\n    \"[21:00:47] KabuS MainWindowHandle: '9766258'\",\n    \"[21:00:47] KabuS rect: left=23, top=57, right=1001, bottom=662\",\n    \"[21:00:48] SetForegroundWindow(9766258) -> rc=0\",\n    \"[21:00:49] Window at LOGIN_BTN (779, 475): hwnd=2033274, title='Chrome Legacy Window'\",\n    \"[21:00:49] LOGIN_BTN window is kabuStation CEF child 窶� OK\",\n    \"[21:00:50] Taking screenshot to locate login button...\",\n    \"[21:00:51] find_login_btn: pixel@(779, 475)=RGB(234, 234, 234)\",\n    \"[21:00:51] find_login_btn: no blue button found, using hardcoded (779, 475)\",\n    \"[21:00:51] Using login button position: (779, 475)\",\n    \"[21:00:51] [Layer 1] vncdo_click(779, 475)...\",\n    \"[21:00:53] vncdo_click(779,475) rc=2 out='' err='Usage: vncdo [options] CMD CMDARGS|-|filename\\\\n\\\\nvncdo: error: no such option: --p'\",\n    \"[21:00:54] [Layer 2] post_click_cef(779, 475)...\",\n    \"[21:00:55] post_click_cef: hwnd=2033274, title='Chrome Legacy Window'\",\n    \"[21:00:55] PostMessage sent to hwnd=2033274, client=(748,387)\",\n    \"[21:00:56] [Layer 3] press_enter()...\",\n    \"[21:00:56] press_enter()\",\n    \"[21:01:18] check_api -> NOT_READY ('')\",\n    \"[21:01:18] Running Gmail diagnostic...\",\n    \"[21:01:22] Gmail diagnostic: gmail_kabu_emails_in_inbox=107 | latest_header: Subject: =?UTF-8?B?44CQ5LiJ6I+xVUZKIGXjgrnjg57jg7zjg4joqLw=?=\\r\\n =?UTF-8?B?5Yi444CR44Ov44Oz44K/44Kk44Og6KqN6Ki844Kz?=\\r\\n =?UTF-8?B?44O844OJ44Gu44GK55+l44KJ44Gb?=\\r\\nDate: Mon, 13 Apr 2026 11:37:31 +0000\",\n    \"[21:01:22] 2FA required. Fetching from Gmail...\",\n    \"[21:03:59] No 2FA code received\"\n  ]\n} \n---API--- \n",
       "stderr": ""
     }
   ]
