@@ -1,16 +1,16 @@
 {
-  "timestamp": "2026-04-13T21:03:31.148388",
+  "timestamp": "2026-04-13T21:04:53.958199",
   "agent": "vps_agent",
   "git_mode": "git",
   "results": [
     {
-      "id": "kill_relogin_vncdo_2110",
+      "id": "api_check_2105",
       "type": "shell",
-      "status": "ok",
-      "timestamp": "2026-04-13T20:59:23.867651",
-      "returncode": 0,
-      "stdout": "FA code\",\n  \"ts\": \"2026-04-13T20:47:48.344799\",\n  \"window_focused\": true,\n  \"kabu_hwnd\": 329508,\n  \"used_post_message\": true,\n  \"login_click_at\": \"2026-04-13T20:48:50.032188\",\n  \"gmail_diagnostic\": \"gmail_kabu_emails_in_inbox=107 | latest_header: Subject: =?UTF-8?B?44CQ5LiJ6I+xVUZKIGXjgrnjg57jg7zjg4joqLw=?=\\r\\n =?UTF-8?B?5Yi444CR44Ov44Oz44K/44Kk44Og6KqN6Ki844Kz?=\\r\\n =?UTF-8?B?44O844OJ44Gu44GK55+l44KJ44Gb?=\\r\\nDate: Mon, 13 Apr 2026 11:37:31 +0000\",\n  \"diagnostics\": [\n    \"[20:47:48] session1_click_login started at 2026-04-13T20:47:48.344799\",\n    \"[20:47:48] KabuS not running 窶� starting directly...\",\n    \"[20:48:24] KabuS started, waiting 15s more for UI to fully load...\",\n    \"[20:48:41] check_api -> NOT_READY ('')\",\n    \"[20:48:41] Bringing kabuStation to foreground...\",\n    \"[20:48:47] KabuS MainWindowHandle: '329508'\",\n    \"[20:48:47] KabuS window rect: left=23, top=57, right=1001, bottom=662\",\n    \"[20:48:49] SetForegroundWindow(329508) -> rc=1\",\n    \"[20:48:49] Window at LOGIN_BTN (779, 475): hwnd=263964, title='Chrome Legacy Window'\",\n    \"[20:48:49] Window at LOGIN_BTN is kabuStation CEF child (hwnd=263964) - OK\",\n    \"[20:48:50] PostMessage-clicking LOGIN_BTN (779, 475) (bypasses CEF injection filter)...\",\n    \"[20:48:50] post_click_cef: WindowFromPoint(779,475) -> hwnd=263964, title='Chrome Legacy Window'\",\n    \"[20:48:50] PostMessage -> hwnd=263964, client=(748,387), lParam=25363180\",\n    \"[20:48:50] PostMessage WM_LBUTTONDOWN/UP sent to hwnd=263964\",\n    \"[20:48:51] press_enter()\",\n    \"[20:49:13] check_api -> NOT_READY ('')\",\n    \"[20:49:13] Running Gmail diagnostic...\",\n    \"[20:49:16] Gmail diagnostic: gmail_kabu_emails_in_inbox=107 | latest_header: Subject: =?UTF-8?B?44CQ5LiJ6I+xVUZKIGXjgrnjg57jg7zjg4joqLw=?=\\r\\n =?UTF-8?B?5Yi444CR44Ov44Oz44K/44Kk44Og6KqN6Ki844Kz?=\\r\\n =?UTF-8?B?44O844OJ44Gu44GK55+l44KJ44Gb?=\\r\\nDate: Mon, 13 Apr 2026 11:37:31 +0000\",\n    \"[20:49:16] 2FA required. Fetching from Gmail...\",\n    \"[20:51:53] No 2FA code received\"\n  ]\n}",
-      "stderr": "警告: /ST が現時刻よりも早いため、タスクは実行されない可能性があります。\n"
+      "status": "error",
+      "timestamp": "2026-04-13T21:04:50.816105",
+      "returncode": 7,
+      "stdout": "\"KabuS.exe\",\"7124\",\"Console\",\"1\",\"24,332 K\"\n\"KabuS.exe\",\"10080\",\"Console\",\"1\",\"43,396 K\"\n",
+      "stderr": ""
     }
   ]
 }
