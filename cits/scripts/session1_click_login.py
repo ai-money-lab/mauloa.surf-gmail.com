@@ -335,8 +335,29 @@ def vnc_type_text(text: str) -> bool:
     finally:
         sock.close()
 
+def vnc_send_keys(keys_down: list, keys_up: list) -> bool:
+    """Send key chord via VNC (keys_down pressed in order, keys_up released in reverse)."""
+    import struct as _struct
+    sock = _vnc_connect_and_auth()
+    if sock is None:
+        return False
+    try:
+        for keysym in keys_down:
+            sock.sendall(_struct.pack(">BBHI", 4, 1, 0, keysym))
+            time.sleep(0.05)
+        for keysym in keys_up:
+            sock.sendall(_struct.pack(">BBHI", 4, 0, 0, keysym))
+            time.sleep(0.05)
+        _log(f"vnc_send_keys: {[hex(k) for k in keys_down]} OK")
+        return True
+    except Exception as e:
+        _log(f"vnc_send_keys error: {e}")
+        return False
+    finally:
+        sock.close()
 
-# ─── Layer 2: PostMessage to CEF ────────────────────────────────────────────
+
+
 
 def post_click_cef(x_screen: int, y_screen: int) -> bool:
     user32 = ctypes.windll.user32
@@ -609,35 +630,43 @@ def main() -> dict:
     result["code_received"] = True
 
     # Step 7: Enter 2FA
-    # Take screenshot of 2FA screen — orange scan finds submit button dynamically
+    # X11 keysyms
+    XK_Shift_L  = 0xFFE1
+    XK_Tab      = 0xFF09
+    XK_Control_L = 0xFFE3
+    XK_a        = 0x0061
+    XK_Return   = 0xFF0D
+
     _log("Taking screenshot of 2FA screen (looking for submit button)...")
     detected_2fa = take_screenshot()
-    time.sleep(0.5)
+    tfa_submit_pos = detected_2fa if detected_2fa else TWO_FA_SUBMIT
+    _log(f"2FA submit pos: {tfa_submit_pos}")
 
-    # Use detected orange as submit; estimate input ~80px above submit button
-    if detected_2fa:
-        tfa_submit_pos = detected_2fa
-        tfa_input_pos = (detected_2fa[0], max(100, detected_2fa[1] - 80))
-        _log(f"2FA dynamic coords: input={tfa_input_pos}, submit={tfa_submit_pos}")
-    else:
-        tfa_submit_pos = TWO_FA_SUBMIT
-        tfa_input_pos = TWO_FA_INPUT
-        _log(f"2FA fallback coords: input={tfa_input_pos}, submit={tfa_submit_pos}")
-
-    _log(f"[2FA] Clicking 2FA input {tfa_input_pos}...")
-    if not vnc_rfb_click(*tfa_input_pos):
-        post_click_cef(*tfa_input_pos)
-    time.sleep(1.5)
-
-    _log(f"[2FA] Typing code via VNC keyboard...")
-    if not vnc_type_text(code):
-        _log("[2FA] VNC type failed, using clipboard paste fallback...")
-        paste_text(code)
-    time.sleep(1)
-
-    _log(f"[2FA] Clicking submit {tfa_submit_pos}...")
+    # Click form area to give focus to the kabuStation window
+    _log(f"[2FA] VNC click form to get focus at {tfa_submit_pos}...")
     if not vnc_rfb_click(*tfa_submit_pos):
         post_click_cef(*tfa_submit_pos)
+    time.sleep(0.5)
+
+    # Shift+Tab to move focus to the OTP input field (previous element)
+    _log("[2FA] Shift+Tab → focus OTP input...")
+    vnc_send_keys([XK_Shift_L, XK_Tab], [XK_Tab, XK_Shift_L])
+    time.sleep(0.4)
+
+    # Ctrl+A to select all existing text in input
+    vnc_send_keys([XK_Control_L, XK_a], [XK_a, XK_Control_L])
+    time.sleep(0.2)
+
+    # Type the 6-digit code via VNC hardware keyboard
+    _log(f"[2FA] Typing code {code}...")
+    if not vnc_type_text(code):
+        _log("[2FA] VNC type failed, paste fallback...")
+        paste_text(code)
+    time.sleep(0.5)
+
+    # Press Enter to submit
+    _log("[2FA] Enter to submit...")
+    vnc_send_keys([XK_Return], [XK_Return])
     time.sleep(25)
 
     # Step 8: Final check
