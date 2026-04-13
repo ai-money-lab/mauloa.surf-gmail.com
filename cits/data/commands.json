@@ -1,14 +1,14 @@
 [
   {
-    "id": "test_login_from_logout_20260413",
-    "type": "python",
-    "code": "import sys, subprocess, time\nsys.path.insert(0, 'C:/cits/repo')\nfrom pathlib import Path\n\n# Step 1: Check API before kill\ntry:\n    import requests\n    r = requests.post('http://localhost:18080/kabusapi/token', json={'APIPassword':'hiroki0380'}, timeout=5)\n    api_before = r.status_code\n    print('API_BEFORE_KILL:', api_before, r.text[:100])\nexcept Exception as e:\n    api_before = 0\n    print('API_BEFORE_KILL: ERROR', e)\n\n# Step 2: Kill kabuStation\nkill = subprocess.run(['taskkill', '/f', '/im', 'KabuS.exe'], capture_output=True, text=True)\nprint('KILL_RESULT:', kill.returncode, kill.stdout.strip())\ntime.sleep(3)\n\n# Step 3: Verify killed\ntry:\n    r2 = requests.post('http://localhost:18080/kabusapi/token', json={'APIPassword':'hiroki0380'}, timeout=3)\n    print('API_AFTER_KILL:', r2.status_code)\nexcept Exception:\n    print('API_AFTER_KILL: DOWN (expected)')\n\n# Step 4: Run auto-login\nprint('STARTING kabu_auto_login_vps...')\nresult = subprocess.run(\n    [r'C:\\cits\\venv\\Scripts\\python.exe', '-m', 'cits.scripts.kabu_auto_login_vps'],\n    cwd='C:/cits/repo',\n    capture_output=True,\n    text=True,\n    timeout=300,\n    env=dict(__import__('os').environ, PYTHONPATH='C:/cits/repo')\n)\nprint('LOGIN_RETURNCODE:', result.returncode)\nprint('LOGIN_STDOUT:', result.stdout[-2000:] if result.stdout else '(empty)')\nprint('LOGIN_STDERR:', result.stderr[-500:] if result.stderr else '(empty)')\n\n# Step 5: Verify API after login\ntime.sleep(5)\ntry:\n    r3 = requests.post('http://localhost:18080/kabusapi/token', json={'APIPassword':'hiroki0380'}, timeout=5)\n    print('API_AFTER_LOGIN:', r3.status_code, r3.text[:100])\nexcept Exception as e:\n    print('API_AFTER_LOGIN: ERROR', e)\n",
-    "timeout": 360
+    "id": "status_20260413_c",
+    "type": "shell",
+    "command": "git --version && git log --oneline -3 && schtasks /Query /FO CSV /NH 2>&1 | findstr CITS && netstat -an 2>&1 | findstr 18080 && echo DONE",
+    "timeout": 30
   },
   {
-    "id": "system_status_20260413_B",
+    "id": "test_kabu_login_20260413",
     "type": "shell",
-    "command": "cd C:\\cits\\repo && echo --- GIT --- && git log --oneline -3 2>&1 && echo --- TASKS --- && schtasks /Query /FO CSV /NH 2>&1 | findstr CITS && echo --- PYTHON PROCS --- && tasklist 2>&1 | findstr /i python && echo --- KABU PORT --- && netstat -an 2>&1 | findstr 18080 && echo STATUS_DONE",
-    "timeout": 30
+    "command": "cd C:\\cits\\repo && set PYTHONPATH=C:\\cits\\repo && C:\\cits\\venv\\Scripts\\python.exe -m cits.scripts.kabu_auto_login_vps 2>&1",
+    "timeout": 360
   }
 ]
