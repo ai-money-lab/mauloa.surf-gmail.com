@@ -1,14 +1,14 @@
 {
-  "timestamp": "2026-04-14T00:00:51.875557",
+  "timestamp": "2026-04-14T00:07:59.557630",
   "agent": "vps_agent",
   "git_mode": "git",
   "results": [
     {
-      "id": "enter_420354_now_2358",
+      "id": "resend_wait25_enter_0002",
       "type": "python",
       "status": "ok",
-      "timestamp": "2026-04-14T00:00:15.023050",
-      "stdout": "Entering code 420354 at (762,445)...\nVNC 1024x768\nclick (762,445)\nVNC 1024x768\nVNC 1024x768\ntyped 420354\nClicking submit at (762,519)...\nVNC 1024x768\nclick (762,519)\nAPI: NOT_READY \n",
+      "timestamp": "2026-04-14T00:06:38.157912",
+      "stdout": "pwd ok len=16\nClicking resend at (843, 566) at 2026-04-13T15:06:41.576309+00:00\nVNC 1024x768\nclick (843,566)\nPoll 1 (7s): waiting\nPoll 2 (12s): waiting\nPoll 3 (17s): waiting\nPoll 4 (22s): waiting\nPoll 5 (27s): waiting\nPoll 6 (31s): waiting\nPoll 7 (36s): waiting\nPoll 8 (41s): waiting\nPoll 9 (45s): waiting\nPoll 10 (50s): waiting\nPoll 11 (54s): waiting\nPoll 12 (59s): waiting\nPoll 13 (64s): waiting\nPoll 14 (70s): waiting\nPoll 15 (74s): waiting\nNo new code after 45s.\nAPI: NOT_READY \n",
       "stderr": ""
     }
   ]
