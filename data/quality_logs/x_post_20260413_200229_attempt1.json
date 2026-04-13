@@ -1,0 +1,29 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 8,
+    "persona_match": 7,
+    "pillar_alignment": 8,
+    "usefulness": 5,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 0,
+    "cta_ending": 6,
+    "originality": 7,
+    "tone_balance": 8,
+    "problem_solving": 5
+  },
+  "total_score": 84,
+  "threshold": 84,
+  "result": "auto_approved",
+  "usefulness_summary": "部屋探しで信頼できる不動産屋を見分けるポイントを知りたい人の判断基準になる",
+  "rejection_reasons": [],
+  "improvement_suggestions": [
+    "「結果的にいい部屋に出会えることが多いです」の後に、具体的にどういう展開になるのか（例：予算内で別の良い選択肢を提案してくれる、等）を1行追加すると有用性が上がる",
+    "数字要素が含まれていないため、「初期費用が10万円ほど変わることも」など具体的な数値例があるとより実用的になる",
+    "CTAが弱いため、「あなたが信頼できると感じた不動産屋の特徴、よかったら教えてください」のような柔らかい問いかけを追加するとエンゲージメントが高まる"
+  ],
+  "checked_at": "2026-04-13T20:02:29.883175+09:00"
+}

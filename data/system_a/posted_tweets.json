@@ -418,5 +418,17 @@
     "image_path": "",
     "has_image": false,
     "status": "posted"
+  },
+  {
+    "datetime": "2026-04-13T20:02:38.970819+09:00",
+    "tweet_id": "2043646036573302795",
+    "pillar": "3",
+    "pipeline": "P3",
+    "pattern": "B",
+    "text": "不動産屋さん選びで見るポイント3つ\n\n・デメリットを先に話してくれる\n・「この条件なら他社も見た方がいい」と言える\n・内見のとき、周辺環境の悪い部分も教えてくれる\n\n売りたい気持ちより\n合う物件を探そうとしてくれる人かどうか\nって地味に大事なんですよね",
+    "quality_score": 108,
+    "image_path": "",
+    "has_image": false,
+    "status": "posted"
   }
 ]
