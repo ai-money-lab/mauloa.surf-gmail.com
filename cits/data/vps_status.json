@@ -1,16 +1,22 @@
 {
-  "timestamp": "2026-04-13T17:29:01.475336",
+  "timestamp": "2026-04-13T17:56:48.201960",
   "agent": "vps_agent",
   "git_mode": "git",
   "results": [
     {
-      "id": "pull_restart_20260413_1930",
+      "id": "prod_test_logout_20260413_2100",
       "type": "shell",
       "status": "ok",
-      "timestamp": "2026-04-13T17:28:56.809414",
+      "timestamp": "2026-04-13T17:51:46.516932",
       "returncode": 0,
-      "stdout": "PID_CLEARED \nVPS_RESTARTED\n2026-04-13 17:29:01,383 WARNING: vps_agent PID 2020 is running. Exiting.\n",
-      "stderr": "merge: origin/claude/continue-kabusute-DmFKB - not something we can merge\n"
+      "stdout": "成功: プロセス \"KabuS.exe\" (PID 8000) は強制終了されました。\nKABU_KILLED \nAPI_DOWN_CONFIRMED\n",
+      "stderr": "エラー: 入力のリダイレクトはサポートされていません。今すぐプロセスを終了します。\n"
+    },
+    {
+      "id": "prod_test_login_20260413_2101",
+      "type": "module",
+      "status": "timeout",
+      "timestamp": "2026-04-13T17:51:48.173857"
     }
   ]
 }
