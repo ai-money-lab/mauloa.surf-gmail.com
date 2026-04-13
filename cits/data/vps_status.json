@@ -1,16 +1,6 @@
 {
-  "timestamp": "2026-04-13T19:59:09.710439",
+  "timestamp": "2026-04-13T20:10:16.221191",
   "agent": "vps_agent",
   "git_mode": "git",
-  "results": [
-    {
-      "id": "kill_restart_login_2045",
-      "type": "shell",
-      "status": "ok",
-      "timestamp": "2026-04-13T19:53:34.405461",
-      "returncode": 0,
-      "stdout": "成功: プロセス \"KabuS.exe\" (PID 10512) は強制終了されました。\nKILLED \n情報: スケジュール タスク \"CITS_KabuStation_Start\" は現在実行中です。\n成功: スケジュール タスク \"CITS_KabuStation_Start\" の実行が試行されました。\nTASK_STARTED\nWAITING \n{\n  \"status\": \"FAILED: no 2FA code\",\n  \"ts\": \"2026-04-13T19:54:38.704396\",\n  \"window_focused\": true,\n  \"kabu_hwnd\": 2950452,\n  \"login_click_at\": \"2026-04-13T19:55:16.568974\",\n  \"diagnostics\": [\n    \"[19:54:38] session1_click_login started at 2026-04-13T19:54:38.704396\",\n    \"[19:54:39] KabuS not running 窶� starting directly...\",\n    \"[19:55:09] KabuS started\",\n    \"[19:55:12] check_api -> NOT_READY ('')\",\n    \"[19:55:12] Bringing kabuStation to foreground...\",\n    \"[19:55:15] KabuS MainWindowHandle: '2950452'\",\n    \"[19:55:15] KabuS window rect: left=23, top=57, right=1001, bottom=662\",\n    \"[19:55:16] SetForegroundWindow(2950452) -> rc=1\",\n    \"[19:55:16] Window at LOGIN_BTN (779, 475): hwnd=2754442, title='Chrome Legacy Window'\",\n    \"[19:55:16] Window at LOGIN_BTN is kabuStation CEF child (hwnd=2754442) - OK, no blocker\",\n    \"[19:55:16] Clicking LOGIN_BTN (779, 475)...\",\n    \"[19:55:16] click_at(779, 475)\",\n    \"[19:55:39] check_api -> NOT_READY ('')\",\n    \"[19:55:39] 2FA required. Fetching from Gmail...\",\n    \"[19:58:12] No 2FA code received\"\n  ]\n}",
-      "stderr": ""
-    }
-  ]
+  "results": []
 }
