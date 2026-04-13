@@ -88,13 +88,13 @@ def check_api() -> bool:
         return False
 
 
-def vnc_cmd(cmd: str) -> bool:
+def vnc_cmd(cmd: str, timeout: int = 15) -> bool:
     """vncdotoolコマンド実行"""
     full = f'"{VNCDO}" -s {VNC_HOST}::{VNC_PORT} -p {VNC_PASSWORD} {cmd}'
     try:
         result = subprocess.run(
             full, shell=True, capture_output=True,
-            text=True, encoding="utf-8", errors="replace", timeout=30
+            text=True, encoding="utf-8", errors="replace", timeout=timeout
         )
         if result.returncode != 0:
             err = (result.stderr or "")[:200]
@@ -131,34 +131,70 @@ def kill_kabu():
     log("kabuStation killed")
 
 
+def _kabu_running() -> bool:
+    """KabuS.exeがプロセス一覧にあるか確認"""
+    r = subprocess.run(
+        'tasklist /fi "IMAGENAME eq KabuS.exe" /fo csv /nh',
+        shell=True, capture_output=True, text=True,
+        encoding="cp932", errors="replace", timeout=5,
+    )
+    return "KabuS" in (r.stdout or "")
+
+
 def start_kabu():
-    """kabuStationをGUIセッションで起動（/IT付きタスクスケジューラ経由）"""
-    # /IT付きタスクで起動→コンソールセッションにGUI表示
-    subprocess.run(
+    """kabuStationをGUIセッションで起動。
+    まず schtasks /IT タスクを試み、起動確認できなければ
+    VNC Win+R ダイアログ経由で直接起動する。
+    """
+    # Method 1: /IT付きタスクスケジューラ
+    r = subprocess.run(
         'schtasks /Run /TN "CITS_KabuStart_IT"',
-        shell=True, capture_output=True, encoding="utf-8", errors="replace"
+        shell=True, capture_output=True, encoding="cp932", errors="replace", timeout=10,
     )
-    log("kabuStation start via IT task")
+    log(f"CITS_KabuStart_IT rc={r.returncode} {(r.stdout or '').strip()[:60]}")
     time.sleep(30)  # 起動待ち
-    # プロセス確認
-    result = subprocess.run(
-        "tasklist | findstr KabuS", shell=True, capture_output=True,
-        text=True, encoding="utf-8", errors="replace"
-    )
-    if "KabuS" in (result.stdout or ""):
-        log("kabuStation process confirmed")
+
+    if _kabu_running():
+        log("kabuStation process confirmed (schtasks method)")
+        return
+
+    log("WARNING: schtasks method failed. Trying VNC Win+R launch...")
+
+    # Method 2: VNC Win+R でKabuS.exeを直接起動
+    vnc_cmd("key super-r", timeout=10)
+    time.sleep(2)
+    vnc_cmd(f'type "{KABU_EXE}"', timeout=15)
+    time.sleep(1)
+    vnc_cmd("key Return", timeout=10)
+    log("VNC Win+R launch sent. Waiting 45s...")
+    time.sleep(45)
+
+    if _kabu_running():
+        log("kabuStation process confirmed (VNC Win+R method)")
     else:
-        log("WARNING: kabuStation process not found after start")
+        log("WARNING: kabuStation process not found after both methods")
 
 
-def get_2fa_from_gmail(max_wait_sec: int = 180) -> str:
-    """Gmail IMAPから2FAコード取得。最大max_wait_sec秒待機。"""
+def get_2fa_from_gmail(max_wait_sec: int = 180, not_before: datetime | None = None) -> str:
+    """Gmail IMAPから2FAコード取得。最大max_wait_sec秒待機。
+
+    Args:
+        max_wait_sec: 最大待機秒数
+        not_before: この時刻より前に届いたメールは無視する（ログイン操作直前の時刻）
+    """
     if not GMAIL_APP_PASSWORD:
         log("ERROR: GMAIL_APP_PASSWORD not set")
         return ""
 
+    if not_before is None:
+        # デフォルト: 呼び出し直前の2分前以降のメールを対象
+        not_before = datetime.now() - timedelta(minutes=2)
+
     start_time = datetime.now()
-    search_after = (datetime.utcnow() - timedelta(minutes=3)).strftime("%d-%b-%Y")
+    # IMAP SINCEは日付単位なのでtoday(UTC)で絞り込み
+    search_after = datetime.utcnow().strftime("%d-%b-%Y")
+
+    log(f"2FA search: emails after {not_before.strftime('%H:%M:%S')} (max {max_wait_sec}s)")
 
     while (datetime.now() - start_time).total_seconds() < max_wait_sec:
         try:
@@ -166,51 +202,54 @@ def get_2fa_from_gmail(max_wait_sec: int = 180) -> str:
             mail.login(GMAIL_USER, GMAIL_APP_PASSWORD)
             mail.select("INBOX")
 
-            # 最近のkabuStationメールを検索
+            # 本日のkabuStationメールを全て取得（既読・未読問わず）
             _, msg_nums = mail.search(
                 None,
-                f'(FROM "no-reply@mail.kabu.com" SINCE "{search_after}" UNSEEN)'
+                f'(FROM "no-reply@mail.kabu.com" SINCE "{search_after}")'
             )
 
-            if not msg_nums[0]:
-                # UNSEENがなければ全件から最新を取得
-                _, msg_nums = mail.search(
-                    None,
-                    f'(FROM "no-reply@mail.kabu.com" SINCE "{search_after}")'
-                )
-
             if msg_nums[0]:
-                # 最新メールを取得
-                latest = msg_nums[0].split()[-1]
-                _, msg_data = mail.fetch(latest, "(RFC822)")
-                raw = msg_data[0][1]
-                msg = email.message_from_bytes(raw)
+                # 全候補を新しい順に確認（最大5件）
+                candidates = msg_nums[0].split()[-5:]
+                for uid in reversed(candidates):
+                    _, msg_data = mail.fetch(uid, "(RFC822)")
+                    if not msg_data or not msg_data[0]:
+                        continue
+                    raw = msg_data[0][1]
+                    msg = email.message_from_bytes(raw)
 
-                # 本文からコード抽出
-                body = ""
-                if msg.is_multipart():
-                    for part in msg.walk():
-                        if part.get_content_type() == "text/plain":
-                            body = part.get_payload(decode=True).decode("utf-8", errors="replace")
-                            break
-                        elif part.get_content_type() == "text/html":
-                            body = part.get_payload(decode=True).decode("utf-8", errors="replace")
-                else:
-                    body = msg.get_payload(decode=True).decode("utf-8", errors="replace")
+                    # メール日時チェック: not_before より後か
+                    try:
+                        mail_date = email.utils.parsedate_to_datetime(msg["Date"])
+                        import calendar
+                        mail_utc = mail_date.utctimetuple()
+                        mail_local_approx = datetime.utcfromtimestamp(calendar.timegm(mail_utc))
+                        age_minutes = (datetime.utcnow() - mail_local_approx).total_seconds() / 60
+                    except Exception:
+                        age_minutes = 999
 
-                # 6桁コード抽出
-                match = re.search(r"認証コード\s*[\u200B]*\s*(\d{6})", body)
-                if match:
-                    code = match.group(1)
-                    # メールの日時を確認（5分以内か）
-                    mail_date = email.utils.parsedate_to_datetime(msg["Date"])
-                    age_minutes = (datetime.now(mail_date.tzinfo) - mail_date).total_seconds() / 60
-                    if age_minutes < 5:
+                    if age_minutes > 10:
+                        log(f"2FA code too old (age={age_minutes:.1f}min), skipping")
+                        continue
+
+                    # 本文からコード抽出
+                    body = ""
+                    if msg.is_multipart():
+                        for part in msg.walk():
+                            if part.get_content_type() == "text/plain":
+                                body = part.get_payload(decode=True).decode("utf-8", errors="replace")
+                                break
+                            elif part.get_content_type() == "text/html":
+                                body = part.get_payload(decode=True).decode("utf-8", errors="replace")
+                    else:
+                        body = msg.get_payload(decode=True).decode("utf-8", errors="replace")
+
+                    match = re.search(r"認証コード\s*[\u200B]*\s*(\d{6})", body)
+                    if match:
+                        code = match.group(1)
                         log(f"2FA code found: {code} (age: {age_minutes:.1f}min)")
                         mail.logout()
                         return code
-                    else:
-                        log(f"2FA code too old: {code} (age: {age_minutes:.1f}min)")
 
             mail.logout()
         except Exception as e:
@@ -244,6 +283,7 @@ def login_flow() -> bool:
 
     # Step 4: ログインボタンクリック（パスワードは保持済み）
     log("Clicking login button...")
+    login_clicked_at = datetime.now()  # 2FA email はこの後に届く
     vnc_click(*LOGIN_BTN)
     time.sleep(15)
 
@@ -255,8 +295,9 @@ def login_flow() -> bool:
     vnc_screenshot("need_2fa")
 
     # Step 6: 2FAコード取得（Gmail IMAP）
+    # login_clicked_at より後に届いたメールのみ有効とする
     log("2FA required. Fetching code from Gmail IMAP...")
-    code = get_2fa_from_gmail(max_wait_sec=120)
+    code = get_2fa_from_gmail(max_wait_sec=120, not_before=login_clicked_at)
     if not code:
         log("FAILED: Could not get 2FA code")
         return False
