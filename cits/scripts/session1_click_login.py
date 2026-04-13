@@ -36,8 +36,9 @@ SCREENSHOT_FILE = r"C:\cits\login_screenshot.png"
 KABU_EXE        = r"C:\Users\Administrator\AppData\Local\kabuStation\KabuS.exe"
 
 # ─── Screen coords (1024×768 VPS) ───────────────────────────────────────────
-LOGIN_BTN    = (779, 475)
-TWO_FA_INPUT = (769, 455)
+# Button color: ORANGE (255,86,0) confirmed by pixel scan 2026-04-13
+LOGIN_BTN     = (779, 505)   # orange button center (was 475 = gray background)
+TWO_FA_INPUT  = (769, 455)
 TWO_FA_SUBMIT = (769, 530)
 SCREEN_W, SCREEN_H = 1024, 768
 
@@ -98,26 +99,28 @@ def get_window_title(hwnd: int) -> str:
 # ─── Layer 0: Playwright CDP click ──────────────────────────────────────────
 
 def _find_kabu_cdp_url() -> str | None:
-    """Scan CDP ports to find KabuStation (not Chrome browser)."""
+    """Scan CDP ports to find KabuStation CEF (not Chrome/X.com/etc)."""
     import urllib.request
     import json as _json
+    # Keywords that indicate this is NOT KabuStation
+    NON_KABU = ("google", "keep", "gmail", "chrome-extension",
+                 "x.com", "twitter", "service worker", "youtube",
+                 "facebook", "bing", "microsoft")
     for port in CDP_PORTS_TO_TRY:
         try:
             with urllib.request.urlopen(f"http://localhost:{port}/json", timeout=2) as r:
                 targets = _json.loads(r.read())
             titles = [t.get("title", "") for t in targets]
-            urls   = [t.get("url", "")   for t in targets]
-            info   = list(zip(titles, urls))
-            is_chrome = any(
-                any(kw in (t + u).lower() for kw in ("google", "keep", "gmail", "chrome-extension"))
-                for t, u in info
-            )
-            _log(f"CDP port {port}: {len(targets)} targets, titles={[t[:25] for t in titles[:3]]}, chrome={is_chrome}")
-            if not is_chrome and targets:
-                _log(f"CDP port {port}: looks like KabuStation!")
+            urls   = [t.get("url",   "") for t in targets]
+            combined = " ".join(titles + urls).lower()
+            is_not_kabu = any(kw in combined for kw in NON_KABU)
+            _log(f"CDP port {port}: {len(targets)} targets, titles={[t[:25] for t in titles[:3]]}, not_kabu={is_not_kabu}")
+            if not is_not_kabu and targets:
+                _log(f"CDP port {port}: candidate for KabuStation!")
                 return f"http://localhost:{port}"
         except Exception as e:
             _log(f"CDP port {port}: {e}")
+    _log("CDP: no KabuStation port found (all ports are Chrome/X.com or empty)")
     return None
 
 
@@ -391,22 +394,38 @@ def check_api() -> bool:
         return False
 
 
-def take_screenshot() -> None:
+def take_screenshot() -> tuple[int, int] | None:
+    """Take screenshot, log pixel grid, return orange button coords if found."""
     try:
         from PIL import ImageGrab
         img = ImageGrab.grab()
         img.save(SCREENSHOT_FILE)
         px = img.getpixel(LOGIN_BTN)
-        _log(f"screenshot saved | LOGIN_BTN{LOGIN_BTN}=RGB{px}")
+        _log(f"screenshot saved | LOGIN_BTN{LOGIN_BTN}=RGB{px[:3]}")
         # Dump pixel grid around LOGIN_BTN for diagnosis
         for dy in range(-60, 80, 20):
             row = []
-            for dx in range(-60, 80, 20):
+            for dx in range(-80, 100, 20):
                 p = img.getpixel((LOGIN_BTN[0]+dx, LOGIN_BTN[1]+dy))
                 row.append(f"({p[0]},{p[1]},{p[2]})")
             _log(f"  pixels y={LOGIN_BTN[1]+dy}: {' '.join(row)}")
+        # Scan for orange button (255,86,0 ± tolerance)
+        kabu_left, kabu_top, kabu_right, kabu_bottom = 23, 57, 1001, 662
+        orange_hits = []
+        for sy in range(kabu_top + 200, kabu_bottom - 50, 5):
+            for sx in range(kabu_left + 300, kabu_right - 50, 5):
+                p = img.getpixel((sx, sy))
+                if p[0] > 200 and p[1] < 150 and p[2] < 100:  # orange-red
+                    orange_hits.append((sx, sy))
+        if orange_hits:
+            mid = orange_hits[len(orange_hits)//2]
+            _log(f"Orange button scan: {len(orange_hits)} pixels found, mid={mid}")
+            return mid
+        _log("Orange button scan: no orange pixels found")
+        return None
     except Exception as e:
         _log(f"screenshot error: {e}")
+        return None
 
 
 def check_gmail_diagnostic() -> str:
@@ -468,30 +487,33 @@ def main() -> dict:
         result["diagnostics"] = DIAGNOSTICS
         return result
 
-    # Step 3: Bring KabuStation to front + screenshot
+    # Step 3: Bring KabuStation to front + screenshot to find orange button
     bring_kabu_to_front()
     time.sleep(1)
-    take_screenshot()  # logs pixel grid + saves screenshot
+    detected_btn = take_screenshot()  # returns orange button coords or None
+    btn_pos = detected_btn if detected_btn else LOGIN_BTN
+    _log(f"Using button position: {btn_pos} (detected={detected_btn is not None})")
+    result["btn_pos"] = btn_pos
 
     # Step 4: Click attempts
     login_clicked_at = datetime.now()
     result["login_click_at"] = login_clicked_at.isoformat()
 
-    # Layer 0: Playwright
+    # Layer 0: Playwright (KabuStation CEF CDP if available)
     _log("[Layer 0] Playwright CDP click...")
     pw_ok = playwright_click_login()
     result["playwright_ok"] = pw_ok
     time.sleep(2)
 
-    # Layer 1: Direct VNC RFB
-    _log(f"[Layer 1] vnc_rfb_click{LOGIN_BTN}...")
-    vnc_ok = vnc_rfb_click(*LOGIN_BTN)
+    # Layer 1: Direct VNC RFB (hardware-level, CEF accepts it)
+    _log(f"[Layer 1] vnc_rfb_click{btn_pos}...")
+    vnc_ok = vnc_rfb_click(*btn_pos)
     result["vnc_rfb_ok"] = vnc_ok
     time.sleep(1)
 
     # Layer 2: PostMessage
-    _log(f"[Layer 2] post_click_cef{LOGIN_BTN}...")
-    post_click_cef(*LOGIN_BTN)
+    _log(f"[Layer 2] post_click_cef{btn_pos}...")
+    post_click_cef(*btn_pos)
     time.sleep(0.5)
 
     # Layer 3: Enter
