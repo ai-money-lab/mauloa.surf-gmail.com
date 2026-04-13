@@ -1,16 +1,6 @@
 {
-  "timestamp": "2026-04-13T23:02:01.497960",
+  "timestamp": "2026-04-13T23:03:26.425440",
   "agent": "vps_agent",
   "git_mode": "git",
-  "results": [
-    {
-      "id": "relogin_shift_tab_2fa_0413",
-      "type": "shell",
-      "status": "ok",
-      "timestamp": "2026-04-13T22:55:51.249911",
-      "returncode": 0,
-      "stdout": "40,240) (240,240,240) (240,240,240)\",\n    \"[22:59:01]   pixels y=505: (240,240,240) (240,240,240) (240,240,240) (240,240,240) (240,240,240) (240,240,240) (240,240,240) (240,240,240) (240,240,240)\",\n    \"[22:59:01]   pixels y=525: (242,242,242) (242,242,242) (242,242,242) (242,242,242) (242,242,242) (242,242,242) (242,242,242) (242,242,242) (242,242,242)\",\n    \"[22:59:01]   pixels y=545: (255,255,255) (255,255,255) (255,255,255) (255,255,255) (255,255,255) (255,255,255) (255,255,255) (255,255,255) (255,255,255)\",\n    \"[22:59:01]   pixels y=565: (255,255,255) (255,255,255) (255,255,255) (255,255,255) (255,255,255) (255,255,255) (255,255,255) (255,255,255) (255,255,255)\",\n    \"[22:59:01] Orange button scan: 512 pixels found, mid=(868, 577)\",\n    \"[22:59:01] 2FA submit pos: (868, 577)\",\n    \"[22:59:01] [2FA] VNC click form to get focus at (868, 577)...\",\n    \"[22:59:01] vnc_rfb_click(868,577): connecting to localhost:5900...\",\n    \"[22:59:03] VNC sec types=[1]\",\n    \"[22:59:03] VNC: None auth OK\",\n    \"[22:59:04] VNC: desktop 0x0\",\n    \"[22:59:04] vnc_rfb_click(868,577): sent OK\",\n    \"[22:59:05] [2FA] Shift+Tab 竊� focus OTP input...\",\n    \"[22:59:07] VNC sec types=[1, 16]\",\n    \"[22:59:07] VNC: None auth OK\",\n    \"[22:59:08] VNC: desktop 1024x768\",\n    \"[22:59:08] vnc_send_keys: ['0xffe1', '0xff09'] OK\",\n    \"[22:59:10] VNC sec types=[1]\",\n    \"[22:59:10] VNC: None auth OK\",\n    \"[22:59:11] VNC: desktop 0x0\",\n    \"[22:59:11] vnc_send_keys: ['0xffe3', '0x61'] OK\",\n    \"[22:59:11] [2FA] Typing code 897802...\",\n    \"[22:59:11] vnc_type_text('897802'): connecting to localhost:5900...\",\n    \"[22:59:13] VNC sec types=[1, 16]\",\n    \"[22:59:13] VNC: None auth OK\",\n    \"[22:59:13] VNC: desktop 1024x768\",\n    \"[22:59:14] vnc_type_text: typed 6 chars OK\",\n    \"[22:59:14] [2FA] Enter to submit...\",\n    \"[22:59:16] VNC sec types=[1]\",\n    \"[22:59:16] VNC None auth failed (result=268435456)\",\n    \"[22:59:44] check_api -> NOT_READY ('')\",\n    \"[22:59:44] Login failed after 2FA\"\n  ]\n}",
-      "stderr": "From https://github.com/ai-money-lab/mauloa.surf-gmail.com\n * branch            claude/continue-kabusute-DmFKB -> FETCH_HEAD\n警告: /ST が現時刻よりも早いため、タスクは実行されない可能性があります。\n"
-    }
-  ]
+  "results": []
 }
