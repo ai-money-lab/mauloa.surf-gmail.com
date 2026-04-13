@@ -276,11 +276,14 @@ def execute_command(cmd: dict) -> dict:
         # Do NOT hardcode password here. Set via .env or run_*.bat.
 
     try:
+        CREATE_NO_WINDOW = 0x08000000
+
         if cmd_type == "shell":
             proc = subprocess.run(
                 cmd["command"], shell=True, capture_output=True,
                 text=True, timeout=cmd.get("timeout", 120), cwd=str(REPO_ROOT),
                 encoding="cp932", errors="replace", env=env,
+                creationflags=CREATE_NO_WINDOW,
             )
             result["status"] = "ok" if proc.returncode == 0 else "error"
             result["returncode"] = proc.returncode
@@ -289,21 +292,23 @@ def execute_command(cmd: dict) -> dict:
 
         elif cmd_type == "python":
             proc = subprocess.run(
-                [r"C:\cits\venv\Scripts\python.exe", "-c", cmd["code"]],
+                [r"C:\cits\venv\Scripts\pythonw.exe", "-c", cmd["code"]],
                 capture_output=True, text=True, timeout=cmd.get("timeout", 120),
                 cwd=str(REPO_ROOT), encoding="cp932", errors="replace", env=env,
+                creationflags=CREATE_NO_WINDOW,
             )
             result["status"] = "ok" if proc.returncode == 0 else "error"
             result["stdout"] = (proc.stdout or "")[-2000:]
             result["stderr"] = (proc.stderr or "")[-1000:]
 
         elif cmd_type == "module":
-            args = [r"C:\cits\venv\Scripts\python.exe", "-m", cmd["module"]]
+            args = [r"C:\cits\venv\Scripts\pythonw.exe", "-m", cmd["module"]]
             args.extend(cmd.get("args", []))
             proc = subprocess.run(
                 args, capture_output=True, text=True,
                 timeout=cmd.get("timeout", 300),
                 cwd=str(REPO_ROOT), encoding="cp932", errors="replace", env=env,
+                creationflags=CREATE_NO_WINDOW,
             )
             result["status"] = "ok" if proc.returncode == 0 else "error"
             result["stdout"] = (proc.stdout or "")[-2000:]
