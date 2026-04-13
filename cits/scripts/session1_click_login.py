@@ -609,13 +609,24 @@ def main() -> dict:
     result["code_received"] = True
 
     # Step 7: Enter 2FA
-    _log("Taking screenshot of 2FA screen...")
-    take_screenshot()
+    # Take screenshot of 2FA screen — orange scan finds submit button dynamically
+    _log("Taking screenshot of 2FA screen (looking for submit button)...")
+    detected_2fa = take_screenshot()
     time.sleep(0.5)
 
-    _log(f"[2FA] Clicking 2FA input {TWO_FA_INPUT}...")
-    if not vnc_rfb_click(*TWO_FA_INPUT):
-        post_click_cef(*TWO_FA_INPUT)
+    # Use detected orange as submit; estimate input ~80px above submit button
+    if detected_2fa:
+        tfa_submit_pos = detected_2fa
+        tfa_input_pos = (detected_2fa[0], max(100, detected_2fa[1] - 80))
+        _log(f"2FA dynamic coords: input={tfa_input_pos}, submit={tfa_submit_pos}")
+    else:
+        tfa_submit_pos = TWO_FA_SUBMIT
+        tfa_input_pos = TWO_FA_INPUT
+        _log(f"2FA fallback coords: input={tfa_input_pos}, submit={tfa_submit_pos}")
+
+    _log(f"[2FA] Clicking 2FA input {tfa_input_pos}...")
+    if not vnc_rfb_click(*tfa_input_pos):
+        post_click_cef(*tfa_input_pos)
     time.sleep(1.5)
 
     _log(f"[2FA] Typing code via VNC keyboard...")
@@ -624,9 +635,9 @@ def main() -> dict:
         paste_text(code)
     time.sleep(1)
 
-    _log(f"[2FA] Clicking submit {TWO_FA_SUBMIT}...")
-    if not vnc_rfb_click(*TWO_FA_SUBMIT):
-        post_click_cef(*TWO_FA_SUBMIT)
+    _log(f"[2FA] Clicking submit {tfa_submit_pos}...")
+    if not vnc_rfb_click(*tfa_submit_pos):
+        post_click_cef(*tfa_submit_pos)
     time.sleep(25)
 
     # Step 8: Final check
