@@ -1,14 +1,14 @@
 {
-  "timestamp": "2026-04-13T23:37:51.471566",
+  "timestamp": "2026-04-13T23:40:26.978748",
   "agent": "vps_agent",
   "git_mode": "git",
   "results": [
     {
-      "id": "resend_fast_2334",
+      "id": "screenshot_and_api_check_2338",
       "type": "python",
-      "status": "error",
-      "timestamp": "2026-04-13T23:36:16.165371",
-      "stdout": "pwd ok len=16\nBaseline: 530964\nResending at (843,566)...\nVNC 1024x768\nclick (843,566)\nPoll 1 (4s): 530964  13 Apr 2026 14:28:56\nPoll 2 (9s): 530964  13 Apr 2026 14:28:56\nPoll 3 (13s): 530964  13 Apr 2026 14:28:56\nPoll 4 (18s): 530964  13 Apr 2026 14:28:56\nPoll 5 (22s): 530964  13 Apr 2026 14:28:56\nPoll 6 (26s): 530964  13 Apr 2026 14:28:56\nPoll 7 (31s): 530964  13 Apr 2026 14:28:56\nPoll 8 (35s): 530964  13 Apr 2026 14:28:56\nPoll 9 (39s): 530964  13 Apr 2026 14:28:56\nPoll 10 (44s): 530964  13 Apr 2026 14:28:56\nPoll 11 (48s): 530964  13 Apr 2026 14:28:56\nPoll 12 (53s): 530964  13 Apr 2026 14:28:56\nPoll 13 (57s): 530964  13 Apr 2026 14:28:56\nPoll 14 (61s): 530964  13 Apr 2026 14:28:56\nPoll 15 (66s): 530964  13 Apr 2026 14:28:56\nPoll 16 (70s): 530964  13 Apr 2026 14:28:56\nPoll 17 (75s): 530964  13 Apr 2026 14:28:56\nPoll 18 (79s): 530964  13 Apr 2026 14:28:56\nPoll 19 (83s): 530964  13 Apr 2026 14:28:56\nPoll 20 (88s): 530964  13 Apr 2026 14:28:56\nNo new code found after 60s\n",
+      "status": "ok",
+      "timestamp": "2026-04-13T23:40:19.105824",
+      "stdout": "screenshot err: closed\nAPI: NOT_READY \nkabuS process: KabuS.exe                     9452 Console                    1    113,192 K\n",
       "stderr": ""
     }
   ]
