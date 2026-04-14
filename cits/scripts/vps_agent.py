@@ -41,7 +41,7 @@ PROCESSED_FILE = REPO_ROOT / "cits" / "logs" / ".processed_commands"
 LOG_FILE = REPO_ROOT / "cits" / "logs" / "vps_agent.log"
 TOKEN_CACHE_FILE = Path("C:/cits/.github_token")
 PID_FILE = Path("C:/cits/vps_agent.pid")
-POLL_INTERVAL = 15
+POLL_INTERVAL = 5
 BRANCH = "claude/continue-kabusute-DmFKB"
 OWNER = "ai-money-lab"
 REPO = "mauloa.surf-gmail.com"
@@ -171,10 +171,17 @@ def _git_ok() -> bool:
 def pull_commands() -> str | None:
     """
     Fetch commands.json content.
-    Try git pull first; fall back to GitHub REST API if git fails.
+    GitHub API is PRIMARY (fast, reliable). git pull is secondary fallback.
     Returns raw JSON string or None.
     """
-    # Try git pull
+    # PRIMARY: GitHub REST API (no git.exe dependency, always up-to-date)
+    content = _github_api_read(COMMANDS_API_PATH)
+    if content:
+        COMMANDS_FILE.parent.mkdir(parents=True, exist_ok=True)
+        COMMANDS_FILE.write_text(content, encoding="utf-8")
+        return content
+
+    # SECONDARY: git pull (if API fails)
     if _git_ok():
         try:
             r = subprocess.run(
@@ -182,32 +189,19 @@ def pull_commands() -> str | None:
                 cwd=str(REPO_ROOT), capture_output=True, text=True, timeout=30,
             )
             if r.returncode == 0 and COMMANDS_FILE.exists():
+                log.info("pull_commands: git pull succeeded (API fallback)")
                 return COMMANDS_FILE.read_text(encoding="utf-8-sig")
         except Exception as exc:
-            log.warning("git pull failed: %s — falling back to API", exc)
-    else:
-        log.warning("git.exe unavailable — using GitHub REST API for pull")
+            log.warning("git pull also failed: %s", exc)
 
-    # GitHub REST API fallback — retry 3 times
-    for attempt in range(3):
-        content = _github_api_read(COMMANDS_API_PATH)
-        if content:
-            COMMANDS_FILE.parent.mkdir(parents=True, exist_ok=True)
-            COMMANDS_FILE.write_text(content, encoding="utf-8")
-            return content
-        if attempt < 2:
-            log.warning("API read attempt %d failed, retrying in 5s...", attempt + 1)
-            time.sleep(5)
-
-    # Last resort: local file (if exists and < 10 min old)
+    # LAST RESORT: local file (< 10 min old)
     if COMMANDS_FILE.exists():
         age = time.time() - COMMANDS_FILE.stat().st_mtime
         if age < 600:
-            log.warning("API failed; using local commands.json (age=%.0fs)", age)
+            log.warning("Using local commands.json (age=%.0fs)", age)
             return COMMANDS_FILE.read_text(encoding="utf-8-sig")
-        else:
-            log.error("API failed and local commands.json is stale (age=%.0fs)", age)
 
+    log.error("pull_commands: all methods failed")
     return None
 
 
