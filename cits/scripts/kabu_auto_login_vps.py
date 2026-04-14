@@ -157,7 +157,11 @@ def start_kabu():
         shell=True, capture_output=True, encoding="cp932", errors="replace", timeout=10,
     )
     log(f"CITS_KabuStation_Start rc={r.returncode} {(r.stdout or '').strip()[:60]}")
-    time.sleep(30)  # 起動待ち
+    # kabuStation takes ~90s to fully initialize and show the login screen.
+    # 30s was the root cause of the 2FA timeout — login click happened before
+    # the login screen appeared, so no 2FA email was sent.
+    log("Waiting 90s for kabuStation login screen to appear...")
+    time.sleep(90)
 
     if _kabu_running():
         log("kabuStation process confirmed (schtasks method)")
@@ -171,8 +175,8 @@ def start_kabu():
     vnc_cmd(f'type "{KABU_EXE}"', timeout=15)
     time.sleep(1)
     vnc_cmd("key Return", timeout=10)
-    log("VNC Win+R launch sent. Waiting 45s...")
-    time.sleep(45)
+    log("VNC Win+R launch sent. Waiting 90s...")
+    time.sleep(90)
 
     if _kabu_running():
         log("kabuStation process confirmed (VNC Win+R method)")

@@ -19,20 +19,22 @@
   {"id": "resend_wait25_enter_0002", "type": "shell", "timeout": 120, "status": "ok", "stdout": "done"},
   {"id": "full_relogin_wait30_0009", "type": "shell", "timeout": 360, "status": "ok", "stdout": "done"},
   {"id": "enter_306483_NOW", "type": "shell", "timeout": 60, "status": "ok", "stdout": "done"},
-  {"id": "restart_agent_and_login_0020", "type": "shell", "timeout": 30, "status": "ok", "stdout": "done"},
+  {"id": "restart_agent_and_login_0020", "type": "shell", "timeout": 360, "status": "ok", "stdout": "done"},
   {"id": "relogin_enter_key_0020", "type": "shell", "timeout": 360, "status": "ok", "stdout": "done"},
   {"id": "restart_agent_safe_0030", "type": "shell", "timeout": 20, "status": "ok", "stdout": "done"},
   {"id": "kabu_login_module_0030", "type": "shell", "timeout": 360, "status": "ok", "stdout": "done"},
+  {"id": "kill_kabu_fresh_0040", "type": "shell", "timeout": 15, "status": "ok", "stdout": "done"},
+  {"id": "kabu_login_fresh_0040", "type": "module", "timeout": 420, "status": "ok", "stdout": "done"},
   {
-    "id": "kill_kabu_fresh_0040",
+    "id": "kill_kabu_0914",
     "type": "shell",
-    "timeout": 15,
-    "command": "taskkill /f /im KabuS.exe 2>nul & echo kabu_killed"
+    "command": "taskkill /f /im KabuS.exe 2>nul & echo kabu_killed",
+    "timeout": 15
   },
   {
-    "id": "kabu_login_fresh_0040",
+    "id": "kabu_login_0914",
     "type": "module",
     "module": "cits.scripts.kabu_auto_login_vps",
-    "timeout": 420
+    "timeout": 480
   }
 ]
