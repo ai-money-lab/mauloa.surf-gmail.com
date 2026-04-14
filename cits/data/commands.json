@@ -1,0 +1,8 @@
+[
+  {
+    "id": "EMERGENCY_STOP_VPS_20260414",
+    "type": "shell",
+    "command": "schtasks /delete /tn CITS_LiveTrader /f 2>&1 & schtasks /delete /tn CITS_PositionMonitor /f 2>&1 & schtasks /delete /tn CITS_Afternoon /f 2>&1 & schtasks /delete /tn CITS_Prefetch /f 2>&1 & schtasks /delete /tn CITS_KabuStation_Start /f 2>&1 & schtasks /delete /tn CITS_Watchdog /f 2>&1 & schtasks /delete /tn CITS_KabuStart_IT /f 2>&1 & schtasks /delete /tn CITS_VPSAgent /f 2>&1 & taskkill /f /im KabuS.exe 2>&1 & echo ALL_TASKS_REMOVED",
+    "timeout": 30
+  }
+]
