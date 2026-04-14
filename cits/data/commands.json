@@ -32,5 +32,12 @@
     "type": "shell",
     "command": "curl -s -X POST http://localhost:18080/kabusapi/token -H \"Content-Type: application/json\" -d \"{\\\"APIPassword\\\":\\\"hiroki0380\\\"}\" 2>&1 | head -c 200",
     "timeout": 15
+  },
+  {
+    "id": "live_trader_morning_0915",
+    "type": "module",
+    "module": "cits.scripts.live_trader",
+    "args": ["--mode", "morning"],
+    "timeout": 900
   }
 ]
