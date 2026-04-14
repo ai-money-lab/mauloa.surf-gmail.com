@@ -35,14 +35,18 @@
   {"id": "EMERGENCY_MORNING_SCAN_0942", "type": "shell", "timeout": 600, "status": "ok", "stdout": "blocked_safety_gate"},
   {"id": "RUN_LIVETRADER_TASK_0945", "type": "shell", "timeout": 30, "status": "ok", "stdout": "task_triggered"},
   {"id": "check_morning_log_0950", "type": "shell", "timeout": 15, "status": "ok", "stdout": "skip"},
+  {"id": "git_pull_new_code_1000", "type": "shell", "timeout": 30, "status": "ok", "stdout": "skip"},
+  {"id": "restart_agent_1000", "type": "restart_agent", "status": "ok", "stdout": "skip"},
   {
-    "id": "git_pull_new_code_1000",
+    "id": "run_livetrader_1020",
     "type": "shell",
-    "command": "cd C:\\cits\\repo && git pull --rebase origin claude/continue-kabusute-DmFKB 2>&1 | head -c 200 || git fetch origin claude/continue-kabusute-DmFKB && git reset --hard origin/claude/continue-kabusute-DmFKB 2>&1 | head -c 200",
-    "timeout": 30
+    "command": "schtasks /Run /TN \"CITS_LiveTrader\" 2>&1",
+    "timeout": 15
   },
   {
-    "id": "restart_agent_1000",
-    "type": "restart_agent"
+    "id": "check_log_1020",
+    "type": "shell",
+    "command": "powershell -Command \"Get-Content C:\\cits\\logs\\morning_20260414.log -Tail 30 -ErrorAction SilentlyContinue | Out-String\"",
+    "timeout": 20
   }
 ]
