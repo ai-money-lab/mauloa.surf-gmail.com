@@ -136,7 +136,7 @@ CIS_PARAMS, KEI_PARAMS = _load_strategy_params()
 # Safety limits
 # ---------------------------------------------------------------
 MAX_DAILY_LOSS_PCT = 3.0
-MAX_POSITIONS = 2             # 最大2ポジション（集中リスク低減）
+MAX_POSITIONS = 5             # 最大5ポジション候補を検討（上位2で高額なら3〜5位を試す）
 MAX_SINGLE_POSITION_PCT = 40  # 1ポジション最大40%（リスク分散）
 GAP_DOWN_BLOCK_PCT = 2.0      # 前日比-2%以上のギャップダウンで買い停止
 
