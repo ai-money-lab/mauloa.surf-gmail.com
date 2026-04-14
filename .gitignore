@@ -36,3 +36,9 @@ Thumbs.db
 
 # CITS runtime databases
 cits/logs/*.db
+
+# CITS runtime data (not version-controlled)
+cits/data/commands.json
+cits/data/vps_status.json
+cits/data/market_cache.pkl
+cits/data/positions.json
