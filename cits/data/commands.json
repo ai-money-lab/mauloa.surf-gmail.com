@@ -27,17 +27,18 @@
   {"id": "kabu_login_fresh_0040", "type": "module", "timeout": 420, "status": "ok", "stdout": "done"},
   {"id": "kill_kabu_0914", "type": "shell", "timeout": 15, "status": "ok", "stdout": "manual_login_done"},
   {"id": "kabu_login_0914", "type": "module", "timeout": 480, "status": "ok", "stdout": "manual_login_done"},
+  {"id": "check_api_0915", "type": "shell", "timeout": 15, "status": "ok", "stdout": "skip"},
+  {"id": "live_trader_morning_0915", "type": "module", "timeout": 900, "status": "ok", "stdout": "skip"},
   {
-    "id": "check_api_0915",
+    "id": "diag_ping_0940",
     "type": "shell",
-    "command": "curl -s -X POST http://localhost:18080/kabusapi/token -H \"Content-Type: application/json\" -d \"{\\\"APIPassword\\\":\\\"hiroki0380\\\"}\" 2>&1 | head -c 200",
-    "timeout": 15
+    "command": "echo ALIVE && tasklist /fi \"IMAGENAME eq pythonw.exe\" /fo csv /nh && curl -s -X POST http://localhost:18080/kabusapi/token -H \"Content-Type: application/json\" -d \"{\\\"APIPassword\\\":\\\"hiroki0380\\\"}\" 2>&1 | head -c 150",
+    "timeout": 20
   },
   {
-    "id": "live_trader_morning_0915",
-    "type": "module",
-    "module": "cits.scripts.live_trader",
-    "args": ["--mode", "morning"],
-    "timeout": 900
+    "id": "morning_scan_0940",
+    "type": "shell",
+    "command": "cd C:\\cits\\repo && git pull --rebase origin claude/continue-kabusute-DmFKB --quiet 2>&1 && set CITS_SCHEDULED_RUN=TASKSCHEDULER && set PYTHONPATH=C:\\cits\\repo && C:\\cits\\venv\\Scripts\\python.exe -m cits.scripts.live_trader --mode morning 2>&1",
+    "timeout": 600
   }
 ]
