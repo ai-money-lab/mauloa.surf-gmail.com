@@ -104,15 +104,11 @@ MODULES = [
     "cits.scripts.weekly_report",
     "cits.scripts.run_watchlist",
     "cits.scripts.daily_report",
-    "cits.scripts.vps_failover",
     # Core (chart analysis)
     "cits.core.chart_exit",
     # Backtest
     "cits.backtest",
     "cits.backtest.engine",
-    # VPS
-    "cits.scripts.watchdog",
-    "cits.scripts.vps_agent",
 ]
 
 # ============================================================
