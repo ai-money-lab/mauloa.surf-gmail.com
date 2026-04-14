@@ -25,16 +25,12 @@
   {"id": "kabu_login_module_0030", "type": "shell", "timeout": 360, "status": "ok", "stdout": "done"},
   {"id": "kill_kabu_fresh_0040", "type": "shell", "timeout": 15, "status": "ok", "stdout": "done"},
   {"id": "kabu_login_fresh_0040", "type": "module", "timeout": 420, "status": "ok", "stdout": "done"},
+  {"id": "kill_kabu_0914", "type": "shell", "timeout": 15, "status": "ok", "stdout": "manual_login_done"},
+  {"id": "kabu_login_0914", "type": "module", "timeout": 480, "status": "ok", "stdout": "manual_login_done"},
   {
-    "id": "kill_kabu_0914",
+    "id": "check_api_0915",
     "type": "shell",
-    "command": "taskkill /f /im KabuS.exe 2>nul & echo kabu_killed",
+    "command": "curl -s -X POST http://localhost:18080/kabusapi/token -H \"Content-Type: application/json\" -d \"{\\\"APIPassword\\\":\\\"hiroki0380\\\"}\" 2>&1 | head -c 200",
     "timeout": 15
-  },
-  {
-    "id": "kabu_login_0914",
-    "type": "module",
-    "module": "cits.scripts.kabu_auto_login_vps",
-    "timeout": 480
   }
 ]
