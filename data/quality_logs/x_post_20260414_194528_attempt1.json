@@ -1,0 +1,25 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 9,
+    "persona_match": 10,
+    "pillar_alignment": 10,
+    "usefulness": 9,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 0,
+    "cta_ending": 10,
+    "originality": 9,
+    "tone_balance": 10,
+    "problem_solving": 9
+  },
+  "total_score": 106,
+  "threshold": 84,
+  "result": "auto_approved",
+  "usefulness_summary": "実家売却時の不動産会社選びで、会社規模より担当者の対応を見極めるべき理由と具体的なチェックポイントがわかる",
+  "rejection_reasons": [],
+  "improvement_suggestions": [],
+  "checked_at": "2026-04-14T19:45:28.669844+09:00"
+}
