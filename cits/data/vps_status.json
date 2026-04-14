@@ -1,6 +1,33 @@
 {
-  "timestamp": "2026-04-14T10:38:45.690518",
+  "timestamp": "2026-04-14T10:44:00.523340",
   "agent": "vps_agent",
-  "git_mode": "api",
-  "results": []
+  "git_mode": "git",
+  "results": [
+    {
+      "id": "ping_alive_1042",
+      "type": "shell",
+      "status": "ok",
+      "timestamp": "2026-04-14T10:42:37.262217",
+      "returncode": 0,
+      "stdout": "agent_alive \n2026-04-14 10:42:39\n",
+      "stderr": ""
+    },
+    {
+      "id": "list_all_logs_1042",
+      "type": "shell",
+      "status": "ok",
+      "timestamp": "2026-04-14T10:42:39.390403",
+      "returncode": 0,
+      "stdout": "\nName                   Length LastWriteTime      \n----                   ------ -------------      \nwatchdog.log           376286 2026/04/14 10:40:05\n.processed_commands         9 2026/04/14 9:44:05 \nkabu_auto_login.log     78271 2026/04/14 9:21:16 \nscreenshots                   2026/04/14 9:21:01 \nkabu_health.log          3238 2026/04/14 8:00:12 \nkabu_novnc_login.log    11062 2026/04/14 7:01:40 \n.watchdog_last_push        32 2026/04/13 15:45:58\nafternoon_20260413.log  10706 2026/04/13 15:21:22\nprefetch_20260413.log    6634 2026/04/13 14:11:10\nvps_agent.log            9381 2026/04/13 13:59:01\nvps_agent_err.log           0 2026/04/13 12:49:48\nafternoon_20260412.log   3203 2026/04/12 15:20:36\nprefetch_20260412.log    2414 2026/04/12 14:00:37\nmonitor_20260412.log     6050 2026/04/12 14:00:34\n.tasks_v4_watchdog         70 2026/04/12 10:32:31\nmorning_20260412.log      233 2026/04/12 9:51:47 \nprefetch_20260411.log    2418 2026/04/11 14:00:08\nprefetch_20260410.log    8918 2026/04/11 0:16:05 \nprefetch_20260409.log    1811 2026/04/09 14:00:53\nprefetch_20260408.log    5376 2026/04/08 14:15:16\n\n\n\n",
+      "stderr": ""
+    },
+    {
+      "id": "live_trader_module_1042",
+      "type": "module",
+      "status": "ok",
+      "timestamp": "2026-04-14T10:42:41.759134",
+      "stdout": " (size_mult=1.0) VIX=19.1 / OK\n2026-04-14 10:43:58,363 [cits.live_trader] INFO: [CIS-FULL] 25 signals from 3911 cached tickers\n2026-04-14 10:43:58,363 [cits.live_trader] INFO:   CIS #1 7628 Y1204.0 lot=100 x100 notional=Y120400 breakout=+4.51% vol=3.9x score=35.6\n2026-04-14 10:43:58,363 [cits.live_trader] INFO:   CIS #2 6264 Y1811.0 lot=100 x100 notional=Y181100 breakout=+4.99% vol=3.8x score=32.1\n2026-04-14 10:43:58,363 [cits.live_trader] INFO:   CIS #3 6327 Y1954.0 lot=100 x100 notional=Y195400 breakout=+6.43% vol=2.1x score=31.4\n2026-04-14 10:43:58,364 [cits.live_trader] INFO:   CIS #4 4422 Y900.0 lot=100 x100 notional=Y90000 breakout=+1.01% vol=4.0x score=31.0\n2026-04-14 10:43:58,364 [cits.live_trader] INFO:   CIS #5 9326 Y483.0 lot=100 x200 notional=Y96600 breakout=+1.90% vol=3.3x score=30.0\n2026-04-14 10:43:58,464 [cits.japan.broker.kabu_api] INFO: Token obtained\n2026-04-14 10:43:58,464 [cits.live_trader] INFO: kabuStation connected\n2026-04-14 10:43:58,465 [cits.live_trader] INFO: PENDING: BUY 7628 x100 (lot=100) @ MARKET [CIS] notional=Y120400\n2026-04-14 10:43:58,465 [cits.live_trader] INFO: PENDING: BUY 6264 x100 (lot=100) @ MARKET [CIS] notional=Y181100\n2026-04-14 10:43:58,465 [cits.live_trader] ERROR: BLOCKED: 7628 notional Y120400 > 40% cap Y120000\n2026-04-14 10:43:58,465 [cits.live_trader] ERROR: BLOCKED: 6264 notional Y181100 > 40% cap Y120000\n2026-04-14 10:43:58,470 [cits.live_trader] INFO: Trade log saved: C:\\cits\\repo\\cits\\logs\\live_trades\\trades_2026-04-14_morning_104358.json\n2026-04-14 10:43:58,470 [cits.live_trader] INFO: \n2026-04-14 10:43:58,470 [cits.live_trader] INFO: ============================================================\n2026-04-14 10:43:58,471 [cits.live_trader] INFO: SUMMARY\n2026-04-14 10:43:58,471 [cits.live_trader] INFO: ============================================================\n2026-04-14 10:43:58,471 [cits.live_trader] INFO:   Total signals found: 25\n2026-04-14 10:43:58,471 [cits.live_trader] INFO:   Executed: 0 (CIS: 0, KEI: 0)\n",
+      "stderr": ""
+    }
+  ]
 }
