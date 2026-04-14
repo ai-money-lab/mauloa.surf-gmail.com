@@ -37,16 +37,29 @@
   {"id": "check_morning_log_0950", "type": "shell", "timeout": 15, "status": "ok", "stdout": "skip"},
   {"id": "git_pull_new_code_1000", "type": "shell", "timeout": 30, "status": "ok", "stdout": "skip"},
   {"id": "restart_agent_1000", "type": "restart_agent", "status": "ok", "stdout": "skip"},
+  {"id": "run_livetrader_1020", "type": "shell", "timeout": 15, "status": "ok", "stdout": "skip"},
+  {"id": "check_log_1020", "type": "shell", "timeout": 20, "status": "ok", "stdout": "skip"},
   {
-    "id": "run_livetrader_1020",
+    "id": "restart_agent_fast_1030",
+    "type": "restart_agent",
+    "timeout": 20
+  },
+  {
+    "id": "check_log_1035",
     "type": "shell",
-    "command": "schtasks /Run /TN \"CITS_LiveTrader\" 2>&1",
+    "command": "powershell -Command \"Get-Content C:\\cits\\logs\\morning_20260414.log -Tail 50 -ErrorAction SilentlyContinue | Out-String\"",
+    "timeout": 20
+  },
+  {
+    "id": "check_api_1035",
+    "type": "shell",
+    "command": "curl -s -X POST http://localhost:18080/kabusapi/token -H \"Content-Type: application/json\" -d \"{\\\"APIPassword\\\":\\\"hiroki0380\\\"}\" 2>&1",
     "timeout": 15
   },
   {
-    "id": "check_log_1020",
+    "id": "check_positions_1035",
     "type": "shell",
-    "command": "powershell -Command \"Get-Content C:\\cits\\logs\\morning_20260414.log -Tail 30 -ErrorAction SilentlyContinue | Out-String\"",
-    "timeout": 20
+    "command": "powershell -Command \"Get-Content C:\\cits\\repo\\cits\\data\\positions.json -ErrorAction SilentlyContinue | Out-String\"",
+    "timeout": 10
   }
 ]
