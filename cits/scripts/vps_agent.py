@@ -188,13 +188,27 @@ def pull_commands() -> str | None:
     else:
         log.warning("git.exe unavailable — using GitHub REST API for pull")
 
-    # GitHub REST API fallback
-    content = _github_api_read(COMMANDS_API_PATH)
-    if content:
-        # Also write locally so the rest of the code can read it
-        COMMANDS_FILE.parent.mkdir(parents=True, exist_ok=True)
-        COMMANDS_FILE.write_text(content, encoding="utf-8")
-    return content
+    # GitHub REST API fallback — retry 3 times
+    for attempt in range(3):
+        content = _github_api_read(COMMANDS_API_PATH)
+        if content:
+            COMMANDS_FILE.parent.mkdir(parents=True, exist_ok=True)
+            COMMANDS_FILE.write_text(content, encoding="utf-8")
+            return content
+        if attempt < 2:
+            log.warning("API read attempt %d failed, retrying in 5s...", attempt + 1)
+            time.sleep(5)
+
+    # Last resort: local file (if exists and < 10 min old)
+    if COMMANDS_FILE.exists():
+        age = time.time() - COMMANDS_FILE.stat().st_mtime
+        if age < 600:
+            log.warning("API failed; using local commands.json (age=%.0fs)", age)
+            return COMMANDS_FILE.read_text(encoding="utf-8-sig")
+        else:
+            log.error("API failed and local commands.json is stale (age=%.0fs)", age)
+
+    return None
 
 
 def push_results(results: list[dict]) -> None:
@@ -313,6 +327,47 @@ def execute_command(cmd: dict) -> dict:
             result["status"] = "ok" if proc.returncode == 0 else "error"
             result["stdout"] = (proc.stdout or "")[-2000:]
             result["stderr"] = (proc.stderr or "")[-1000:]
+
+        elif cmd_type == "schtasks":
+            # Run a Windows Task Scheduler task by name.
+            # Use this instead of module/shell for live_trader to ensure
+            # the bat file sets CITS_SCHEDULED_RUN=TASKSCHEDULER properly.
+            task_name = cmd.get("task", "")
+            proc = subprocess.run(
+                ["schtasks", "/Run", "/TN", task_name],
+                capture_output=True, text=True, timeout=30,
+                encoding="cp932", errors="replace",
+                creationflags=CREATE_NO_WINDOW,
+            )
+            result["status"] = "ok" if proc.returncode == 0 else "error"
+            result["returncode"] = proc.returncode
+            result["stdout"] = (proc.stdout or "")[-500:]
+            result["stderr"] = (proc.stderr or "")[-200:]
+
+        elif cmd_type == "restart_agent":
+            # Safe self-restart: saves state, launches a detached restarter bat,
+            # then exits cleanly. CITS_VPSAgent task picks up the fresh process.
+            # The bat waits 5s (so this process can finish push_results), then
+            # kills all pythonw.exe and starts a fresh vps_agent.
+            restart_bat = Path("C:/cits/restart_agent.bat")
+            restart_bat.write_text(
+                "@echo off\r\n"
+                "timeout /t 5 /nobreak >nul\r\n"
+                "taskkill /f /im pythonw.exe >nul 2>&1\r\n"
+                "timeout /t 2 /nobreak >nul\r\n"
+                "cd /d C:\\cits\\repo\r\n"
+                "set PYTHONPATH=C:\\cits\\repo\r\n"
+                "start /b C:\\cits\\venv\\Scripts\\pythonw.exe -m cits.scripts.vps_agent\r\n",
+                encoding="ascii",
+            )
+            subprocess.Popen(
+                ["cmd.exe", "/c", str(restart_bat)],
+                creationflags=0x00000008,  # DETACHED_PROCESS
+                close_fds=True,
+            )
+            result["status"] = "ok"
+            result["stdout"] = "restart_bat launched; agent will restart in ~7s"
+
         else:
             result["status"] = "unknown_type"
     except subprocess.TimeoutExpired:
