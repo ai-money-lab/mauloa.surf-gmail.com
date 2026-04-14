@@ -33,10 +33,11 @@
   {"id": "morning_scan_0940", "type": "shell", "timeout": 600, "status": "ok", "stdout": "skip"},
   {"id": "EMERGENCY_CLEAR_AND_SCAN_0942", "type": "shell", "timeout": 15, "status": "ok", "stdout": "done"},
   {"id": "EMERGENCY_MORNING_SCAN_0942", "type": "shell", "timeout": 600, "status": "ok", "stdout": "blocked_safety_gate"},
+  {"id": "RUN_LIVETRADER_TASK_0945", "type": "shell", "timeout": 30, "status": "ok", "stdout": "task_triggered"},
   {
-    "id": "RUN_LIVETRADER_TASK_0945",
+    "id": "check_morning_log_0950",
     "type": "shell",
-    "command": "schtasks /Run /TN \"CITS_LiveTrader\" 2>&1 && echo TASK_TRIGGERED && timeout /t 5 /nobreak >nul && schtasks /Query /TN \"CITS_LiveTrader\" /FO LIST 2>&1 | findstr /i \"Status Last\"",
-    "timeout": 30
+    "command": "type C:\\cits\\logs\\morning_20260414.log 2>nul | tail -50 2>nul || powershell -Command \"Get-Content C:\\cits\\logs\\morning_20260414.log -Tail 60 -ErrorAction SilentlyContinue\"",
+    "timeout": 15
   }
 ]
