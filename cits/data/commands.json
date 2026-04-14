@@ -2,13 +2,25 @@
   {
     "id": "EMERGENCY_STOP_VPS_20260414",
     "type": "shell",
-    "command": "schtasks /delete /tn CITS_LiveTrader /f 2>&1 & schtasks /delete /tn CITS_PositionMonitor /f 2>&1 & schtasks /delete /tn CITS_Afternoon /f 2>&1 & schtasks /delete /tn CITS_Prefetch /f 2>&1 & schtasks /delete /tn CITS_KabuStation_Start /f 2>&1 & schtasks /delete /tn CITS_Watchdog /f 2>&1 & schtasks /delete /tn CITS_KabuStart_IT /f 2>&1 & schtasks /delete /tn CITS_VPSAgent /f 2>&1 & taskkill /f /im KabuS.exe 2>&1 & echo ALL_TASKS_REMOVED",
-    "timeout": 30
+    "command": "echo already_done",
+    "timeout": 5
   },
   {
     "id": "verify_tasks_cleared_1550",
     "type": "shell",
-    "command": "schtasks /Query /FO CSV /NH 2>&1 | findstr /i CITS || echo NO_CITS_TASKS_FOUND",
+    "command": "echo already_done",
+    "timeout": 5
+  },
+  {
+    "id": "delete_all_cits_tasks_1555",
+    "type": "shell",
+    "command": "schtasks /delete /tn CITSSession1Login /f 2>&1 & schtasks /delete /tn CITS_HealthCheck_07 /f 2>&1 & schtasks /delete /tn CITS_HealthCheck_08 /f 2>&1 & schtasks /delete /tn CITS_HealthCheck_14 /f 2>&1 & schtasks /delete /tn CITS_KabuLogin_0700 /f 2>&1 & schtasks /delete /tn CITS_Monitor_0930 /f 2>&1 & schtasks /delete /tn CITS_Monitor_1000 /f 2>&1 & schtasks /delete /tn CITS_Monitor_1030 /f 2>&1 & schtasks /delete /tn CITS_Monitor_1100 /f 2>&1 & schtasks /delete /tn CITS_Monitor_1300 /f 2>&1 & schtasks /delete /tn CITS_Monitor_1330 /f 2>&1 & schtasks /delete /tn CITS_Monitor_1400 /f 2>&1 & schtasks /delete /tn CITS_Monitor_1430 /f 2>&1 & schtasks /delete /tn CITS_Monitor_1500 /f 2>&1 & schtasks /delete /tn CITS_Monitor_1520 /f 2>&1 & schtasks /delete /tn CITS_Session1Login /f 2>&1 & schtasks /delete /tn CITS_StartKabu /f 2>&1 & schtasks /delete /tn CITS_StartupRecovery /f 2>&1 & taskkill /f /im KabuS.exe 2>&1 & taskkill /f /im pythonw.exe 2>&1 & echo ALL_CITS_DELETED",
+    "timeout": 30
+  },
+  {
+    "id": "verify_final_1556",
+    "type": "shell",
+    "command": "schtasks /Query /FO CSV /NH 2>&1 | findstr /i CITS || echo NO_CITS_TASKS_REMAIN",
     "timeout": 15
   }
 ]
