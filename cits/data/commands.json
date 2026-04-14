@@ -39,27 +39,26 @@
   {"id": "restart_agent_1000", "type": "restart_agent", "status": "ok", "stdout": "skip"},
   {"id": "run_livetrader_1020", "type": "shell", "timeout": 15, "status": "ok", "stdout": "skip"},
   {"id": "check_log_1020", "type": "shell", "timeout": 20, "status": "ok", "stdout": "skip"},
+  {"id": "restart_agent_fast_1030", "type": "restart_agent", "status": "ok", "stdout": "unknown_type"},
+  {"id": "check_log_1035", "type": "shell", "status": "ok", "stdout": "empty"},
+  {"id": "check_api_1035", "type": "shell", "status": "ok", "stdout": "token_ok"},
+  {"id": "check_positions_1035", "type": "shell", "status": "ok", "stdout": "empty"},
   {
-    "id": "restart_agent_fast_1030",
-    "type": "restart_agent",
+    "id": "restart_agent_shell_1038",
+    "type": "shell",
+    "command": "powershell -Command \"'@echo off' | Set-Content C:\\cits\\restart_agent.bat; 'timeout /t 5 /nobreak >nul' | Add-Content C:\\cits\\restart_agent.bat; 'taskkill /f /im pythonw.exe >nul 2>&1' | Add-Content C:\\cits\\restart_agent.bat; 'timeout /t 2 /nobreak >nul' | Add-Content C:\\cits\\restart_agent.bat; 'cd /d C:\\cits\\repo' | Add-Content C:\\cits\\restart_agent.bat; 'set PYTHONPATH=C:\\cits\\repo' | Add-Content C:\\cits\\restart_agent.bat; 'start /b C:\\cits\\venv\\Scripts\\pythonw.exe -m cits.scripts.vps_agent' | Add-Content C:\\cits\\restart_agent.bat; Start-Process cmd.exe -ArgumentList '/c C:\\cits\\restart_agent.bat' -WindowStyle Hidden; Write-Output 'restart_bat_launched'\"",
     "timeout": 20
   },
   {
-    "id": "check_log_1035",
+    "id": "run_livetrader_1038",
     "type": "shell",
-    "command": "powershell -Command \"Get-Content C:\\cits\\logs\\morning_20260414.log -Tail 50 -ErrorAction SilentlyContinue | Out-String\"",
-    "timeout": 20
-  },
-  {
-    "id": "check_api_1035",
-    "type": "shell",
-    "command": "curl -s -X POST http://localhost:18080/kabusapi/token -H \"Content-Type: application/json\" -d \"{\\\"APIPassword\\\":\\\"hiroki0380\\\"}\" 2>&1",
+    "command": "schtasks /Run /TN \"CITS_LiveTrader\" 2>&1",
     "timeout": 15
   },
   {
-    "id": "check_positions_1035",
+    "id": "check_logs_1040",
     "type": "shell",
-    "command": "powershell -Command \"Get-Content C:\\cits\\repo\\cits\\data\\positions.json -ErrorAction SilentlyContinue | Out-String\"",
-    "timeout": 10
+    "command": "powershell -Command \"Get-ChildItem C:\\cits\\logs\\*20260414* -ErrorAction SilentlyContinue | Select-Object Name,Length,LastWriteTime | Out-String\"",
+    "timeout": 15
   }
 ]
