@@ -1,6 +1,32 @@
 {
-  "timestamp": "2026-04-14T10:49:32.677536",
+  "timestamp": "2026-04-14T10:56:10.268671",
   "agent": "vps_agent",
   "git_mode": "git",
-  "results": []
+  "results": [
+    {
+      "id": "git_reset_1050",
+      "type": "shell",
+      "status": "ok",
+      "timestamp": "2026-04-14T10:50:18.208027",
+      "returncode": 0,
+      "stdout": "HEAD is now at 48ecf09 poll 15s + relogin_enter_key: faster polling, Enter key submit, T+45s wait\ngit_fixed\n",
+      "stderr": ""
+    },
+    {
+      "id": "relogin_kabu_1050",
+      "type": "module",
+      "status": "error",
+      "timestamp": "2026-04-14T10:50:22.863837",
+      "stdout": " Waiting for 2FA email... (10s)\n2026-04-14 10:54:43 2FA code predates login click, skipping\n2026-04-14 10:54:44 2FA code predates login click, skipping\n2026-04-14 10:54:44 2FA code too old (age=11.1min), skipping\n2026-04-14 10:54:44 2FA code too old (age=11.1min), skipping\n2026-04-14 10:54:45 2FA code too old (age=94.2min), skipping\n2026-04-14 10:54:45 Waiting for 2FA email... (10s)\n2026-04-14 10:54:57 2FA code predates login click, skipping\n2026-04-14 10:54:57 2FA code predates login click, skipping\n2026-04-14 10:54:57 2FA code too old (age=11.4min), skipping\n2026-04-14 10:54:58 2FA code too old (age=11.4min), skipping\n2026-04-14 10:54:58 2FA code too old (age=94.4min), skipping\n2026-04-14 10:54:58 Waiting for 2FA email... (10s)\n2026-04-14 10:55:10 2FA code too old (age=10.1min), skipping\n2026-04-14 10:55:11 2FA code too old (age=10.1min), skipping\n2026-04-14 10:55:11 2FA code too old (age=11.6min), skipping\n2026-04-14 10:55:11 2FA code too old (age=11.6min), skipping\n2026-04-14 10:55:11 2FA code too old (age=94.7min), skipping\n2026-04-14 10:55:12 Waiting for 2FA email... (10s)\n2026-04-14 10:55:24 2FA code too old (age=10.4min), skipping\n2026-04-14 10:55:24 2FA code too old (age=10.4min), skipping\n2026-04-14 10:55:25 2FA code too old (age=11.8min), skipping\n2026-04-14 10:55:25 2FA code too old (age=11.8min), skipping\n2026-04-14 10:55:25 2FA code too old (age=94.9min), skipping\n2026-04-14 10:55:25 Waiting for 2FA email... (10s)\n2026-04-14 10:55:37 2FA code too old (age=10.6min), skipping\n2026-04-14 10:55:37 2FA code too old (age=10.6min), skipping\n2026-04-14 10:55:38 2FA code too old (age=12.0min), skipping\n2026-04-14 10:55:38 2FA code too old (age=12.0min), skipping\n2026-04-14 10:55:38 2FA code too old (age=95.1min), skipping\n2026-04-14 10:55:38 Waiting for 2FA email... (10s)\n2026-04-14 10:55:48 ERROR: 2FA code not received within timeout\n2026-04-14 10:55:48 FAILED: Could not get 2FA code\n2026-04-14 10:55:48 Attempt 2 failed\n2026-04-14 10:55:58 ALL ATTEMPTS FAILED\n",
+      "stderr": "po\\cits\\scripts\\kabu_auto_login_vps.py:204: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).\n  search_after = datetime.utcnow().strftime(\"%d-%b-%Y\")\nC:\\cits\\repo\\cits\\scripts\\kabu_auto_login_vps.py:235: DeprecationWarning: datetime.datetime.utcfromtimestamp() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.fromtimestamp(timestamp, datetime.UTC).\n  mail_local_approx = datetime.utcfromtimestamp(calendar.timegm(mail_utc))\nC:\\cits\\repo\\cits\\scripts\\kabu_auto_login_vps.py:236: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).\n  age_minutes = (datetime.utcnow() - mail_local_approx).total_seconds() / 60\n"
+    },
+    {
+      "id": "live_trader_module_1053",
+      "type": "module",
+      "status": "ok",
+      "timestamp": "2026-04-14T10:56:02.880280",
+      "stdout": "    raw = yaml.safe_load(fh) or {}\n          ^^^^^^^^^^^^^^^^^^\n  File \"C:\\cits\\venv\\Lib\\site-packages\\yaml\\__init__.py\", line 125, in safe_load\n    return load(stream, SafeLoader)\n           ^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\cits\\venv\\Lib\\site-packages\\yaml\\__init__.py\", line 79, in load\n    loader = Loader(stream)\n             ^^^^^^^^^^^^^^\n  File \"C:\\cits\\venv\\Lib\\site-packages\\yaml\\loader.py\", line 34, in __init__\n    Reader.__init__(self, stream)\n  File \"C:\\cits\\venv\\Lib\\site-packages\\yaml\\reader.py\", line 85, in __init__\n    self.determine_encoding()\n  File \"C:\\cits\\venv\\Lib\\site-packages\\yaml\\reader.py\", line 124, in determine_encoding\n    self.update_raw()\n  File \"C:\\cits\\venv\\Lib\\site-packages\\yaml\\reader.py\", line 178, in update_raw\n    data = self.stream.read(size)\n           ^^^^^^^^^^^^^^^^^^^^^^\nUnicodeDecodeError: 'cp932' codec can't decode byte 0x88 in position 241: illegal multibyte sequence\n2026-04-14 10:56:09,452 [cits.live_trader] INFO: Strategy params loaded from config.yml\n2026-04-14 10:56:09,454 [cits.live_trader] INFO: ============================================================\n2026-04-14 10:56:09,455 [cits.live_trader] INFO: CITS Live Trader v3 -- Two-Stage Scan Architecture\n2026-04-14 10:56:09,455 [cits.live_trader] INFO: ============================================================\n2026-04-14 10:56:09,455 [cits.live_trader] INFO:   Mode: morning\n2026-04-14 10:56:09,455 [cits.live_trader] INFO:   Capital: Y300,000\n2026-04-14 10:56:09,455 [cits.live_trader] INFO:   Execution: LIVE\n2026-04-14 10:56:09,455 [cits.live_trader] INFO:   Date: 2026-04-14 (Tuesday)\n2026-04-14 10:56:09,456 [cits.live_trader] INFO:   Time: 10:56:09\n2026-04-14 10:56:09,456 [cits.live_trader] INFO: ============================================================\n2026-04-14 10:56:09,488 [cits.live_trader] ERROR: API pre-check: FAILED (401). kabuStation may need re-login.\n2026-04-14 10:56:09,489 [cits.live_trader] ERROR: DO NOT restart kabuStation. Check GUI login status.\n",
+      "stderr": ""
+    }
+  ]
 }
