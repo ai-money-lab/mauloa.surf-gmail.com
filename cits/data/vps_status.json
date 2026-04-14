@@ -1,16 +1,15 @@
 {
-  "timestamp": "2026-04-14T09:22:09.231106",
+  "timestamp": "2026-04-14T09:24:07.087026",
   "agent": "vps_agent",
   "git_mode": "git",
   "results": [
     {
-      "id": "check_api_0915",
-      "type": "shell",
-      "status": "error",
-      "timestamp": "2026-04-14T09:22:08.997311",
-      "returncode": 255,
-      "stdout": "",
-      "stderr": "'head' は、内部コマンドまたは外部コマンド、\n操作可能なプログラムまたはバッチ ファイルとして認識されていません。\n"
+      "id": "live_trader_morning_0915",
+      "type": "module",
+      "status": "ok",
+      "timestamp": "2026-04-14T09:22:58.977471",
+      "stdout": " (size_mult=1.0) VIX=19.1 / OK\n2026-04-14 09:24:05,201 [cits.live_trader] INFO: [CIS-FULL] 24 signals from 3911 cached tickers\n2026-04-14 09:24:05,201 [cits.live_trader] INFO:   CIS #1 7628 Y1204.0 lot=100 x100 notional=Y120400 breakout=+4.51% vol=3.9x score=35.6\n2026-04-14 09:24:05,202 [cits.live_trader] INFO:   CIS #2 6264 Y1811.0 lot=100 x100 notional=Y181100 breakout=+4.99% vol=3.8x score=32.1\n2026-04-14 09:24:05,202 [cits.live_trader] INFO:   CIS #3 6327 Y1954.0 lot=100 x100 notional=Y195400 breakout=+6.43% vol=2.1x score=31.4\n2026-04-14 09:24:05,202 [cits.live_trader] INFO:   CIS #4 4422 Y900.0 lot=100 x100 notional=Y90000 breakout=+1.01% vol=4.0x score=31.0\n2026-04-14 09:24:05,202 [cits.live_trader] INFO:   CIS #5 9326 Y483.0 lot=100 x200 notional=Y96600 breakout=+1.90% vol=3.3x score=30.0\n2026-04-14 09:24:05,381 [cits.japan.broker.kabu_api] INFO: Token obtained\n2026-04-14 09:24:05,382 [cits.live_trader] INFO: kabuStation connected\n2026-04-14 09:24:05,382 [cits.live_trader] INFO: PENDING: BUY 7628 x100 (lot=100) @ MARKET [CIS] notional=Y120400\n2026-04-14 09:24:05,382 [cits.live_trader] INFO: PENDING: BUY 6264 x100 (lot=100) @ MARKET [CIS] notional=Y181100\n2026-04-14 09:24:05,383 [cits.live_trader] ERROR: BLOCKED: 7628 notional Y120400 > 40% cap Y120000\n2026-04-14 09:24:05,383 [cits.live_trader] ERROR: BLOCKED: 6264 notional Y181100 > 40% cap Y120000\n2026-04-14 09:24:05,400 [cits.live_trader] INFO: Trade log saved: C:\\cits\\repo\\cits\\logs\\live_trades\\trades_2026-04-14_morning_092405.json\n2026-04-14 09:24:05,400 [cits.live_trader] INFO: \n2026-04-14 09:24:05,423 [cits.live_trader] INFO: ============================================================\n2026-04-14 09:24:05,424 [cits.live_trader] INFO: SUMMARY\n2026-04-14 09:24:05,424 [cits.live_trader] INFO: ============================================================\n2026-04-14 09:24:05,424 [cits.live_trader] INFO:   Total signals found: 24\n2026-04-14 09:24:05,425 [cits.live_trader] INFO:   Executed: 0 (CIS: 0, KEI: 0)\n",
+      "stderr": ""
     }
   ]
 }
