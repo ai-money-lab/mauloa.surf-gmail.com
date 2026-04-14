@@ -46,20 +46,17 @@
   {"id": "restart_agent_shell_1038", "type": "shell", "timeout": 20, "status": "ok"},
   {"id": "run_livetrader_1038", "type": "shell", "timeout": 15, "status": "ok"},
   {"id": "check_logs_1040", "type": "shell", "timeout": 15, "status": "ok"},
+  {"id": "ping_alive_1042", "type": "shell", "timeout": 10, "status": "ok"},
+  {"id": "list_all_logs_1042", "type": "shell", "timeout": 15, "status": "ok"},
+  {"id": "live_trader_module_1042", "type": "module", "timeout": 900, "status": "ok"},
   {
-    "id": "ping_alive_1042",
+    "id": "git_pull_fix_1046",
     "type": "shell",
-    "command": "echo agent_alive && powershell -Command \"Get-Date -Format 'yyyy-MM-dd HH:mm:ss'\"",
-    "timeout": 10
+    "command": "cd C:\\cits\\repo && git pull origin claude/continue-kabusute-DmFKB --quiet 2>&1 && echo pull_ok",
+    "timeout": 30
   },
   {
-    "id": "list_all_logs_1042",
-    "type": "shell",
-    "command": "powershell -Command \"Get-ChildItem C:\\cits\\logs\\ | Select-Object Name,Length,LastWriteTime | Sort-Object LastWriteTime -Descending | Select-Object -First 20 | Out-String\"",
-    "timeout": 15
-  },
-  {
-    "id": "live_trader_module_1042",
+    "id": "live_trader_module_1046",
     "type": "module",
     "module": "cits.scripts.live_trader",
     "args": ["--mode", "morning", "--capital", "300000"],
