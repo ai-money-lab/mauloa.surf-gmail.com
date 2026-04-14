@@ -1,25 +1,6 @@
 {
-  "timestamp": "2026-04-14T09:44:14.354733",
+  "timestamp": "2026-04-14T09:47:58.524661",
   "agent": "vps_agent",
   "git_mode": "git",
-  "results": [
-    {
-      "id": "EMERGENCY_CLEAR_AND_SCAN_0942",
-      "type": "shell",
-      "status": "error",
-      "timestamp": "2026-04-14T09:44:04.976753",
-      "returncode": 255,
-      "stdout": "cleared \n",
-      "stderr": "'head' は、内部コマンドまたは外部コマンド、\n操作可能なプログラムまたはバッチ ファイルとして認識されていません。\n"
-    },
-    {
-      "id": "EMERGENCY_MORNING_SCAN_0942",
-      "type": "shell",
-      "status": "ok",
-      "timestamp": "2026-04-14T09:44:05.235375",
-      "returncode": 0,
-      "stdout": "ream, SafeLoader)\n           ^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\cits\\venv\\Lib\\site-packages\\yaml\\__init__.py\", line 79, in load\n    loader = Loader(stream)\n             ^^^^^^^^^^^^^^\n  File \"C:\\cits\\venv\\Lib\\site-packages\\yaml\\loader.py\", line 34, in __init__\n    Reader.__init__(self, stream)\n  File \"C:\\cits\\venv\\Lib\\site-packages\\yaml\\reader.py\", line 85, in __init__\n    self.determine_encoding()\n  File \"C:\\cits\\venv\\Lib\\site-packages\\yaml\\reader.py\", line 124, in determine_encoding\n    self.update_raw()\n  File \"C:\\cits\\venv\\Lib\\site-packages\\yaml\\reader.py\", line 178, in update_raw\n    data = self.stream.read(size)\n           ^^^^^^^^^^^^^^^^^^^^^^\nUnicodeDecodeError: 'cp932' codec can't decode byte 0x88 in position 241: illegal multibyte sequence\n2026-04-14 09:44:13,242 [cits.live_trader] INFO: Strategy params loaded from config.yml\n2026-04-14 09:44:13,249 [cits.live_trader] INFO: ============================================================\n2026-04-14 09:44:13,258 [cits.live_trader] INFO: CITS Live Trader v3 -- Two-Stage Scan Architecture\n2026-04-14 09:44:13,258 [cits.live_trader] INFO: ============================================================\n2026-04-14 09:44:13,259 [cits.live_trader] INFO:   Mode: morning\n2026-04-14 09:44:13,260 [cits.live_trader] INFO:   Capital: Y300,000\n2026-04-14 09:44:13,260 [cits.live_trader] INFO:   Execution: LIVE\n2026-04-14 09:44:13,260 [cits.live_trader] INFO:   Date: 2026-04-14 (Tuesday)\n2026-04-14 09:44:13,260 [cits.live_trader] INFO:   Time: 09:44:13\n2026-04-14 09:44:13,265 [cits.live_trader] INFO: ============================================================\n2026-04-14 09:44:13,301 [cits.live_trader] INFO: API pre-check: OK (token obtained)\n2026-04-14 09:44:13,302 [cits.live_trader] ERROR: BLOCKED: Live execution only from Task Scheduler.\n2026-04-14 09:44:13,302 [cits.live_trader] ERROR: Set CITS_SCHEDULED_RUN=TASKSCHEDULER in bat file.\n2026-04-14 09:44:13,302 [cits.live_trader] ERROR: AI must NEVER set this env var directly.\n",
-      "stderr": ""
-    }
-  ]
+  "results": []
 }
