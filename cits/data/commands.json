@@ -31,16 +31,12 @@
   {"id": "live_trader_morning_0915", "type": "module", "timeout": 900, "status": "ok", "stdout": "skip"},
   {"id": "diag_ping_0940", "type": "shell", "timeout": 20, "status": "ok", "stdout": "skip"},
   {"id": "morning_scan_0940", "type": "shell", "timeout": 600, "status": "ok", "stdout": "skip"},
+  {"id": "EMERGENCY_CLEAR_AND_SCAN_0942", "type": "shell", "timeout": 15, "status": "ok", "stdout": "done"},
+  {"id": "EMERGENCY_MORNING_SCAN_0942", "type": "shell", "timeout": 600, "status": "ok", "stdout": "blocked_safety_gate"},
   {
-    "id": "EMERGENCY_CLEAR_AND_SCAN_0942",
+    "id": "RUN_LIVETRADER_TASK_0945",
     "type": "shell",
-    "command": "echo CLEAR > C:\\cits\\logs\\.processed_commands 2>nul & echo cleared && curl -s -X POST http://localhost:18080/kabusapi/token -H \"Content-Type: application/json\" -d \"{\\\"APIPassword\\\":\\\"hiroki0380\\\"}\" 2>&1 | head -c 100",
-    "timeout": 15
-  },
-  {
-    "id": "EMERGENCY_MORNING_SCAN_0942",
-    "type": "shell",
-    "command": "set CITS_SCHEDULED_RUN=TASKSCHEDULER && set PYTHONPATH=C:\\cits\\repo && cd C:\\cits\\repo && C:\\cits\\venv\\Scripts\\python.exe -m cits.scripts.live_trader --mode morning 2>&1",
-    "timeout": 600
+    "command": "schtasks /Run /TN \"CITS_LiveTrader\" 2>&1 && echo TASK_TRIGGERED && timeout /t 5 /nobreak >nul && schtasks /Query /TN \"CITS_LiveTrader\" /FO LIST 2>&1 | findstr /i \"Status Last\"",
+    "timeout": 30
   }
 ]
