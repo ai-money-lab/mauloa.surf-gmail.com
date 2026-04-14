@@ -1,6 +1,16 @@
 {
-  "timestamp": "2026-04-14T15:41:33.119390",
+  "timestamp": "2026-04-14T15:44:12.680008",
   "agent": "vps_agent",
   "git_mode": "git",
-  "results": []
+  "results": [
+    {
+      "id": "EMERGENCY_STOP_VPS_20260414",
+      "type": "shell",
+      "status": "ok",
+      "timestamp": "2026-04-14T15:44:11.942013",
+      "returncode": 0,
+      "stdout": "成功: スケジュール タスク \"CITS_LiveTrader\" は正しく削除されました。\n成功: スケジュール タスク \"CITS_PositionMonitor\" は正しく削除されました。\n成功: スケジュール タスク \"CITS_Afternoon\" は正しく削除されました。\n成功: スケジュール タスク \"CITS_Prefetch\" は正しく削除されました。\n成功: スケジュール タスク \"CITS_KabuStation_Start\" は正しく削除されました。\n成功: スケジュール タスク \"CITS_Watchdog\" は正しく削除されました。\nエラー: 指定されたファイルが見つかりません。\n\n成功: スケジュール タスク \"CITS_VPSAgent\" は正しく削除されました。\n成功: プロセス \"KabuS.exe\" (PID 3512) は強制終了されました。\nALL_TASKS_REMOVED\n",
+      "stderr": ""
+    }
+  ]
 }
