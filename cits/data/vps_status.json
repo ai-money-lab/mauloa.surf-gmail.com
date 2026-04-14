@@ -1,6 +1,16 @@
 {
-  "timestamp": "2026-04-14T09:47:58.524661",
+  "timestamp": "2026-04-14T09:49:28.147280",
   "agent": "vps_agent",
   "git_mode": "git",
-  "results": []
+  "results": [
+    {
+      "id": "RUN_LIVETRADER_TASK_0945",
+      "type": "shell",
+      "status": "error",
+      "timestamp": "2026-04-14T09:49:27.049968",
+      "returncode": 1,
+      "stdout": "成功: スケジュール タスク \"CITS_LiveTrader\" の実行が試行されました。\nTASK_TRIGGERED \n",
+      "stderr": "エラー: 入力のリダイレクトはサポートされていません。今すぐプロセスを終了します。\n"
+    }
+  ]
 }
