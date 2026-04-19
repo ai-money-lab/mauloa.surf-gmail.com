@@ -1,0 +1,25 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 9,
+    "persona_match": 7,
+    "pillar_alignment": 8,
+    "usefulness": 10,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 10,
+    "cta_ending": 6,
+    "originality": 8,
+    "tone_balance": 8,
+    "problem_solving": 9
+  },
+  "total_score": 105,
+  "threshold": 84,
+  "result": "auto_approved",
+  "usefulness_summary": "引越し当日にやるべき3つの具体的な行動を示し、特に退去時のトラブル回避に役立つ実用的な情報を提供している",
+  "rejection_reasons": [],
+  "improvement_suggestions": [],
+  "checked_at": "2026-04-19T19:08:03.855645+09:00"
+}
