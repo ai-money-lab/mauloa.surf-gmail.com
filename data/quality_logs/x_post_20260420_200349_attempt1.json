@@ -1,0 +1,28 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 8,
+    "persona_match": 9,
+    "pillar_alignment": 10,
+    "usefulness": 7,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 10,
+    "cta_ending": 6,
+    "originality": 8,
+    "tone_balance": 9,
+    "problem_solving": 7
+  },
+  "total_score": 104,
+  "threshold": 84,
+  "result": "auto_approved",
+  "usefulness_summary": "管理会社に不満を持つ物件オーナーが、管理会社を変更する際の具体的な手順と実現可能性を知ることができる",
+  "rejection_reasons": [],
+  "improvement_suggestions": [
+    "「契約書に解約予告の期間が書いてある」だけでなく、一般的な予告期間の目安（例：「多くの場合1〜3ヶ月くらい」）を添えると、より具体的なアクションにつながる",
+    "CTAが「報告をもらったときは嬉しかった」という感想で終わっているため、読者への問いかけや次のアクションを促す一文（例：「管理会社との関係、見直してみるのもありかもしれません」）があるとエンゲージメントが高まる"
+  ],
+  "checked_at": "2026-04-20T20:03:49.280332+09:00"
+}
