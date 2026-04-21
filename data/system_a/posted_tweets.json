@@ -514,5 +514,17 @@
     "image_path": "",
     "has_image": false,
     "status": "posted"
+  },
+  {
+    "datetime": "2026-04-21T19:51:02.725643+09:00",
+    "tweet_id": "2046542219209748749",
+    "pillar": "5",
+    "pipeline": "P3",
+    "pattern": "B",
+    "text": "植物育てる前にやっておくこと3つ\n\n・置き場所を先に決める\n（買ってから「置けない」が一番困る）\n\n・水やりの曜日を決める\n（気が向いた時だと忘れる）\n\n・枯れても自分を責めない覚悟\n（プロでも枯らします）\n\n特に3つ目、地味に大事です",
+    "quality_score": 84,
+    "image_path": "",
+    "has_image": false,
+    "status": "posted"
   }
 ]

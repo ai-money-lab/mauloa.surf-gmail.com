@@ -1,0 +1,35 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 8,
+    "persona_match": 3,
+    "pillar_alignment": 2,
+    "usefulness": 7,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 10,
+    "cta_ending": 6,
+    "originality": 5,
+    "tone_balance": 7,
+    "problem_solving": 6
+  },
+  "total_score": 84,
+  "threshold": 84,
+  "result": "auto_approved",
+  "usefulness_summary": "植物を育て始める前の準備として、置き場所・水やりルーティン・心構えを知ることができる",
+  "rejection_reasons": [
+    "persona_matchが著しく低い：HIROKIは外構・エクステリアの専門家であり、植物の育て方一般を語るキャラクターではない",
+    "pillar_alignmentが不適切：Pillar 5（外構・エクステリア関連）の文脈で、室内植物や一般的な園芸の話になっており、外構植栽との関連性が不明確",
+    "専門性の欠如：外構コーディネーターとしての知見が活かされておらず、誰でも書けるような一般論になっている",
+    "problem_solvingが弱い：外構における植栽計画の具体的な課題（日当たり・メンテナンス頻度・成長後のサイズ感など）に触れていない"
+  ],
+  "improvement_suggestions": [
+    "外構植栽の文脈に特化させる：例「外構に植物を植える前に確認すること3つ」として、成長後の高さ・根の張り方・隣地境界との距離など外構特有の視点を入れる",
+    "HIROKIの専門性を活かす：「シンボルツリーを選ぶ前に」「植栽スペースを作る前に」など、外構計画の実務経験に基づいた具体的なアドバイスにする",
+    "実例ベースにする：「最近ご相談で増えているのが…」など、実際の外構相談での失敗例や後悔ポイントを元にした内容にする",
+    "CTAを自然な気づき誘導に：「皆さんの外構、植栽スペースの日当たり確認しましたか？」ではなく「うちも最初、これ知らなくて植え直しになりました」のような共感型の締めにする"
+  ],
+  "checked_at": "2026-04-21T19:50:41.150650+09:00"
+}
