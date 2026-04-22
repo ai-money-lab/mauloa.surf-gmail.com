@@ -1,0 +1,25 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 9,
+    "persona_match": 9,
+    "pillar_alignment": 10,
+    "usefulness": 10,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 10,
+    "cta_ending": 10,
+    "originality": 9,
+    "tone_balance": 10,
+    "problem_solving": 10
+  },
+  "total_score": 107,
+  "threshold": 84,
+  "result": "auto_approved",
+  "usefulness_summary": "実家売却前に無駄な出費を避けたい人が、具体的に何をしなくていいかを判断できる",
+  "rejection_reasons": [],
+  "improvement_suggestions": [],
+  "checked_at": "2026-04-22T19:47:45.789012+09:00"
+}
