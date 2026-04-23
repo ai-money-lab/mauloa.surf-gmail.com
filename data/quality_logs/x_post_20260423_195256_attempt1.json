@@ -1,0 +1,25 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 9,
+    "persona_match": 9,
+    "pillar_alignment": 10,
+    "usefulness": 6,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 0,
+    "cta_ending": 5,
+    "originality": 8,
+    "tone_balance": 9,
+    "problem_solving": 6
+  },
+  "total_score": 92,
+  "threshold": 84,
+  "result": "auto_approved",
+  "usefulness_summary": "防犯カメラ導入を検討するオーナーが、トラブル抑止以外の「精神的安心」という副次効果を知ることができる",
+  "rejection_reasons": [],
+  "improvement_suggestions": [],
+  "checked_at": "2026-04-23T19:52:56.692455+09:00"
+}

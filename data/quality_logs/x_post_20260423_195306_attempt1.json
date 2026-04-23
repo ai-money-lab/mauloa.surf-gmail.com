@@ -1,0 +1,29 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 7,
+    "persona_match": 8,
+    "pillar_alignment": 9,
+    "usefulness": 7,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 10,
+    "cta_ending": 8,
+    "originality": 8,
+    "tone_balance": 7,
+    "problem_solving": 6
+  },
+  "total_score": 100,
+  "threshold": 84,
+  "result": "auto_approved",
+  "usefulness_summary": "賃貸物件のオーナーや管理者が防犯カメラの副次的効果を知り、導入判断の参考にできる",
+  "rejection_reasons": [],
+  "improvement_suggestions": [
+    "problem_solvingスコア向上のため、「防犯カメラを入れるか迷っている」など具体的な悩みを冒頭で明示すると、課題解決性が高まる",
+    "usefulnessを高めるため、「設置場所は共用部の◯◯がおすすめ」など、もう一歩踏み込んだ行動につながる情報があるとより有用",
+    "hook_powerを強化するため、1行目を「防犯カメラ、つけるか迷ってる方へ」のように対象者を明示すると自分ごと化しやすい"
+  ],
+  "checked_at": "2026-04-23T19:53:06.167164+09:00"
+}

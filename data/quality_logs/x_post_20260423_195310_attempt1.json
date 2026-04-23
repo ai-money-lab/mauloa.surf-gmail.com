@@ -1,0 +1,25 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 8,
+    "persona_match": 9,
+    "pillar_alignment": 10,
+    "usefulness": 6,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 0,
+    "cta_ending": 5,
+    "originality": 9,
+    "tone_balance": 9,
+    "problem_solving": 5
+  },
+  "total_score": 91,
+  "threshold": 84,
+  "result": "auto_approved",
+  "usefulness_summary": "防犯カメラの「事後確認」ではなく「不安解消」という意外な価値に気づける",
+  "rejection_reasons": [],
+  "improvement_suggestions": [],
+  "checked_at": "2026-04-23T19:53:10.770201+09:00"
+}
