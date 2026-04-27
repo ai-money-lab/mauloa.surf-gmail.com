@@ -1,0 +1,33 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 9,
+    "persona_match": 8,
+    "pillar_alignment": 10,
+    "usefulness": 9,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 0,
+    "cta_ending": 7,
+    "originality": 9,
+    "tone_balance": 8,
+    "problem_solving": 9,
+    "warmth": 8
+  },
+  "total_score": 107,
+  "threshold": 84,
+  "result": "auto_approved",
+  "usefulness_summary": "離婚時の不動産売却で揉めやすい「ローン支払いの認識ズレ」を防ぐ具体的な対処法を教えている",
+  "rejection_reasons": [
+    "「8割くらい」という数字表現が、確認できない統計を断定的に使用している（「体感では」「経験上」等のクッション表現が必要）",
+    "実績件数の誇張に該当する可能性：「8割くらいは防げる」が暗に多数の実績を示唆している表現になっている"
+  ],
+  "improvement_suggestions": [
+    "「8割くらいは防げる印象です」→「多くのトラブルは防げる印象です」または「体感では、かなりの部分は防げると感じています」に修正",
+    "最終行「ケースによって変わるんですが、基本はこれです。」→「気になる方は、早めに専門家に相談してみてください」等、より具体的な行動を促すCTAに変更",
+    "数字表現を使う場合は必ず「体感では」「経験上」「印象としては」等のクッション言葉を前置きする"
+  ],
+  "checked_at": "2026-04-27T20:22:28.392737+09:00"
+}

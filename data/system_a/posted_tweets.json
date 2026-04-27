@@ -586,5 +586,17 @@
     "image_path": "",
     "has_image": false,
     "status": "posted"
+  },
+  {
+    "datetime": "2026-04-27T20:22:28.602111+09:00",
+    "tweet_id": "2048724456328269908",
+    "pillar": "1",
+    "pipeline": "P3",
+    "pattern": "A",
+    "text": "急に家を売ることになったとき\nやっておく3つのこと\n\n①住宅ローンの残高確認\n②権利証（登記識別情報）の場所チェック\n③修繕履歴があれば探しておく\n\nこれ揃ってるだけで\n売却の相談がすごくスムーズになります。\n\n特に②が見つからなくて\n手続きが遅れるケース、意外と多いです。",
+    "quality_score": 112,
+    "image_path": "",
+    "has_image": false,
+    "status": "posted"
   }
 ]

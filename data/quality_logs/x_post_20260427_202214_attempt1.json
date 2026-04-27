@@ -1,0 +1,25 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 9,
+    "persona_match": 8,
+    "pillar_alignment": 10,
+    "usefulness": 10,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 10,
+    "cta_ending": 8,
+    "originality": 9,
+    "tone_balance": 9,
+    "problem_solving": 9
+  },
+  "total_score": 112,
+  "threshold": 84,
+  "result": "auto_approved",
+  "usefulness_summary": "急な売却時に必要な書類・情報を事前に把握でき、手続きの遅延を防げる実用的なチェックリスト",
+  "rejection_reasons": [],
+  "improvement_suggestions": [],
+  "checked_at": "2026-04-27T20:22:14.354688+09:00"
+}
