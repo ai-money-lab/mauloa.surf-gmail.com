@@ -598,5 +598,17 @@
     "image_path": "",
     "has_image": false,
     "status": "posted"
+  },
+  {
+    "datetime": "2026-04-28T20:21:45.192744+09:00",
+    "tweet_id": "2049086662089580647",
+    "pillar": "3",
+    "pipeline": "P3",
+    "pattern": "A",
+    "text": "隣の音が気になって眠れない夜、ありますよね。\n\nお金をかけずにできること3つ\n\n・家具の配置を変える（壁際に本棚やクローゼット）\n・カーテンを厚手に変える\n・ドアの隙間にタオルを挟む\n\n音って遮るより吸収させる方が効果あるんです。\n\nまずは配置を変えるだけでも違いますよ。",
+    "quality_score": 109,
+    "image_path": "",
+    "has_image": false,
+    "status": "posted"
   }
 ]
