@@ -1,0 +1,32 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 9,
+    "persona_match": 8,
+    "pillar_alignment": 9,
+    "usefulness": 10,
+    "no_external_links": 10,
+    "no_banned_content": 0,
+    "character_limit": 10,
+    "number_included": 8,
+    "cta_ending": 9,
+    "originality": 8,
+    "tone_balance": 8,
+    "problem_solving": 9
+  },
+  "total_score": 0,
+  "threshold": 84,
+  "result": "rejected",
+  "usefulness_summary": "一人暮らしの人が低コストで実践できる具体的な防犯対策を知ることができる",
+  "rejection_reasons": [
+    "「体感で9割の人がやってない」という表現が絶対不合格条件に該当：確認できない数字・統計が断定的に使用されている",
+    "「体感で」というクッション言葉はあるものの、「9割」という具体的な数字を断定的に使用しており、根拠が不明確"
+  ],
+  "improvement_suggestions": [
+    "「体感で9割の人がやってない」→「意外とやってない人が多い」「見落とされがちですが」等の表現に変更",
+    "数字を使わずニュアンスで伝える：「ほとんどの人が見落としている」「多くの人がやっていない印象」等",
+    "または完全に削除して「窓の補助錠は一番手軽で効果あるかもしれません」のみにする"
+  ],
+  "checked_at": "2026-04-29T20:14:48.755444+09:00"
+}
