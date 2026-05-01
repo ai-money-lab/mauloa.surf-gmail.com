@@ -1,0 +1,26 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 9,
+    "persona_match": 9,
+    "pillar_alignment": 10,
+    "usefulness": 9,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 0,
+    "cta_ending": 8,
+    "originality": 9,
+    "tone_balance": 9,
+    "problem_solving": 9,
+    "warmth": 9
+  },
+  "total_score": 111,
+  "threshold": 84,
+  "result": "auto_approved",
+  "usefulness_summary": "兄弟で実家を相続した人が、話し合いを前に進めるための具体的な第一歩（期限設定）を知ることができる",
+  "rejection_reasons": [],
+  "improvement_suggestions": [],
+  "checked_at": "2026-05-01T19:52:48.111000+09:00"
+}
