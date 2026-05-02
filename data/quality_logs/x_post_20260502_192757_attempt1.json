@@ -1,0 +1,42 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 7,
+    "persona_match": 6,
+    "pillar_alignment": 5,
+    "usefulness": 4,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 0,
+    "cta_ending": 5,
+    "originality": 5,
+    "tone_balance": 7,
+    "problem_solving": 4
+  },
+  "total_score": 73,
+  "threshold": 84,
+  "result": "rejected",
+  "usefulness_summary": "賃貸vs持ち家の判断軸を「損得」から「ライフスタイル適合」に転換する考え方を提示",
+  "rejection_reasons": [
+    "具体的な数字・データが一切含まれていない（number_included=0）",
+    "問題提起はあるが解決策が抽象的で行動につながらない（usefulness=4）",
+    "HIROKIのペルソナ（リノベ専門家）との関連性が薄い（persona_match=6）",
+    "Pillar 4との整合性が不明確（pillar_alignment=5）",
+    "「どっちが得か問題」という表現がやや軽い印象",
+    "CTAが弱く、読後のアクションが不明確（cta_ending=5）",
+    "リノベーション専門家としての専門性・経験が活かされていない",
+    "一般論にとどまり、HIROKIならではの視点・事例が欠如"
+  ],
+  "improvement_suggestions": [
+    "リノベーション前提で「中古購入→リノベ」という選択肢を提示し、賃貸・新築・中古リノベの3択比較にする",
+    "具体的な数字を追加（例：「築20年のマンションをリノベした場合、新築より約30%ほど抑えられる体感があります」）",
+    "実際の相談事例を匿名で紹介（例：「最近、転勤族の方から『5年後に地元に戻るけど、今リノベしても大丈夫？』と相談がありました」）",
+    "HIROKIの専門性を活かした視点を追加（例：「持ち家派でも、可変性の高い間取りにしておくと家族構成の変化に対応できます」）",
+    "CTAを具体化（例：「あなたは今、どんな暮らし方が合ってますか？整理するお手伝いもしてます」）",
+    "Pillar 4に合わせるなら、ライフスタイル設計とリノベの関係性を明確に",
+    "数字の例：「体感では、リノベ相談に来る方の約半分くらいは『賃貸か購入か』で迷ってる段階です」"
+  ],
+  "checked_at": "2026-05-02T19:27:57.343713+09:00"
+}
