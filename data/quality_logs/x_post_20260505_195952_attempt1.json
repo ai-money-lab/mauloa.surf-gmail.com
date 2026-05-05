@@ -1,0 +1,26 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 9,
+    "persona_match": 10,
+    "pillar_alignment": 10,
+    "usefulness": 10,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 0,
+    "cta_ending": 10,
+    "originality": 9,
+    "tone_balance": 10,
+    "problem_solving": 10,
+    "warmth": 10
+  },
+  "total_score": 118,
+  "threshold": 84,
+  "result": "auto_approved",
+  "usefulness_summary": "引越し時に入居時の写真を撮っておくことで退去時のトラブルを防げる具体的な方法を教えている",
+  "rejection_reasons": [],
+  "improvement_suggestions": [],
+  "checked_at": "2026-05-05T19:59:52.867083+09:00"
+}
