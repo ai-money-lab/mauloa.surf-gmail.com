@@ -1,0 +1,35 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 8,
+    "persona_match": 7,
+    "pillar_alignment": 9,
+    "usefulness": 6,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 0,
+    "cta_ending": 7,
+    "originality": 7,
+    "tone_balance": 8,
+    "problem_solving": 5
+  },
+  "total_score": 77,
+  "threshold": 84,
+  "result": "rejected",
+  "usefulness_summary": "不動産売却を検討している人が査定額と実売価格の違いを理解するのに役立つ",
+  "rejection_reasons": [
+    "usefulness（有用性）が6点：一般論の説明にとどまり、読んだ人が具体的に何をすればいいかが不明確",
+    "problem_solving（課題解決性）が5点：査定額と売値の違いは説明しているが、具体的にどう行動すべきか（適正価格の見極め方、複数査定の取り方、値付けの判断基準など）が示されていない",
+    "number_included（数字の有無）が0点：説得力を高める具体的な数字・事例が含まれていない",
+    "合計スコア77点で基準の84点未満"
+  ],
+  "improvement_suggestions": [
+    "具体的なアクションを追加：「複数社に査定を依頼して、平均値を見る」「査定の根拠を必ず聞く」など、読者が次に取るべき行動を明示する",
+    "現場経験に基づく具体例を追加：「体感では査定額の±10%くらいで売れることが多い」「最近見た案件では、査定より50万円高く売れたケースも」など、リアリティのある数字を入れる",
+    "問題解決の深掘り：「査定額が高すぎる不動産屋の見分け方」「適正価格で早く売るコツ」など、より踏み込んだ解決策を提示する",
+    "warmth要素の強化：「査定額に一喜一憂しなくて大丈夫です」など、相談者に寄り添う温かい言葉を加える"
+  ],
+  "checked_at": "2026-05-06T20:24:57.065323+09:00"
+}
