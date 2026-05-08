@@ -1,0 +1,26 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 9,
+    "persona_match": 9,
+    "pillar_alignment": 10,
+    "usefulness": 9,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 0,
+    "cta_ending": 8,
+    "originality": 9,
+    "tone_balance": 9,
+    "problem_solving": 9,
+    "warmth": 9
+  },
+  "total_score": 111,
+  "threshold": 84,
+  "result": "auto_approved",
+  "usefulness_summary": "おとり物件と思って諦めていた人が、実は情報更新の遅れの可能性もあると知り、次の行動（似た条件で聞く）を具体的に取れるようになる",
+  "rejection_reasons": [],
+  "improvement_suggestions": [],
+  "checked_at": "2026-05-08T19:53:14.984478+09:00"
+}
