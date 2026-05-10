@@ -1,0 +1,26 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 9,
+    "persona_match": 9,
+    "pillar_alignment": 10,
+    "usefulness": 9,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 10,
+    "cta_ending": 7,
+    "originality": 9,
+    "tone_balance": 9,
+    "problem_solving": 9,
+    "warmth": 9
+  },
+  "total_score": 120,
+  "threshold": 84,
+  "result": "auto_approved",
+  "usefulness_summary": "賃貸オーナーが家賃設定で失敗しないために、検索の仕組みを理解して最初から適正価格で出すべき理由がわかる",
+  "rejection_reasons": [],
+  "improvement_suggestions": [],
+  "checked_at": "2026-05-10T19:45:27.650093+09:00"
+}
