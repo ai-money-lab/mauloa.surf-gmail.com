@@ -1,0 +1,25 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 9,
+    "persona_match": 8,
+    "pillar_alignment": 9,
+    "usefulness": 9,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 0,
+    "cta_ending": 8,
+    "originality": 9,
+    "tone_balance": 9,
+    "problem_solving": 8
+  },
+  "total_score": 99,
+  "threshold": 84,
+  "result": "auto_approved",
+  "usefulness_summary": "家探しをしている人が、内見時に物件の管理状態や住民の質を判断する具体的なチェックポイントを知ることができる",
+  "rejection_reasons": [],
+  "improvement_suggestions": [],
+  "checked_at": "2026-05-12T20:31:33.928094+09:00"
+}
