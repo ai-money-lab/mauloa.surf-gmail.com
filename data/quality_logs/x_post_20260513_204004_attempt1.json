@@ -1,0 +1,28 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 8,
+    "persona_match": 7,
+    "pillar_alignment": 9,
+    "usefulness": 7,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 10,
+    "cta_ending": 5,
+    "originality": 7,
+    "tone_balance": 8,
+    "problem_solving": 6
+  },
+  "total_score": 97,
+  "threshold": 84,
+  "result": "auto_approved",
+  "usefulness_summary": "家の売却を検討している人が、実際にどれくらいの期間を見込めばいいか判断できる",
+  "rejection_reasons": [],
+  "improvement_suggestions": [
+    "「急ぐ場合は〜」の部分をもう少し具体化（どんな人に向いているか、価格差の目安など）すると、より実用的になる",
+    "CTAが「基本はこんな感じです」で終わっており弱い。「売却を考えている方は、まず3〜4ヶ月は余裕を見ておくと安心ですよ」など、読者への具体的な提案で締めるとより親切"
+  ],
+  "checked_at": "2026-05-13T20:40:04.544637+09:00"
+}
