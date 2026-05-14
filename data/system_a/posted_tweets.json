@@ -766,5 +766,17 @@
     "image_path": "",
     "has_image": false,
     "status": "posted"
+  },
+  {
+    "datetime": "2026-05-14T20:27:01.029844+09:00",
+    "tweet_id": "2054886192689070479",
+    "pillar": "3",
+    "pipeline": "P3",
+    "pattern": "A",
+    "text": "不動産屋さん、どこも同じに見えて迷いますよね。\n\n個人的に「ここは信頼できるな」と思うポイント:\n\n・デメリットも説明してくれる\n・「今日決めなくていいですよ」と言ってくれる\n・質問に即答せず調べてから答える\n\n急かさない人は、長く付き合える気がします。",
+    "quality_score": 98,
+    "image_path": "",
+    "has_image": false,
+    "status": "posted"
   }
 ]
