@@ -1,0 +1,28 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 9,
+    "persona_match": 9,
+    "pillar_alignment": 10,
+    "usefulness": 6,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 0,
+    "cta_ending": 8,
+    "originality": 8,
+    "tone_balance": 9,
+    "problem_solving": 5
+  },
+  "total_score": 94,
+  "threshold": 84,
+  "result": "auto_approved",
+  "usefulness_summary": "実家売却時の不動産会社選びで、査定額より担当者の姿勢を重視すべきという判断基準を提供している",
+  "rejection_reasons": [],
+  "improvement_suggestions": [
+    "「話を聞いてくれる担当者」の具体的な見分け方（初回面談で確認すべき質問例など）を1〜2行追加すると、より行動につながる",
+    "「うまくいく」の具体例（例：納得できる価格で売れた、トラブルなく進んだ等）を軽く補足すると説得力が増す"
+  ],
+  "checked_at": "2026-05-15T20:33:48.213427+09:00"
+}
