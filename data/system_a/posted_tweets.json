@@ -814,5 +814,17 @@
     "image_path": "",
     "has_image": false,
     "status": "posted"
+  },
+  {
+    "datetime": "2026-05-18T21:50:47.719572+09:00",
+    "tweet_id": "2056356827567186420",
+    "pillar": "1",
+    "pipeline": "P3",
+    "pattern": "B",
+    "text": "実家を売ることになった友人から「税金ってどれくらいかかるの？」って相談されて。\n\n住んでた家を売る場合、利益が3000万円までなら税金かからない特例があるんですよね。\n\n相続した家でも使えるので、まずこれだけでも知っておくと安心かもしれません。",
+    "quality_score": 109,
+    "image_path": "",
+    "has_image": false,
+    "status": "posted"
   }
 ]

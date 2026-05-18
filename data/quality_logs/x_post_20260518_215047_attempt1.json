@@ -1,0 +1,25 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 9,
+    "persona_match": 8,
+    "pillar_alignment": 10,
+    "usefulness": 8,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 10,
+    "cta_ending": 8,
+    "originality": 8,
+    "tone_balance": 8,
+    "problem_solving": 7
+  },
+  "total_score": 106,
+  "threshold": 84,
+  "result": "auto_approved",
+  "usefulness_summary": "不動産売却時の税金の基本ルールと3000万円控除の存在を知ることで、売却検討者が不安を減らし判断材料を得られる",
+  "rejection_reasons": [],
+  "improvement_suggestions": [],
+  "checked_at": "2026-05-18T21:50:47.417966+09:00"
+}

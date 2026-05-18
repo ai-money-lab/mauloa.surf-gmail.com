@@ -1,0 +1,25 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 9,
+    "persona_match": 9,
+    "pillar_alignment": 10,
+    "usefulness": 8,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 10,
+    "cta_ending": 8,
+    "originality": 8,
+    "tone_balance": 9,
+    "problem_solving": 8
+  },
+  "total_score": 109,
+  "threshold": 84,
+  "result": "auto_approved",
+  "usefulness_summary": "実家売却時の税金不安を抱える人が、3000万円控除特例の存在を知り安心できる",
+  "rejection_reasons": [],
+  "improvement_suggestions": [],
+  "checked_at": "2026-05-18T21:50:42.761850+09:00"
+}
