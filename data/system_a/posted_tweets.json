@@ -826,5 +826,17 @@
     "image_path": "",
     "has_image": false,
     "status": "posted"
+  },
+  {
+    "datetime": "2026-05-19T21:25:36.516450+09:00",
+    "tweet_id": "2056712877084377303",
+    "pillar": "3",
+    "pipeline": "P3",
+    "pattern": "A",
+    "text": "内見のとき、見るべきポイント3つ\n\n①スマホの電波\n部屋の奥で実際に測る\n\n②コンセントの位置と数\n家具の配置をイメージしながら\n\n③夜の周辺環境\n帰宅時間帯に一度歩いてみる\n\n写真だけじゃわからないところこそ、現地で確認すると後悔が減ります",
+    "quality_score": 108,
+    "image_path": "",
+    "has_image": false,
+    "status": "posted"
   }
 ]
