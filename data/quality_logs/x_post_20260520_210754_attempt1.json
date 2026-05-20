@@ -1,0 +1,30 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 9,
+    "persona_match": 8,
+    "pillar_alignment": 9,
+    "usefulness": 8,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 0,
+    "cta_ending": 8,
+    "originality": 8,
+    "tone_balance": 9,
+    "problem_solving": 8
+  },
+  "total_score": 97,
+  "threshold": 84,
+  "result": "auto_approved",
+  "usefulness_summary": "管理会社の変更を検討しているオーナーが、実際に変更可能であることと基本的な手順を知ることができる",
+  "rejection_reasons": [
+    "「3ヶ月前」という具体的な数字が断定的に使用されており、「だいたい」というクッション言葉だけでは不十分（契約により異なるため、より慎重な表現が必要）"
+  ],
+  "improvement_suggestions": [
+    "「3ヶ月前」→「契約書に解約条件が書いてあって、多くの場合は数ヶ月前の通知で大丈夫なことが多いです」のように、より柔軟な表現に変更する",
+    "「契約書を確認してみてください」など、オーナー自身が確認するアクションを促す一文を追加すると、より実用的になる"
+  ],
+  "checked_at": "2026-05-20T21:07:54.398048+09:00"
+}
