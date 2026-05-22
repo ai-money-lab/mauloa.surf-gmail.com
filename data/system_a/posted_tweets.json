@@ -862,5 +862,17 @@
     "image_path": "",
     "has_image": false,
     "status": "posted"
+  },
+  {
+    "datetime": "2026-05-22T21:04:10.462857+09:00",
+    "tweet_id": "2057794646563324275",
+    "pillar": "4",
+    "pipeline": "P3",
+    "pattern": "A",
+    "text": "中古マンション、内覧のとき見るべき3つ：\n\n・共用部の掃除が行き届いてるか\n・管理人さんがいるか、週何回か\n・修繕計画が立ててあるか\n\n部屋の中より、建物全体がちゃんと管理されてるかの方が大事です。管理が悪いと修繕費がどんどん上がっていきます。",
+    "quality_score": 122,
+    "image_path": "",
+    "has_image": false,
+    "status": "posted"
   }
 ]
