@@ -874,5 +874,17 @@
     "image_path": "",
     "has_image": false,
     "status": "posted"
+  },
+  {
+    "datetime": "2026-05-23T19:52:25.494412+09:00",
+    "tweet_id": "2058138978050568608",
+    "pillar": "1",
+    "pipeline": "P3",
+    "pattern": "A",
+    "text": "親の家を相続したとき\n最初にやること3つ\n\n①名義変更（相続登記）\n②固定資産税の支払い確認\n③家の中の貴重品だけ確保\n\n売るかどうかは後で決めて大丈夫です。\nまずこの3つだけやっておけば、焦らず考える時間が作れます。",
+    "quality_score": 122,
+    "image_path": "",
+    "has_image": false,
+    "status": "posted"
   }
 ]

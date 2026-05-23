@@ -1,0 +1,26 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 9,
+    "persona_match": 8,
+    "pillar_alignment": 10,
+    "usefulness": 10,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 10,
+    "cta_ending": 8,
+    "originality": 9,
+    "tone_balance": 9,
+    "problem_solving": 10,
+    "warmth": 9
+  },
+  "total_score": 122,
+  "threshold": 84,
+  "result": "auto_approved",
+  "usefulness_summary": "親の家を相続した人が、何から手をつけるべきか具体的な優先順位と行動がわかる",
+  "rejection_reasons": [],
+  "improvement_suggestions": [],
+  "checked_at": "2026-05-23T19:52:16.827711+09:00"
+}
