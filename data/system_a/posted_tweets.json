@@ -886,5 +886,17 @@
     "image_path": "",
     "has_image": false,
     "status": "posted"
+  },
+  {
+    "datetime": "2026-05-24T19:54:17.258408+09:00",
+    "tweet_id": "2058501834726088853",
+    "pillar": "3",
+    "pipeline": "P3",
+    "pattern": "A",
+    "text": "窓の結露、放っておくとカーテンやサッシにカビが生えてきますよね。\n\nすぐできる対策3つ：\n\n・朝起きたら10分だけ窓を開ける\n・家具は壁から5cmくらい離す\n・晴れた日に押入れを開けっぱなしにする\n\n換気って地味だけど、これだけで全然違います。",
+    "quality_score": 108,
+    "image_path": "",
+    "has_image": false,
+    "status": "posted"
   }
 ]
