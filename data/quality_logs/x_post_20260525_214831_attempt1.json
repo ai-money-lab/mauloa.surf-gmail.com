@@ -1,0 +1,25 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 9,
+    "persona_match": 10,
+    "pillar_alignment": 10,
+    "usefulness": 9,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 10,
+    "cta_ending": 8,
+    "originality": 9,
+    "tone_balance": 10,
+    "problem_solving": 9
+  },
+  "total_score": 114,
+  "threshold": 84,
+  "result": "auto_approved",
+  "usefulness_summary": "相続した空き家を放置している人に、固定資産税が継続的にかかり続けるという見落としがちなコストを具体例で気づかせる",
+  "rejection_reasons": [],
+  "improvement_suggestions": [],
+  "checked_at": "2026-05-25T21:48:31.208843+09:00"
+}
