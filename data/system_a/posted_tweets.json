@@ -910,5 +910,17 @@
     "image_path": "",
     "has_image": false,
     "status": "posted"
+  },
+  {
+    "datetime": "2026-05-28T21:48:50.573366+09:00",
+    "tweet_id": "2059980214952763682",
+    "pillar": "2",
+    "pipeline": "P3",
+    "pattern": "A",
+    "text": "空室が3ヶ月続いていた物件、壁紙と照明を変えただけで1週間で決まったことがあります。\n\n費用は約8万円。\n家賃は変えてません。\n\n大がかりなリフォームじゃなくても、写真映りが変わるだけで反応が全然違うんですよね。",
+    "quality_score": 120,
+    "image_path": "",
+    "has_image": false,
+    "status": "posted"
   }
 ]
