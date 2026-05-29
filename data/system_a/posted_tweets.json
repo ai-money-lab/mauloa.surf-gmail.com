@@ -922,5 +922,17 @@
     "image_path": "",
     "has_image": false,
     "status": "posted"
+  },
+  {
+    "datetime": "2026-05-29T21:32:35.126280+09:00",
+    "tweet_id": "2060338511488659693",
+    "pillar": "5",
+    "pipeline": "P3",
+    "pattern": "C",
+    "text": "植物育てて気づいたこと3つ\n\n・毎日見てると小さな変化に気づく\n・変化に気づくと対応が早くなる\n・早く対応すると大事に至らない\n\n賃貸管理も同じで\n定期的に見てると\n「あれ、ここ前と違うな」って\n気づけるんですよね。\n\nそういう小さな違和感\n地味に大事だったりします。",
+    "quality_score": 95,
+    "image_path": "",
+    "has_image": false,
+    "status": "posted"
   }
 ]

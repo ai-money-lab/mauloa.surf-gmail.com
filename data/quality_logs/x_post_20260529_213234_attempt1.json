@@ -1,0 +1,29 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 6,
+    "persona_match": 8,
+    "pillar_alignment": 9,
+    "usefulness": 5,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 10,
+    "cta_ending": 7,
+    "originality": 8,
+    "tone_balance": 8,
+    "problem_solving": 4
+  },
+  "total_score": 95,
+  "threshold": 84,
+  "result": "auto_approved",
+  "usefulness_summary": "賃貸管理において定期的な物件確認の重要性を、植物育成の比喩で分かりやすく伝え、小さな変化への気づきが大きなトラブル防止につながることを示している",
+  "rejection_reasons": [],
+  "improvement_suggestions": [
+    "hook_powerを高めるため、冒頭を「賃貸管理で大きなトラブルを防ぐコツ」など、ターゲットが明確な書き出しにする",
+    "usefulnessを高めるため、「具体的にどんな変化に気づくべきか」の例を1つ追加する（例：「壁の小さなシミ」「共用部の電球切れ」など）",
+    "problem_solvingを強化するため、「見逃すとどうなるか→気づくとどう対応できるか」の具体例を1つ入れる"
+  ],
+  "checked_at": "2026-05-29T21:32:34.834465+09:00"
+}
