@@ -946,5 +946,17 @@
     "image_path": "",
     "has_image": false,
     "status": "posted"
+  },
+  {
+    "datetime": "2026-05-31T20:15:45.020032+09:00",
+    "tweet_id": "2061043951025422468",
+    "pillar": "3",
+    "pipeline": "P3",
+    "pattern": "A",
+    "text": "隣の部屋の音が気になるときに試してほしいこと\n\n・家具を壁際に置く\n・カーテンを厚手に変える\n・本棚を壁沿いに置く\n\n壁と部屋の間に物があるだけで、音の響き方が全然違います。\n\n特に本棚は音を吸収してくれるので、配置を変えるだけでも楽になりますよ",
+    "quality_score": 108,
+    "image_path": "",
+    "has_image": false,
+    "status": "posted"
   }
 ]

@@ -1,0 +1,25 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 9,
+    "persona_match": 9,
+    "pillar_alignment": 10,
+    "usefulness": 6,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 0,
+    "cta_ending": 5,
+    "originality": 8,
+    "tone_balance": 9,
+    "problem_solving": 6
+  },
+  "total_score": 92,
+  "threshold": 84,
+  "result": "auto_approved",
+  "usefulness_summary": "隣の音が気になる人が、音源の場所を特定して配置変更で対処できることを知れる",
+  "rejection_reasons": [],
+  "improvement_suggestions": [],
+  "checked_at": "2026-05-31T20:15:40.064300+09:00"
+}
