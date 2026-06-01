@@ -1,0 +1,33 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 8,
+    "persona_match": 7,
+    "pillar_alignment": 9,
+    "usefulness": 9,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 10,
+    "cta_ending": 0,
+    "originality": 8,
+    "tone_balance": 6,
+    "problem_solving": 8,
+    "warmth": 6
+  },
+  "total_score": 101,
+  "threshold": 84,
+  "result": "auto_approved",
+  "usefulness_summary": "賃貸物件に防犯カメラを設置する際の法的・運用上の注意点を知りたい大家さんの役に立つ",
+  "rejection_reasons": [
+    "「これ知ってるだけで全然違います」が煽り表現に該当（「知ってるだけで」は「知らないと損」系の煽り）",
+    "最終行が自己満足的な締めになっており、読者への具体的な行動提案や温かい呼びかけがない"
+  ],
+  "improvement_suggestions": [
+    "最終行を「防犯カメラ、うまく使えば入居者さんの安心につながりますよ」など、温かみのある締めに変更する",
+    "「これ知ってるだけで全然違います」を削除し、「事前に確認しておくと、後々のトラブルを防げます」など、煽りのない表現に変更する",
+    "「入居者さんに事前に伝える」を「入居者さんに設置前・設置後に丁寧に説明する」など、より具体的な行動に落とし込む"
+  ],
+  "checked_at": "2026-06-02T00:40:14.778656+09:00"
+}
