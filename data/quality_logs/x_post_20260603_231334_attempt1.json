@@ -1,0 +1,28 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 7,
+    "persona_match": 8,
+    "pillar_alignment": 6,
+    "usefulness": 6,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 10,
+    "cta_ending": 8,
+    "originality": 7,
+    "tone_balance": 8,
+    "problem_solving": 5
+  },
+  "total_score": 95,
+  "threshold": 84,
+  "result": "auto_approved",
+  "usefulness_summary": "仕事で空回りしがちな人が、効率的かつ相手に配慮した働き方の視点を得られる",
+  "rejection_reasons": [],
+  "improvement_suggestions": [
+    "「全部説明しない」「すぐ動かない」が具体的にどんな場面でどう役立つのか、1つでも実例があるとより有用性が高まる",
+    "リフォーム・住宅業界との接点がやや弱いため、Pillar5（働き方・マインド）でも業界特有の文脈を少し入れると persona_match が向上する"
+  ],
+  "checked_at": "2026-06-03T23:13:34.406424+09:00"
+}

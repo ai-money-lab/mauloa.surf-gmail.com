@@ -970,5 +970,17 @@
     "image_path": "",
     "has_image": false,
     "status": "posted"
+  },
+  {
+    "datetime": "2026-06-03T23:13:34.644279+09:00",
+    "tweet_id": "2062175866205946039",
+    "pillar": "5",
+    "pipeline": "P3",
+    "pattern": "C",
+    "text": "仕事で心がけてること3つ\n\n① 全部説明しない\n相手が聞きたいことだけ答える\n\n② すぐ動かない\n一呼吸おいて、本当に必要か考える\n\n③ 完璧を目指さない\n8割できたら次に進む\n\n昔は全部逆をやってました\nその方が「ちゃんとしてる」気がしてたんですよね\n\nでも今の方が、相手にも自分にも優しいなって思います",
+    "quality_score": 95,
+    "image_path": "",
+    "has_image": false,
+    "status": "posted"
   }
 ]
