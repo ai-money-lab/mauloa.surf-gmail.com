@@ -1,0 +1,26 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 9,
+    "persona_match": 8,
+    "pillar_alignment": 10,
+    "usefulness": 9,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 8,
+    "cta_ending": 8,
+    "originality": 8,
+    "tone_balance": 9,
+    "problem_solving": 9,
+    "warmth": 9
+  },
+  "total_score": 117,
+  "threshold": 84,
+  "result": "auto_approved",
+  "usefulness_summary": "兄弟間での実家相続時に揉めないための具体的な初動アクションを示し、相続に直面している人が実際に行動できる内容",
+  "rejection_reasons": [],
+  "improvement_suggestions": [],
+  "checked_at": "2026-06-04T21:27:29.631229+09:00"
+}
