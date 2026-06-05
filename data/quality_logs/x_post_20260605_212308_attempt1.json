@@ -1,0 +1,26 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 9,
+    "persona_match": 9,
+    "pillar_alignment": 10,
+    "usefulness": 9,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 0,
+    "cta_ending": 9,
+    "originality": 9,
+    "tone_balance": 9,
+    "problem_solving": 9,
+    "warmth": 9
+  },
+  "total_score": 112,
+  "threshold": 84,
+  "result": "auto_approved",
+  "usefulness_summary": "離婚による不動産売却を検討している人が、売却額より先に期限を決めるべき理由と判断軸が明確になる",
+  "rejection_reasons": [],
+  "improvement_suggestions": [],
+  "checked_at": "2026-06-05T21:23:08.714305+09:00"
+}

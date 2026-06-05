@@ -1,0 +1,25 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 9,
+    "persona_match": 8,
+    "pillar_alignment": 10,
+    "usefulness": 9,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 10,
+    "cta_ending": 8,
+    "originality": 8,
+    "tone_balance": 8,
+    "problem_solving": 9
+  },
+  "total_score": 109,
+  "threshold": 84,
+  "result": "auto_approved",
+  "usefulness_summary": "急な売却が必要になった人が、焦らず適正価格で売るための最初の具体的な行動指針を得られる",
+  "rejection_reasons": [],
+  "improvement_suggestions": [],
+  "checked_at": "2026-06-05T21:22:57.457045+09:00"
+}
