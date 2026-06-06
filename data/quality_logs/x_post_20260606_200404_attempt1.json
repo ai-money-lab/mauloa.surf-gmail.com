@@ -1,0 +1,26 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 9,
+    "persona_match": 9,
+    "pillar_alignment": 10,
+    "usefulness": 10,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 10,
+    "cta_ending": 10,
+    "originality": 9,
+    "tone_balance": 10,
+    "problem_solving": 10,
+    "warmth": 9
+  },
+  "total_score": 126,
+  "threshold": 84,
+  "result": "auto_approved",
+  "usefulness_summary": "空室が長期化しているオーナーが、大掛かりなリフォームをせずに具体的にチェックすべき3つのポイントを知り、すぐに行動できる",
+  "rejection_reasons": [],
+  "improvement_suggestions": [],
+  "checked_at": "2026-06-06T20:04:04.514403+09:00"
+}

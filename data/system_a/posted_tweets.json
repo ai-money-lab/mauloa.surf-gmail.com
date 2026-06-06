@@ -1006,5 +1006,17 @@
     "image_path": "",
     "has_image": false,
     "status": "posted"
+  },
+  {
+    "datetime": "2026-06-06T20:04:14.331729+09:00",
+    "tweet_id": "2063215381200728395",
+    "pillar": "2",
+    "pipeline": "P3",
+    "pattern": "A",
+    "text": "空室が3ヶ月以上続いてるとき\nまず確認したい3つのこと\n\n・募集写真が暗くないか\n・家賃が周辺より高くないか\n・内見できる状態か\n\nどれか1つでも引っかかってたら\nそこだけ直すだけで動き出すことが多いです。\n\n全部変える必要はないんですよね。",
+    "quality_score": 126,
+    "image_path": "",
+    "has_image": false,
+    "status": "posted"
   }
 ]
