@@ -1,0 +1,25 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 9,
+    "persona_match": 8,
+    "pillar_alignment": 10,
+    "usefulness": 10,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 0,
+    "cta_ending": 9,
+    "originality": 9,
+    "tone_balance": 9,
+    "problem_solving": 10
+  },
+  "total_score": 104,
+  "threshold": 84,
+  "result": "auto_approved",
+  "usefulness_summary": "賃貸退去時の高額請求を防ぐために、入居時の写真記録という具体的な対策を教えている",
+  "rejection_reasons": [],
+  "improvement_suggestions": [],
+  "checked_at": "2026-06-07T20:19:51.665510+09:00"
+}
