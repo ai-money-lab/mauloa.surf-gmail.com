@@ -1,0 +1,31 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 8,
+    "persona_match": 9,
+    "pillar_alignment": 10,
+    "usefulness": 9,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 0,
+    "cta_ending": 9,
+    "originality": 8,
+    "tone_balance": 9,
+    "problem_solving": 9
+  },
+  "total_score": 101,
+  "threshold": 84,
+  "result": "auto_approved",
+  "usefulness_summary": "物件探しで空振りを避け、効率的に良い物件を見つけたい人の役に立つ",
+  "rejection_reasons": [
+    "number_included項目が0点：投稿内に具体的な数字が含まれていない（エンゲージメント向上のため、何らかの数字要素が必要）"
+  ],
+  "improvement_suggestions": [
+    "具体的な数字を追加する例：「ネットの物件、体感では3割くらいはもう埋まってることがあります」のように、柔らかいニュアンス付きの数字を入れる",
+    "箇条書きの項目数を明示する例：「物件探しで空振りしないコツ3つ」とタイトルに数字を入れる",
+    "時間軸の数字を追加する例：「更新日が1週間以上前の物件は要注意」など、具体的な目安を示す"
+  ],
+  "checked_at": "2026-06-08T22:50:34.367202+09:00"
+}

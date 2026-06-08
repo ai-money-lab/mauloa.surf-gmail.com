@@ -1,0 +1,25 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 9,
+    "persona_match": 8,
+    "pillar_alignment": 9,
+    "usefulness": 9,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 0,
+    "cta_ending": 8,
+    "originality": 9,
+    "tone_balance": 9,
+    "problem_solving": 9
+  },
+  "total_score": 100,
+  "threshold": 84,
+  "result": "auto_approved",
+  "usefulness_summary": "ネット掲載物件が埋まっていた際に、遠慮せず似た条件の物件を聞くことで良い物件に出会える可能性があることを教えている",
+  "rejection_reasons": [],
+  "improvement_suggestions": [],
+  "checked_at": "2026-06-08T22:50:24.977177+09:00"
+}
