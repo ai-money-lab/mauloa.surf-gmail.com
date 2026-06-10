@@ -1,0 +1,29 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 8,
+    "persona_match": 7,
+    "pillar_alignment": 8,
+    "usefulness": 7,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 10,
+    "cta_ending": 0,
+    "originality": 7,
+    "tone_balance": 8,
+    "problem_solving": 7
+  },
+  "total_score": 92,
+  "threshold": 84,
+  "result": "auto_approved",
+  "usefulness_summary": "賃貸オーナーが家賃設定で迷った際に、空室期間を考慮した具体的な判断基準を提供している",
+  "rejection_reasons": [],
+  "improvement_suggestions": [
+    "CTA（行動喚起）が弱い。「家賃設定で迷ったら、まず周辺相場を調べてみてください」等の具体的な次のアクションを示すと良い",
+    "「結果的に収入が多くなることが多いです」の部分が若干断定的。「収入が多くなるケースが多いです」等、より柔らかい表現にするとさらに良い",
+    "最後の計算例は分かりやすいが、「体感では」「私の経験では」等の前置きがあると、より親しみやすくなる"
+  ],
+  "checked_at": "2026-06-10T21:43:36.950322+09:00"
+}

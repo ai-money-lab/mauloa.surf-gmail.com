@@ -1,0 +1,29 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 8,
+    "persona_match": 7,
+    "pillar_alignment": 9,
+    "usefulness": 7,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 10,
+    "cta_ending": 6,
+    "originality": 7,
+    "tone_balance": 6,
+    "problem_solving": 6
+  },
+  "total_score": 96,
+  "threshold": 84,
+  "result": "auto_approved",
+  "usefulness_summary": "不動産投資家が家賃設定で迷ったときに、収益性と入居率のバランスを考える判断基準を提供している",
+  "rejection_reasons": [],
+  "improvement_suggestions": [
+    "「バランスが大事ですね」という締めは当たり前感があるため、「最近は①の戦略で空室期間を2週間ほどに抑えられています」など具体的な経験談で終わると説得力が増す",
+    "③の「入居者の質」について、もう少し具体例（例：「家賃を周辺より5000円ほど下げたら問い合わせは増えたけど、内見キャンセルも多かった経験があります」）があると実践的",
+    "「すぐ決まる方が年間収入は多い」の部分を「1ヶ月空室なら家賃5000円下げても年間では得、という計算をよくします」など数字で示すとより有用性が高まる"
+  ],
+  "checked_at": "2026-06-10T21:44:03.631378+09:00"
+}
