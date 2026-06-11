@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<style>
+  @page { size: A4; margin: 16mm 14mm; }
+  * { font-family: "IPAGothic", sans-serif; box-sizing: border-box; }
+  body { color: #222; font-size: 10.5pt; }
+  h1 { text-align: center; letter-spacing: 0.5em; font-size: 22pt; margin: 0 0 18px; font-weight: bold; }
+  .head { display: flex; justify-content: space-between; align-items: flex-start; }
+  .to { font-size: 13pt; border-bottom: 1.5px solid #333; padding-bottom: 2px; min-width: 240px; }
+  .from { text-align: right; font-size: 9.5pt; line-height: 1.7; }
+  .from .name { font-size: 12pt; font-weight: bold; }
+  .meta { margin-top: 14px; font-size: 9.5pt; line-height: 1.8; }
+  .subject { margin-top: 6px; font-size: 11pt; font-weight: bold; }
+  .amountbox { margin: 14px 0 18px; }
+  .amountbox .label { font-size: 11pt; }
+  .amountbox .value { font-size: 20pt; font-weight: bold; border-bottom: 2px solid #333; display: inline-block; padding: 2px 24px 2px 12px; margin-left: 12px; }
+  table.items { width: 100%; border-collapse: collapse; margin-top: 6px; }
+  table.items thead th { background: #2f4858; color: #fff; font-weight: normal; padding: 6px 8px; font-size: 9.5pt; }
+  table.items tbody td { padding: 5px 8px; font-size: 9pt; border-bottom: 1px solid #e2e2e2; }
+  table.items .c-id { width: 80px; }
+  table.items .c-qty { width: 48px; text-align: center; }
+  table.items .c-amt { width: 90px; text-align: right; }
+  .totals { width: 280px; margin-left: auto; margin-top: 10px; border-collapse: collapse; }
+  .totals td { padding: 5px 10px; font-size: 10pt; }
+  .totals td.lbl { color: #555; }
+  .totals td.num { text-align: right; }
+  .totals tr.grand td { font-size: 13pt; font-weight: bold; border-top: 2px solid #333; }
+  .taxtbl { margin-top: 18px; border-collapse: collapse; font-size: 9pt; }
+  .taxtbl caption { text-align: left; font-weight: bold; margin-bottom: 4px; font-size: 9.5pt; }
+  .taxtbl th, .taxtbl td { padding: 4px 16px 4px 4px; text-align: left; }
+  .taxtbl th { color: #555; font-weight: normal; }
+  .pay { margin-top: 20px; font-size: 10pt; }
+  .pay .h, .note .h { font-weight: bold; border-left: 4px solid #2f4858; padding-left: 6px; margin-bottom: 4px; }
+  .note { margin-top: 14px; font-size: 9.5pt; }
+</style>
+</head>
+<body>
+  <h1>請求書</h1>
+  <div class="head">
+    <div class="to">株式会社でんきち　御中</div>
+    <div class="from">
+      <div class="name">宮尾大樹</div>
+      <div>登録番号：T1810438515880</div>
+    </div>
+  </div>
+
+  <div class="meta">
+    請求書番号：20260519<br>
+    請求日：2026/05/19　　お支払期限：2026/05/31
+  </div>
+  <div class="subject">件名：4月完工分 リフォーム工事</div>
+
+  <div class="amountbox">
+    <span class="label">ご請求金額</span>
+    <span class="value">531,960 円</span>
+  </div>
+
+  <table class="items">
+    <thead>
+      <tr><th class="c-id">案件ID</th><th>件名</th><th class="c-qty">件数</th><th class="c-amt">請求金額</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>23406454</td><td>20260215調布店 沖田 洋平様邸 トイレ工事 眞鍋佳槻</td><td class="c-qty">1</td><td class="c-amt">38,000</td></tr>
+      <tr><td>23919901</td><td>20260321 調布 上田剛様邸 水栓工事 眞鍋</td><td class="c-qty">1</td><td class="c-amt">7,500</td></tr>
+      <tr><td>23214326</td><td>20260130調布店浪川佳己様ビルトインコンロレンジフード工事眞鍋優</td><td class="c-qty">1</td><td class="c-amt">42,200</td></tr>
+      <tr><td>24027879</td><td>20260328調布店 篠原美奈子様邸 ビルトインコンロ交換 望月</td><td class="c-qty">1</td><td class="c-amt">15,000</td></tr>
+      <tr><td>24038097</td><td>0328 石川悟様 給湯器 大久保</td><td class="c-qty">1</td><td class="c-amt">30,000</td></tr>
+      <tr><td>24038108</td><td>20260329調布店飯島祥二様ビルトインコンロ及び蛇口取付 堀</td><td class="c-qty">1</td><td class="c-amt">22,500</td></tr>
+      <tr><td>24005213</td><td>0326 三宅正記様邸 ビルトインコンロ 小川</td><td class="c-qty">1</td><td class="c-amt">15,000</td></tr>
+      <tr><td>24031356</td><td>20260328 調布店 中谷美佳様邸 BI食洗機工事 眞鍋佳槻</td><td class="c-qty">1</td><td class="c-amt">18,000</td></tr>
+      <tr><td>23689062</td><td>0308 小滝裕雄様 コンロレンジフード 布沢</td><td class="c-qty">1</td><td class="c-amt">41,000</td></tr>
+      <tr><td>22844037</td><td>0102 髙西幸子様 コンロレンジフード 高橋</td><td class="c-qty">1</td><td class="c-amt">38,200</td></tr>
+      <tr><td>24119783</td><td>20260402調布店滝沢三男也様邸給湯器</td><td class="c-qty">1</td><td class="c-amt">42,000</td></tr>
+      <tr><td>24052095</td><td>0330 石川君代様 給湯器 布沢 案件</td><td class="c-qty">1</td><td class="c-amt">36,400</td></tr>
+      <tr><td>23651829</td><td>宇野紘史様 洗面台</td><td class="c-qty">1</td><td class="c-amt">30,800</td></tr>
+      <tr><td>23906378</td><td>蜂谷英一様 トイレ</td><td class="c-qty">1</td><td class="c-amt">22,000</td></tr>
+      <tr><td>23765200</td><td>蜂谷英一様 IH</td><td class="c-qty">1</td><td class="c-amt">10,000</td></tr>
+      <tr><td>23766021</td><td>浦部素直様 食洗機</td><td class="c-qty">1</td><td class="c-amt">18,000</td></tr>
+      <tr><td>24098828</td><td>松永和彦様 給湯器</td><td class="c-qty">1</td><td class="c-amt">42,000</td></tr>
+      <tr><td>24149719</td><td>塩津亮児様 ガスコンロ</td><td class="c-qty">1</td><td class="c-amt">15,000</td></tr>
+    </tbody>
+  </table>
+
+  <table class="totals">
+    <tr><td class="lbl">小計</td><td class="num">483,600</td></tr>
+    <tr><td class="lbl">消費税額（10%）</td><td class="num">48,360</td></tr>
+    <tr class="grand"><td>合　計</td><td class="num">531,960</td></tr>
+  </table>
+
+  <table class="taxtbl">
+    <caption>税率別合計</caption>
+    <tr><th>税率</th><th>税抜金額</th><th>消費税額</th><th>税込合計</th></tr>
+    <tr><td>10%</td><td>483,600</td><td>48,360</td><td>531,960</td></tr>
+  </table>
+
+  <div class="pay">
+    <div class="h">振込先</div>
+    楽天銀行　マーチ支店　普通　2179863　ミヤオヒロキ
+  </div>
+
+  <div class="note">
+    <div class="h">備考</div>
+    大変恐縮ですが、振込手数料は貴社にてご負担いただくようお願い申し上げます。
+  </div>
+</body>
+</html>
