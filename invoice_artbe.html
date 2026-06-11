@@ -3,44 +3,44 @@
 <head>
 <meta charset="utf-8">
 <style>
-  @page { size: A4; margin: 24mm 20mm; }
+  @page { size: A4; margin: 16mm 18mm; }
   * { font-family: "IPAGothic", sans-serif; box-sizing: border-box; }
-  body { color: #222; font-size: 11pt; line-height: 1.7; }
+  body { color: #222; font-size: 10.5pt; line-height: 1.55; }
 
-  h1 { text-align: center; letter-spacing: 0.6em; font-size: 24pt; margin: 0 0 24px; font-weight: bold; }
+  h1 { text-align: center; letter-spacing: 0.6em; font-size: 22pt; margin: 0 0 18px; font-weight: bold; }
 
-  .head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 26px; }
-  .to-block { padding-top: 8px; }
-  .to { font-size: 15pt; border-bottom: 1.5px solid #333; padding: 0 36px 5px 2px; display: inline-block; }
-  .to-sub { font-size: 9.5pt; color: #666; margin-top: 12px; }
-  .from { text-align: right; font-size: 10pt; line-height: 1.9; }
-  .from .issue { color: #555; font-size: 9.5pt; margin-bottom: 8px; }
-  .from .name { font-size: 13pt; font-weight: bold; letter-spacing: 0.12em; margin-bottom: 2px; }
+  .head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 18px; }
+  .to-block { padding-top: 6px; }
+  .to { font-size: 14pt; border-bottom: 1.5px solid #333; padding: 0 36px 4px 2px; display: inline-block; }
+  .to-sub { font-size: 9pt; color: #666; margin-top: 9px; }
+  .from { text-align: right; font-size: 9.5pt; line-height: 1.8; }
+  .from .issue { color: #555; font-size: 9pt; margin-bottom: 6px; }
+  .from .name { font-size: 12.5pt; font-weight: bold; letter-spacing: 0.12em; margin-bottom: 2px; }
 
-  .amountbox { display: flex; align-items: baseline; gap: 18px; background: #f4f6f8; border-left: 6px solid #2f4858;
-               padding: 14px 22px; margin-bottom: 28px; }
-  .amountbox .label { font-size: 12pt; font-weight: bold; }
-  .amountbox .value { font-size: 24pt; font-weight: bold; color: #2f4858; }
+  .amountbox { display: flex; align-items: baseline; gap: 16px; background: #f4f6f8; border-left: 6px solid #2f4858;
+               padding: 11px 20px; margin-bottom: 20px; }
+  .amountbox .label { font-size: 11.5pt; font-weight: bold; }
+  .amountbox .value { font-size: 22pt; font-weight: bold; color: #2f4858; }
   .amountbox .due { font-size: 9.5pt; color: #777; margin-left: auto; }
 
   table.items { width: 100%; border-collapse: collapse; }
-  table.items thead th { background: #2f4858; color: #fff; font-weight: normal; padding: 10px 12px; font-size: 10.5pt; }
+  table.items thead th { background: #2f4858; color: #fff; font-weight: normal; padding: 8px 12px; font-size: 10.5pt; }
   table.items thead th.c-no { width: 56px; text-align: center; }
   table.items thead th.c-amt { width: 150px; text-align: right; }
-  table.items tbody td { padding: 11px 12px; font-size: 11pt; border-bottom: 1px solid #e2e2e2; }
+  table.items tbody td { padding: 8px 12px; font-size: 10.5pt; border-bottom: 1px solid #e2e2e2; }
   table.items tbody tr:nth-child(even) { background: #fafbfc; }
   table.items td.c-no { text-align: center; }
   table.items td.c-amt { text-align: right; }
 
-  table.sum { border-collapse: collapse; min-width: 300px; margin-left: auto; margin-top: 14px; }
-  table.sum td { padding: 7px 14px; font-size: 11pt; }
+  table.sum { border-collapse: collapse; min-width: 300px; margin-left: auto; margin-top: 10px; }
+  table.sum td { padding: 5px 14px; font-size: 10.5pt; }
   table.sum td.lbl { color: #555; }
   table.sum td.num { text-align: right; }
-  table.sum tr.grand td { font-size: 14pt; font-weight: bold; border-top: 2px solid #333; padding-top: 11px; }
+  table.sum tr.grand td { font-size: 13.5pt; font-weight: bold; border-top: 2px solid #333; padding-top: 9px; }
 
-  .pay { margin-top: 36px; font-size: 10.5pt; line-height: 1.9; }
-  .pay .h { font-weight: bold; border-left: 4px solid #2f4858; padding-left: 8px; margin-bottom: 8px; }
-  .note { margin-top: 18px; font-size: 9.5pt; color: #555; line-height: 1.9; }
+  .pay { margin-top: 26px; font-size: 10pt; line-height: 1.8; }
+  .pay .h { font-weight: bold; border-left: 4px solid #2f4858; padding-left: 8px; margin-bottom: 6px; }
+  .note { margin-top: 14px; font-size: 9pt; color: #555; line-height: 1.8; }
 </style>
 </head>
 <body>
