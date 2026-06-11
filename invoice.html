@@ -3,61 +3,78 @@
 <head>
 <meta charset="utf-8">
 <style>
-  @page { size: A4; margin: 16mm 14mm; }
+  @page { size: A4; margin: 22mm 18mm; }
   * { font-family: "IPAGothic", sans-serif; box-sizing: border-box; }
-  body { color: #222; font-size: 10.5pt; }
-  h1 { text-align: center; letter-spacing: 0.5em; font-size: 22pt; margin: 0 0 18px; font-weight: bold; }
-  .head { display: flex; justify-content: space-between; align-items: flex-start; }
-  .to { font-size: 13pt; border-bottom: 1.5px solid #333; padding-bottom: 2px; min-width: 260px; }
-  .from { text-align: right; font-size: 9.5pt; line-height: 1.7; }
-  .from .name { font-size: 12pt; font-weight: bold; }
-  .meta { margin-top: 14px; font-size: 9.5pt; line-height: 1.8; }
-  .subject { margin-top: 6px; font-size: 11pt; font-weight: bold; }
-  .amountbox { margin: 14px 0 18px; }
-  .amountbox .label { font-size: 11pt; }
-  .amountbox .value { font-size: 20pt; font-weight: bold; border-bottom: 2px solid #333; display: inline-block; padding: 2px 24px 2px 12px; margin-left: 12px; }
-  table.items { width: 100%; border-collapse: collapse; margin-top: 6px; }
-  table.items thead th { background: #2f4858; color: #fff; font-weight: normal; padding: 6px 8px; font-size: 9.5pt; }
-  table.items tbody td { padding: 6px 8px; font-size: 10pt; border-bottom: 1px solid #e2e2e2; }
-  table.items .c-no { width: 40px; text-align: center; }
-  table.items .c-qty { width: 48px; text-align: center; }
-  table.items .c-price, table.items .c-amt { width: 100px; text-align: right; }
-  .totals { width: 280px; margin-left: auto; margin-top: 10px; border-collapse: collapse; }
-  .totals td { padding: 5px 10px; font-size: 10pt; }
+  body { color: #222; font-size: 10.5pt; line-height: 1.6; }
+
+  h1 { text-align: center; letter-spacing: 0.6em; font-size: 24pt; margin: 0 0 6px; font-weight: bold; }
+  .issue-date { text-align: right; font-size: 9.5pt; color: #555; margin-bottom: 26px; }
+
+  .head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 30px; }
+  .to-block { padding-top: 6px; }
+  .to { font-size: 15pt; border-bottom: 1.5px solid #333; padding: 0 40px 4px 4px; display: inline-block; }
+  .to-sub { font-size: 9pt; color: #666; margin-top: 10px; }
+
+  .from { text-align: left; font-size: 9.5pt; line-height: 1.9; }
+  .from .name { font-size: 13pt; font-weight: bold; letter-spacing: 0.1em; margin-bottom: 4px; }
+
+  .subject { font-size: 11.5pt; margin-bottom: 22px; }
+  .subject .lbl { color: #666; margin-right: 10px; }
+
+  .amountbox { display: flex; align-items: baseline; gap: 18px; background: #f4f6f8; border-left: 6px solid #2f4858;
+               padding: 14px 20px; margin-bottom: 30px; }
+  .amountbox .label { font-size: 12pt; font-weight: bold; }
+  .amountbox .value { font-size: 24pt; font-weight: bold; color: #2f4858; }
+  .amountbox .tax-note { font-size: 9pt; color: #777; margin-left: auto; }
+
+  table.items { width: 100%; border-collapse: collapse; }
+  table.items thead th { background: #2f4858; color: #fff; font-weight: normal; padding: 10px 10px; font-size: 10pt; }
+  table.items tbody td { padding: 11px 10px; font-size: 10.5pt; border-bottom: 1px solid #e2e2e2; }
+  table.items tbody tr:nth-child(even) { background: #fafbfc; }
+  table.items .c-no { width: 44px; text-align: center; }
+  table.items .c-qty { width: 56px; text-align: center; }
+  table.items .c-price, table.items .c-amt { width: 110px; text-align: right; }
+
+  .lower { display: flex; justify-content: space-between; align-items: flex-start; margin-top: 24px; gap: 30px; }
+  .taxtbl { border-collapse: collapse; font-size: 9pt; }
+  .taxtbl caption { text-align: left; font-weight: bold; margin-bottom: 8px; font-size: 9.5pt; }
+  .taxtbl th, .taxtbl td { padding: 6px 18px 6px 4px; text-align: left; }
+  .taxtbl th { color: #666; font-weight: normal; border-bottom: 1px solid #ddd; }
+
+  .totals { border-collapse: collapse; min-width: 280px; }
+  .totals td { padding: 8px 14px; font-size: 11pt; }
   .totals td.lbl { color: #555; }
   .totals td.num { text-align: right; }
-  .totals tr.grand td { font-size: 13pt; font-weight: bold; border-top: 2px solid #333; }
-  .taxtbl { margin-top: 18px; border-collapse: collapse; font-size: 9pt; }
-  .taxtbl caption { text-align: left; font-weight: bold; margin-bottom: 4px; font-size: 9.5pt; }
-  .taxtbl th, .taxtbl td { padding: 4px 16px 4px 4px; text-align: left; }
-  .taxtbl th { color: #555; font-weight: normal; }
-  .pay { margin-top: 20px; font-size: 10pt; }
-  .pay .h, .note .h { font-weight: bold; border-left: 4px solid #2f4858; padding-left: 6px; margin-bottom: 4px; }
-  .note { margin-top: 14px; font-size: 9.5pt; }
+  .totals tr.grand td { font-size: 14pt; font-weight: bold; border-top: 2px solid #333; padding-top: 12px; }
+
+  .pay { margin-top: 36px; font-size: 10.5pt; line-height: 1.9; }
+  .pay .h, .note .h { font-weight: bold; border-left: 4px solid #2f4858; padding-left: 8px; margin-bottom: 8px; }
+  .note { margin-top: 22px; font-size: 9.5pt; color: #444; }
 </style>
 </head>
 <body>
-  <h1>請求書</h1>
+  <h1>請　求　書</h1>
+  <div class="issue-date">請求書番号：20260603001　／　請求日：2026年6月11日</div>
+
   <div class="head">
-    <div class="to">株式会社でんきち　リフォーム館　御中</div>
+    <div class="to-block">
+      <div class="to">株式会社でんきち　リフォーム館　御中</div>
+      <div class="to-sub">下記の通りご請求申し上げます。</div>
+    </div>
     <div class="from">
       <div class="name">宮尾　大樹</div>
       <div>登録番号：T1810438515880</div>
-      <div>〒154-0012</div>
-      <div>東京都世田谷区駒沢5-7-2</div>
+      <div>〒154-0012　東京都世田谷区駒沢5-7-2</div>
       <div>TEL: 080-3355-6336</div>
     </div>
   </div>
 
-  <div class="meta">
-    請求書番号：20260603001<br>
-    請求日：2026/06/11　　お支払期限：2026/06/19
-  </div>
-  <div class="subject">件名：観葉植物 納品分</div>
+  <div class="subject"><span class="lbl">件名</span>観葉植物 納品分　（お支払期限：2026年6月19日）</div>
 
   <div class="amountbox">
     <span class="label">ご請求金額</span>
-    <span class="value">213,400 円</span>
+    <span class="value">¥213,400</span>
+    <span class="tax-note">（消費税10% 込）</span>
   </div>
 
   <table class="items">
@@ -72,20 +89,22 @@
     </tbody>
   </table>
 
-  <table class="totals">
-    <tr><td class="lbl">小計</td><td class="num">194,000</td></tr>
-    <tr><td class="lbl">消費税額（10%）</td><td class="num">19,400</td></tr>
-    <tr class="grand"><td>合　計</td><td class="num">213,400</td></tr>
-  </table>
+  <div class="lower">
+    <table class="taxtbl">
+      <caption>税率別合計</caption>
+      <tr><th>税率</th><th>税抜金額</th><th>消費税額</th><th>税込合計</th></tr>
+      <tr><td>10%</td><td>194,000</td><td>19,400</td><td>213,400</td></tr>
+    </table>
 
-  <table class="taxtbl">
-    <caption>税率別合計</caption>
-    <tr><th>税率</th><th>税抜金額</th><th>消費税額</th><th>税込合計</th></tr>
-    <tr><td>10%</td><td>194,000</td><td>19,400</td><td>213,400</td></tr>
-  </table>
+    <table class="totals">
+      <tr><td class="lbl">小計（税抜）</td><td class="num">194,000</td></tr>
+      <tr><td class="lbl">消費税額（10%）</td><td class="num">19,400</td></tr>
+      <tr class="grand"><td>合　計</td><td class="num">¥213,400</td></tr>
+    </table>
+  </div>
 
   <div class="pay">
-    <div class="h">振込先</div>
+    <div class="h">お振込先</div>
     楽天銀行　マーチ支店　普通　2179863　ミヤオヒロキ
   </div>
 
