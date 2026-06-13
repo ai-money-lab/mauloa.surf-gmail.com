@@ -1,0 +1,35 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 8,
+    "persona_match": 7,
+    "pillar_alignment": 8,
+    "usefulness": 6,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 0,
+    "cta_ending": 7,
+    "originality": 7,
+    "tone_balance": 8,
+    "problem_solving": 6
+  },
+  "total_score": 77,
+  "threshold": 84,
+  "result": "rejected",
+  "usefulness_summary": "一人暮らしを始める人が防犯対策の第一歩として洗濯物の干し方を見直すきっかけになる",
+  "rejection_reasons": [
+    "usefulness（有用性）が6点：洗濯物を外に干さないという1つのTipsのみで、具体的なアクションの幅が狭い",
+    "problem_solving（課題解決性）が6点：防犯という大きな問いに対して、解決策が1つしか提示されておらず踏み込みが浅い",
+    "number_included（数字の有無）が0点：具体性を高める数字・データが含まれていない",
+    "合計スコア77点で基準点84点未満"
+  ],
+  "improvement_suggestions": [
+    "洗濯物以外にも2〜3つの具体的な防犯対策を追加する（例：郵便物の管理、帰宅時の振る舞い、窓の施錠など）",
+    "「一人暮らしの防犯、最初にやるべき3つ」のような構成にして、より実用的な内容にする",
+    "「体感では〜」「最近聞いた話では〜」など、数字やエピソードを1つ加えて説得力を高める",
+    "最後に「他にもあるけど、まずはここから」のような、続きを予感させる終わり方にしてエンゲージメントを促す"
+  ],
+  "checked_at": "2026-06-13T20:27:53.399108+09:00"
+}
