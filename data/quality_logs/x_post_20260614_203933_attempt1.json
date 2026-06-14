@@ -1,0 +1,25 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 9,
+    "persona_match": 8,
+    "pillar_alignment": 10,
+    "usefulness": 10,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 0,
+    "cta_ending": 0,
+    "originality": 9,
+    "tone_balance": 9,
+    "problem_solving": 10
+  },
+  "total_score": 95,
+  "threshold": 84,
+  "result": "auto_approved",
+  "usefulness_summary": "古い家を売却する際にリフォームすべきか迷っている人が、費用対効果を理解して正しい判断ができる",
+  "rejection_reasons": [],
+  "improvement_suggestions": [],
+  "checked_at": "2026-06-14T20:39:33.471494+09:00"
+}
