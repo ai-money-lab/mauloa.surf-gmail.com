@@ -1,0 +1,25 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 9,
+    "persona_match": 8,
+    "pillar_alignment": 10,
+    "usefulness": 9,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 10,
+    "cta_ending": 7,
+    "originality": 9,
+    "tone_balance": 9,
+    "problem_solving": 9
+  },
+  "total_score": 110,
+  "threshold": 84,
+  "result": "auto_approved",
+  "usefulness_summary": "退去後リフォームで無駄な出費を避け、効果的な箇所に投資したいオーナーの判断基準になる",
+  "rejection_reasons": [],
+  "improvement_suggestions": [],
+  "checked_at": "2026-06-16T00:27:18.014763+09:00"
+}
