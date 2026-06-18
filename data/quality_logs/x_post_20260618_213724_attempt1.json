@@ -1,0 +1,31 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 9,
+    "persona_match": 9,
+    "pillar_alignment": 10,
+    "usefulness": 10,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 0,
+    "cta_ending": 10,
+    "originality": 9,
+    "tone_balance": 10,
+    "problem_solving": 10,
+    "warmth": 10
+  },
+  "total_score": 107,
+  "threshold": 84,
+  "result": "auto_approved",
+  "usefulness_summary": "管理会社への連絡で困っている人が、感情ではなく事実ベースで伝える具体的な方法を学べる",
+  "rejection_reasons": [
+    "number_included項目が0点：投稿内に数字が含まれていない（エンゲージメント向上のため、具体的な数字・データ・事例番号などを1つ以上含めることが必須要件）"
+  ],
+  "improvement_suggestions": [
+    "具体的な数字を追加する例：「対応が2〜3日早まることも」「返信率が体感で2倍くらい変わる」「築15年のマンションで」など、リアリティを持たせる数字を自然に盛り込む",
+    "「状況・証拠・期限の3つ」という部分は良いが、さらに「返信まで平均◯日くらい」「◯割くらいの人が感情的に伝えがち」など、経験に基づく数字を添えるとより説得力が増す"
+  ],
+  "checked_at": "2026-06-18T21:37:24.096044+09:00"
+}

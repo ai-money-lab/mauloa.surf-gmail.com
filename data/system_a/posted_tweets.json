@@ -1126,5 +1126,17 @@
     "image_path": "",
     "has_image": false,
     "status": "posted"
+  },
+  {
+    "datetime": "2026-06-18T21:37:24.370382+09:00",
+    "tweet_id": "2067587481894048082",
+    "pillar": "3",
+    "pipeline": "P3",
+    "pattern": "B",
+    "text": "管理会社に動いてもらうための\n伝え方、3つだけ。\n\n①「いつまでに」を聞く\n②写真を添付する\n③メールかLINEで記録に残す\n\n電話だけだと\n「言った言わない」になりがち。\n\n文字で残しておくと\n後々トラブルになりにくいです。",
+    "quality_score": 123,
+    "image_path": "",
+    "has_image": false,
+    "status": "posted"
   }
 ]
