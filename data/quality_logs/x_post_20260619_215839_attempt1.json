@@ -1,0 +1,29 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 8,
+    "persona_match": 7,
+    "pillar_alignment": 8,
+    "usefulness": 6,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 0,
+    "cta_ending": 7,
+    "originality": 7,
+    "tone_balance": 8,
+    "problem_solving": 5
+  },
+  "total_score": 86,
+  "threshold": 84,
+  "result": "auto_approved",
+  "usefulness_summary": "部屋探しで信頼できる不動産業者を見分けるための具体的な判断基準を提供している",
+  "rejection_reasons": [],
+  "improvement_suggestions": [
+    "「いい不動産屋さん」という表現をより具体的に（例：「安心して任せられる」「後悔しない選択ができる」等）",
+    "読者が次に取るべき行動をより明確に示す（例：「内見のときは、デメリットも聞いてみてください」等）",
+    "problem_solvingを高めるため、「こう聞かれたらこう返す」など実践的なやり取り例を追加"
+  ],
+  "checked_at": "2026-06-19T21:58:39.260507+09:00"
+}
