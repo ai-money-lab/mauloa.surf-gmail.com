@@ -1,0 +1,28 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 9,
+    "persona_match": 8,
+    "pillar_alignment": 9,
+    "usefulness": 7,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 0,
+    "cta_ending": 6,
+    "originality": 8,
+    "tone_balance": 9,
+    "problem_solving": 7
+  },
+  "total_score": 93,
+  "threshold": 84,
+  "result": "auto_approved",
+  "usefulness_summary": "相続した実家の対応に迷っている人が、まず名義変更を優先すべきという具体的な初動アクションを知ることができる",
+  "rejection_reasons": [],
+  "improvement_suggestions": [
+    "「名義変更を早めにやっておくとなぜ選択肢がスムーズになるのか」という理由を1行でも補足すると、usefulness（有用性）がさらに高まる",
+    "CTAとして「相続登記で迷ったら気軽に聞いてください」など、柔らかい一言を添えるとエンゲージメントが向上する可能性がある"
+  ],
+  "checked_at": "2026-06-23T00:04:41.085093+09:00"
+}

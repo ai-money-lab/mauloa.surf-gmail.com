@@ -1,0 +1,28 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 9,
+    "persona_match": 8,
+    "pillar_alignment": 10,
+    "usefulness": 8,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 10,
+    "cta_ending": 6,
+    "originality": 8,
+    "tone_balance": 9,
+    "problem_solving": 8
+  },
+  "total_score": 106,
+  "threshold": 84,
+  "result": "auto_approved",
+  "usefulness_summary": "親の家を相続した人が、売却前に必ず行うべき相続登記の優先順位と義務化の事実を知ることができる",
+  "rejection_reasons": [],
+  "improvement_suggestions": [
+    "最後の「他にもいくつかあるんですが、まずはこれだけでも」が中途半端に終わっているため、「まずはこれだけでも押さえておくと後がラクです」など完結させると良い",
+    "CTAとして「相続登記で困ったことがあればお気軽に」など軽い相談への導線があるとエンゲージメントが高まる可能性がある"
+  ],
+  "checked_at": "2026-06-23T00:04:48.584990+09:00"
+}
