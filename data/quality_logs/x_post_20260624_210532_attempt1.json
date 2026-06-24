@@ -1,0 +1,32 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 9,
+    "persona_match": 10,
+    "pillar_alignment": 10,
+    "usefulness": 7,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 0,
+    "cta_ending": 10,
+    "originality": 9,
+    "tone_balance": 10,
+    "problem_solving": 7
+  },
+  "total_score": 102,
+  "threshold": 84,
+  "result": "auto_approved",
+  "usefulness_summary": "実家売却時に査定額だけで不動産会社を選ばず、説明力と対応の丁寧さで選ぶべきという判断基準を提供",
+  "rejection_reasons": [
+    "「半年経っても」という具体的な期間表現が断定的に使用されている（「しばらく経っても」「なかなか」等のニュアンス表現が必要）",
+    "「相談を受けたことがあります」が実績件数を連想させる表現になっている（「最近こんな話を聞きました」「こういうケースがあります」等の表現が望ましい）"
+  ],
+  "improvement_suggestions": [
+    "「半年経っても」→「なかなか」「しばらく経っても」等のニュアンス表現に変更",
+    "「相談を受けたことがあります」→「こんな話を聞いたことがあります」「こういうケースがあります」等、実績を強調しない表現に変更",
+    "problem_solvingスコア向上のため、「良い不動産会社の見分け方」をもう1つ具体例として追加（例：「過去の販売実績を見せてくれるか」「デメリットも説明してくれるか」等）"
+  ],
+  "checked_at": "2026-06-24T21:05:32.102771+09:00"
+}
