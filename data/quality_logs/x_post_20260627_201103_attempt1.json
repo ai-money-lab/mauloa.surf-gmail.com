@@ -1,0 +1,25 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 9,
+    "persona_match": 8,
+    "pillar_alignment": 10,
+    "usefulness": 7,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 8,
+    "cta_ending": 9,
+    "originality": 8,
+    "tone_balance": 8,
+    "problem_solving": 6
+  },
+  "total_score": 103,
+  "threshold": 84,
+  "result": "auto_approved",
+  "usefulness_summary": "実家を放置することで発生する具体的なコストとリスクを知り、早めに検討する必要性を認識できる",
+  "rejection_reasons": [],
+  "improvement_suggestions": [],
+  "checked_at": "2026-06-27T20:11:03.377377+09:00"
+}
