@@ -1,0 +1,28 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 9,
+    "persona_match": 9,
+    "pillar_alignment": 10,
+    "usefulness": 9,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 10,
+    "cta_ending": 6,
+    "originality": 9,
+    "tone_balance": 9,
+    "problem_solving": 8
+  },
+  "total_score": 109,
+  "threshold": 84,
+  "result": "auto_approved",
+  "usefulness_summary": "築古物件購入検討者が、見落としがちな配管リスクと内見時の具体的確認方法を知ることができる",
+  "rejection_reasons": [],
+  "improvement_suggestions": [
+    "CTAが弱い：「覗かせてもらうだけでも全然違います」で終わるのではなく、「気になることがあれば気軽に聞いてください」等の柔らかい一言があるとより親しみが増す",
+    "problem_solvingをさらに強化：「配管の状態で何を見ればいいか」「どんな状態なら要注意か」まで1行追加できるとより実践的"
+  ],
+  "checked_at": "2026-06-30T20:58:15.064618+09:00"
+}
