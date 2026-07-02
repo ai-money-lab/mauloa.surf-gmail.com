@@ -1,0 +1,35 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 8,
+    "persona_match": 9,
+    "pillar_alignment": 10,
+    "usefulness": 6,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 0,
+    "cta_ending": 5,
+    "originality": 9,
+    "tone_balance": 9,
+    "problem_solving": 6
+  },
+  "total_score": 82,
+  "threshold": 84,
+  "result": "rejected",
+  "usefulness_summary": "防犯カメラの心理的効果を知ることで、設置判断の新しい視点を得られる",
+  "rejection_reasons": [
+    "合計スコアが84未満（82点）",
+    "usefulness（有用性）が不足：視点は面白いが「じゃあつけるべきか/つけないべきか」「どう選ぶか」「費用対効果は」など、具体的な判断材料・行動につながる情報がない",
+    "problem_solving（課題解決性）が不足：「悩んでる人多い」と問題提起しているのに、解決策が抽象的。実際にどう判断すればいいかの指針がない",
+    "cta_endingが弱い：「〜かもしれません」で終わっており、読後のアクションや考えるきっかけが不明確"
+  ],
+  "improvement_suggestions": [
+    "具体的な判断基準を追加：「うちの管理物件では、共用部だけつけて月額◯◯円くらいで運用してます」など、実例ベースの情報を入れる",
+    "費用対効果や選び方のヒントを加える：「初期費用を抑えたいなら〜」「ダミーカメラは逆効果なことも」など、判断に役立つ具体情報",
+    "エンディングを行動喚起型に：「あなたの物件なら、どこに何台つけますか？」ではなく「共用部だけでも、意外と効果ありますよ」のような柔らかい提案型に",
+    "数字を入れて説得力UP：「体感では入居後のトラブルが減った気がします」など、経験ベースの効果を添える"
+  ],
+  "checked_at": "2026-07-02T20:53:00.525837+09:00"
+}

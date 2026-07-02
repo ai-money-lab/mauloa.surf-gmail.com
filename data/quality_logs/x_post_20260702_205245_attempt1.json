@@ -1,0 +1,25 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 8,
+    "persona_match": 9,
+    "pillar_alignment": 10,
+    "usefulness": 7,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 0,
+    "cta_ending": 10,
+    "originality": 8,
+    "tone_balance": 9,
+    "problem_solving": 7
+  },
+  "total_score": 98,
+  "threshold": 84,
+  "result": "auto_approved",
+  "usefulness_summary": "賃貸オーナーが防犯カメラ設置による具体的な効果（マナー改善・退去減少）を判断できる",
+  "rejection_reasons": [],
+  "improvement_suggestions": [],
+  "checked_at": "2026-07-02T20:52:45.775356+09:00"
+}
