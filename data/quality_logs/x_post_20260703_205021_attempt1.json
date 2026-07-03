@@ -1,0 +1,25 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 9,
+    "persona_match": 10,
+    "pillar_alignment": 10,
+    "usefulness": 8,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 0,
+    "cta_ending": 10,
+    "originality": 10,
+    "tone_balance": 10,
+    "problem_solving": 8
+  },
+  "total_score": 95,
+  "threshold": 84,
+  "result": "auto_approved",
+  "usefulness_summary": "隣の生活音に悩む人が、防音工事の前に心理的負担を軽減できる視点を得られる",
+  "rejection_reasons": [],
+  "improvement_suggestions": [],
+  "checked_at": "2026-07-03T20:50:21.150590+09:00"
+}
