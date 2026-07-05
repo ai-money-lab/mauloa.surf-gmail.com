@@ -1294,5 +1294,17 @@
     "image_path": "",
     "has_image": false,
     "status": "posted"
+  },
+  {
+    "datetime": "2026-07-05T20:17:36.084061+09:00",
+    "tweet_id": "2073727974151524585",
+    "pillar": "1",
+    "pipeline": "P3",
+    "pattern": "C",
+    "text": "兄弟で実家を相続したとき\n一番避けたいのは\n「放置」です | 話し合いが進まないときは\n「売るか残すか」を決めようとしてるから\n\nまず名義変更だけ済ませましょう\n\n売るかどうかは後で決めて大丈夫\n名義さえ変えておけば選択肢は残ります\n\n他にもいくつかあるんですが\nまずはこれだけでも",
+    "quality_score": 108,
+    "image_path": "",
+    "has_image": false,
+    "status": "posted"
   }
 ]
