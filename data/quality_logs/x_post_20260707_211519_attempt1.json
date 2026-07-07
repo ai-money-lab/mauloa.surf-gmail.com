@@ -1,0 +1,26 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 9,
+    "persona_match": 9,
+    "pillar_alignment": 10,
+    "usefulness": 9,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 0,
+    "cta_ending": 9,
+    "originality": 9,
+    "tone_balance": 9,
+    "problem_solving": 9,
+    "warmth": 9
+  },
+  "total_score": 112,
+  "threshold": 84,
+  "result": "auto_approved",
+  "usefulness_summary": "退去費用で不当請求されがちな項目を具体例で示し、経年劣化を主張する方法を教えることで、読者が実際に費用を削減できる",
+  "rejection_reasons": [],
+  "improvement_suggestions": [],
+  "checked_at": "2026-07-07T21:15:19.372714+09:00"
+}
