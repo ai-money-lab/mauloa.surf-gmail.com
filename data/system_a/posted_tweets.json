@@ -1330,5 +1330,17 @@
     "image_path": "",
     "has_image": false,
     "status": "posted"
+  },
+  {
+    "datetime": "2026-07-08T20:22:35.466817+09:00",
+    "tweet_id": "2074816411311206526",
+    "pillar": "2",
+    "pipeline": "P3",
+    "pattern": "A",
+    "text": "部屋が空いたまま3ヶ月、焦りますよね。\n\nでも家賃を下げる前に試してほしいことが2つあります。\n\n①内見の写真を撮り直す\n（明るい時間帯に窓を開けて）\n\n②募集図面の「おすすめポイント」を変える\n（駅近→スーパー近い、など）\n\n意外とこれだけで反応が変わることがあります。",
+    "quality_score": 108,
+    "image_path": "",
+    "has_image": false,
+    "status": "posted"
   }
 ]
