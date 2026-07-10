@@ -1,0 +1,30 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 9,
+    "persona_match": 8,
+    "pillar_alignment": 9,
+    "usefulness": 8,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 0,
+    "cta_ending": 7,
+    "originality": 9,
+    "tone_balance": 9,
+    "problem_solving": 8
+  },
+  "total_score": 97,
+  "threshold": 84,
+  "result": "auto_approved",
+  "usefulness_summary": "遠方や多忙で内見が難しい人が、3Dスキャンで効率的に部屋探しができることを知れる",
+  "rejection_reasons": [
+    "number_included項目が0点：投稿内に具体的な数字・データが含まれていない（エンゲージメント向上のため、数字要素の追加が推奨される）"
+  ],
+  "improvement_suggestions": [
+    "具体的な数字を追加する例：「最近増えてるのが」→「ここ半年くらいで増えてるのが」、または「特に遠方の方」→「県外からの問い合わせだと体感3〜4割くらいの方には」等",
+    "CTAをもう少し柔らかく誘導する形に：「特に遠方の方や忙しい方には助かるって言ってもらえます」→「遠方の方や忙しい方、使ってみる価値あると思います」等、読者への軽い提案を加える"
+  ],
+  "checked_at": "2026-07-10T21:13:45.029631+09:00"
+}

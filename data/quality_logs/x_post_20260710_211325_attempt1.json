@@ -1,0 +1,25 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 9,
+    "persona_match": 8,
+    "pillar_alignment": 9,
+    "usefulness": 7,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 0,
+    "cta_ending": 6,
+    "originality": 8,
+    "tone_balance": 8,
+    "problem_solving": 7
+  },
+  "total_score": 92,
+  "threshold": 84,
+  "result": "auto_approved",
+  "usefulness_summary": "空室に困る賃貸オーナーや管理会社が、3Dスキャンを使った内見代替手段で成約率を上げられることがわかる",
+  "rejection_reasons": [],
+  "improvement_suggestions": [],
+  "checked_at": "2026-07-10T21:13:25.260995+09:00"
+}

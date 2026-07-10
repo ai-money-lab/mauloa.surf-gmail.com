@@ -1,0 +1,29 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 8,
+    "persona_match": 7,
+    "pillar_alignment": 9,
+    "usefulness": 6,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 10,
+    "cta_ending": 7,
+    "originality": 7,
+    "tone_balance": 6,
+    "problem_solving": 6
+  },
+  "total_score": 96,
+  "threshold": 84,
+  "result": "auto_approved",
+  "usefulness_summary": "遠方や多忙で内見が難しい人が、3D内見で効率的に部屋を決められることを知れる",
+  "rejection_reasons": [],
+  "improvement_suggestions": [
+    "「これで十分です」という引用表現は良いが、もう一歩踏み込んで「3D内見を依頼する際のポイント」や「どの不動産会社でも対応可能か」など具体的なアクション情報があるとより有用性が高まる",
+    "最後の「空気感が伝わる」という表現は良いが、CTAとしてはやや弱い。「気になる物件があったら3D内見があるか聞いてみるといいですよ」など、次の行動を促す一言があるとより親切",
+    "「内見前に決まった」という表現が、実際に内見せずに契約したのか、3D内見後に現地内見したのか曖昧。「内見に行く前に候補を絞れた」など、より正確な表現にすると誤解がない"
+  ],
+  "checked_at": "2026-07-10T21:13:35.950665+09:00"
+}
