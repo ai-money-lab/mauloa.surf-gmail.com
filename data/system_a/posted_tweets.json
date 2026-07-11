@@ -1354,5 +1354,17 @@
     "image_path": "",
     "has_image": false,
     "status": "posted"
+  },
+  {
+    "datetime": "2026-07-11T19:41:21.702953+09:00",
+    "tweet_id": "2075893199210414539",
+    "pillar": "1",
+    "pipeline": "P3",
+    "pattern": "A",
+    "text": "急に家を売ることになったとき\nまず最初にやること\n\n1. 住宅ローン残高を確認する\n2. 売却相場を調べる\n3. 差額がマイナスなら資金準備を考える\n\nローン残高より安くしか売れないケースって意外とあるんです。\n\n焦って動く前に、この3つだけ確認しておくと後がスムーズです。",
+    "quality_score": 113,
+    "image_path": "",
+    "has_image": false,
+    "status": "posted"
   }
 ]
