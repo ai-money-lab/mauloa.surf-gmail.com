@@ -1,0 +1,30 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 8,
+    "persona_match": 9,
+    "pillar_alignment": 10,
+    "usefulness": 9,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 0,
+    "cta_ending": 7,
+    "originality": 9,
+    "tone_balance": 9,
+    "problem_solving": 9
+  },
+  "total_score": 100,
+  "threshold": 84,
+  "result": "auto_approved",
+  "usefulness_summary": "おとり物件に遭遇した人が次に取るべき具体的な行動がわかる",
+  "rejection_reasons": [
+    "number_included項目が0点：投稿内に数字が含まれていない（エンゲージメント向上のため、具体的な数字や統計を含めることが推奨される）"
+  ],
+  "improvement_suggestions": [
+    "具体的な数字を追加する例：「おとり物件は体感で問い合わせの3〜4割くらいある印象です」などの経験ベースの数値を冒頭や中盤に入れる",
+    "CTAをより柔軟にする例：最後の一文を「条件を伝え直すと、意外といい物件が出てくることも多いです」のように、読者が自然に行動したくなる形に調整"
+  ],
+  "checked_at": "2026-07-12T19:53:21.242326+09:00"
+}
