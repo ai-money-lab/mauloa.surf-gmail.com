@@ -1,0 +1,25 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 9,
+    "persona_match": 8,
+    "pillar_alignment": 9,
+    "usefulness": 9,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 10,
+    "cta_ending": 7,
+    "originality": 8,
+    "tone_balance": 8,
+    "problem_solving": 9
+  },
+  "total_score": 107,
+  "threshold": 84,
+  "result": "auto_approved",
+  "usefulness_summary": "賃貸オーナーが家賃設定で損をしないために、相場より少し安めに設定して早期入居を狙う方が収益が上がるという具体的な判断基準を提供している",
+  "rejection_reasons": [],
+  "improvement_suggestions": [],
+  "checked_at": "2026-07-13T21:20:22.486717+09:00"
+}
