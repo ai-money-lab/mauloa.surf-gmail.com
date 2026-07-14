@@ -1,0 +1,35 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 8,
+    "persona_match": 7,
+    "pillar_alignment": 9,
+    "usefulness": 6,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 0,
+    "cta_ending": 7,
+    "originality": 7,
+    "tone_balance": 8,
+    "problem_solving": 5
+  },
+  "total_score": 77,
+  "threshold": 84,
+  "result": "rejected",
+  "usefulness_summary": "不動産査定額と実際の売却額が異なる理由を知りたい人の疑問に答える内容",
+  "rejection_reasons": [
+    "usefulness（有用性）が6点：一般論の説明にとどまり、読んだ人が具体的に何をすればいいか、どう判断すればいいかが示されていない",
+    "problem_solving（課題解決性）が5点：「なぜ違うのか」の説明はあるが、「では売主はどうすればいいのか」という解決策が欠けている",
+    "number_included（数字の有無）が0点：具体性を高める数字・データが一切含まれていない",
+    "合計スコア77点で基準の84点に未達"
+  ],
+  "improvement_suggestions": [
+    "具体的なアクションを追加：「だから査定は複数社に依頼して、平均値を見るのがおすすめです」「査定額より1割高めで売り出して、反応を見ながら調整する方法もあります」など",
+    "数字を入れて具体性を高める：「体感では査定額の±5〜10%くらいで着地することが多い印象です」「3ヶ月経っても反応が薄ければ、価格を見直すタイミング」など",
+    "現場経験に基づく具体例を追加：「最近対応したケースでは、査定より高く売れたのは〇〇な物件でした」など、読者が自分の状況と照らし合わせられる情報を入れる",
+    "CTAを行動しやすい形に：「あなたの物件は査定より高く売れそうか、気になったらDMください」など、相談へのハードルを下げる"
+  ],
+  "checked_at": "2026-07-14T20:06:25.821208+09:00"
+}

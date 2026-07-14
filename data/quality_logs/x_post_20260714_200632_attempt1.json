@@ -1,0 +1,28 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 9,
+    "persona_match": 8,
+    "pillar_alignment": 9,
+    "usefulness": 6,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 10,
+    "cta_ending": 5,
+    "originality": 8,
+    "tone_balance": 9,
+    "problem_solving": 6
+  },
+  "total_score": 100,
+  "threshold": 84,
+  "result": "auto_approved",
+  "usefulness_summary": "実家の査定で価格差に戸惑う人に、査定額の違いの理由と選び方の視点を提供している",
+  "rejection_reasons": [],
+  "improvement_suggestions": [
+    "「一番丁寧に説明してくれた会社」以外にも、具体的な選定ポイント（例：査定根拠の透明性、地域実績など）を1〜2点追加すると、より行動につながる",
+    "エンディングを「最近こういう相談が増えてます」等の共感型にすると、リプライのハードルが下がる"
+  ],
+  "checked_at": "2026-07-14T20:06:32.854613+09:00"
+}

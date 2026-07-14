@@ -1,0 +1,26 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 9,
+    "persona_match": 8,
+    "pillar_alignment": 10,
+    "usefulness": 8,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 10,
+    "cta_ending": 7,
+    "originality": 9,
+    "tone_balance": 9,
+    "problem_solving": 8,
+    "warmth": 9
+  },
+  "total_score": 117,
+  "threshold": 84,
+  "result": "auto_approved",
+  "usefulness_summary": "不動産売却で査定額より安く売れた人が「失敗ではない」と理解でき、納得感を持てるようになる",
+  "rejection_reasons": [],
+  "improvement_suggestions": [],
+  "checked_at": "2026-07-14T20:06:37.492933+09:00"
+}
