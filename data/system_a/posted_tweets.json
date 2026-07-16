@@ -1414,5 +1414,17 @@
     "image_path": "",
     "has_image": false,
     "status": "posted"
+  },
+  {
+    "datetime": "2026-07-16T20:17:10.204233+09:00",
+    "tweet_id": "2077714149988286961",
+    "pillar": "1",
+    "pipeline": "P3",
+    "pattern": "A",
+    "text": "遠くにある実家を相続したとき、いきなり売るか決めなくて大丈夫です。\n\nまずやるべきこと2つ:\n\n・名義だけ先に変えておく\n・管理だけ誰かに頼む\n\n売るかどうかは後からゆっくり考えられます。\n\n放置だけは避けて、とりあえず「誰かが見てる状態」にしておくと安心です。",
+    "quality_score": 122,
+    "image_path": "",
+    "has_image": false,
+    "status": "posted"
   }
 ]
