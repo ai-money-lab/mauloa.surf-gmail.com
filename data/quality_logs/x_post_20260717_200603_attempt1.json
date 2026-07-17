@@ -1,0 +1,37 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 9,
+    "persona_match": 4,
+    "pillar_alignment": 3,
+    "usefulness": 8,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 0,
+    "cta_ending": 7,
+    "originality": 6,
+    "tone_balance": 7,
+    "problem_solving": 7
+  },
+  "total_score": 71,
+  "threshold": 84,
+  "result": "rejected",
+  "usefulness_summary": "一人暮らしの女性が低コストで防犯対策を始められる具体的な方法を提示している",
+  "rejection_reasons": [
+    "persona_matchが低い：HIROKIは不動産コーディネーターであり、防犯アドバイザーではない。この内容は専門外の一般的な生活ハックに見える",
+    "pillar_alignmentが低い：Pillar3（不動産・住まい関連）としても、HIROKIの専門性（物件選び・リノベーション・住環境コーディネート）との関連性が薄い",
+    "number_includedが0点：数字・データが一切含まれておらず、説得力に欠ける",
+    "originality不足：よくある防犯Tips集の内容で、HIROKIならではの視点・経験が感じられない",
+    "HIROKIの専門性（不動産コーディネーター）が活かされていない：物件選びの段階での防犯視点や、内見時のチェックポイントなど、本来の専門領域で語るべき"
+  ],
+  "improvement_suggestions": [
+    "HIROKIの専門性を活かし「内見時に確認すべき防犯ポイント」に変更する（例：オートロックの有無、エントランスの見通し、周辺環境など）",
+    "物件選びの経験から「防犯面で後悔した事例」を紹介し、選定時の具体的なチェックリストを提示する",
+    "数字を追加する（例：「内見時に確認したい防犯ポイント3つ」「最近相談が増えている女性の物件選び、約7割が気にするのは…」等）",
+    "「最近、女性のお客様から防犯面の相談が増えていて」など、HIROKIの実務経験を冒頭に入れ、コーディネーターとしての視点を明確にする",
+    "CTAを「物件選びで不安なことがあれば、内見に同行することもできますよ」など、HIROKIのサービスにつながる形に変更する"
+  ],
+  "checked_at": "2026-07-17T20:06:03.030829+09:00"
+}

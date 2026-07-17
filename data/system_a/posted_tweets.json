@@ -1426,5 +1426,17 @@
     "image_path": "",
     "has_image": false,
     "status": "posted"
+  },
+  {
+    "datetime": "2026-07-17T20:06:03.366949+09:00",
+    "tweet_id": "2078073740827808233",
+    "pillar": "3",
+    "pipeline": "P3",
+    "pattern": "B",
+    "text": "友人が一人暮らしを始めるって話で\n「防犯って何すればいいの？」と聞かれました\n\n正直、完璧にはできないんですが\n一つだけ伝えたのは\n「帰宅したら玄関の前で一度立ち止まる」こと\n\n後ろから押し込まれる被害って\n開けた瞬間が一番多いんです\n\n振り返って周りを見る\nそれだけで抑止力になります",
+    "quality_score": 119,
+    "image_path": "",
+    "has_image": false,
+    "status": "posted"
   }
 ]
