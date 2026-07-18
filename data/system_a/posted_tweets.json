@@ -1438,5 +1438,17 @@
     "image_path": "",
     "has_image": false,
     "status": "posted"
+  },
+  {
+    "datetime": "2026-07-18T19:46:47.473033+09:00",
+    "tweet_id": "2078431280639733888",
+    "pillar": "4",
+    "pipeline": "P3",
+    "pattern": "B",
+    "text": "「駅から10分」って書いてあったから決めたのに、実際は15分以上かかったって相談を受けたことがあります。\n\n不動産の表示って80m＝徒歩1分で計算されてるんですが、信号待ちとか坂道は入ってないんですよね。\n\n内見のときに実際に歩いてみると安心です。",
+    "quality_score": 114,
+    "image_path": "",
+    "has_image": false,
+    "status": "posted"
   }
 ]

@@ -1,0 +1,25 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 8,
+    "persona_match": 7,
+    "pillar_alignment": 9,
+    "usefulness": 8,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 0,
+    "cta_ending": 6,
+    "originality": 7,
+    "tone_balance": 8,
+    "problem_solving": 7
+  },
+  "total_score": 90,
+  "threshold": 84,
+  "result": "auto_approved",
+  "usefulness_summary": "住まい選びで見落としがちなハザードマップの確認方法と、チェックすべきポイントを教えてくれる",
+  "rejection_reasons": [],
+  "improvement_suggestions": [],
+  "checked_at": "2026-07-18T19:46:47.110042+09:00"
+}
