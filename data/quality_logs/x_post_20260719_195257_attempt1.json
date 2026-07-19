@@ -1,0 +1,25 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 9,
+    "persona_match": 9,
+    "pillar_alignment": 10,
+    "usefulness": 9,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 0,
+    "cta_ending": 8,
+    "originality": 9,
+    "tone_balance": 9,
+    "problem_solving": 9
+  },
+  "total_score": 102,
+  "threshold": 84,
+  "result": "auto_approved",
+  "usefulness_summary": "退去後リフォームで無駄なコストをかけずに入居付けするための優先順位の考え方が分かる",
+  "rejection_reasons": [],
+  "improvement_suggestions": [],
+  "checked_at": "2026-07-19T19:52:57.860057+09:00"
+}
