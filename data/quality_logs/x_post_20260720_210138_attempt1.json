@@ -1,0 +1,30 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 9,
+    "persona_match": 8,
+    "pillar_alignment": 10,
+    "usefulness": 9,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 10,
+    "cta_ending": 7,
+    "originality": 8,
+    "tone_balance": 8,
+    "problem_solving": 9,
+    "warmth": 7
+  },
+  "total_score": 115,
+  "threshold": 84,
+  "result": "auto_approved",
+  "usefulness_summary": "持ち家購入を検討している人が、見落としがちな隠れコストを具体的に把握し、より正確な比較判断ができるようになる",
+  "rejection_reasons": [],
+  "improvement_suggestions": [
+    "CTAをより自然な形に改善：「月々のローンが家賃より安い」だけで決めると後で驚くかもしれません → 「持ち家を検討中の方は、ローン以外のコストも含めて計算してみてくださいね」など、行動を促す柔らかい表現に",
+    "warmth向上のため、冒頭に共感の一言を追加：「賃貸vs持ち家、私もよく相談されます」など、相談者目線の温度感を加える",
+    "数字表現に体感のクッションを追加：「外壁塗装で約100万円」→「外壁塗装で100万円くらいかかることも」とすると、より柔らかい印象に"
+  ],
+  "checked_at": "2026-07-20T21:01:38.225389+09:00"
+}

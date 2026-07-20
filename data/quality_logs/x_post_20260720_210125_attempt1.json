@@ -1,0 +1,35 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 7,
+    "persona_match": 8,
+    "pillar_alignment": 9,
+    "usefulness": 5,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 0,
+    "cta_ending": 8,
+    "originality": 7,
+    "tone_balance": 8,
+    "problem_solving": 4
+  },
+  "total_score": 76,
+  "threshold": 84,
+  "result": "rejected",
+  "usefulness_summary": "賃貸と持ち家の選択において、損得以外の視点があることを気づかせる投稿",
+  "rejection_reasons": [
+    "usefulness（5点）: 視点の提示にとどまり、具体的にどう判断すればいいか、どんな状況の人がどちらを選ぶべきかの指針がない",
+    "problem_solving（4点）: 問題提起はあるが、実際に悩んでいる人が「では自分はどうすればいいか」を判断できる材料が不足",
+    "number_included（0点）: 数字・データ・具体例が一切含まれておらず、説得力に欠ける",
+    "合計スコア76点で基準の84点に未達"
+  ],
+  "improvement_suggestions": [
+    "具体的な判断軸を追加：例「家族が増える予定があるか」「転勤の可能性は」「地域に根付きたいか」など、読者が自己診断できるチェックポイントを2-3個提示する",
+    "数字や具体例を入れる：「修繕費は築10年過ぎると年間数十万かかることも」「引っ越し1回で数十万」など、判断材料になる目安を加える",
+    "実例ベースの気づきを追加：「最近相談を受けた方で〜」など、現場での実感に基づく具体的なケースを1つ入れると説得力が増す",
+    "CTAを行動につなげる：最後に「あなたはどっち派？」ではなく「まず今の暮らしで大事にしたいことを3つ書き出してみると見えてきますよ」など、小さな行動を促す"
+  ],
+  "checked_at": "2026-07-20T21:01:25.975574+09:00"
+}
