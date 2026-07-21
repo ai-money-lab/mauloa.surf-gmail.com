@@ -1474,5 +1474,17 @@
     "image_path": "",
     "has_image": false,
     "status": "posted"
+  },
+  {
+    "datetime": "2026-07-21T20:22:53.180037+09:00",
+    "tweet_id": "2079527527874187273",
+    "pillar": "3",
+    "pipeline": "P3",
+    "pattern": "A",
+    "text": "管理会社になかなか対応してもらえないとき\n試してほしい伝え方3つ：\n\n・「いつまでに」を入れる\n・写真を添付する\n・「入居者番号」を伝える\n\n曖昧な依頼より\n具体的な情報がある方が\n優先度が上がりやすいです。\n\n特に写真があると\n緊急度が伝わりやすくなります。",
+    "quality_score": 123,
+    "image_path": "",
+    "has_image": false,
+    "status": "posted"
   }
 ]
