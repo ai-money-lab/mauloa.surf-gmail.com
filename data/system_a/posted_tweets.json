@@ -1522,5 +1522,17 @@
     "image_path": "",
     "has_image": false,
     "status": "posted"
+  },
+  {
+    "datetime": "2026-07-25T19:52:19.230391+09:00",
+    "tweet_id": "2080969387159273730",
+    "pillar": "3",
+    "pipeline": "P3",
+    "pattern": "A",
+    "text": "部屋探しで不動産屋さんに行くとき\n信頼できるかの見分け方\n\n・デメリットも教えてくれる\n・他の物件も紹介してくれる\n・質問に即答せず調べてくれる\n\n特に3つ目。\n「確認しますね」って言える人は誠実です。",
+    "quality_score": 108,
+    "image_path": "",
+    "has_image": false,
+    "status": "posted"
   }
 ]

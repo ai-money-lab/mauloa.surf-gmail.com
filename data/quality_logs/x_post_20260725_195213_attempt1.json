@@ -1,0 +1,35 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 8,
+    "persona_match": 7,
+    "pillar_alignment": 8,
+    "usefulness": 6,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 0,
+    "cta_ending": 7,
+    "originality": 8,
+    "tone_balance": 8,
+    "problem_solving": 5
+  },
+  "total_score": 77,
+  "threshold": 84,
+  "result": "rejected",
+  "usefulness_summary": "不動産屋選びで信頼できる担当者の見分け方として「デメリットも教えてくれる」という視点を提供",
+  "rejection_reasons": [
+    "usefulness（有用性）が6点：エピソードは共感できるが、読んだ人が「では自分はどうすればいいか」という具体的なアクションにつながりにくい",
+    "problem_solving（課題解決性）が5点：「良い不動産屋の特徴」には触れているが、実際に部屋探しをしている人への具体的なアドバイスや解決策が弱い",
+    "number_included（数字の有無）が0点：説得力を高める数字・データ・具体例が含まれていない",
+    "合計スコア77点で基準の84点に未達"
+  ],
+  "improvement_suggestions": [
+    "具体的なアクションを追加：例「部屋探しのときは『この物件のデメリットは何ですか？』って聞いてみるといいですよ。答え方で信頼度がわかります」",
+    "HIROKIの専門性を活かした視点を追加：例「リノベ相談でも同じで、デメリットや制約を先に伝えるようにしてます。その方が後悔のない選択ができるので」",
+    "数字や具体例を追加：例「内見は3〜5件くらい見ると比較しやすい」「築年数だけじゃなく管理状態も見るといい」など実用的な情報を盛り込む",
+    "CTAを柔らかく誘導：例「部屋探し中の方、参考になれば」「デメリットも含めて納得できる選択ができるといいですよね」など"
+  ],
+  "checked_at": "2026-07-25T19:52:13.008486+09:00"
+}

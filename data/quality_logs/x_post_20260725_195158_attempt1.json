@@ -1,0 +1,25 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 9,
+    "persona_match": 8,
+    "pillar_alignment": 10,
+    "usefulness": 9,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 10,
+    "cta_ending": 6,
+    "originality": 9,
+    "tone_balance": 9,
+    "problem_solving": 8
+  },
+  "total_score": 108,
+  "threshold": 84,
+  "result": "auto_approved",
+  "usefulness_summary": "部屋探しで不動産屋を訪問する際に、信頼できる担当者を見分けるための具体的な3つの判断基準を提供している",
+  "rejection_reasons": [],
+  "improvement_suggestions": [],
+  "checked_at": "2026-07-25T19:51:58.683231+09:00"
+}
