@@ -1,0 +1,28 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 8,
+    "persona_match": 9,
+    "pillar_alignment": 10,
+    "usefulness": 7,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 10,
+    "cta_ending": 9,
+    "originality": 8,
+    "tone_balance": 9,
+    "problem_solving": 7
+  },
+  "total_score": 107,
+  "threshold": 84,
+  "result": "auto_approved",
+  "usefulness_summary": "不動産売却時に査定額の高さだけで業者を選ぶリスクを具体例で示し、価格根拠の説明を重視すべきと気づかせる",
+  "rejection_reasons": [],
+  "improvement_suggestions": [
+    "「なぜこの価格なのか」の具体例（立地・築年数・市場動向など）を1つ加えると、読者がより行動しやすくなる",
+    "最後の一文を「査定を受けるときは『なぜこの価格なのか』を必ず聞いてみてください」のように、より具体的な行動提案にするとusefulnessが向上する"
+  ],
+  "checked_at": "2026-07-26T19:59:04.687071+09:00"
+}
