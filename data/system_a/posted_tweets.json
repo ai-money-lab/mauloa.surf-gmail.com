@@ -1570,5 +1570,17 @@
     "image_path": "",
     "has_image": false,
     "status": "posted"
+  },
+  {
+    "datetime": "2026-07-29T20:39:28.466129+09:00",
+    "tweet_id": "2082430805121659217",
+    "pillar": "3",
+    "pipeline": "P3",
+    "pattern": "A",
+    "text": "引越し先で最初にやっておくと後で楽なこと\n\n・水回りの写真を撮る\n・換気扇フィルターを先に貼る\n・コンロ周りに保護シートを貼る\n\n退去のとき「こんなに汚れてたっけ？」ってならないんです。\n\n特に水回りの写真は入居時の状態を記録しておくと、原状回復の費用で揉めにくくなります。",
+    "quality_score": 121,
+    "image_path": "",
+    "has_image": false,
+    "status": "posted"
   }
 ]
