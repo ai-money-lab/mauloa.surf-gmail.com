@@ -1582,5 +1582,17 @@
     "image_path": "",
     "has_image": false,
     "status": "posted"
+  },
+  {
+    "datetime": "2026-07-30T20:28:44.030949+09:00",
+    "tweet_id": "2082790490211332560",
+    "pillar": "1",
+    "pipeline": "P3",
+    "pattern": "A",
+    "text": "親の家を相続したとき、最初にやること3つ。\n\n①名義変更（法務局で登記）\n②電気・ガス・水道の名義変更か解約\n③火災保険の確認\n\n売るかどうかは後で決めて大丈夫です。まずこの3つだけやっておけば、慌てずに考えられます。",
+    "quality_score": 108,
+    "image_path": "",
+    "has_image": false,
+    "status": "posted"
   }
 ]

@@ -1,0 +1,29 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 9,
+    "persona_match": 8,
+    "pillar_alignment": 9,
+    "usefulness": 6,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 0,
+    "cta_ending": 8,
+    "originality": 7,
+    "tone_balance": 9,
+    "problem_solving": 5
+  },
+  "total_score": 91,
+  "threshold": 84,
+  "result": "auto_approved",
+  "usefulness_summary": "実家相続で混乱している人に対して、焦らず名義変更から始めればいいという心理的安心と優先順位を提供している",
+  "rejection_reasons": [],
+  "improvement_suggestions": [
+    "「名義変更」の具体的な手順や期限（相続登記の義務化など）に軽く触れると、より行動につながる有用性が高まる",
+    "「ゆっくり考えられます」の後に、どれくらいの期間なら大丈夫か、何を考えるべきかのヒントがあるとさらに親切",
+    "数字要素（期限の目安など）を柔らかく入れることで、usefulness・problem_solvingのスコアが向上する可能性がある"
+  ],
+  "checked_at": "2026-07-30T20:28:38.905346+09:00"
+}
