@@ -1594,5 +1594,17 @@
     "image_path": "",
     "has_image": false,
     "status": "posted"
+  },
+  {
+    "datetime": "2026-07-31T20:38:41.683236+09:00",
+    "tweet_id": "2083155384739713484",
+    "pillar": "3",
+    "pipeline": "P3",
+    "pattern": "B",
+    "text": "引っ越してすぐの人から「部屋がカビっぽくて」って相談がありました。\n\n聞いてみたら洗濯物を部屋干しして、窓は一日中閉めっぱなし。\n\n換気って地味ですけど、朝晩5分ずつ窓を開けるだけで湿気が全然違います。寒くても短時間なら大丈夫ですよ。",
+    "quality_score": 108,
+    "image_path": "",
+    "has_image": false,
+    "status": "posted"
   }
 ]

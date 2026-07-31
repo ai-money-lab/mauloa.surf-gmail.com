@@ -1,0 +1,25 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 8,
+    "persona_match": 7,
+    "pillar_alignment": 9,
+    "usefulness": 8,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 10,
+    "cta_ending": 7,
+    "originality": 7,
+    "tone_balance": 8,
+    "problem_solving": 7
+  },
+  "total_score": 101,
+  "threshold": 84,
+  "result": "auto_approved",
+  "usefulness_summary": "カビに悩む人が、除湿機を買わずに換気という手軽な方法で対策できることを知れる",
+  "rejection_reasons": [],
+  "improvement_suggestions": [],
+  "checked_at": "2026-07-31T20:38:41.287057+09:00"
+}
