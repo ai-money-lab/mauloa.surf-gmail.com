@@ -1,0 +1,39 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 6,
+    "persona_match": 5,
+    "pillar_alignment": 4,
+    "usefulness": 5,
+    "no_external_links": 10,
+    "no_banned_content": 0,
+    "character_limit": 10,
+    "number_included": 10,
+    "cta_ending": 3,
+    "originality": 6,
+    "tone_balance": 4,
+    "problem_solving": 4
+  },
+  "total_score": 67,
+  "threshold": 84,
+  "result": "rejected",
+  "usefulness_summary": "植物を育てる際の観察ポイントを知りたい人の参考になる",
+  "rejection_reasons": [
+    "煽り表現「これ知ってるだけで全然違います」が含まれている（断定的な煽り表現は絶対不合格条件）",
+    "HIROKIのペルソナ（リノベーション・不動産コーディネーター）との関連性が不明確",
+    "Pillar 5との整合性が不明瞭（植物育成とリノベーション・不動産の接点が示されていない）",
+    "problem_solving（4点）：誰のどんな困りごとを解決しているか不明確",
+    "usefulness（5点）：一般論にとどまり、具体的なアクションや専門性が弱い",
+    "warmth/tone_balance（4点）：「知ってるだけで全然違います」が上から目線に感じられる",
+    "hook_power（6点）：リノベーション・不動産に関心がある読者に「自分ごと」として刺さりにくい"
+  ],
+  "improvement_suggestions": [
+    "煽り表現「これ知ってるだけで全然違います」を削除し、「個人的にはこの習慣で失敗が減りました」など体験ベースの柔らかい表現に変更",
+    "リノベーション・不動産との接点を明確化（例：「室内に植物を置く提案をするとき」「グリーンのある暮らしを希望されるお客様に」等の導入）",
+    "具体的な困りごとを冒頭で提示（例：「室内の植物、すぐ枯らしちゃう方へ」）",
+    "CTAを質問形式ではなく、共感や次のアクションを促す形に（例：「小さな変化、見逃さないようにしてます」）",
+    "HIROKIの専門性（空間づくり・暮らしの提案）と結びつけた文脈で再構成する"
+  ],
+  "checked_at": "2026-08-02T19:58:53.194649+09:00"
+}
