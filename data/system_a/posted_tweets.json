@@ -1618,5 +1618,17 @@
     "image_path": "",
     "has_image": false,
     "status": "posted"
+  },
+  {
+    "datetime": "2026-08-03T21:43:18.185418+09:00",
+    "tweet_id": "2084258807530848303",
+    "pillar": "5",
+    "pipeline": "P3",
+    "pattern": "C",
+    "text": "仕事で意識してること3つ\n\n・即答しない\n 「確認します」で正確に\n\n・専門用語を使わない\n 中学生に話すつもりで\n\n・全部解決しようとしない\n できることだけ伝える\n\n完璧じゃなくていい\n信頼してもらえればそれでいいと思ってます",
+    "quality_score": 91,
+    "image_path": "",
+    "has_image": false,
+    "status": "posted"
   }
 ]

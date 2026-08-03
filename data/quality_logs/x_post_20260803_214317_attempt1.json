@@ -1,0 +1,29 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 6,
+    "persona_match": 7,
+    "pillar_alignment": 8,
+    "usefulness": 6,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 10,
+    "cta_ending": 5,
+    "originality": 7,
+    "tone_balance": 7,
+    "problem_solving": 5
+  },
+  "total_score": 91,
+  "threshold": 84,
+  "result": "auto_approved",
+  "usefulness_summary": "顧客対応やコミュニケーションに悩む人が、信頼関係を築くための具体的な行動指針を得られる",
+  "rejection_reasons": [],
+  "improvement_suggestions": [
+    "hook_powerを高めるため、1行目を「お客さんとの信頼関係、どう作ってますか？」等、読み手の課題に直接触れる書き出しに変更",
+    "problem_solvingを強化するため、「即答しない」等の各項目に「こうすると〜になる」という効果・理由を1行追加",
+    "cta_endingを改善するため、最後を「あなたが大事にしてることも教えてもらえたら嬉しいです」等、リプライしやすい柔らかい問いかけに変更"
+  ],
+  "checked_at": "2026-08-03T21:43:17.789212+09:00"
+}
