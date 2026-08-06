@@ -1654,5 +1654,17 @@
     "image_path": "",
     "has_image": false,
     "status": "posted"
+  },
+  {
+    "datetime": "2026-08-06T20:40:08.578967+09:00",
+    "tweet_id": "2085330076527173911",
+    "pillar": "3",
+    "pipeline": "P3",
+    "pattern": "A",
+    "text": "隣の音が気になるとき\nお金かけずにできること\n\n・家具を壁際に寄せる\n・カーテンを厚手に変える\n・本棚を壁沿いに置く\n\n音って壁を伝わってくるので、壁と自分の間に物があるだけで体感が全然違います。\n\n完璧には消えないけど、これだけでもかなり楽になりますよ",
+    "quality_score": 110,
+    "image_path": "",
+    "has_image": false,
+    "status": "posted"
   }
 ]
