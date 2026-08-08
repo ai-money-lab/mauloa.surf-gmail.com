@@ -1,0 +1,29 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 7,
+    "persona_match": 8,
+    "pillar_alignment": 10,
+    "usefulness": 6,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 10,
+    "cta_ending": 8,
+    "originality": 5,
+    "tone_balance": 8,
+    "problem_solving": 5
+  },
+  "total_score": 97,
+  "threshold": 84,
+  "result": "auto_approved",
+  "usefulness_summary": "家を売る流れを知りたい人が、最初の一歩を踏み出すハードルを下げられる",
+  "rejection_reasons": [],
+  "improvement_suggestions": [
+    "「査定だけでもOK」という安心感は良いが、実際に査定を依頼する際の具体的なポイント（例：複数社に依頼すべき理由、査定額の見方など）があるとより有用性が高まる",
+    "hook部分を「家を売りたいけど何から始めればいいかわからない方へ」など、ターゲットの悩みに寄り添う表現にするとより刺さりやすい",
+    "「売らない選択もできる」という安心材料に加えて、実際に査定後に売らなかった人の理由例などがあると、より現場感が出て信頼性が増す"
+  ],
+  "checked_at": "2026-08-08T19:02:35.235277+09:00"
+}
