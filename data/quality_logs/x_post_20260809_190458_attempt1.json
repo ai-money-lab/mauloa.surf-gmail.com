@@ -1,0 +1,25 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 9,
+    "persona_match": 8,
+    "pillar_alignment": 9,
+    "usefulness": 7,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 0,
+    "cta_ending": 8,
+    "originality": 8,
+    "tone_balance": 8,
+    "problem_solving": 7
+  },
+  "total_score": 94,
+  "threshold": 84,
+  "result": "auto_approved",
+  "usefulness_summary": "空室に悩む大家さんが、家賃を下げずに内見の時間帯を工夫することで成約率を上げられる",
+  "rejection_reasons": [],
+  "improvement_suggestions": [],
+  "checked_at": "2026-08-09T19:04:58.473041+09:00"
+}
