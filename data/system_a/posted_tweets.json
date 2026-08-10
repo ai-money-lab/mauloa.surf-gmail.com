@@ -1702,5 +1702,17 @@
     "image_path": "",
     "has_image": false,
     "status": "posted"
+  },
+  {
+    "datetime": "2026-08-10T19:42:56.497090+09:00",
+    "tweet_id": "2086765232731381851",
+    "pillar": "1",
+    "pipeline": "P3",
+    "pattern": "A",
+    "text": "急に家を売ることになったとき\n焦って最初に来た不動産会社に決めがちですが\n\n3社くらい話を聞いてみるのがおすすめです\n\n査定額の差が300万円以上あることも珍しくないですし、担当者との相性も大事なので。\n\n急いでるときほど、ここだけは時間をかけて大丈夫です。",
+    "quality_score": 118,
+    "image_path": "",
+    "has_image": false,
+    "status": "posted"
   }
 ]
