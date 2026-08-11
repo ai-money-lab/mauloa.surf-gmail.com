@@ -1714,5 +1714,17 @@
     "image_path": "",
     "has_image": false,
     "status": "posted"
+  },
+  {
+    "datetime": "2026-08-11T19:24:35.315304+09:00",
+    "tweet_id": "2087123001951064323",
+    "pillar": "3",
+    "pipeline": "P3",
+    "pattern": "A",
+    "text": "退去の見積もりが届いて「え、こんなに？」ってなったこと、ありませんか。\n\n実は、入居時の写真が残ってると話が早いです。\n\n元からあった傷か、自分がつけたものか。これだけで請求額が全然変わります。\n\n引越したらまず写真。特に壁の四隅と床です。",
+    "quality_score": 105,
+    "image_path": "",
+    "has_image": false,
+    "status": "posted"
   }
 ]

@@ -1,0 +1,29 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 8,
+    "persona_match": 7,
+    "pillar_alignment": 9,
+    "usefulness": 9,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 10,
+    "cta_ending": 6,
+    "originality": 8,
+    "tone_balance": 7,
+    "problem_solving": 8
+  },
+  "total_score": 102,
+  "threshold": 84,
+  "result": "auto_approved",
+  "usefulness_summary": "賃貸退去時に不当な費用請求を避け、数万円の出費を抑えたい人の役に立つ",
+  "rejection_reasons": [],
+  "improvement_suggestions": [
+    "最後の「これ知ってるだけで数万円変わることもあります」を、もう少し対話的・共感的な終わり方に変更すると温かみが増す（例：「入居時のひと手間が、退去時の安心につながりますよ」等）",
+    "「全然違います」という口語表現がやや軽く感じられる可能性があるため、「大きく変わります」等のニュアンスも検討余地あり",
+    "特約の具体例をもう1つ追加すると、さらに実用性が高まる（例：「原状回復の範囲」等）"
+  ],
+  "checked_at": "2026-08-11T19:24:30.594195+09:00"
+}
