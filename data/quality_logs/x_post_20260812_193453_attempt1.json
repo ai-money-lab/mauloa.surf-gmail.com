@@ -1,0 +1,31 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 8,
+    "persona_match": 9,
+    "pillar_alignment": 10,
+    "usefulness": 7,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 0,
+    "cta_ending": 7,
+    "originality": 9,
+    "tone_balance": 9,
+    "problem_solving": 7
+  },
+  "total_score": 96,
+  "threshold": 84,
+  "result": "auto_approved",
+  "usefulness_summary": "空室対策に悩む賃貸オーナーが3D撮影で内見前成約を実現できることを知れる",
+  "rejection_reasons": [
+    "「3Dで部屋を撮影した」という表現が、HIROKIが自ら撮影したかのように読める（HIROKIはコーディネーターであり、直接施工・撮影は行わない。正しくは「3D撮影を提案した」「3D撮影を手配した」等の表現）"
+  ],
+  "improvement_suggestions": [
+    "「3Dで部屋を撮影したんです」→「3D撮影を提案したんです」または「3D撮影を手配したんです」に修正し、コーディネーターとしての立場を明確にする",
+    "usefulness向上のため、「どんな物件に向いているか」「費用感のニュアンス」など、読者が判断材料にできる情報を1文追加する（例：「初期費用はかかるけど、長期空室よりは...」等）",
+    "CTAをもう一歩踏み込んで、「空室で困ってる方、一度相談してみてください」等、具体的な行動を促す表現にするとエンゲージメントが上がる"
+  ],
+  "checked_at": "2026-08-12T19:34:53.057299+09:00"
+}
