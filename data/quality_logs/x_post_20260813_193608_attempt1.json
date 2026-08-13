@@ -1,0 +1,25 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 9,
+    "persona_match": 8,
+    "pillar_alignment": 9,
+    "usefulness": 9,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 0,
+    "cta_ending": 9,
+    "originality": 8,
+    "tone_balance": 9,
+    "problem_solving": 9
+  },
+  "total_score": 100,
+  "threshold": 84,
+  "result": "auto_approved",
+  "usefulness_summary": "ネットの物件が「ない」と言われた時に、非公開物件を引き出す具体的な質問方法を教えている",
+  "rejection_reasons": [],
+  "improvement_suggestions": [],
+  "checked_at": "2026-08-13T19:36:08.783984+09:00"
+}
