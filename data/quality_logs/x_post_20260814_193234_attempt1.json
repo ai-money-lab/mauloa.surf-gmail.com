@@ -1,0 +1,25 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 9,
+    "persona_match": 8,
+    "pillar_alignment": 10,
+    "usefulness": 8,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 0,
+    "cta_ending": 6,
+    "originality": 8,
+    "tone_balance": 8,
+    "problem_solving": 7
+  },
+  "total_score": 94,
+  "threshold": 84,
+  "result": "auto_approved",
+  "usefulness_summary": "不動産査定額の意味を誤解している売主候補者が、査定と実売価格の違いを正しく理解できる",
+  "rejection_reasons": [],
+  "improvement_suggestions": [],
+  "checked_at": "2026-08-14T19:32:34.299647+09:00"
+}
