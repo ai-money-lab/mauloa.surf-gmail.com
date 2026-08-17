@@ -1,0 +1,25 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 9,
+    "persona_match": 7,
+    "pillar_alignment": 8,
+    "usefulness": 9,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 10,
+    "cta_ending": 5,
+    "originality": 7,
+    "tone_balance": 8,
+    "problem_solving": 8
+  },
+  "total_score": 101,
+  "threshold": 84,
+  "result": "auto_approved",
+  "usefulness_summary": "一人暮らしを始める人が最低限やるべき防犯対策を具体的に知ることができる",
+  "rejection_reasons": [],
+  "improvement_suggestions": [],
+  "checked_at": "2026-08-17T19:05:13.035329+09:00"
+}

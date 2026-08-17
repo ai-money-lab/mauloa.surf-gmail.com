@@ -1,0 +1,35 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 9,
+    "persona_match": 3,
+    "pillar_alignment": 3,
+    "usefulness": 8,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 10,
+    "cta_ending": 4,
+    "originality": 7,
+    "tone_balance": 8,
+    "problem_solving": 7
+  },
+  "total_score": 89,
+  "threshold": 84,
+  "result": "auto_approved",
+  "usefulness_summary": "一人暮らしの女性が防犯対策として洗濯物の干し方を工夫する具体的な方法がわかる",
+  "rejection_reasons": [
+    "persona_matchが著しく低い：HIROKIは防犯リフォームのコーディネーターであり、一人暮らしの防犯ライフハックを語る立場にない",
+    "pillar_alignmentが不適切：Pillar3は「リフォーム×暮らし」だが、この内容は防犯リフォームではなく生活の知恵であり、HIROKIの専門性・事業領域と無関係",
+    "HIROKIが語るべき内容ではない：防犯カメラ・窓の補強・玄関の鍵など、リフォームに関連する防犯対策であればペルソナに合致するが、洗濯物の干し方はHIROKIの専門外",
+    "cta_endingが弱い：「カーテンの色も地味なほうが安心ですね」で終わっており、読者の次のアクションや考えるきっかけが不明確"
+  ],
+  "improvement_suggestions": [
+    "HIROKIの専門性に沿った防犯対策に変更：例「一人暮らしの防犯で見落としがちなのが窓の補強。賃貸でもできる補助錠なら、2000円くらいから対策できます」",
+    "リフォーム視点での防犯提案に修正：「防犯カメラって高いイメージあるけど、最近は工事不要のタイプも増えてて、予算に合わせて選べるようになってます」など、コーディネーターとしての知見を活かす",
+    "CTAを改善：「他にも賃貸でできる防犯対策、気になることあれば聞いてください」など、相談を促す柔らかい終わり方にする",
+    "Pillar3なら「リフォームで叶える安心な暮らし」の文脈で、設備面での防犯対策を語るべき"
+  ],
+  "checked_at": "2026-08-17T19:05:35.463378+09:00"
+}
