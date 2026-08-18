@@ -1,0 +1,26 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 8,
+    "persona_match": 9,
+    "pillar_alignment": 10,
+    "usefulness": 8,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 10,
+    "cta_ending": 7,
+    "originality": 9,
+    "tone_balance": 9,
+    "problem_solving": 8,
+    "warmth": 9
+  },
+  "total_score": 117,
+  "threshold": 84,
+  "result": "auto_approved",
+  "usefulness_summary": "賃貸オーナーが家賃設定で迷った際に、高額設定より早期成約を優先すべき理由を具体例で示し、判断基準を提供している",
+  "rejection_reasons": [],
+  "improvement_suggestions": [],
+  "checked_at": "2026-08-18T18:58:16.283793+09:00"
+}

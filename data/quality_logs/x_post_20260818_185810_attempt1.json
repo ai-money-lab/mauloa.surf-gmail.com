@@ -1,0 +1,25 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 9,
+    "persona_match": 10,
+    "pillar_alignment": 10,
+    "usefulness": 9,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 10,
+    "cta_ending": 6,
+    "originality": 9,
+    "tone_balance": 10,
+    "problem_solving": 9
+  },
+  "total_score": 112,
+  "threshold": 84,
+  "result": "auto_approved",
+  "usefulness_summary": "家賃を下げることに抵抗がある賃貸オーナーが、空室期間と家賃減額のどちらが得かを具体的な数字で判断できる",
+  "rejection_reasons": [],
+  "improvement_suggestions": [],
+  "checked_at": "2026-08-18T18:58:10.662224+09:00"
+}

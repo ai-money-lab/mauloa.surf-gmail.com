@@ -1,0 +1,28 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 8,
+    "persona_match": 9,
+    "pillar_alignment": 10,
+    "usefulness": 9,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 10,
+    "cta_ending": 6,
+    "originality": 8,
+    "tone_balance": 9,
+    "problem_solving": 8
+  },
+  "total_score": 107,
+  "threshold": 84,
+  "result": "auto_approved",
+  "usefulness_summary": "家賃設定に悩む賃貸オーナーが、相場を正しく把握し適正な家賃を決めるための具体的な3つの指標を提示している",
+  "rejection_reasons": [],
+  "improvement_suggestions": [
+    "CTAが弱いため、「あなたの物件はどのパターンですか？」のような自然な問いかけや、「まずは②の成約家賃から調べてみてください」のような次のアクション提示があるとより良い",
+    "「結構差がある」を「体感では1〜2割くらい差があることも」のように具体的なニュアンス表現にするとより説得力が増す"
+  ],
+  "checked_at": "2026-08-18T18:58:05.742500+09:00"
+}
