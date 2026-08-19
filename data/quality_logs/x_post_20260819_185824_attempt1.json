@@ -1,0 +1,25 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 8,
+    "persona_match": 9,
+    "pillar_alignment": 9,
+    "usefulness": 7,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 0,
+    "cta_ending": 6,
+    "originality": 8,
+    "tone_balance": 9,
+    "problem_solving": 7
+  },
+  "total_score": 93,
+  "threshold": 84,
+  "result": "auto_approved",
+  "usefulness_summary": "物件選びで失敗しないために、内見時だけでなく平日夜にも現地確認すべきという具体的なアドバイスを提供している",
+  "rejection_reasons": [],
+  "improvement_suggestions": [],
+  "checked_at": "2026-08-19T18:58:24.107495+09:00"
+}
