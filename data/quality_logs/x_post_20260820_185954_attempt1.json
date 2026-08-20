@@ -1,0 +1,25 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 9,
+    "persona_match": 8,
+    "pillar_alignment": 9,
+    "usefulness": 6,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 0,
+    "cta_ending": 7,
+    "originality": 8,
+    "tone_balance": 8,
+    "problem_solving": 6
+  },
+  "total_score": 91,
+  "threshold": 84,
+  "result": "auto_approved",
+  "usefulness_summary": "管理会社の変更が可能であることを知らないオーナーに対して、変更時の入居者への影響がないことを伝え、不満がある場合の選択肢を提示している",
+  "rejection_reasons": [],
+  "improvement_suggestions": [],
+  "checked_at": "2026-08-20T18:59:54.723706+09:00"
+}

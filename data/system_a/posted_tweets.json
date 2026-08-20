@@ -1822,5 +1822,17 @@
     "image_path": "",
     "has_image": false,
     "status": "posted"
+  },
+  {
+    "datetime": "2026-08-20T18:59:55.017081+09:00",
+    "tweet_id": "2090378283883856048",
+    "pillar": "2",
+    "pipeline": "P3",
+    "pattern": "B",
+    "text": "「管理会社の対応が遅くて困ってる」って相談を受けたんですが、その方、変えられることを知らなかったんですよね。\n\n入居者の契約はそのまま引き継げるし、費用もほとんどかからないケースが多いです。\n\n我慢し続けるより、一度見直してみるのもありかもしれません。",
+    "quality_score": 104,
+    "image_path": "",
+    "has_image": false,
+    "status": "posted"
   }
 ]

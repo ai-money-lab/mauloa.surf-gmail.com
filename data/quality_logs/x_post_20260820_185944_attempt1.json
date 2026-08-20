@@ -1,0 +1,30 @@
+{
+  "profile": "x_post",
+  "attempt": 1,
+  "scores": {
+    "hook_power": 9,
+    "persona_match": 9,
+    "pillar_alignment": 10,
+    "usefulness": 8,
+    "no_external_links": 10,
+    "no_banned_content": 10,
+    "character_limit": 10,
+    "number_included": 0,
+    "cta_ending": 8,
+    "originality": 9,
+    "tone_balance": 9,
+    "problem_solving": 8
+  },
+  "total_score": 100,
+  "threshold": 84,
+  "result": "auto_approved",
+  "usefulness_summary": "管理会社変更を諦めていたオーナーに、変更可能であることと基本的な条件を伝え、選択肢を持てるようにする投稿",
+  "rejection_reasons": [
+    "number_included項目が0点：投稿内に具体的な数字・データが含まれていない（エンゲージメント向上要素の不足）"
+  ],
+  "improvement_suggestions": [
+    "具体的な数字を追加する例：「変更にかかる期間は約1〜2ヶ月ほど」「手続きは3ステップで完了」など、読者が具体的にイメージできる数値情報を1つ以上含める",
+    "「今の不満を整理しておく」の部分を「不満を3つほど書き出しておく」のように数字を含めた表現にすることで、行動のハードルを下げつつnumber_included要件も満たせる"
+  ],
+  "checked_at": "2026-08-20T18:59:44.796319+09:00"
+}
