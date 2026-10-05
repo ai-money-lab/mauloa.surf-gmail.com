@@ -6,9 +6,11 @@
 name: X Auto Post
 
 on:
-  schedule:
-    # cron は UTC で指定（JST = UTC+9）
-    - cron: '30 9 * * *'   # 18:30 JST
+  # 2026-10: 毎日の自動実行を停止（8/21以降エラーで投稿されずAPIだけ消費していたため）
+  # 再開する場合は以下のコメントを外す
+  # schedule:
+  #   # cron は UTC で指定（JST = UTC+9）
+  #   - cron: '30 9 * * *'   # 18:30 JST
   workflow_dispatch:
     inputs:
       pillar:
