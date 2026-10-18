@@ -30,12 +30,10 @@ def test_connection():
         "LINE_CHANNEL_ACCESS_TOKEN": bool(token),
         "LINE_USER_ID": bool(user_id),
     }
-    all_ok = True
     for key, ok in checks.items():
-        status = "OK" if ok else "MISSING"
-        print(f"  {key}: {status}")
-        if not ok:
-            all_ok = False
+        # LINE_USER_ID is optional — step 3 is skipped without it — so a
+        # MISSING line here is reported but does not by itself fail.
+        print(f"  {key}: {'OK' if ok else 'MISSING'}")
 
     if not token:
         print("\nERROR: LINE_CHANNEL_ACCESS_TOKEN が未設定です")
@@ -53,7 +51,7 @@ def test_connection():
             info = resp.json()
             print(f"  Bot名: {info.get('displayName', 'N/A')}")
             print(f"  Bot ID: {info.get('userId', 'N/A')}")
-            print(f"  状態: OK")
+            print("  状態: OK")
         else:
             print(f"  ERROR: HTTP {resp.status_code} - {resp.text}")
             return False

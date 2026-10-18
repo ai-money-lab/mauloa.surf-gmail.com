@@ -54,7 +54,14 @@ class TestThemeRotator:
     """Test theme rotation logic."""
 
     @pytest.fixture(autouse=True)
-    def setup_temp_files(self, tmp_path):
+    def setup_temp_files(self, tmp_path, monkeypatch):
+        """Point the module paths at temp files for the whole test.
+
+        monkeypatch is required here, not a `with patch(...)` block inside a
+        helper: ThemeRotator writes on every record_usage() call, so a patch
+        that expires when the helper returns lets those writes land on the
+        real data/system_a/*.json and truncate production history.
+        """
         self.theme_db_path = tmp_path / "theme_db.json"
         self.history_path = tmp_path / "post_history.json"
         self.config_path = tmp_path / "config.yaml"
@@ -69,11 +76,12 @@ class TestThemeRotator:
             encoding="utf-8",
         )
 
+        monkeypatch.setattr("system_a.theme_rotator.THEME_DB_PATH", self.theme_db_path)
+        monkeypatch.setattr("system_a.theme_rotator.POST_HISTORY_PATH", self.history_path)
+        monkeypatch.setattr("system_a.theme_rotator.CONFIG_PATH", self.config_path)
+
     def _get_rotator(self):
-        with patch("system_a.theme_rotator.THEME_DB_PATH", self.theme_db_path), \
-             patch("system_a.theme_rotator.POST_HISTORY_PATH", self.history_path), \
-             patch("system_a.theme_rotator.CONFIG_PATH", self.config_path):
-            return ThemeRotator()
+        return ThemeRotator()
 
     def test_select_theme_returns_dict(self):
         rotator = self._get_rotator()
@@ -108,14 +116,14 @@ class TestThemeRotator:
         theme = rotator.select_theme(target_pillar=3)
         assert theme is not None
 
-    def test_config_defaults_on_missing_file(self, tmp_path):
+    def test_config_defaults_on_missing_file(self, tmp_path, monkeypatch):
         """When config file is missing, defaults should be used."""
-        with patch("system_a.theme_rotator.THEME_DB_PATH", self.theme_db_path), \
-             patch("system_a.theme_rotator.POST_HISTORY_PATH", self.history_path), \
-             patch("system_a.theme_rotator.CONFIG_PATH", tmp_path / "nonexistent.yaml"):
-            rotator = ThemeRotator()
-            assert rotator.overlap_check_days == 30
-            assert rotator.max_same_per_month == 2
+        monkeypatch.setattr(
+            "system_a.theme_rotator.CONFIG_PATH", tmp_path / "nonexistent.yaml"
+        )
+        rotator = ThemeRotator()
+        assert rotator.overlap_check_days == 30
+        assert rotator.max_same_per_month == 2
 
 
 # ===========================================================================

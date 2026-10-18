@@ -53,7 +53,8 @@ System C (情報収集) ──データ供給──→ System A (X投稿)
 
 ## System A: Xハイブリッド投稿パイプライン
 
-毎日3本のX投稿を、3つの異なるパイプラインで生成し、品質チェックを通過したものだけを自動投稿する。
+X投稿候補を複数パターン生成し、品質チェックを通過したものだけを自動投稿する。
+投稿本数は **1日1本**（`MAX_POSTS_PER_DAY = 1` / `posts_per_day: 1`）。
 
 ### 3つのパイプライン
 
@@ -69,19 +70,44 @@ System C (情報収集) ──データ供給──→ System A (X投稿)
 - 成績の良いパイプラインの比率を自動で上げ、悪いものを下げる
 - 調整上限: 1週間あたり最大10%変動、各パイプライン最低15%〜最大60%
 
-### 投稿フロー
+### 投稿フロー（現行）
+
+本番の実行主体は GitHub Actions（`.github/workflows/x-auto-post.yml`）。
 
 ```
-06:00  3パイプライン並列実行（各パイプラインが投稿候補を生成）
+18:30 JST  X Auto Post ワークフロー起動
   ↓
-06:06  PostSelector が品質スコア・テーマバランスで3本選択
+  system_a.generate_and_post
+    1. Claude バックエンドの pre-flight チェック
+    2. ThemeRotator がテーマ選択（Pipeline 3 / ai_original.txt）
+    3. A/B/C 3パターン生成
+    4. FactChecker → QualityChecker（x_post 84点）
+    5. 全パターン不合格なら投稿せず通知のみ
+    6. 画像生成（GEMINI_API_KEY 未設定ならスキップ）
+    7. AutoPoster.post_and_record で投稿
   ↓
-07:00 / 12:00 / 19:00  AutoPoster が時刻指定で自動投稿
-  ↓
-21:00  日次パフォーマンス分析
-  ↓
-毎週月曜 09:00  週次分析 + パイプライン比率自動調整
+  data/ の更新を自動コミット・push
 ```
+
+投稿本数は `MAX_POSTS_PER_DAY = 1`（`system_a/auto_post.py`）と
+`config/config.yaml: system_a.posts_per_day: 1` で1日1本。
+同一テキストの重複投稿もローカルログ照合でブロックされる。
+
+`daily_pipeline.py`（3パイプライン並列 → PostSelector）は
+`crontab_config.txt` 側のローカル実行経路に残っている。
+
+> 注意: `config/config.yaml` の `post_times` は `["19:00"]`、
+> GitHub Actions / crontab のトリガーは 18:30 JST で食い違っている。
+> どちらが正かは未確認。
+
+### GitHub Actions ワークフロー
+
+| ファイル | 名称 | トリガー | 内容 |
+|---|---|---|---|
+| `.github/workflows/x-auto-post.yml` | X Auto Post | 毎日 18:30 JST (cron) / 手動 | 生成 → FactCheck → QC → 投稿 → `data/` コミット |
+| `.github/workflows/deploy-bot.yml` | Bot CI/CD | main への push / PR（`inquiry_bot/**` `core/**` 等） | pytest + ruff → Render デプロイフック |
+
+X Auto Post の依存パッケージは `requirements-x-post.txt`（上限バージョン固定）。
 
 ---
 
@@ -231,16 +257,36 @@ cp config/.env.example .env
 
 以下のAPIキーを `.env` に設定:
 
-| 変数名 | 用途 |
-|---|---|
-| `ANTHROPIC_API_KEY` | Claude API（全システム共通） |
-| `X_API_KEY` / `X_API_SECRET` | X (Twitter) API |
-| `X_ACCESS_TOKEN` / `X_ACCESS_SECRET` | X投稿用アクセストークン |
-| `TWITTERAPI_IO_KEY` | twitterapi.io（バズツイート取得） |
-| `LINE_CHANNEL_SECRET` / `LINE_CHANNEL_ACCESS_TOKEN` | LINE Messaging API（Bot + 通知） |
-| `LINE_USER_ID` | LINE通知先ユーザーID |
-| `GOOGLE_SHEETS_CREDENTIALS` | Google Sheets API（案件管理） |
-| `ESTAT_API_KEY` | e-Stat API（政府統計） |
+変数名は `config/.env.example` が正本。
+
+| 変数名 | 必須 | 用途 |
+|---|---|---|
+| `ANTHROPIC_API_KEY` | ○ | Claude API（全システム共通） |
+| `X_API_KEY` / `X_API_SECRET_KEY` | ○ | X (Twitter) API コンシューマキー |
+| `X_ACCESS_TOKEN` / `X_ACCESS_TOKEN_SECRET` | ○ | X投稿用アクセストークン |
+| `X_BEARER_TOKEN` | | X API 読み取り用 |
+| `TWITTERAPI_IO_KEY` | | twitterapi.io（バズツイート取得）。未設定ならその収集をスキップ |
+| `LINE_CHANNEL_SECRET` / `LINE_CHANNEL_ACCESS_TOKEN` | | LINE Messaging API（Bot + 通知） |
+| `LINE_USER_ID` | | LINE通知先ユーザーID |
+| `GEMINI_API_KEY` | | 画像生成。未設定ならテキストのみ投稿 |
+| `GOOGLE_SHEETS_CREDENTIALS_PATH` | | サービスアカウントJSONのパス（既定 `./config/credentials.json`） |
+| `GOOGLE_SHEETS_CREDENTIALS_JSON` | | サービスアカウントJSONそのもの。CI ではこちらを使う（PATH より優先） |
+| `SHEETS_POST_MANAGEMENT_ID` / `SHEETS_ORDER_MANAGEMENT_ID` | | 記録先スプレッドシートID |
+| `SLACK_WEBHOOK_URL` | | Slack通知 |
+| `ESTAT_API_KEY` | | e-Stat API（政府統計） |
+| `ANTHROPIC_DISABLED` | | `1` で課金のある Anthropic API を使わず `claude -p` に回す（下記） |
+
+#### Claude バックエンドの切り替え（`ANTHROPIC_DISABLED`）
+
+`core/claude_client.py` は2つの経路を持つ。
+
+| `ANTHROPIC_DISABLED` | 経路 | 課金 |
+|---|---|---|
+| 未設定 / `0` / `false` | Anthropic SDK (`/v1/messages`) | あり |
+| `1` / `true` / `yes` / `on` | `claude -p` サブプロセス | なし（CLIのプラン内） |
+
+`1` を指定したのに `claude` CLI が PATH に無い場合は、課金経路へ
+フォールバックせずに例外で止まる。
 
 ### 4. 初期データ生成
 
@@ -272,15 +318,22 @@ make cron-install
 
 ```
 hiroki-ai-empire/
+├── .github/workflows/               # CI / 定期実行
+│   ├── x-auto-post.yml              #   X Auto Post（毎日 18:30 JST）
+│   └── deploy-bot.yml               #   Bot CI/CD（pytest + ruff + Render）
 ├── config/                          # 設定ファイル
 │   ├── config.yaml                  #   全体設定（閾値・比率・スケジュール等）
+│   ├── .env.example                 #   環境変数テンプレート（変数名の正本）
 │   └── claude_desktop_config.json   #   Claude Desktop MCP設定
 ├── core/                            # 共通モジュール
-│   ├── claude_client.py             #   Claude API クライアント
+│   ├── claude_client.py             #   Claude クライアント（SDK / claude -p）
 │   ├── quality_checker.py           #   品質チェッカー（全システム共通ゲート）
-│   ├── pdf_generator.py             #   PDF生成
+│   ├── fact_checker.py              #   事実・ルール違反チェック + 誤記自動修正
+│   ├── image_generator.py           #   画像生成（Gemini / 任意）
+│   ├── engagement_learner.py        #   エンゲージメント学習（勝ちパターン抽出）
+│   ├── pdf_generator.py             #   PDF生成（WeasyPrint・遅延import）
 │   ├── sheets_client.py             #   Google Sheets連携
-│   └── notifier.py                  #   LINE Notify 通知
+│   └── notifier.py                  #   LINE Messaging API / Slack 通知
 ├── prompts/                         # AIプロンプトテンプレート
 │   ├── quality_check.txt            #   品質チェック用プロンプト
 │   ├── rewrite_jp_buzz.txt          #   Pipeline 1: バズ構文書き換え
@@ -373,11 +426,16 @@ hiroki-ai-empire/
 │   ├── SETUP_CREW_AI.md
 │   ├── SETUP_N8N.md
 │   └── SETUP_LINE_BOT.md
-├── tests/                           # ユニットテスト
+├── tests/                           # ユニットテスト（pytest）
 ├── scripts/                         # ユーティリティスクリプト
-├── crontab_config.txt               # cron設定テンプレート
+│   ├── setup_vps.ps1                #   VPS初期設定
+│   ├── test_line_connection.py      #   LINE接続確認
+│   └── x_auto_post.bat              #   Windowsタスクスケジューラ用
+├── research/                        # 市場調査メモ
+├── crontab_config.txt               # cron設定テンプレート（ローカル実行経路）
 ├── Makefile                         # 開発用コマンド
-├── requirements.txt                 # Python依存パッケージ
+├── requirements.txt                 # Python依存パッケージ（全体）
+├── requirements-x-post.txt          # X Auto Post ジョブ専用の固定依存
 ├── package.json                     # Node.js依存パッケージ（MCP Server）
 └── render.yaml                      # Render.comデプロイ設定
 ```
@@ -453,18 +511,33 @@ python -m inquiry_bot.scheduler daily_report
 ### テスト
 
 ```bash
-python -m pytest tests/ -v
+PYTHONPATH=. python -m pytest tests/ -v
+
+# lint（CIと同じ設定）
+ruff check . --select E,W,F --ignore E501
 ```
 
 ---
 
-## cronスケジュール
+## スケジュール
 
-全タスクはJST（Asia/Tokyo）で実行される。
+全タスクはJST（Asia/Tokyo）。
+
+### GitHub Actions（本番の定期実行）
+
+| 時刻 | 頻度 | タスク |
+|------|------|--------|
+| 18:30 | 毎日 | X Auto Post（生成 → FactCheck → QC → 1本投稿 → `data/` コミット） |
+
+### cron（`crontab_config.txt`・ローカル実行経路）
+
+`crontab_config.txt` は Linux crontab 用のテンプレート。
+GitHub Actions と同時刻に走らせると二重投稿になり得るが、
+`MAX_POSTS_PER_DAY = 1` のガードで2本目はブロックされる。
 
 | 時刻 | 頻度 | タスク | システム |
 |------|------|--------|---------|
-| 06:00 | 毎日 | デイリーパイプライン（3パイプライン実行 → 品質チェック → 投稿スケジュール） | System A |
+| 18:30 | 毎日 | デイリーパイプライン（3パイプライン実行 → 品質チェック → 投稿スケジュール） | System A |
 | 07:00 | 毎日 | 日次市場ウォッチ（市場動向 + 法規制チェック） | System C |
 | 08:00 | 毎週月曜 | 週次テックトレンド収集 | System C |
 | 09:00 | 毎週月曜 | 週次パフォーマンス分析 + パイプライン比率自動調整 | System A |

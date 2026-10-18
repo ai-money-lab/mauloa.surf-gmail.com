@@ -23,6 +23,12 @@ os.environ.setdefault("LINE_CHANNEL_ACCESS_TOKEN", "")
 os.environ.setdefault("LINE_USER_ID", "")
 os.environ.setdefault("SLACK_WEBHOOK_URL", "")
 
+# Pin the backend switch instead of inheriting it. ANTHROPIC_DISABLED is set
+# machine-wide on some dev boxes; left alone it would send ClaudeClient down
+# the `claude -p` subprocess path and make these SDK-mocking tests spawn real
+# CLI processes. Tests that exercise that path set it explicitly.
+os.environ["ANTHROPIC_DISABLED"] = ""
+
 
 @pytest.fixture
 def mock_claude_client():

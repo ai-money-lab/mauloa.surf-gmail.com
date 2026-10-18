@@ -2,8 +2,6 @@
 
 import json
 from datetime import datetime, timezone, timedelta
-from pathlib import Path
-from unittest.mock import patch, MagicMock
 
 import pytest
 

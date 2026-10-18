@@ -1,5 +1,16 @@
-"""Google Sheets client for managing post and order records."""
+"""Google Sheets client for managing post and order records.
 
+Service-account credentials are read from one of two env vars:
+
+``GOOGLE_SHEETS_CREDENTIALS_JSON``
+    The service-account JSON itself. Use this on CI runners, where there is
+    no credentials file on disk.
+``GOOGLE_SHEETS_CREDENTIALS_PATH``
+    Path to the JSON file (default ``./config/credentials.json``). Used when
+    the inline variable is empty.
+"""
+
+import json
 import os
 import logging
 
@@ -9,11 +20,17 @@ load_dotenv()
 
 logger = logging.getLogger(__name__)
 
+SCOPES = [
+    "https://www.googleapis.com/auth/spreadsheets",
+    "https://www.googleapis.com/auth/drive",
+]
+
 
 class SheetsClient:
     """Google Sheets interface for post management and order tracking."""
 
     def __init__(self):
+        self.credentials_json = os.getenv("GOOGLE_SHEETS_CREDENTIALS_JSON", "").strip()
         self.credentials_path = os.getenv(
             "GOOGLE_SHEETS_CREDENTIALS_PATH", "./config/credentials.json"
         )
@@ -21,21 +38,24 @@ class SheetsClient:
         self.order_sheet_id = os.getenv("SHEETS_ORDER_MANAGEMENT_ID", "")
         self._client = None
 
+    def _build_credentials(self):
+        """Build service-account credentials from inline JSON or a file."""
+        from google.oauth2.service_account import Credentials
+
+        if self.credentials_json:
+            info = json.loads(self.credentials_json)
+            return Credentials.from_service_account_info(info, scopes=SCOPES)
+        return Credentials.from_service_account_file(
+            self.credentials_path, scopes=SCOPES
+        )
+
     def _get_client(self):
         """Lazy-init gspread client."""
         if self._client is None:
             try:
                 import gspread
-                from google.oauth2.service_account import Credentials
 
-                scopes = [
-                    "https://www.googleapis.com/auth/spreadsheets",
-                    "https://www.googleapis.com/auth/drive",
-                ]
-                creds = Credentials.from_service_account_file(
-                    self.credentials_path, scopes=scopes
-                )
-                self._client = gspread.authorize(creds)
+                self._client = gspread.authorize(self._build_credentials())
             except Exception as e:
                 logger.error("Failed to initialize Sheets client: %s", e)
                 raise

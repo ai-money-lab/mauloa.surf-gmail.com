@@ -203,3 +203,51 @@ class TestUpdateOrderStatus:
 
         with pytest.raises(Exception, match="Sheets error"):
             client.update_order_status("ORD-001", "delivered")
+
+
+# ---------------------------------------------------------------------------
+# Credential source tests (inline JSON vs file path)
+# ---------------------------------------------------------------------------
+
+class TestCredentialSource:
+    """GOOGLE_SHEETS_CREDENTIALS_JSON must win over the file path.
+
+    CI runners have no credentials file on disk, so the workflow passes the
+    service-account JSON inline; before this existed the workflow exported a
+    variable nothing read.
+    """
+
+    SA_JSON = '{"type": "service_account", "project_id": "p"}'
+
+    def test_inline_json_is_used_when_set(self, monkeypatch):
+        monkeypatch.setenv("GOOGLE_SHEETS_CREDENTIALS_JSON", self.SA_JSON)
+        monkeypatch.setenv("GOOGLE_SHEETS_CREDENTIALS_PATH", "/fake/creds.json")
+        creds_cls = MagicMock()
+        monkeypatch.setitem(
+            __import__("sys").modules,
+            "google.oauth2.service_account",
+            MagicMock(Credentials=creds_cls),
+        )
+
+        SheetsClient()._build_credentials()
+
+        creds_cls.from_service_account_info.assert_called_once()
+        info = creds_cls.from_service_account_info.call_args[0][0]
+        assert info["type"] == "service_account"
+        creds_cls.from_service_account_file.assert_not_called()
+
+    def test_file_path_is_used_when_json_empty(self, monkeypatch):
+        monkeypatch.setenv("GOOGLE_SHEETS_CREDENTIALS_JSON", "")
+        monkeypatch.setenv("GOOGLE_SHEETS_CREDENTIALS_PATH", "/fake/creds.json")
+        creds_cls = MagicMock()
+        monkeypatch.setitem(
+            __import__("sys").modules,
+            "google.oauth2.service_account",
+            MagicMock(Credentials=creds_cls),
+        )
+
+        SheetsClient()._build_credentials()
+
+        creds_cls.from_service_account_file.assert_called_once()
+        assert creds_cls.from_service_account_file.call_args[0][0] == "/fake/creds.json"
+        creds_cls.from_service_account_info.assert_not_called()

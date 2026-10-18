@@ -1,7 +1,6 @@
 """Tests for system_a/theme_rotator.py."""
 
 import json
-from unittest.mock import patch
 
 import pytest
 
@@ -12,8 +11,14 @@ class TestThemeRotator:
     """Test theme rotation logic."""
 
     @pytest.fixture(autouse=True)
-    def setup_temp_files(self, tmp_path):
-        """Set up temp theme DB and history files."""
+    def setup_temp_files(self, tmp_path, monkeypatch):
+        """Point the module paths at temp files for the whole test.
+
+        monkeypatch is required here, not a `with patch(...)` block inside a
+        helper: ThemeRotator writes on every record_usage() call, so a patch
+        that expires when the helper returns lets those writes land on the
+        real data/system_a/*.json and truncate production history.
+        """
         self.theme_db_path = tmp_path / "theme_db.json"
         self.history_path = tmp_path / "post_history.json"
         self.config_path = tmp_path / "config.yaml"
@@ -27,11 +32,12 @@ class TestThemeRotator:
             encoding="utf-8",
         )
 
+        monkeypatch.setattr("system_a.theme_rotator.THEME_DB_PATH", self.theme_db_path)
+        monkeypatch.setattr("system_a.theme_rotator.POST_HISTORY_PATH", self.history_path)
+        monkeypatch.setattr("system_a.theme_rotator.CONFIG_PATH", self.config_path)
+
     def _get_rotator(self):
-        with patch("system_a.theme_rotator.THEME_DB_PATH", self.theme_db_path), \
-             patch("system_a.theme_rotator.POST_HISTORY_PATH", self.history_path), \
-             patch("system_a.theme_rotator.CONFIG_PATH", self.config_path):
-            return ThemeRotator()
+        return ThemeRotator()
 
     def test_default_theme_db_has_5_pillars(self):
         assert len(DEFAULT_THEME_DB["pillars"]) == 5
@@ -78,3 +84,19 @@ class TestThemeRotator:
     def test_pillar5_has_field_experience(self):
         pillars = DEFAULT_THEME_DB["pillars"]
         assert "MATTERPORTやAIを現場で使ってみた実感" in pillars["5"]["sub_themes"]
+
+    def test_record_usage_writes_only_to_patched_path(self):
+        """record_usage must write to the patched temp file, never to data/.
+
+        Regression guard: running the suite once truncated the real
+        data/system_a/post_history.json because the path patch expired
+        before record_usage() ran.
+        """
+        from system_a import theme_rotator
+
+        rotator = self._get_rotator()
+        rotator.record_usage(1, "仲介手数料の仕組み")
+
+        assert theme_rotator.POST_HISTORY_PATH == self.history_path
+        written = json.loads(self.history_path.read_text(encoding="utf-8"))
+        assert any(r["sub_theme"] == "仲介手数料の仕組み" for r in written)

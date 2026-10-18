@@ -287,7 +287,7 @@ def main():
             violations = [v["message"] for v in fact_result.violations]
             logger.error("FACT CHECK FAILED: %s", "; ".join(violations))
             notifier.send_line(
-                f"【--text投稿ブロック】FactCheck不合格\n"
+                "【--text投稿ブロック】FactCheck不合格\n"
                 + "\n".join(f"・{v}" for v in violations)
             )
             sys.exit(1)
