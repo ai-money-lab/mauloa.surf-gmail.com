@@ -57,6 +57,15 @@ SAMPLING_PARAM_MODEL_PREFIXES = (
 
 CLI_TIMEOUT_SECONDS = int(os.getenv("CLAUDE_CLI_TIMEOUT", "300"))
 
+# Appended to generate_json() prompts on the CLI backend only.
+JSON_ONLY_SUFFIX = (
+    "\n\n---\n"
+    "【出力形式の厳守】上で指定されたJSONドキュメントだけを出力すること。\n"
+    "- 前置き・見出し・前提の確認・判断を仰ぐ文・補足説明を一切付けない\n"
+    "- ファイルやリポジトリを調べようとせず、このプロンプトの情報だけで作る\n"
+    "- 最初の文字は { で、最後の文字は } にすること\n"
+)
+
 _TRUTHY = {"1", "true", "yes", "on"}
 
 
@@ -78,6 +87,24 @@ def _strip_code_fence(text: str) -> str:
     lines = stripped.split("\n")
     kept = [line for line in lines[1:] if not line.strip().startswith("```")]
     return "\n".join(kept)
+
+
+def _extract_json_text(text: str) -> str:
+    """Pull the JSON document out of a model response.
+
+    Handles a bare document, a fenced block, and a document wrapped in
+    prose — `claude -p` in particular likes to add a preamble even when the
+    prompt says JSON only.
+    """
+    stripped = _strip_code_fence(text)
+    if stripped[:1] in ("{", "["):
+        return stripped
+    for opener, closer in (("{", "}"), ("[", "]")):
+        start = stripped.find(opener)
+        end = stripped.rfind(closer)
+        if start != -1 and end > start:
+            return stripped[start:end + 1]
+    return stripped
 
 
 class ClaudeClient:
@@ -237,6 +264,10 @@ class ClaudeClient:
         max_tokens: int = 4096,
         temperature: float = 0.3,
     ) -> dict:
-        """Generate and parse a JSON response (code fences tolerated)."""
+        """Generate and parse a JSON response (code fences/prose tolerated)."""
+        if self.use_cli:
+            # `claude -p` is an agent CLI: without this it answers with a
+            # report ("前提", "判断してほしいこと") instead of the document.
+            prompt = prompt + JSON_ONLY_SUFFIX
         raw = self.generate(prompt, system, max_tokens, temperature)
-        return json.loads(_strip_code_fence(raw))
+        return json.loads(_extract_json_text(raw))

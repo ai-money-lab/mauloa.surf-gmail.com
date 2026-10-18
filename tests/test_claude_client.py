@@ -14,6 +14,7 @@ import pytest
 
 from core.claude_client import (
     ClaudeClient,
+    _extract_json_text,
     api_billing_disabled,
     model_accepts_sampling_params,
 )
@@ -324,3 +325,66 @@ class TestSamplingParamSupport:
     ])
     def test_rejected(self, model):
         assert model_accepts_sampling_params(model) is False
+
+
+# ---------------------------------------------------------------------------
+# JSON extraction from messy model output
+# ---------------------------------------------------------------------------
+
+class TestJsonExtraction:
+    """`claude -p` adds a preamble even when told not to."""
+
+    def test_bare_json(self):
+        assert _extract_json_text('{"a": 1}') == '{"a": 1}'
+
+    def test_fenced_json(self):
+        assert json.loads(_extract_json_text('```json\n{"a": 1}\n```')) == {"a": 1}
+
+    def test_json_after_prose(self):
+        raw = '前提を確認しました。\n\n```json\n{"a": 1}\n```\n\n以上です。'
+        assert json.loads(_extract_json_text(raw)) == {"a": 1}
+
+    def test_json_array_after_prose(self):
+        assert json.loads(_extract_json_text('note:\n[1, 2, 3]\n')) == [1, 2, 3]
+
+    def test_no_json_is_returned_unchanged_for_a_clear_error(self):
+        # Keeps json.loads() raising JSONDecodeError instead of masking it.
+        assert _extract_json_text("まったくJSONではない") == "まったくJSONではない"
+
+
+class TestCliJsonPromptSuffix:
+    """generate_json must harden the prompt only on the CLI backend."""
+
+    def _cli_runner(self, monkeypatch, stdout):
+        monkeypatch.setenv("ANTHROPIC_DISABLED", "1")
+        monkeypatch.setattr(
+            "core.claude_client.shutil.which", lambda _: "/usr/bin/claude"
+        )
+        run = MagicMock(return_value=MagicMock(returncode=0, stdout=stdout, stderr=""))
+        monkeypatch.setattr("core.claude_client.subprocess.run", run)
+        return run
+
+    def test_suffix_added_on_cli(self, monkeypatch, mock_anthropic):
+        run = self._cli_runner(monkeypatch, '{"ok": true}')
+
+        assert ClaudeClient().generate_json("base prompt") == {"ok": True}
+
+        sent = run.call_args[0][0][2]
+        assert sent.startswith("base prompt")
+        assert "出力形式の厳守" in sent
+
+    def test_suffix_not_added_on_sdk(self, mock_anthropic):
+        mock_inner, _ = mock_anthropic
+        mock_inner.messages.create.return_value = _make_response('{"ok": true}')
+
+        ClaudeClient().generate_json("base prompt")
+
+        sent = mock_inner.messages.create.call_args[1]["messages"][0]["content"]
+        assert sent == "base prompt"
+
+    def test_cli_prose_wrapped_json_is_parsed(self, monkeypatch, mock_anthropic):
+        self._cli_runner(
+            monkeypatch,
+            "確認した前提:\n- なにか\n\n```json\n{\"pillar\": 2}\n```\n\n以上。",
+        )
+        assert ClaudeClient().generate_json("p") == {"pillar": 2}
