@@ -24,6 +24,40 @@ POSTED_LOG_PATH = Path(__file__).parent.parent / "data" / "system_a" / "posted_t
 
 MAX_POSTS_PER_DAY = 1
 
+TWEETS_ENDPOINT = "https://api.x.com/2/tweets"
+
+# Rate limiting. Only HTTP 429 is retried: X rejects the request before
+# creating the tweet, so a retry cannot double-post. Any other status is
+# raised immediately, because the tweet may well have been created.
+RATE_LIMIT_MAX_RETRIES = 2
+RATE_LIMIT_DEFAULT_WAIT_SECONDS = 15
+RATE_LIMIT_MAX_WAIT_SECONDS = 120
+
+
+def _rate_limit_wait_seconds(response) -> int:
+    """Seconds to wait before retrying a 429, clamped to a sane range.
+
+    Honours `retry-after` (delta seconds) and falls back to
+    `x-rate-limit-reset` (epoch seconds), which is what X actually sends.
+    """
+    headers = getattr(response, "headers", None) or {}
+    raw = headers.get("retry-after")
+    wait = None
+    if raw is not None:
+        try:
+            wait = int(float(raw))
+        except (TypeError, ValueError):
+            wait = None
+    if wait is None and headers.get("x-rate-limit-reset") is not None:
+        try:
+            reset = int(float(headers["x-rate-limit-reset"]))
+            wait = reset - int(time.time())
+        except (TypeError, ValueError):
+            wait = None
+    if wait is None:
+        wait = RATE_LIMIT_DEFAULT_WAIT_SECONDS
+    return max(1, min(wait, RATE_LIMIT_MAX_WAIT_SECONDS))
+
 
 class AutoPoster:
     """Post tweets to X automatically with safety guards."""
@@ -105,18 +139,46 @@ class AutoPoster:
             logger.error("Media upload failed: %s", e)
             return None
 
+    def _post_payload(self, payload: dict) -> dict:
+        """POST a tweet payload, retrying only on HTTP 429.
+
+        A 429 means X refused the request, so no tweet exists yet and a
+        retry is safe. Every other error is raised on the first attempt.
+        """
+        last_response = None
+        for attempt in range(RATE_LIMIT_MAX_RETRIES + 1):
+            resp = requests.post(
+                TWEETS_ENDPOINT,
+                json=payload,
+                auth=self._get_oauth1_session(),
+                timeout=15,
+            )
+            if resp.status_code != 429:
+                resp.raise_for_status()
+                return resp.json()
+
+            last_response = resp
+            if attempt == RATE_LIMIT_MAX_RETRIES:
+                break
+            wait = _rate_limit_wait_seconds(resp)
+            logger.warning(
+                "X API rate limited (429). Retry %d/%d in %ds",
+                attempt + 1, RATE_LIMIT_MAX_RETRIES, wait,
+            )
+            time.sleep(wait)
+
+        logger.error("X API still rate limited after %d retries", RATE_LIMIT_MAX_RETRIES)
+        last_response.raise_for_status()
+        raise RuntimeError("X API rate limit exhausted")  # pragma: no cover
+
     def post_tweet(self, text: str, media_id: str | None = None) -> dict:
         """Post a single tweet, optionally with an image."""
-        url = "https://api.x.com/2/tweets"
-        auth = self._get_oauth1_session()
         payload = {"text": text}
         if media_id:
             payload["media"] = {"media_ids": [media_id]}
 
         try:
-            resp = requests.post(url, json=payload, auth=auth, timeout=15)
-            resp.raise_for_status()
-            data = resp.json()
+            data = self._post_payload(payload)
             logger.info("Tweet posted: %s", data.get("data", {}).get("id"))
             return data
         except Exception as e:
@@ -140,8 +202,6 @@ class AutoPoster:
         reply_to = None
 
         for i, text in enumerate(texts):
-            url = "https://api.x.com/2/tweets"
-            auth = self._get_oauth1_session()
             payload = {"text": text}
             if reply_to:
                 payload["reply"] = {"in_reply_to_tweet_id": reply_to}
@@ -150,9 +210,7 @@ class AutoPoster:
                 payload["media"] = {"media_ids": [media_id]}
 
             try:
-                resp = requests.post(url, json=payload, auth=auth, timeout=15)
-                resp.raise_for_status()
-                data = resp.json()
+                data = self._post_payload(payload)
                 tweet_id = data.get("data", {}).get("id")
                 reply_to = tweet_id
                 results.append(data)

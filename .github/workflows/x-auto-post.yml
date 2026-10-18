@@ -31,24 +31,78 @@ on:
 permissions:
   contents: write
 
+# 1日1投稿ガードは posted_tweets.json を見るので、同時実行すると
+# 両方が「本日未投稿」と判断して二重投稿になり得る。直列化する。
+concurrency:
+  group: x-auto-post
+  cancel-in-progress: false
+
 jobs:
   post:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Setup Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
           python-version: '3.12'
           cache: 'pip'
+          cache-dependency-path: requirements-x-post.txt
 
       - name: Install dependencies
+        # 固定された依存リストから入れる。以前はここで `pip install anthropic ...`
+        # とバージョン無指定で並べていたため、anthropic 1.0 が
+        # messages.create() から temperature を削除した時点で
+        # TypeError で毎日失敗し続けた。
+        run: pip install -r requirements-x-post.txt
+
+      - name: Report configured secrets
+        # 任意Secretが未登録でも処理は続くが、どれが欠けているかは
+        # ログに出しておく。LINE 通知用の2本が欠けていた間、
+        # パイプラインの異常終了通知そのものが届いていなかった。
+        env:
+          X_API_KEY: ${{ secrets.X_API_KEY }}
+          X_API_SECRET_KEY: ${{ secrets.X_API_SECRET_KEY }}
+          X_ACCESS_TOKEN: ${{ secrets.X_ACCESS_TOKEN }}
+          X_ACCESS_TOKEN_SECRET: ${{ secrets.X_ACCESS_TOKEN_SECRET }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          TWITTERAPI_IO_KEY: ${{ secrets.TWITTERAPI_IO_KEY }}
+          LINE_CHANNEL_ACCESS_TOKEN: ${{ secrets.LINE_CHANNEL_ACCESS_TOKEN }}
+          LINE_USER_ID: ${{ secrets.LINE_USER_ID }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GOOGLE_SHEETS_CREDENTIALS_JSON: ${{ secrets.GOOGLE_SHEETS_CREDENTIALS_JSON }}
         run: |
-          pip install anthropic requests requests-oauthlib python-dotenv \
-                    pyyaml gspread google-auth beautifulsoup4 lxml pandas
+          required="X_API_KEY X_API_SECRET_KEY X_ACCESS_TOKEN X_ACCESS_TOKEN_SECRET ANTHROPIC_API_KEY"
+          optional="TWITTERAPI_IO_KEY LINE_CHANNEL_ACCESS_TOKEN LINE_USER_ID GEMINI_API_KEY GOOGLE_SHEETS_CREDENTIALS_JSON"
+          missing_required=""
+          {
+            echo "### Secrets"
+            echo ""
+            echo "| name | kind | set |"
+            echo "|---|---|---|"
+          } >> "$GITHUB_STEP_SUMMARY"
+          for name in $required; do
+            if [ -n "${!name:-}" ]; then
+              echo "| $name | required | yes |" >> "$GITHUB_STEP_SUMMARY"
+            else
+              echo "| $name | required | **NO** |" >> "$GITHUB_STEP_SUMMARY"
+              missing_required="$missing_required $name"
+            fi
+          done
+          for name in $optional; do
+            if [ -n "${!name:-}" ]; then
+              echo "| $name | optional | yes |" >> "$GITHUB_STEP_SUMMARY"
+            else
+              echo "| $name | optional | no (feature skipped) |" >> "$GITHUB_STEP_SUMMARY"
+            fi
+          done
+          if [ -n "$missing_required" ]; then
+            echo "::error::Missing required secrets:$missing_required"
+            exit 1
+          fi
 
       - name: Generate and Post
         env:
@@ -63,21 +117,54 @@ jobs:
           LINE_USER_ID: ${{ secrets.LINE_USER_ID }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           GOOGLE_SHEETS_CREDENTIALS_JSON: ${{ secrets.GOOGLE_SHEETS_CREDENTIALS_JSON }}
+          # 1 を入れると課金のある Anthropic API を使わず `claude -p` に回す。
+          # Runner に claude CLI は入っていないので、1 にするとこのジョブは
+          # 止まる（= 意図的な停止）。課金を切る判断用のスイッチ。
+          ANTHROPIC_DISABLED: ${{ vars.ANTHROPIC_DISABLED }}
+          # 式展開を run の中に直接書かず env 経由で渡す（コマンド注入対策）
+          INPUT_DRY_RUN: ${{ inputs.dry_run }}
+          INPUT_PILLAR: ${{ inputs.pillar }}
         run: |
+          set -euo pipefail
           ARGS=""
-          if [ "${{ inputs.dry_run }}" = "true" ]; then
+          if [ "${INPUT_DRY_RUN:-}" = "true" ]; then
             ARGS="$ARGS --dry-run"
           fi
-          if [ -n "${{ inputs.pillar }}" ]; then
-            ARGS="$ARGS --pillar ${{ inputs.pillar }}"
+          if [ -n "${INPUT_PILLAR:-}" ]; then
+            ARGS="$ARGS --pillar ${INPUT_PILLAR}"
           fi
           PYTHONPATH=. python -m system_a.generate_and_post $ARGS
 
       - name: Commit data updates
         if: success()
         run: |
+          set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add -f data/
-          git diff --cached --quiet || git commit -m "auto: X post data update $(date -u +%Y-%m-%dT%H:%M:%SZ)"
-          git push
+          if git diff --cached --quiet; then
+            echo "No data changes to commit."
+            exit 0
+          fi
+          git commit -m "auto: X post data update $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          # 別の run が先に push していると push は弾かれる。rebase して再試行。
+          for attempt in 1 2 3; do
+            if git push; then
+              exit 0
+            fi
+            echo "push failed (attempt $attempt), rebasing on origin/$GITHUB_REF_NAME"
+            git pull --rebase --autostash origin "$GITHUB_REF_NAME"
+          done
+          echo "::error::Failed to push data updates after 3 attempts"
+          exit 1
+
+      - name: Explain failure
+        if: failure()
+        run: |
+          {
+            echo "### X Auto Post failed"
+            echo ""
+            echo "ログの Traceback を確認してください。"
+            echo "LINE 通知が届かない場合は LINE_CHANNEL_ACCESS_TOKEN と"
+            echo "LINE_USER_ID が未登録です（上の Secrets 表を参照）。"
+          } >> "$GITHUB_STEP_SUMMARY"
