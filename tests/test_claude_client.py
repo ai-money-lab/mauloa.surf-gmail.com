@@ -8,12 +8,14 @@ Covers:
 """
 
 import json
+import subprocess
 from unittest.mock import patch, MagicMock
 
 import pytest
 
 from core.claude_client import (
     ClaudeClient,
+    DEFAULT_CLI_SYSTEM_PROMPT,
     _extract_json_text,
     api_billing_disabled,
     model_accepts_sampling_params,
@@ -250,7 +252,13 @@ class TestBackendSelection:
         mock_inner.messages.create.assert_not_called()
         argv = run.call_args[0][0]
         assert argv[:3] == ["/usr/bin/claude", "-p", "test prompt"]
-        assert "--strict-mcp-config" in argv
+        # claude -p must be stripped down to a text-generation endpoint
+        for flag in ("--strict-mcp-config", "--restricted", "--tools"):
+            assert flag in argv
+        assert argv[argv.index("--tools") + 1] == ""
+        assert argv[argv.index("--system-prompt") + 1] == DEFAULT_CLI_SYSTEM_PROMPT
+        # stdin must be closed or the CLI waits 3s for piped input each call
+        assert run.call_args[1]["stdin"] is subprocess.DEVNULL
 
     def test_cli_system_prompt_is_passed(self, monkeypatch, mock_anthropic):
         monkeypatch.setenv("ANTHROPIC_DISABLED", "1")

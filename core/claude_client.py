@@ -57,6 +57,16 @@ SAMPLING_PARAM_MODEL_PREFIXES = (
 
 CLI_TIMEOUT_SECONDS = int(os.getenv("CLAUDE_CLI_TIMEOUT", "300"))
 
+# Replaces Claude Code's own system prompt on the CLI backend when the
+# caller does not pass one, so the coding-agent persona stays out of the
+# generated text.
+DEFAULT_CLI_SYSTEM_PROMPT = (
+    "You are a text generation endpoint. Follow the user's instructions "
+    "exactly and output only what they ask for — no preamble, no commentary, "
+    "no questions back, no suggestions. Never substitute your own topic for "
+    "the one you were given. Do not inspect files or the repository."
+)
+
 # Appended to generate_json() prompts on the CLI backend only.
 JSON_ONLY_SUFFIX = (
     "\n\n---\n"
@@ -135,9 +145,16 @@ class ClaudeClient:
     def _run_cli(self, prompt: str, system: str = "") -> str:
         """Generate via `claude -p`. No Anthropic API billing.
 
-        `--tools ""` and `--strict-mcp-config` keep the child process from
-        running a full agent loop (tools + MCP servers) for what is a
-        single-shot text generation.
+        `claude -p` is a coding-agent CLI, so it has to be stripped down to
+        behave like a text-generation endpoint:
+
+        - `--tools ""` / `--strict-mcp-config`: no tools, no MCP servers
+        - `--restricted`: also ignores user/project/local settings, so the
+          repository's CLAUDE.md does not steer the output
+        - `--system-prompt`: *replaces* Claude Code's own system prompt. Left
+          out, the agent persona leaks in — an observed run answered a
+          "JSONのみ出力" prompt with a report and generated a different
+          theme than the one it was given.
         """
         argv = [
             self._cli_path, "-p", prompt,
@@ -145,13 +162,16 @@ class ClaudeClient:
             "--model", self.model,
             "--tools", "",
             "--strict-mcp-config",
+            "--restricted",
+            "--system-prompt", system or DEFAULT_CLI_SYSTEM_PROMPT,
         ]
-        if system:
-            argv += ["--system-prompt", system]
 
         try:
             proc = subprocess.run(
                 argv,
+                # Without this the CLI waits 3s for piped stdin on every call
+                # and prints a warning before proceeding.
+                stdin=subprocess.DEVNULL,
                 capture_output=True,
                 text=True,
                 encoding="utf-8",
